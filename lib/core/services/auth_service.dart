@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../routes/app_routes.dart';
+
+class AuthService extends GetxService {
+  final RxBool _loggedIn = false.obs;
+
+  bool get isLoggedIn => _loggedIn.value;
+
+  void setLoggedIn(bool v) => _loggedIn.value = v;
+
+  Future<bool> ensureLoggedIn() async {
+    if (isLoggedIn) return true;
+
+    final ok = await Get.dialog<bool>(_LoginDialog(), barrierDismissible: true);
+    if (ok == true) {
+      Get.toNamed(AppRoutes.loginView);
+      return false;
+    }
+    return false;
+  }
+}
+
+class _LoginDialog extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Login required'.tr),
+      content: Text('You need to login to use wishlist'.tr),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(result: false),
+          child: Text('Cancel'.tr),
+        ),
+        ElevatedButton(
+          onPressed: () => Get.back(result: true),
+          child: Text('Login'.tr),
+        ),
+      ],
+    );
+  }
+}
