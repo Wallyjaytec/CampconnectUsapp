@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
+import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
+import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
+import 'package:kartly_e_commerce/core/services/currency_service.dart';
+import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
+import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
+
+import 'app.dart';
+import 'core/config/app_config.dart';
+import 'core/services/api_service.dart';
+import 'core/services/language_service.dart';
+import 'core/services/network_service.dart';
+import 'data/repositories/cart_repository.dart';
+import 'data/repositories/category_repository.dart';
+import 'data/repositories/product_repository.dart';
+import 'modules/account/controller/notifications_controller.dart';
+import 'modules/category/controller/category_controller.dart';
+import 'modules/product/controller/cart_controller.dart';
+import 'modules/product/controller/new_product_list_controller.dart';
+
+Future<void> initServices() async {
+  await Get.putAsync<NetworkService>(() async => NetworkService().init());
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initServices();
+  await GetStorage.init();
+  Get.put(ThemeController(), permanent: true);
+  Get.put(
+    LanguageController(SiteSettingsPropertiesRepository(ApiService())),
+    permanent: true,
+  );
+  final siteRepo = SiteSettingsPropertiesRepository(ApiService());
+
+  final currencyService = CurrencyService(siteRepo);
+
+  Get.put<CurrencyService>(currencyService, permanent: true);
+
+  Get.put<CurrencyController>(
+    CurrencyController(siteRepo, currencyService),
+    permanent: true,
+  );
+  Get.put<NotificationController>(NotificationController(), permanent: true);
+
+  Get.put(CategoryController(CategoryRepository(ApiService())));
+
+  Get.put<NewProductListController>(
+    NewProductListController(ProductRepository(ApiService())),
+    permanent: true,
+  );
+
+  Get.put(CartRepository(ApiService()), permanent: true);
+
+  Get.put<CartController>(
+    CartController(CartRepository(ApiService())),
+    permanent: true,
+  );
+  Get.put(AuthController(), permanent: true);
+
+  final box = GetStorage();
+  final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
+
+  await LanguageService.load(savedApiCode);
+
+  runApp(MyApp(initialLocaleCode: savedApiCode));
+}

@@ -1,0 +1,37 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:get/get.dart';
+
+import 'core/bindings/initial_bindings.dart';
+import 'core/config/app_scroll_behavior.dart';
+import 'core/routes/app_pages.dart';
+import 'core/routes/app_routes.dart';
+import 'core/theme/app_theme.dart';
+import 'core/utils/locale_mapper.dart';
+
+class MyApp extends StatelessWidget {
+  final String initialLocaleCode;
+  const MyApp({super.key, required this.initialLocaleCode});
+
+  @override
+  Widget build(BuildContext context) {
+    final initialLocale = LocaleMapper.fromApiCode(initialLocaleCode);
+
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      scrollBehavior: AppScrollBehavior(),
+      useInheritedMediaQuery: true,
+      locale: initialLocale,
+      fallbackLocale: const Locale('en'),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('en'), Locale('bn'), Locale('ar', 'SA')],
+      onGenerateTitle: (_) => 'app_title'.tr,
+      theme: AppTheme.lightFor(initialLocale),
+      darkTheme: AppTheme.darkFor(initialLocale),
+      themeMode: ThemeMode.system,
+      initialBinding: InitialBindings(),
+      initialRoute: AppRoutes.splashView,
+      getPages: AppPages.pages,
+    );
+  }
+}
