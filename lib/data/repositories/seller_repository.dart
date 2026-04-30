@@ -94,3 +94,31 @@ class SellerRepository {
     return ShopReviewsResponse.fromJson(res);
   }
 }
+  // ... existing methods stay ...
+
+  Future<Map<String, dynamic>> registerSeller({
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+    required String phone,
+    required String shopName,
+    required String shopUrl,
+    required String shopPhone,
+  }) async {
+    final url = '${AppConfig.baseUrl}/api/v1/multivendor/seller-registration';
+
+    final fields = {
+      'name': name,
+      'email': email,
+      'password': password,
+      'password_confirmation': passwordConfirmation,
+      'phone': phone,
+      'shop_name': shopName,
+      'shop_url': shopUrl,
+      'shop_phone': shopPhone,
+    };
+
+    return await api.postMultipart(url, fields: fields);
+  }
+}
