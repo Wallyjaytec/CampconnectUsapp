@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/modules/account/view/my_order_details_view.dar
 import 'package:kartly_e_commerce/modules/account/view/my_order_list_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_wallet_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/privacy_policy_view.dart';
+import 'package:kartly_e_commerce/modules/account/view/seller_register_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_checkout_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_order_summary_view.dart';
@@ -152,7 +153,6 @@ class AppPages {
         );
       },
     ),
-
     GetPage(name: AppRoutes.sellerView, page: () => const SellerView()),
     GetPage(
       name: AppRoutes.refundRequestListView,
@@ -204,5 +204,9 @@ class AppPages {
         return RefundRequestDetailsView(refundId: id);
       },
     ),
+    GetPage(
+      name: AppRoutes.sellerRegisterView,
+      page: () => const SellerRegisterView(),
+    ),
   ];
-}
+} 
