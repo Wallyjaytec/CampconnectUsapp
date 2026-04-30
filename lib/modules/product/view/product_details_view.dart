@@ -368,6 +368,7 @@ class _Gallery extends StatelessWidget {
               ),
             ),
 
+          // ========== WISHLIST + COMPARE + SHARE BUTTONS ==========
           Positioned(
             top: 10,
             right: 10,
@@ -379,7 +380,7 @@ class _Gallery extends StatelessWidget {
                   final isIn = (pid > 0) ? wish.isInWishlist(pid) : false;
                   return _CircleIconButton(
                     icon: isIn ? Iconsax.heart : Iconsax.heart_copy,
-                    color: isIn ? AppColors.favColor : AppColors.whiteColor,
+                    color: Colors.white, // FIXED: always white so visible on orange
                     onTap: () {
                       if (pid <= 0) return;
                       wish.toggle(toPm());
