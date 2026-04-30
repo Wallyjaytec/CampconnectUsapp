@@ -218,17 +218,10 @@ class AuthController extends GetxController {
       if (Get.context == null) return;
 
       if (res.success) {
-        // FIXED: Check if email verification is required
-        final isVerified = (res.customer?.status ?? 0) != 0;
-
-        if (isVerified) {
-          _showSnackbar('Success'.tr, 'Registration successful'.tr);
-        } else {
-          _showSnackbar(
-            'Registration successful'.tr,
-            'Please check your email to verify your account before logging in'.tr,
-          );
-        }
+        _showSnackbar(
+          'Registration successful'.tr,
+          'Please check your email to verify your account before logging in'.tr,
+        );
         Get.offAllNamed(AppRoutes.loginView);
       } else {
         _showSnackbar('Failed'.tr, 'Registration failed'.tr);
@@ -277,7 +270,18 @@ class AuthController extends GetxController {
       if (Get.context == null) return;
 
       if (!loginRes.success) {
-        _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
+        final msg = loginRes.message ?? '';
+        if (msg.toLowerCase().contains('inactive') ||
+            msg.toLowerCase().contains('verify') ||
+            msg.toLowerCase().contains('not verified') ||
+            msg.toLowerCase().contains('not active')) {
+          _showSnackbar(
+            'Account not verified'.tr,
+            'Please check your email to verify your account before logging in'.tr,
+          );
+        } else {
+          _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
+        }
         return;
       }
 
