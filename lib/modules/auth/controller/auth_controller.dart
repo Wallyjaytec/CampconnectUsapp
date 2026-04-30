@@ -218,7 +218,17 @@ class AuthController extends GetxController {
       if (Get.context == null) return;
 
       if (res.success) {
-        _showSnackbar('Success'.tr, 'Registration successful'.tr);
+        // FIXED: Check if email verification is required
+        final isVerified = (res.customer?.status ?? 0) != 0;
+
+        if (isVerified) {
+          _showSnackbar('Success'.tr, 'Registration successful'.tr);
+        } else {
+          _showSnackbar(
+            'Registration successful'.tr,
+            'Please check your email to verify your account before logging in'.tr,
+          );
+        }
         Get.offAllNamed(AppRoutes.loginView);
       } else {
         _showSnackbar('Failed'.tr, 'Registration failed'.tr);
