@@ -200,7 +200,13 @@ class AccountView extends StatelessWidget {
                           Get.toNamed(AppRoutes.termsConditionsView);
                         },
                       ),
-
+                      _menuItem(
+                        Iconsax.shop_add_copy,
+                        "Become a Seller".tr,
+                        () {
+                          Get.toNamed(AppRoutes.sellerRegisterView);
+                        },
+                      ),
                       LoginService().isLoggedIn()
                           ? _menuItem(
                               Iconsax.logout_1_copy,
@@ -372,4 +378,4 @@ class _HeaderTexts extends StatelessWidget {
       ],
     );
   }
-}
+} 
