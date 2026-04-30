@@ -8,9 +8,9 @@ class SellerRegisterView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Become a Seller'),
+        title: const Text('Become a Seller'),
       ),
-      body: const WebView(
+      body: WebView(
         initialUrl: 'https://campconnectus.store/seller/register',
         javascriptMode: JavascriptMode.unrestricted,
       ),
