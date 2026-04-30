@@ -6,7 +6,7 @@ class AppColors {
   static const lightBlueColor = Color(0xFFFFB347);  // Lighter orange
   static const whiteColor = Color(0xFFFFFFFF);
   static const blackColor = Color(0xFF000000);
-  static const favColor = Color(0xFFFFFFFF);       // White - visible on orange
+  static const favColor = Color(0xFF000000);       // Black
   static const redColor = Colors.red;
   static const transparentColor = Colors.transparent;
   static const greyColor = Colors.grey;
