@@ -93,8 +93,6 @@ class SellerRepository {
 
     return ShopReviewsResponse.fromJson(res);
   }
-}
-  // ... existing methods stay ...
 
   Future<Map<String, dynamic>> registerSeller({
     required String name,
