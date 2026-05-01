@@ -82,7 +82,18 @@ class AllCategoriesView extends StatelessWidget {
                       final selected = index == sel;
 
                       return InkWell(
-                        onTap: () => controller.selectCategory(index),
+                        onTap: () {
+                          controller.selectCategory(index);
+                          if (cat.subcategories.isEmpty) {
+                            Get.to(
+                              () => const NewProductListView(),
+                              arguments: {
+                                'categoryId': cat.id,
+                                'categoryName': cat.name,
+                              },
+                            );
+                          }
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,
@@ -146,7 +157,31 @@ class AllCategoriesView extends StatelessWidget {
                     final subs = cat.subcategories;
 
                     if (subs.isEmpty) {
-                      return Center(child: Text('No subcategories'.tr));
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('No subcategories'.tr),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                Get.to(
+                                  () => const NewProductListView(),
+                                  arguments: {
+                                    'categoryId': cat.id,
+                                    'categoryName': cat.name,
+                                  },
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text('View Products'.tr),
+                            ),
+                          ],
+                        ),
+                      );
                     }
 
                     return ListView.separated(
