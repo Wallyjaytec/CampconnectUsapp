@@ -46,10 +46,7 @@ class AuthController extends GetxController {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.whiteColor,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.whiteColor),
             ),
             Text(message, style: const TextStyle(color: AppColors.whiteColor)),
           ],
@@ -67,26 +64,16 @@ class AuthController extends GetxController {
   }
 
   void _applyFieldErrors(Map<String, dynamic> errors) {
-    String firstMsg(dynamic v) =>
-        (v is List && v.isNotEmpty) ? v.first.toString() : '';
-
+    String firstMsg(dynamic v) => (v is List && v.isNotEmpty) ? v.first.toString() : '';
     nameError.value = firstMsg(errors['name']);
     emailError.value = firstMsg(errors['email']);
     phoneError.value = firstMsg(errors['phone']);
     passwordError.value = firstMsg(errors['password']);
-    confirmPasswordError.value = firstMsg(
-      errors['password_confirmation'] ?? errors['confirm_password'],
-    );
+    confirmPasswordError.value = firstMsg(errors['password_confirmation'] ?? errors['confirm_password']);
   }
 
   String _buildValidationMessage(Map<String, dynamic> errors) {
-    const order = [
-      'name',
-      'email',
-      'phone',
-      'password',
-      'password_confirmation',
-    ];
+    const order = ['name', 'email', 'phone', 'password', 'password_confirmation'];
     final lines = <String>[];
     for (final k in order) {
       final v = errors[k];
@@ -97,17 +84,12 @@ class AuthController extends GetxController {
         lines.add(v.first.toString());
       }
     });
-    return lines.isEmpty
-        ? '${'Validation failed'.tr}. ${'Please check your inputs'.tr}.'
-        : lines.join('\n');
+    return lines.isEmpty ? '${'Validation failed'.tr}. ${'Please check your inputs'.tr}.' : lines.join('\n');
   }
 
   String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
 
-  String _deriveLocalPhone({
-    required String international,
-    required String code,
-  }) {
+  String _deriveLocalPhone({required String international, required String code}) {
     var p = international;
     if (code.isNotEmpty && p.startsWith(code)) {
       p = p.substring(code.length);
@@ -115,11 +97,7 @@ class AuthController extends GetxController {
     return _digitsOnly(p);
   }
 
-  void setPhoneFromPicker({
-    required String code,
-    required String iso,
-    required String international,
-  }) {
+  void setPhoneFromPicker({required String code, required String iso, required String international}) {
     Future.microtask(() {
       dialCode.value = code;
       isoCode.value = iso;
@@ -131,10 +109,7 @@ class AuthController extends GetxController {
     try {
       if (e is ApiHttpException) {
         final map = json.decode(e.body) as Map<String, dynamic>;
-        final errors = map['errors'] is Map<String, dynamic>
-            ? map['errors'] as Map<String, dynamic>
-            : const <String, dynamic>{};
-
+        final errors = map['errors'] is Map<String, dynamic> ? map['errors'] as Map<String, dynamic> : const <String, dynamic>{};
         if (errors.isNotEmpty) {
           _applyFieldErrors(errors);
           _showSnackbar('Validation'.tr, _buildValidationMessage(errors));
@@ -154,9 +129,7 @@ class AuthController extends GetxController {
       _showSnackbar('Terms'.tr, 'You must accept the terms and conditions'.tr);
       return;
     }
-
     clearFieldErrors();
-
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final pass = passwordController.text;
@@ -166,62 +139,25 @@ class AuthController extends GetxController {
     final phone = _deriveLocalPhone(international: intl, code: code);
 
     bool hasError = false;
-
-    if (name.isEmpty) {
-      nameError.value = 'Name is required'.tr;
-      hasError = true;
-    }
-    if (email.isEmpty) {
-      emailError.value = 'Email is required'.tr;
-      hasError = true;
-    } else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
-      emailError.value = 'Please enter a valid email'.tr;
-      hasError = true;
-    }
-    if (code.isEmpty || phone.isEmpty) {
-      phoneError.value = 'Phone is required'.tr;
-      hasError = true;
-    }
-    if (pass.length < 6) {
-      passwordError.value = 'Password is too short'.tr;
-      hasError = true;
-    }
-    if (cpass.isEmpty) {
-      confirmPasswordError.value = 'Confirm password is required'.tr;
-      hasError = true;
-    } else if (pass != cpass) {
-      confirmPasswordError.value = 'Passwords do not match'.tr;
-      hasError = true;
-    }
+    if (name.isEmpty) { nameError.value = 'Name is required'.tr; hasError = true; }
+    if (email.isEmpty) { emailError.value = 'Email is required'.tr; hasError = true; }
+    else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) { emailError.value = 'Please enter a valid email'.tr; hasError = true; }
+    if (code.isEmpty || phone.isEmpty) { phoneError.value = 'Phone is required'.tr; hasError = true; }
+    if (pass.length < 6) { passwordError.value = 'Password is too short'.tr; hasError = true; }
+    if (cpass.isEmpty) { confirmPasswordError.value = 'Confirm password is required'.tr; hasError = true; }
+    else if (pass != cpass) { confirmPasswordError.value = 'Passwords do not match'.tr; hasError = true; }
 
     if (hasError) {
-      _showSnackbar(
-        'Validation'.tr,
-        'Please correct the highlighted fields'.tr,
-      );
+      _showSnackbar('Validation'.tr, 'Please correct the highlighted fields'.tr);
       return;
     }
 
     try {
       isLoading.value = true;
-
-      final res = await _repo.registerCustomer(
-        name: name,
-        email: email,
-        phoneCode: code,
-        phone: phone,
-        phoneWithCode: intl,
-        password: pass,
-        passwordConfirmation: cpass,
-      );
-
+      final res = await _repo.registerCustomer(name: name, email: email, phoneCode: code, phone: phone, phoneWithCode: intl, password: pass, passwordConfirmation: cpass);
       if (Get.context == null) return;
-
       if (res.success) {
-        _showSnackbar(
-          'Registration successful'.tr,
-          'Please check your email to verify your account before logging in'.tr,
-        );
+        _showSnackbar('Registration successful'.tr, 'Please check your email to verify your account before logging in'.tr);
         Get.offAllNamed(AppRoutes.loginView);
       } else {
         _showSnackbar('Failed'.tr, 'Registration failed'.tr);
@@ -236,71 +172,39 @@ class AuthController extends GetxController {
 
   Future<void> login() async {
     clearFieldErrors();
-
     final email = emailController.text.trim();
     final pass = passwordController.text;
 
     bool hasError = false;
-
-    if (email.isEmpty) {
-      emailError.value = 'Email is required'.tr;
-      hasError = true;
-    } else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
-      emailError.value = 'Please enter a valid email'.tr;
-      hasError = true;
-    }
-    if (pass.isEmpty) {
-      passwordError.value = 'Password is required'.tr;
-      hasError = true;
-    }
+    if (email.isEmpty) { emailError.value = 'Email is required'.tr; hasError = true; }
+    else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) { emailError.value = 'Please enter a valid email'.tr; hasError = true; }
+    if (pass.isEmpty) { passwordError.value = 'Password is required'.tr; hasError = true; }
 
     if (hasError) {
-      _showSnackbar(
-        'Validation'.tr,
-        'Please correct the highlighted fields'.tr,
-      );
+      _showSnackbar('Validation'.tr, 'Please correct the highlighted fields'.tr);
       return;
     }
 
     try {
       isLoading.value = true;
-
       final loginRes = await _repo.loginCustomer(email: email, password: pass);
-
       if (Get.context == null) return;
 
       if (!loginRes.success) {
-        final msg = loginRes.message ?? '';
-        if (msg.toLowerCase().contains('inactive') ||
-            msg.toLowerCase().contains('verify') ||
-            msg.toLowerCase().contains('not verified') ||
-            msg.toLowerCase().contains('not active')) {
-          _showSnackbar(
-            'Account not verified'.tr,
-            'Please check your email to verify your account before logging in'.tr,
-          );
-        } else {
-          _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
-        }
+        _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
         return;
       }
 
       storage.saveLogin(true, remember: isRemember.value);
-
       final token = loginRes.accessToken ?? '';
       if (token.isNotEmpty) {
         storage.saveToken(token, tokenType: loginRes.tokenType ?? 'bearer');
       }
-
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
-
       _showSnackbar('Success'.tr, 'Login successful'.tr);
 
-      final redirect = Get.arguments is Map
-          ? (Get.arguments['redirect'] as String?)
-          : null;
-
+      final redirect = Get.arguments is Map ? (Get.arguments['redirect'] as String?) : null;
       if (redirect != null && redirect.isNotEmpty) {
         Get.offAllNamed(redirect);
       } else {
@@ -328,16 +232,10 @@ class AuthController extends GetxController {
   Future<void> sendResetEmail() async {
     try {
       isLoading.value = true;
-
       final res = await _repo.sendEmailResetLink();
-
       if (Get.context == null) return;
-
       if (res.success) {
-        _showSnackbar(
-          'Success'.tr,
-          res.message ?? 'Reset email has been sent to your email address'.tr,
-        );
+        _showSnackbar('Success'.tr, res.message ?? 'Reset email has been sent to your email address'.tr);
       } else {
         _showSnackbar('Failed'.tr, 'Could not send reset email'.tr);
       }
