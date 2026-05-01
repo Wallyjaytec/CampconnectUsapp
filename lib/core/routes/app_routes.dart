@@ -3,7 +3,6 @@ class AppRoutes {
   static const splashView = '/';
   static const bottomNavbarView = '/bottom_navbar_view';
   static const sellerBottomNavbar = '/seller_bottom_navbar_view';
-  static const sellerLoginView = '/seller_login_view';
   static const searchView = '/search_view';
   static const allCategoriesView = '/all_categories_view';
   static const newProductListView = '/new_product_list_view';
@@ -38,5 +37,4 @@ class AppRoutes {
   static const privacyPolicyView = '/privacy_policy_view';
   static const termsConditionsView = '/terms_conditions_view';
   static const refundRequestDetailsView = '/refund_request_details_view';
-  static const sellerRegisterView = '/seller_register_view';
 }
