@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
 import 'package:kartly_e_commerce/modules/brand/controller/brand_controller.dart';
+import 'package:kartly_e_commerce/modules/brand/view/all_brands_view.dart';
 import 'package:kartly_e_commerce/modules/brand/view/brand_view.dart';
 import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
@@ -214,7 +215,14 @@ class _HomeViewState extends State<HomeView> {
                   SliverToBoxAdapter(
                     child: BrandView(
                       onViewAll: () {
-                        Get.toNamed(AppRoutes.allCategoriesView);
+                        Get.to(() => AllBrandsView(
+                          onTapBrand: (brand) {
+                            Get.back();
+                            final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                            c.openForBrand(brandId: brand.id, brandName: brand.name);
+                            Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                          },
+                        ));
                       },
                       onTapBrand: (brand) {
                         final c = Get.put(NewProductListController(ProductRepository(ApiService())));
