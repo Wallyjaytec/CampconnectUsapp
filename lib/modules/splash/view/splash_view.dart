@@ -14,13 +14,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _controller = AnimationController(
       vsync: this,
@@ -36,12 +37,26 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      Get.offNamed(AppRoutes.bottomNavbarView);
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Show splash when app comes back from background
+      _controller.reset();
+      _controller.forward();
+      Timer(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
