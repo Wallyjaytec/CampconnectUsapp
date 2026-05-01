@@ -19,6 +19,9 @@ class LoginService {
   static const _kLoginUser = 'login_user';
   static const _kDashboardContent = 'dashboard_content';
 
+  static const _keySellerApplied = 'seller_applied';
+  static const _keySellerApproved = 'seller_approved';
+
   final _storage = GetStorage();
 
   void saveLogin(bool status, {bool remember = false}) {
@@ -94,6 +97,12 @@ class LoginService {
     }
     return null;
   }
+
+  void saveSellerApplied(bool v) => _storage.write(_keySellerApplied, v);
+  bool isSellerApplied() => _storage.read(_keySellerApplied) ?? false;
+
+  void saveSellerApproved(bool v) => _storage.write(_keySellerApproved, v);
+  bool isSellerApproved() => _storage.read(_keySellerApproved) ?? false;
 
   void logout() {
     _storage.remove(_kIsLoggedIn);
