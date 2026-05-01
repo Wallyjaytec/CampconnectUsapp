@@ -5,6 +5,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
+import 'package:kartly_e_commerce/modules/brand/view/brand_view.dart';
 import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
@@ -256,6 +257,7 @@ class _HomeViewState extends State<HomeView> {
                       },
                     ),
                   ),
+                  const SliverToBoxAdapter(child: BrandView()),
                   const SliverToBoxAdapter(child: FlashDealsSection()),
                   SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
                   const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
