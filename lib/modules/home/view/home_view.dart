@@ -213,8 +213,14 @@ class _HomeViewState extends State<HomeView> {
                   ),
                   SliverToBoxAdapter(
                     child: BrandView(
-                      onViewAll: () {},
-                      onTapBrand: (brand) {},
+                      onViewAll: () {
+                        Get.toNamed(AppRoutes.allCategoriesView);
+                      },
+                      onTapBrand: (brand) {
+                        final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                        c.openForBrand(brandId: brand.id, brandName: brand.name);
+                        Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                      },
                     ),
                   ),
                   const SliverToBoxAdapter(child: FlashDealsSection()),
