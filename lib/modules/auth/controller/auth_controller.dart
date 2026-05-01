@@ -1,0 +1,357 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+
+import '../../../core/routes/app_routes.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/services/login_service.dart';
+import '../../../core/utils/follow_store.dart';
+import '../../../data/repositories/auth_repository.dart';
+
+class AuthController extends GetxController {
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  final RxString dialCode = ''.obs;
+  final RxString isoCode = ''.obs;
+  final RxString completePhone = ''.obs;
+
+  final isRemember = false.obs;
+  final isLoading = false.obs;
+
+  final nameError = ''.obs;
+  final emailError = ''.obs;
+  final phoneError = ''.obs;
+  final passwordError = ''.obs;
+  final confirmPasswordError = ''.obs;
+
+  final storage = LoginService();
+  final _repo = AuthRepository();
+
+  void _showSnackbar(String title, String message) {
+    final context = Get.context;
+    if (context == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.whiteColor,
+              ),
+            ),
+            Text(message, style: const TextStyle(color: AppColors.whiteColor)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void clearFieldErrors() {
+    nameError.value = '';
+    emailError.value = '';
+    phoneError.value = '';
+    passwordError.value = '';
+    confirmPasswordError.value = '';
+  }
+
+  void _applyFieldErrors(Map<String, dynamic> errors) {
+    String firstMsg(dynamic v) =>
+        (v is List && v.isNotEmpty) ? v.first.toString() : '';
+
+    nameError.value = firstMsg(errors['name']);
+    emailError.value = firstMsg(errors['email']);
+    phoneError.value = firstMsg(errors['phone']);
+    passwordError.value = firstMsg(errors['password']);
+    confirmPasswordError.value = firstMsg(
+      errors['password_confirmation'] ?? errors['confirm_password'],
+    );
+  }
+
+  String _buildValidationMessage(Map<String, dynamic> errors) {
+    const order = [
+      'name',
+      'email',
+      'phone',
+      'password',
+      'password_confirmation',
+    ];
+    final lines = <String>[];
+    for (final k in order) {
+      final v = errors[k];
+      if (v is List && v.isNotEmpty) lines.add(v.first.toString());
+    }
+    errors.forEach((k, v) {
+      if (!order.contains(k) && v is List && v.isNotEmpty) {
+        lines.add(v.first.toString());
+      }
+    });
+    return lines.isEmpty
+        ? '${'Validation failed'.tr}. ${'Please check your inputs'.tr}.'
+        : lines.join('\n');
+  }
+
+  String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+
+  String _deriveLocalPhone({
+    required String international,
+    required String code,
+  }) {
+    var p = international;
+    if (code.isNotEmpty && p.startsWith(code)) {
+      p = p.substring(code.length);
+    }
+    return _digitsOnly(p);
+  }
+
+  void setPhoneFromPicker({
+    required String code,
+    required String iso,
+    required String international,
+  }) {
+    Future.microtask(() {
+      dialCode.value = code;
+      isoCode.value = iso;
+      completePhone.value = international.replaceAll(' ', '');
+    });
+  }
+
+  void _handleApiException(Object e, {String? fallbackMessage}) {
+    try {
+      if (e is ApiHttpException) {
+        final map = json.decode(e.body) as Map<String, dynamic>;
+        final errors = map['errors'] is Map<String, dynamic>
+            ? map['errors'] as Map<String, dynamic>
+            : const <String, dynamic>{};
+
+        if (errors.isNotEmpty) {
+          _applyFieldErrors(errors);
+          _showSnackbar('Validation'.tr, _buildValidationMessage(errors));
+        } else {
+          _showSnackbar('Failed'.tr, fallbackMessage ?? 'Request failed'.tr);
+        }
+      } else {
+        _showSnackbar('Failed'.tr, 'Something went wrong'.tr);
+      }
+    } catch (_) {
+      _showSnackbar('Failed'.tr, 'Something went wrong'.tr);
+    }
+  }
+
+  Future<void> register() async {
+    if (!isRemember.value) {
+      _showSnackbar('Terms'.tr, 'You must accept the terms and conditions'.tr);
+      return;
+    }
+
+    clearFieldErrors();
+
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final pass = passwordController.text;
+    final cpass = confirmPasswordController.text;
+    final code = dialCode.value.trim();
+    final intl = completePhone.value.trim();
+    final phone = _deriveLocalPhone(international: intl, code: code);
+
+    bool hasError = false;
+
+    if (name.isEmpty) {
+      nameError.value = 'Name is required'.tr;
+      hasError = true;
+    }
+    if (email.isEmpty) {
+      emailError.value = 'Email is required'.tr;
+      hasError = true;
+    } else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+      emailError.value = 'Please enter a valid email'.tr;
+      hasError = true;
+    }
+    if (code.isEmpty || phone.isEmpty) {
+      phoneError.value = 'Phone is required'.tr;
+      hasError = true;
+    }
+    if (pass.length < 6) {
+      passwordError.value = 'Password is too short'.tr;
+      hasError = true;
+    }
+    if (cpass.isEmpty) {
+      confirmPasswordError.value = 'Confirm password is required'.tr;
+      hasError = true;
+    } else if (pass != cpass) {
+      confirmPasswordError.value = 'Passwords do not match'.tr;
+      hasError = true;
+    }
+
+    if (hasError) {
+      _showSnackbar(
+        'Validation'.tr,
+        'Please correct the highlighted fields'.tr,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      final res = await _repo.registerCustomer(
+        name: name,
+        email: email,
+        phoneCode: code,
+        phone: phone,
+        phoneWithCode: intl,
+        password: pass,
+        passwordConfirmation: cpass,
+      );
+
+      if (Get.context == null) return;
+
+      if (res.success) {
+        _showSnackbar('Success'.tr, 'Registration successful'.tr);
+        Get.offAllNamed(AppRoutes.loginView);
+      } else {
+        _showSnackbar('Failed'.tr, 'Registration failed'.tr);
+      }
+    } catch (e) {
+      if (Get.context == null) return;
+      _handleApiException(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> login() async {
+    clearFieldErrors();
+
+    final email = emailController.text.trim();
+    final pass = passwordController.text;
+
+    bool hasError = false;
+
+    if (email.isEmpty) {
+      emailError.value = 'Email is required'.tr;
+      hasError = true;
+    } else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+      emailError.value = 'Please enter a valid email'.tr;
+      hasError = true;
+    }
+    if (pass.isEmpty) {
+      passwordError.value = 'Password is required'.tr;
+      hasError = true;
+    }
+
+    if (hasError) {
+      _showSnackbar(
+        'Validation'.tr,
+        'Please correct the highlighted fields'.tr,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      final loginRes = await _repo.loginCustomer(email: email, password: pass);
+
+      if (Get.context == null) return;
+
+      if (!loginRes.success) {
+        _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
+        return;
+      }
+
+      storage.saveLogin(true, remember: isRemember.value);
+
+      final token = loginRes.accessToken ?? '';
+      if (token.isNotEmpty) {
+        storage.saveToken(token, tokenType: loginRes.tokenType ?? 'bearer');
+      }
+
+      storage.saveLoginUser(loginRes.user);
+      storage.saveDashboardContent(loginRes.dashboardContent);
+
+      _showSnackbar('Success'.tr, 'Login successful'.tr);
+
+      final redirect = Get.arguments is Map
+          ? (Get.arguments['redirect'] as String?)
+          : null;
+
+      if (redirect != null && redirect.isNotEmpty) {
+        Get.offAllNamed(redirect);
+      } else {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+      }
+    } catch (e) {
+      if (Get.context == null) return;
+      _handleApiException(e, fallbackMessage: 'Login failed'.tr);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      FollowStore().clearAllFollowed();
+      storage.logout();
+      _showSnackbar('Logged out'.tr, 'You have been signed out'.tr);
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+    } catch (e) {
+      _showSnackbar('Error'.tr, 'Something went wrong'.tr);
+    }
+  }
+
+  Future<void> sendResetEmail() async {
+    try {
+      isLoading.value = true;
+
+      final res = await _repo.sendEmailResetLink();
+
+      if (Get.context == null) return;
+
+      if (res.success) {
+        _showSnackbar(
+          'Success'.tr,
+          res.message ?? 'Reset email has been sent to your email address'.tr,
+        );
+      } else {
+        _showSnackbar('Failed'.tr, 'Could not send reset email'.tr);
+      }
+    } catch (e) {
+      if (Get.context != null) {
+        _showSnackbar('Failed'.tr, 'Something went wrong'.tr);
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  final passwordObscure = true.obs;
+  final confirmPasswordObscure = true.obs;
+  void togglePasswordVisibility() => passwordObscure.toggle();
+  void toggleConfirmPasswordVisibility() => confirmPasswordObscure.toggle();
+  IconData get eyeClosedIcon => Iconsax.eye_slash_copy;
+  IconData get eyeOpenIcon => Iconsax.eye_copy;
+
+  void resetForm() {
+    nameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    dialCode.value = '';
+    isoCode.value = '';
+    completePhone.value = '';
+    isRemember.value = false;
+    clearFieldErrors();
+  }
+}
