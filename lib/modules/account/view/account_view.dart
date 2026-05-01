@@ -92,68 +92,78 @@ class AccountView extends StatelessWidget {
                   currencyCtrl.refreshSelected();
                 },
                 color: AppColors.primaryColor,
-                child: ListView(
-                  padding: const EdgeInsets.only(bottom: 30),
-                  children: [
-                    const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Obx(
-                        () => Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Column(
                           children: [
-                            _statCard("${"Total".tr}\n${"Orders".tr}", '${dashCtrl.totalOrder.value}', context),
-                            _statCard("${"Pending".tr}\n${"Orders".tr}", '${dashCtrl.totalPendingOrder.value}', context),
-                            _statCard("${"Success".tr}\n${"Orders".tr}", '${dashCtrl.totalSuccessOrder.value}', context),
+                            const SizedBox(height: 20),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Obx(
+                                () => Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _statCard("${"Total".tr}\n${"Orders".tr}", '${dashCtrl.totalOrder.value}', context),
+                                    _statCard("${"Pending".tr}\n${"Orders".tr}", '${dashCtrl.totalPendingOrder.value}', context),
+                                    _statCard("${"Success".tr}\n${"Orders".tr}", '${dashCtrl.totalSuccessOrder.value}', context),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Obx(() {
+                                String money(num v) => currencyCtrl.format(v, applyConversion: true);
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _statCard("${"Total".tr}\n${"Purchase".tr}", money(dashCtrl.totalPurchaseAmount.value), context),
+                                    _statCard("${"Purchase".tr} ${"in".tr}\n${dashCtrl.currentMonth.value.isEmpty ? '—' : dashCtrl.currentMonth.value}", money(dashCtrl.currentMonthPurchase.value), context),
+                                    _statCard("${'Last'.tr} ${'Month'.tr}\n${'Purchase'.tr}", money(dashCtrl.lastMonthPurchase.value), context),
+                                  ],
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 30),
+                            _menuItem(Iconsax.shopping_bag_copy, "My Orders".tr, () => Get.toNamed(AppRoutes.myOrderListView)),
+                            _menuItem(Iconsax.location_copy, "My Addresses".tr, () => Get.toNamed(AppRoutes.myAddressView)),
+                            _menuItem(Iconsax.card_copy, "My Wallet".tr, () => Get.toNamed(AppRoutes.myWalletView)),
+                            _menuItem(Iconsax.undo_copy, "Refund Requests".tr, () => Get.toNamed(AppRoutes.refundRequestListView)),
+                            _menuItem(Iconsax.settings_copy, "Settings".tr, () => Get.to(const SettingsView())),
+                            _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
+                            _menuItem(Iconsax.message_question_copy, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
+                            _menuItem(Iconsax.information_copy, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
+                            Obx(() {
+                              final login = LoginService();
+                              if (login.isSellerApproved()) {
+                                return _menuItem(Iconsax.shop_copy, "Seller Dashboard".tr, () => Get.toNamed(AppRoutes.sellerLoginView));
+                              }
+                              if (login.isSellerApplied()) {
+                                return _menuItem(Iconsax.clock_copy, "Seller Application Pending".tr, () {
+                                  Get.snackbar('Pending Approval', 'Your seller application is under review. We will notify you once approved.', backgroundColor: AppColors.primaryColor, colorText: Colors.white);
+                                });
+                              }
+                              return _menuItem(Iconsax.shop_add_copy, "Become a Seller".tr, () => Get.toNamed(AppRoutes.sellerRegisterView));
+                            }),
+                            _menuItem(Iconsax.logout_1_copy, "Logout".tr, () async {
+                              await authCtrl.logout();
+                              infoCtrl.avatarUrl.value = '';
+                              infoCtrl.name.value = '';
+                              infoCtrl.email.value = '';
+                              infoCtrl.phone.value = '';
+                              dashCtrl.clear();
+                            }),
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Obx(() {
-                        String money(num v) => currencyCtrl.format(v, applyConversion: true);
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _statCard("${"Total".tr}\n${"Purchase".tr}", money(dashCtrl.totalPurchaseAmount.value), context),
-                            _statCard("${"Purchase".tr} ${"in".tr}\n${dashCtrl.currentMonth.value.isEmpty ? '—' : dashCtrl.currentMonth.value}", money(dashCtrl.currentMonthPurchase.value), context),
-                            _statCard("${'Last'.tr} ${'Month'.tr}\n${'Purchase'.tr}", money(dashCtrl.lastMonthPurchase.value), context),
-                          ],
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 30),
-                    _menuItem(Iconsax.shopping_bag_copy, "My Orders".tr, () => Get.toNamed(AppRoutes.myOrderListView)),
-                    _menuItem(Iconsax.location_copy, "My Addresses".tr, () => Get.toNamed(AppRoutes.myAddressView)),
-                    _menuItem(Iconsax.card_copy, "My Wallet".tr, () => Get.toNamed(AppRoutes.myWalletView)),
-                    _menuItem(Iconsax.undo_copy, "Refund Requests".tr, () => Get.toNamed(AppRoutes.refundRequestListView)),
-                    _menuItem(Iconsax.settings_copy, "Settings".tr, () => Get.to(const SettingsView())),
-                    _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
-                    _menuItem(Iconsax.message_question_copy, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
-                    _menuItem(Iconsax.information_copy, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
-                    Obx(() {
-                      final login = LoginService();
-                      if (login.isSellerApproved()) {
-                        return _menuItem(Iconsax.shop_copy, "Seller Dashboard".tr, () => Get.toNamed(AppRoutes.sellerLoginView));
-                      }
-                      if (login.isSellerApplied()) {
-                        return _menuItem(Iconsax.clock_copy, "Seller Application Pending".tr, () {
-                          Get.snackbar('Pending Approval', 'Your seller application is under review. We will notify you once approved.', backgroundColor: AppColors.primaryColor, colorText: Colors.white);
-                        });
-                      }
-                      return _menuItem(Iconsax.shop_add_copy, "Become a Seller".tr, () => Get.toNamed(AppRoutes.sellerRegisterView));
-                    }),
-                    _menuItem(Iconsax.logout_1_copy, "Logout".tr, () async {
-                      await authCtrl.logout();
-                      infoCtrl.avatarUrl.value = '';
-                      infoCtrl.name.value = '';
-                      infoCtrl.email.value = '';
-                      infoCtrl.phone.value = '';
-                      dashCtrl.clear();
-                    }),
-                  ],
+                    );
+                  },
                 ),
               )
             : Center(
@@ -249,4 +259,4 @@ class _HeaderTexts extends StatelessWidget {
       ],
     );
   }
-}
+} 
