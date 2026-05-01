@@ -30,6 +30,9 @@ class _NewProductListViewState extends State<NewProductListView> {
   @override
   void initState() {
     super.initState();
+    if (Get.isRegistered<NewProductListController>()) {
+      Get.delete<NewProductListController>(force: true);
+    }
     controller = Get.put(
       NewProductListController(ProductRepository(ApiService())),
     );
