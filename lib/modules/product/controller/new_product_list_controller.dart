@@ -126,6 +126,27 @@ class NewProductListController extends GetxController {
     }
   }
 
+  void openForBrand({
+    required int brandId,
+    String? brandName,
+  }) {
+    clearOnlyFilters(resetSorting: true);
+
+    categoryId = 0;
+    categoryName = null;
+    subcategoryId = null;
+    subcategoryName = null;
+    leafId = null;
+    leafName = null;
+
+    selectedBrandId.value = brandId;
+    customTitle = brandName ?? 'Brand Products';
+
+    _recomputeTitle();
+    _loadBrands();
+    WidgetsBinding.instance.addPostFrameCallback((_) => loadInitial());
+  }
+
   bool _hasAnyFilterActive() {
     return selectedBrandId.value > 0 ||
         fBrandIds.isNotEmpty ||
@@ -137,6 +158,7 @@ class NewProductListController extends GetxController {
 
   Future<void> loadInitial() async {
     if (categoryId == 0 &&
+        selectedBrandId.value == 0 &&
         (subcategoryId == null || subcategoryId == 0) &&
         (leafId == null || leafId == 0) &&
         !_hasAnyFilterActive()) {
