@@ -40,7 +40,7 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   final ForYouController _forYouCtl = ForYouController.ensure();
   final ScrollController _scrollCtrl = ScrollController();
   bool _showBackToTop = false;
@@ -97,6 +97,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (Get.isRegistered<CurrencyController>()) {
@@ -111,10 +112,18 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _hideTimer?.cancel();
     _scrollCtrl.removeListener(_onScrollDetected);
     _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      Get.offAllNamed(AppRoutes.splashView);
+    }
   }
 
   void _handleScrollMetrics(ScrollMetrics metrics) {
