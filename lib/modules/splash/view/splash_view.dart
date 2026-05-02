@@ -16,7 +16,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
@@ -26,27 +25,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
-      ),
-    );
-
-    _slideAnimation = Tween<double>(begin: 80.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+        curve: Curves.easeOutCubic,
       ),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
+        curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
       ),
     );
 
@@ -73,38 +65,20 @@ class _SplashScreenState extends State<SplashScreen>
           animation: _controller,
           builder: (context, child) {
             return Transform.translate(
-              offset: Offset(0, _slideAnimation.value),
+              offset: Offset(_slideAnimation.value, 0),
               child: Opacity(
                 opacity: _fadeAnimation.value,
-                child: Transform.scale(
-                  scale: _scaleAnimation.value,
-                  child: child,
-                ),
+                child: child,
               ),
             );
           },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Connect, Buy & Sell',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.85),
-                  letterSpacing: 2,
-                ),
-              ),
-            ],
+          child: SizedBox(
+            width: 160,
+            height: 160,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain),
+            ),
           ),
         ),
       ),
