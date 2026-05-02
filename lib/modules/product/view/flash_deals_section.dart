@@ -121,6 +121,14 @@ class FlashDealsSection extends StatelessWidget {
                 }),
               ],
             ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Get.toNamed(AppRoutes.flashDealsView),
+                child: Text('View All'.tr),
+              ),
+            ),
             const SizedBox(height: 6),
             if (show.isEmpty)
               const _ItemsRowShimmer()
@@ -137,7 +145,12 @@ class FlashDealsSection extends StatelessWidget {
                   final p = show[i];
                   return InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => Get.toNamed(AppRoutes.flashDealsView),
+                    onTap: () {
+                      final slug = p.slug;
+                      if (slug.isNotEmpty) {
+                        Get.toNamed(AppRoutes.productDetailsView, arguments: {'permalink': slug});
+                      }
+                    },
                     child: _FlashCardItem(
                       title: p.name,
                       imageUrl: p.image,
