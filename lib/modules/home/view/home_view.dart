@@ -48,29 +48,22 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _onRefresh() async {
     final List<Future<void>> futures = [];
-
     if (Get.isRegistered<CurrencyController>()) {
       futures.add(Get.find<CurrencyController>().fetchCurrencies(force: true));
     }
     if (Get.isRegistered<BannerController>()) {
       final c = Get.find<BannerController>();
-      c.banners.clear();
-      c.error.value = '';
-      c.isLoading.value = true;
+      c.banners.clear(); c.error.value = ''; c.isLoading.value = true;
       futures.add(c.load());
     }
     if (Get.isRegistered<CategoryController>()) {
       final c = Get.find<CategoryController>();
-      c.categories.clear();
-      c.error.value = '';
-      c.isLoading.value = true;
+      c.categories.clear(); c.error.value = ''; c.isLoading.value = true;
       futures.add(c.fetchCategories());
     }
     if (Get.isRegistered<BrandController>()) {
       final b = Get.find<BrandController>();
-      b.brands.clear();
-      b.error.value = '';
-      b.isLoading.value = true;
+      b.brands.clear(); b.error.value = ''; b.isLoading.value = true;
       futures.add(b.fetchBrands());
     }
     futures.add(FlashDealsSection.refreshSection());
@@ -116,9 +109,9 @@ class _HomeViewState extends State<HomeView> {
     if (metrics.pixels >= metrics.maxScrollExtent - 200) {
       _forYouCtl.loadMoreRandom();
     }
-    if (metrics.pixels > 100 && !_showBackToTop) {
+    if (metrics.pixels > 0 && !_showBackToTop) {
       setState(() => _showBackToTop = true);
-    } else if (metrics.pixels <= 100 && _showBackToTop) {
+    } else if (metrics.pixels <= 0 && _showBackToTop) {
       setState(() => _showBackToTop = false);
     }
     _hideTimer?.cancel();
@@ -131,8 +124,7 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        top: true,
-        bottom: false,
+        top: true, bottom: false,
         child: Stack(
           children: [
             NestedScrollView(
