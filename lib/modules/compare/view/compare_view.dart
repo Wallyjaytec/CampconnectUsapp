@@ -304,4 +304,4 @@ String _htmlToPlain(String? html) {
   if (html == null || html.isEmpty) return '-';
   final noTags = html.replaceAll(RegExp(r'<[^>]*>'), '');
   return noTags.replaceAll('&nbsp;', ' ').replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#39;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>').trim();
-}a
+}
