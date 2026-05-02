@@ -109,13 +109,11 @@ class _HomeViewState extends State<HomeView> {
     if (metrics.pixels >= metrics.maxScrollExtent - 200) {
       _forYouCtl.loadMoreRandom();
     }
-    if (metrics.pixels > 0 && !_showBackToTop) {
+    if (!_showBackToTop) {
       setState(() => _showBackToTop = true);
-    } else if (metrics.pixels <= 0 && _showBackToTop) {
-      setState(() => _showBackToTop = false);
     }
     _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 3), () {
+    _hideTimer = Timer(const Duration(seconds: 5), () {
       if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
     });
   }
