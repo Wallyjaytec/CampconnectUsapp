@@ -89,7 +89,7 @@ class _HomeViewState extends State<HomeView> {
       setState(() => _showBackToTop = true);
     }
     _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 5), () {
+    _hideTimer = Timer(const Duration(seconds: 3), () {
       if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
     });
   }
