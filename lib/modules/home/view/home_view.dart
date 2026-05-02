@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +42,9 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final ForYouController _forYouCtl = ForYouController.ensure();
+  final ScrollController _homeScrollCtrl = ScrollController();
+  bool _showBackToTop = false;
+  Timer? _hideTimer;
 
   Future<void> _onRefresh() async {
     final List<Future<void>> futures = [];
@@ -103,9 +108,33 @@ class _HomeViewState extends State<HomeView> {
     await Future.wait(futures);
   }
 
+  void _onHomeScroll() {
+    if (!_homeScrollCtrl.hasClients) return;
+    final pos = _homeScrollCtrl.position.pixels;
+
+    if (pos > 300 && !_showBackToTop) {
+      setState(() => _showBackToTop = true);
+    } else if (pos <= 300 && _showBackToTop) {
+      setState(() => _showBackToTop = false);
+    }
+
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _showBackToTop) {
+        setState(() => _showBackToTop = false);
+      }
+    });
+  }
+
+  void _scrollToTop() {
+    _homeScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+  }
+
   @override
   void initState() {
     super.initState();
+    _homeScrollCtrl.addListener(_onHomeScroll);
+    _hideTimer?.cancel();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (Get.isRegistered<CurrencyController>()) {
         await Get.find<CurrencyController>().fetchCurrencies(force: true);
@@ -119,6 +148,9 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
+    _hideTimer?.cancel();
+    _homeScrollCtrl.removeListener(_onHomeScroll);
+    _homeScrollCtrl.dispose();
     super.dispose();
   }
 
@@ -135,110 +167,131 @@ class _HomeViewState extends State<HomeView> {
       body: SafeArea(
         top: true,
         bottom: false,
-        child: NestedScrollView(
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                primary: false,
-                automaticallyImplyLeading: false,
-                leading: null,
-                titleSpacing: 10,
-                title: Image.asset(AppAssets.appLogo, width: 150, height: 45, fit: BoxFit.contain),
-                actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-                actions: const [CartIconWidget(), NotificationIconWidget()],
-                floating: true,
-                snap: true,
-                pinned: false,
-                centerTitle: false,
-                elevation: 0,
-              ),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: SearchHeader(height: 40, child: _SearchField()),
-              ),
-            ];
-          },
-          body: RefreshIndicator(
-            onRefresh: _onRefresh,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification is ScrollUpdateNotification || notification is OverscrollNotification) {
-                  _handleScrollMetrics(notification.metrics);
-                }
-                return false;
+        child: Stack(
+          children: [
+            NestedScrollView(
+              floatHeaderSlivers: true,
+              controller: _homeScrollCtrl,
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverAppBar(
+                    primary: false,
+                    automaticallyImplyLeading: false,
+                    leading: null,
+                    titleSpacing: 10,
+                    title: Image.asset(AppAssets.appLogo, width: 150, height: 45, fit: BoxFit.contain),
+                    actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+                    actions: const [CartIconWidget(), NotificationIconWidget()],
+                    floating: true,
+                    snap: true,
+                    pinned: false,
+                    centerTitle: false,
+                    elevation: 0,
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: SearchHeader(height: 40, child: _SearchField()),
+                  ),
+                ];
               },
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: GetX<BannerController>(
-                      init: BannerController(),
-                      builder: (bCtrl) {
-                        if (bCtrl.isLoading.value) {
-                          return const BannerCarousel(
-                            items: [_BannerShimmer(), _BannerShimmer(), _BannerShimmer()],
-                            height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
-                          );
-                        }
-                        if (bCtrl.error.isNotEmpty || bCtrl.banners.isEmpty) {
-                          return const BannerCarousel(
-                            items: [Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52)],
-                            height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
-                          );
-                        }
-                        final items = bCtrl.banners.map((b) {
-                          return GestureDetector(
-                            onTap: () => bCtrl.onTapBanner(b),
-                            child: CachedNetworkImage(imageUrl: b.image, fit: BoxFit.cover, width: double.infinity, height: 130),
-                          );
-                        }).toList();
-                        return BannerCarousel(items: items, height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true);
-                      },
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: CategoryView(
-                      onViewAll: () => Get.toNamed(AppRoutes.allCategoriesView),
-                      onTapCategory: (id) {
-                        final c = Get.put(NewProductListController(ProductRepository(ApiService())));
-                        String? name;
-                        if (Get.isRegistered<CategoryController>()) {
-                          final cat = Get.find<CategoryController>();
-                          final found = cat.categories.firstWhereOrNull((e) => e.id == id);
-                          name = found?.name;
-                        }
-                        c.openForCategory(categoryId: id, categoryName: name);
-                        Get.to(() => const NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
-                      },
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: BrandView(
-                      onViewAll: () {
-                        Get.to(() => AllBrandsView(
+              body: RefreshIndicator(
+                onRefresh: _onRefresh,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification is ScrollUpdateNotification || notification is OverscrollNotification) {
+                      _handleScrollMetrics(notification.metrics);
+                    }
+                    return false;
+                  },
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: GetX<BannerController>(
+                          init: BannerController(),
+                          builder: (bCtrl) {
+                            if (bCtrl.isLoading.value) {
+                              return const BannerCarousel(
+                                items: [_BannerShimmer(), _BannerShimmer(), _BannerShimmer()],
+                                height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
+                              );
+                            }
+                            if (bCtrl.error.isNotEmpty || bCtrl.banners.isEmpty) {
+                              return const BannerCarousel(
+                                items: [Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52)],
+                                height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
+                              );
+                            }
+                            final items = bCtrl.banners.map((b) {
+                              return GestureDetector(
+                                onTap: () => bCtrl.onTapBanner(b),
+                                child: CachedNetworkImage(imageUrl: b.image, fit: BoxFit.cover, width: double.infinity, height: 130),
+                              );
+                            }).toList();
+                            return BannerCarousel(items: items, height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true);
+                          },
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: CategoryView(
+                          onViewAll: () => Get.toNamed(AppRoutes.allCategoriesView),
+                          onTapCategory: (id) {
+                            final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                            String? name;
+                            if (Get.isRegistered<CategoryController>()) {
+                              final cat = Get.find<CategoryController>();
+                              final found = cat.categories.firstWhereOrNull((e) => e.id == id);
+                              name = found?.name;
+                            }
+                            c.openForCategory(categoryId: id, categoryName: name);
+                            Get.to(() => const NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
+                          },
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: BrandView(
+                          onViewAll: () {
+                            Get.to(() => AllBrandsView(
+                              onTapBrand: (brand) {
+                                Get.back();
+                                final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                                c.openForBrand(brandId: brand.id, brandName: brand.name);
+                                Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                              },
+                            ));
+                          },
                           onTapBrand: (brand) {
-                            Get.back();
                             final c = Get.put(NewProductListController(ProductRepository(ApiService())));
                             c.openForBrand(brandId: brand.id, brandName: brand.name);
                             Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
                           },
-                        ));
-                      },
-                      onTapBrand: (brand) {
-                        final c = Get.put(NewProductListController(ProductRepository(ApiService())));
-                        c.openForBrand(brandId: brand.id, brandName: brand.name);
-                        Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
-                      },
-                    ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: FlashDealsSection()),
+                      SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
+                      const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
+                      SliverToBoxAdapter(child: ForYouSection()),
+                    ],
                   ),
-                  const SliverToBoxAdapter(child: FlashDealsSection()),
-                  SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
-                  const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
-                  SliverToBoxAdapter(child: ForYouSection()),
-                ],
+                ),
               ),
             ),
-          ),
+            // Back to Top Button
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              bottom: _showBackToTop ? 20 : -60,
+              right: 20,
+              child: AnimatedOpacity(
+                opacity: _showBackToTop ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: FloatingActionButton(
+                  mini: true,
+                  backgroundColor: AppColors.primaryColor,
+                  onPressed: _scrollToTop,
+                  child: const Icon(Iconsax.arrow_up_2_copy, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -294,4 +347,4 @@ class _BannerShimmer extends StatelessWidget {
       decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
     );
   }
-} 
+}
