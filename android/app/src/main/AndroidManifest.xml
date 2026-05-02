@@ -18,6 +18,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
+            android:clearTaskOnLaunch="true"
             android:alwaysRetainTaskState="true"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
