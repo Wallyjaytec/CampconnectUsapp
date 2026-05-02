@@ -83,9 +83,21 @@ class _HomeViewState extends State<HomeView> {
     _scrollCtrl.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
+  void _onScrollDetected() {
+    if (!_scrollCtrl.hasClients) return;
+    if (!_showBackToTop) {
+      setState(() => _showBackToTop = true);
+    }
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (Get.isRegistered<CurrencyController>()) {
         await Get.find<CurrencyController>().fetchCurrencies(force: true);
@@ -100,6 +112,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void dispose() {
     _hideTimer?.cancel();
+    _scrollCtrl.removeListener(_onScrollDetected);
     _scrollCtrl.dispose();
     super.dispose();
   }
@@ -109,13 +122,6 @@ class _HomeViewState extends State<HomeView> {
     if (metrics.pixels >= metrics.maxScrollExtent - 200) {
       _forYouCtl.loadMoreRandom();
     }
-    if (!_showBackToTop) {
-      setState(() => _showBackToTop = true);
-    }
-    _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
-    });
   }
 
   @override
