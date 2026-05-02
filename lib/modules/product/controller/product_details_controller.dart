@@ -37,6 +37,7 @@ class ProductDetailsController extends GetxController {
   final RxInt galleryIndex = 0.obs;
   final RxBool showQuickBar = false.obs;
   final Rx<QuickSection> activeSection = QuickSection.overview.obs;
+  final RxBool isAddingToCart = false.obs;
 
   final RxMap<String, String> selected = <String, String>{}.obs;
 
