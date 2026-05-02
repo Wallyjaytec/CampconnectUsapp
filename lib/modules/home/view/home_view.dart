@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
@@ -12,6 +13,7 @@ import 'package:kartly_e_commerce/modules/brand/view/all_brands_view.dart';
 import 'package:kartly_e_commerce/modules/brand/view/brand_view.dart';
 import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
+import 'package:kartly_e_commerce/modules/product/view/category_product_section.dart';
 import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 
@@ -121,8 +123,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      Get.offAllNamed(AppRoutes.splashView);
+    if (state == AppLifecycleState.detached || state == AppLifecycleState.paused) {
+      SystemNavigator.pop();
     }
   }
 
@@ -222,6 +224,12 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                       ),
                       const SliverToBoxAdapter(child: FlashDealsSection()),
                       SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 1, title: 'Electronics')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 2, title: 'Men\'s Fashion')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 3, title: 'Women\'s Fashion')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 4, title: 'Jewelry')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 5, title: 'Phones and Tablets')),
                       const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
                       SliverToBoxAdapter(child: ForYouSection()),
                     ],
@@ -269,7 +277,7 @@ class _SearchField extends StatelessWidget {
           children: [
             Expanded(child: AbsorbPointer(absorbing: true,
               child: TextField(readOnly: true, showCursor: false, enableInteractiveSelection: false,
-                decoration: InputDecoration(hintText: 'Search Here'.tr, hintStyle: const TextStyle(color: AppColors.greyColor, fontWeight: FontWeight.normal, fontSize: 14), border: InputBorder.none, isDense: true),
+                decoration: InputDecoration(hintText: 'Search on CampconnectUs Marketplace'.tr, hintStyle: const TextStyle(color: AppColors.greyColor, fontWeight: FontWeight.normal, fontSize: 14), border: InputBorder.none, isDense: true),
               ),
             )),
             const Icon(Iconsax.search_normal_1_copy, size: 18),
