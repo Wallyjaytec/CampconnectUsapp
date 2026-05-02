@@ -42,7 +42,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final ForYouController _forYouCtl = ForYouController.ensure();
-  final ScrollController _homeScrollCtrl = ScrollController();
+  final ScrollController _scrollCtrl = ScrollController();
   bool _showBackToTop = false;
   Timer? _hideTimer;
 
@@ -53,7 +53,6 @@ class _HomeViewState extends State<HomeView> {
       final curCtl = Get.find<CurrencyController>();
       futures.add(curCtl.fetchCurrencies(force: true));
     }
-
     if (Get.isRegistered<BannerController>()) {
       final c = Get.find<BannerController>();
       c.banners.clear();
@@ -61,7 +60,6 @@ class _HomeViewState extends State<HomeView> {
       c.isLoading.value = true;
       futures.add(c.load());
     }
-
     if (Get.isRegistered<CategoryController>()) {
       final c = Get.find<CategoryController>();
       c.categories.clear();
@@ -69,7 +67,6 @@ class _HomeViewState extends State<HomeView> {
       c.isLoading.value = true;
       futures.add(c.fetchCategories());
     }
-
     if (Get.isRegistered<BrandController>()) {
       final b = Get.find<BrandController>();
       b.brands.clear();
@@ -77,64 +74,26 @@ class _HomeViewState extends State<HomeView> {
       b.isLoading.value = true;
       futures.add(b.fetchBrands());
     }
-
     futures.add(FlashDealsSection.refreshSection());
-
     if (Get.isRegistered<TopSalesController>(tag: 'topSalesSection')) {
-      final topSectionCtl = Get.find<TopSalesController>(tag: 'topSalesSection');
-      futures.add(topSectionCtl.refresh());
+      futures.add(Get.find<TopSalesController>(tag: 'topSalesSection').refresh());
     }
-
     futures.add(NewProductSection.refreshSection());
-
     futures.add(ForYouSection.refreshSection());
-
-    CartController cartCtl;
-    if (Get.isRegistered<CartController>()) {
-      cartCtl = Get.find<CartController>();
-    } else {
-      cartCtl = Get.put(CartController(Get.find()));
-    }
+    CartController cartCtl = Get.isRegistered<CartController>() ? Get.find<CartController>() : Get.put(CartController(Get.find()));
     futures.add(cartCtl.loadCart());
-
-    NotificationController notifCtl;
-    if (Get.isRegistered<NotificationController>()) {
-      notifCtl = Get.find<NotificationController>();
-    } else {
-      notifCtl = Get.put(NotificationController());
-    }
+    NotificationController notifCtl = Get.isRegistered<NotificationController>() ? Get.find<NotificationController>() : Get.put(NotificationController());
     futures.add(notifCtl.refreshList());
-
     await Future.wait(futures);
   }
 
-  void _onHomeScroll() {
-    if (!_homeScrollCtrl.hasClients) return;
-    final pos = _homeScrollCtrl.position.pixels;
-
-    if (pos > 300 && !_showBackToTop) {
-      setState(() => _showBackToTop = true);
-    } else if (pos <= 300 && _showBackToTop) {
-      setState(() => _showBackToTop = false);
-    }
-
-    _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted && _showBackToTop) {
-        setState(() => _showBackToTop = false);
-      }
-    });
-  }
-
   void _scrollToTop() {
-    _homeScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    _scrollCtrl.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
   @override
   void initState() {
     super.initState();
-    _homeScrollCtrl.addListener(_onHomeScroll);
-    _hideTimer?.cancel();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (Get.isRegistered<CurrencyController>()) {
         await Get.find<CurrencyController>().fetchCurrencies(force: true);
@@ -149,8 +108,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void dispose() {
     _hideTimer?.cancel();
-    _homeScrollCtrl.removeListener(_onHomeScroll);
-    _homeScrollCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -159,6 +117,15 @@ class _HomeViewState extends State<HomeView> {
     if (metrics.pixels >= metrics.maxScrollExtent - 200) {
       _forYouCtl.loadMoreRandom();
     }
+    if (metrics.pixels > 300 && !_showBackToTop) {
+      setState(() => _showBackToTop = true);
+    } else if (metrics.pixels <= 300 && _showBackToTop) {
+      setState(() => _showBackToTop = false);
+    }
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
+    });
   }
 
   @override
@@ -171,27 +138,17 @@ class _HomeViewState extends State<HomeView> {
           children: [
             NestedScrollView(
               floatHeaderSlivers: true,
-              controller: _homeScrollCtrl,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverAppBar(
-                    primary: false,
-                    automaticallyImplyLeading: false,
-                    leading: null,
+                    primary: false, automaticallyImplyLeading: false, leading: null,
                     titleSpacing: 10,
                     title: Image.asset(AppAssets.appLogo, width: 150, height: 45, fit: BoxFit.contain),
                     actionsPadding: const EdgeInsetsDirectional.only(end: 10),
                     actions: const [CartIconWidget(), NotificationIconWidget()],
-                    floating: true,
-                    snap: true,
-                    pinned: false,
-                    centerTitle: false,
-                    elevation: 0,
+                    floating: true, snap: true, pinned: false, centerTitle: false, elevation: 0,
                   ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: SearchHeader(height: 40, child: _SearchField()),
-                  ),
+                  SliverPersistentHeader(pinned: true, delegate: SearchHeader(height: 40, child: _SearchField())),
                 ];
               },
               body: RefreshIndicator(
@@ -204,6 +161,7 @@ class _HomeViewState extends State<HomeView> {
                     return false;
                   },
                   child: CustomScrollView(
+                    controller: _scrollCtrl,
                     slivers: [
                       SliverToBoxAdapter(
                         child: GetX<BannerController>(
@@ -221,12 +179,10 @@ class _HomeViewState extends State<HomeView> {
                                 height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
                               );
                             }
-                            final items = bCtrl.banners.map((b) {
-                              return GestureDetector(
-                                onTap: () => bCtrl.onTapBanner(b),
-                                child: CachedNetworkImage(imageUrl: b.image, fit: BoxFit.cover, width: double.infinity, height: 130),
-                              );
-                            }).toList();
+                            final items = bCtrl.banners.map((b) => GestureDetector(
+                              onTap: () => bCtrl.onTapBanner(b),
+                              child: CachedNetworkImage(imageUrl: b.image, fit: BoxFit.cover, width: double.infinity, height: 130),
+                            )).toList();
                             return BannerCarousel(items: items, height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true);
                           },
                         ),
@@ -239,8 +195,7 @@ class _HomeViewState extends State<HomeView> {
                             String? name;
                             if (Get.isRegistered<CategoryController>()) {
                               final cat = Get.find<CategoryController>();
-                              final found = cat.categories.firstWhereOrNull((e) => e.id == id);
-                              name = found?.name;
+                              name = cat.categories.firstWhereOrNull((e) => e.id == id)?.name;
                             }
                             c.openForCategory(categoryId: id, categoryName: name);
                             Get.to(() => const NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
@@ -249,16 +204,12 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       SliverToBoxAdapter(
                         child: BrandView(
-                          onViewAll: () {
-                            Get.to(() => AllBrandsView(
-                              onTapBrand: (brand) {
-                                Get.back();
-                                final c = Get.put(NewProductListController(ProductRepository(ApiService())));
-                                c.openForBrand(brandId: brand.id, brandName: brand.name);
-                                Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
-                              },
-                            ));
-                          },
+                          onViewAll: () => Get.to(() => AllBrandsView(onTapBrand: (brand) {
+                            Get.back();
+                            final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                            c.openForBrand(brandId: brand.id, brandName: brand.name);
+                            Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                          })),
                           onTapBrand: (brand) {
                             final c = Get.put(NewProductListController(ProductRepository(ApiService())));
                             c.openForBrand(brandId: brand.id, brandName: brand.name);
@@ -275,7 +226,6 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ),
-            // Back to Top Button
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               bottom: _showBackToTop ? 20 : -60,
@@ -303,10 +253,7 @@ class _SearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        Get.toNamed(AppRoutes.searchView);
-      },
+      onTap: () { FocusScope.of(context).unfocus(); Get.toNamed(AppRoutes.searchView); },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         margin: const EdgeInsets.only(left: 10, right: 10),
@@ -317,19 +264,11 @@ class _SearchField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: AbsorbPointer(
-                absorbing: true,
-                child: TextField(
-                  readOnly: true, showCursor: false, enableInteractiveSelection: false,
-                  decoration: InputDecoration(
-                    hintText: 'Search Here'.tr,
-                    hintStyle: const TextStyle(color: AppColors.greyColor, fontWeight: FontWeight.normal, fontSize: 14),
-                    border: InputBorder.none, isDense: true,
-                  ),
-                ),
+            Expanded(child: AbsorbPointer(absorbing: true,
+              child: TextField(readOnly: true, showCursor: false, enableInteractiveSelection: false,
+                decoration: InputDecoration(hintText: 'Search Here'.tr, hintStyle: const TextStyle(color: AppColors.greyColor, fontWeight: FontWeight.normal, fontSize: 14), border: InputBorder.none, isDense: true),
               ),
-            ),
+            )),
             const Icon(Iconsax.search_normal_1_copy, size: 18),
           ],
         ),
@@ -342,9 +281,6 @@ class _BannerShimmer extends StatelessWidget {
   const _BannerShimmer();
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-    );
+    return Container(width: double.infinity, decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)));
   }
 }
