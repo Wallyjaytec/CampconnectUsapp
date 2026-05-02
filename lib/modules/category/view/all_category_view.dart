@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,28 +31,39 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
   final CategoryController _catCtrl = Get.find<CategoryController>();
   NewProductListController? _productCtrl;
   final ScrollController _scrollCtrl = ScrollController();
+  final ScrollController _rightScrollCtrl = ScrollController();
+  bool _showBackToTop = false;
+  Timer? _hideTimer;
 
   @override
   void initState() {
     super.initState();
-    _scrollCtrl.addListener(_onScroll);
+    _rightScrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadProducts());
   }
 
   @override
   void dispose() {
-    _scrollCtrl.removeListener(_onScroll);
+    _hideTimer?.cancel();
+    _rightScrollCtrl.removeListener(_onScrollDetected);
     _scrollCtrl.dispose();
+    _rightScrollCtrl.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scrollCtrl.hasClients) return;
-    final pos = _scrollCtrl.position;
-    if (pos.maxScrollExtent <= 0) return;
-    if (pos.pixels >= pos.maxScrollExtent - 200) {
-      _productCtrl?.loadMore();
+  void _onScrollDetected() {
+    if (!_rightScrollCtrl.hasClients) return;
+    if (!_showBackToTop) {
+      setState(() => _showBackToTop = true);
     }
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
+    });
+  }
+
+  void _scrollToTop() {
+    _rightScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
   void _loadProducts() {
@@ -104,106 +117,124 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
           final cats = _catCtrl.categories;
           if (cats.isEmpty) return Center(child: Text('No categories'.tr));
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Stack(
             children: [
-              SizedBox(
-                width: leftPaneWidth,
-                height: double.infinity,
-                child: ListView.separated(
-                  itemCount: cats.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 0),
-                  itemBuilder: (context, index) {
-                    final cat = cats[index];
-                    final selected = index == _catCtrl.selectedIndex.value;
-                    return InkWell(
-                      onTap: () {
-                        _catCtrl.selectCategory(index);
-                        _loadProducts();
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: leftPaneWidth,
+                    height: double.infinity,
+                    child: ListView.separated(
+                      controller: _scrollCtrl,
+                      itemCount: cats.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 0),
+                      itemBuilder: (context, index) {
+                        final cat = cats[index];
+                        final selected = index == _catCtrl.selectedIndex.value;
+                        return InkWell(
+                          onTap: () {
+                            _catCtrl.selectCategory(index);
+                            _loadProducts();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                            color: selected ? (isDark ? AppColors.darkCardColor : AppColors.lightCardColor) : AppColors.transparentColor,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  height: 42, width: 42,
+                                  child: cat.imageUrl.isEmpty
+                                      ? const Icon(Icons.image_not_supported_outlined)
+                                      : CachedNetworkImage(
+                                          imageUrl: cat.imageUrl, fit: BoxFit.cover,
+                                          placeholder: (_, __) => const ShimmerCircle(diameter: 42),
+                                          errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+                                        ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(cat.name, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, height: 1.0,
+                                    color: selected ? Theme.of(context).colorScheme.primary : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-                        color: selected
-                            ? (isDark ? AppColors.darkCardColor : AppColors.lightCardColor)
-                            : AppColors.transparentColor,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              height: 42, width: 42,
-                              child: cat.imageUrl.isEmpty
-                                  ? const Icon(Icons.image_not_supported_outlined)
-                                  : CachedNetworkImage(
-                                      imageUrl: cat.imageUrl, fit: BoxFit.cover,
-                                      placeholder: (_, __) => const ShimmerCircle(diameter: 42),
-                                      errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined),
-                                    ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(cat.name, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 12, height: 1.0,
-                                color: selected ? Theme.of(context).colorScheme.primary : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                  child: _productCtrl == null
-                      ? const Center(child: CircularProgressIndicator())
-                      : Obx(() {
-                          final ctrl = _productCtrl!;
-                          if (ctrl.isLoading.value && ctrl.products.isEmpty) {
-                            return GridView.builder(
-                              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, mainAxisExtent: 220,
-                              ),
-                              itemCount: 6,
-                              itemBuilder: (_, __) => Container(
-                                decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
-                                child: const Column(children: [
-                                  Expanded(child: ShimmerBox(borderRadius: 10)),
-                                  SizedBox(height: 8),
-                                  ShimmerBox(height: 12, borderRadius: 6, width: 80),
-                                ]),
-                              ),
-                            );
-                          }
-                          if (ctrl.error.isNotEmpty && ctrl.products.isEmpty) {
-                            return Center(child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(ctrl.error.value, textAlign: TextAlign.center),
-                            ));
-                          }
-                          if (ctrl.products.isEmpty && !ctrl.hasMore) {
-                            return Center(child: Text('No products in this category'.tr));
-                          }
-                          return GridView.builder(
-                            controller: _scrollCtrl,
-                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, mainAxisExtent: 220,
-                            ),
-                            itemCount: ctrl.products.length + (ctrl.isLoadingMore.value ? 2 : 0),
-                            itemBuilder: (context, i) {
-                              if (i >= ctrl.products.length) {
-                                return Container(
-                                  decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
-                                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                      child: _productCtrl == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : Obx(() {
+                              final ctrl = _productCtrl!;
+                              if (ctrl.isLoading.value && ctrl.products.isEmpty) {
+                                return GridView.builder(
+                                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, mainAxisExtent: 220,
+                                  ),
+                                  itemCount: 6,
+                                  itemBuilder: (_, __) => Container(
+                                    decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
+                                    child: const Column(children: [
+                                      Expanded(child: ShimmerBox(borderRadius: 10)),
+                                      SizedBox(height: 8),
+                                      ShimmerBox(height: 12, borderRadius: 6, width: 80),
+                                    ]),
+                                  ),
                                 );
                               }
-                              final p = ctrl.products[i];
-                              return _ProductCard(product: p);
-                            },
-                          );
-                        }),
+                              if (ctrl.error.isNotEmpty && ctrl.products.isEmpty) {
+                                return Center(child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(ctrl.error.value, textAlign: TextAlign.center),
+                                ));
+                              }
+                              if (ctrl.products.isEmpty && !ctrl.hasMore) {
+                                return Center(child: Text('No products in this category'.tr));
+                              }
+                              return GridView.builder(
+                                controller: _rightScrollCtrl,
+                                padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, mainAxisExtent: 220,
+                                ),
+                                itemCount: ctrl.products.length + (ctrl.isLoadingMore.value ? 2 : 0),
+                                itemBuilder: (context, i) {
+                                  if (i >= ctrl.products.length) {
+                                    return Container(
+                                      decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
+                                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                    );
+                                  }
+                                  final p = ctrl.products[i];
+                                  return _ProductCard(product: p);
+                                },
+                              );
+                            }),
+                    ),
+                  ),
+                ],
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                bottom: _showBackToTop ? 20 : -60,
+                right: 20,
+                child: AnimatedOpacity(
+                  opacity: _showBackToTop ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: AppColors.primaryColor,
+                    onPressed: _scrollToTop,
+                    child: const Icon(Iconsax.arrow_up_2_copy, color: Colors.white),
+                  ),
                 ),
               ),
             ],
