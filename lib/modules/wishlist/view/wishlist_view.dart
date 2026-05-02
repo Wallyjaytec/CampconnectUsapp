@@ -5,6 +5,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/product_details_repository.dart';
+import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/login_service.dart';
@@ -13,8 +14,10 @@ import '../../../shared/widgets/cart_icon_widget.dart';
 import '../../../shared/widgets/notification_icon_widget.dart';
 import '../../../shared/widgets/search_icon_widget.dart';
 import '../../product/controller/add_to_cart_controller.dart';
+import '../../product/controller/new_product_list_controller.dart';
+import '../../product/controller/top_sales_controller.dart';
 import '../../product/model/product_model.dart';
-import '../../product/view/top_sales_section.dart';
+import '../../product/view/new_product_list_view.dart';
 import '../../product/widgets/add_to_cart_sheet.dart';
 import '../../product/widgets/star_row.dart';
 import '../controller/wishlist_controller.dart';
@@ -71,16 +74,7 @@ class WishlistView extends GetView<WishlistController> {
                             ],
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text('Recommended for you'.tr, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))),
-                              TextButton(onPressed: () {}, child: Text('See All'.tr)),
-                            ],
-                          ),
-                        ),
-                        TopSalesSection(limit: 10),
+                        const _RecommendedSection(),
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -187,5 +181,98 @@ class WishlistView extends GetView<WishlistController> {
       Get.put(AddToCartController(cartUi, details: details, stock: safeQty, groups: groups), tag: tag);
       Get.bottomSheet(AddToCartSheet(controllerTag: tag, p: details), isScrollControlled: true, backgroundColor: Get.theme.scaffoldBackgroundColor, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))));
     } catch (_) { _openDetails(pm); }
+  }
+}
+
+class _RecommendedSection extends StatefulWidget {
+  const _RecommendedSection();
+  @override
+  State<_RecommendedSection> createState() => _RecommendedSectionState();
+}
+
+class _RecommendedSectionState extends State<_RecommendedSection> {
+  final TopSalesController _ctrl = Get.put(TopSalesController(), tag: 'recommended_wishlist');
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              Expanded(child: Text('Recommended for you'.tr, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))),
+              TextButton(
+                onPressed: () {
+                  final ctrl = Get.put(NewProductListController(ProductRepository(ApiService())), tag: 'recommended_all');
+                  ctrl.overrideTitle('Recommended for you'.tr);
+                  Get.to(() => const NewProductListView(), arguments: {'title': 'Recommended for you'.tr, 'sorting': 'popular'});
+                },
+                child: Text('View All'.tr),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 200,
+          child: Obx(() {
+            if (_ctrl.isLoading.value) return const Center(child: CircularProgressIndicator());
+            if (_ctrl.products.isEmpty) return const SizedBox.shrink();
+            final items = _ctrl.products.take(10).toList();
+            return ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (_, i) {
+                final p = items[i];
+                return SizedBox(
+                  width: 140,
+                  child: GestureDetector(
+                    onTap: () { if (p.slug.isNotEmpty) Get.toNamed(AppRoutes.productDetailsView, arguments: {'permalink': p.slug}); },
+                    child: _RecProductCard(product: p),
+                  ),
+                );
+              },
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class _RecProductCard extends StatelessWidget {
+  final dynamic product;
+  const _RecProductCard({required this.product});
+  @override
+  Widget build(BuildContext context) {
+    final p = product;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(color: isDark ? AppColors.darkProductCardColor : AppColors.lightProductCardColor, borderRadius: BorderRadius.circular(10)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(10)), child: CachedNetworkImage(imageUrl: p.imageUrl, fit: BoxFit.cover, width: double.infinity, errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined)))),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              StarRow(rating: p.rating),
+              Text(formatCurrency(p.price, applyConversion: true), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.whiteColor : AppColors.primaryColor)),
+            ]),
+          ),
+        ],
+      ),
+    );
   }
 }
