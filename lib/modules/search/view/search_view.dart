@@ -97,7 +97,7 @@ class _SearchField extends StatelessWidget {
               onSubmitted: controller.submitSearch,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Search Here'.tr,
+                hintText: 'Search for products here'.tr,
                 hintStyle: const TextStyle(
                   color: AppColors.greyColor,
                   fontWeight: FontWeight.normal,
