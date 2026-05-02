@@ -5,7 +5,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/product_details_repository.dart';
-import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/login_service.dart';
@@ -14,10 +13,8 @@ import '../../../shared/widgets/cart_icon_widget.dart';
 import '../../../shared/widgets/notification_icon_widget.dart';
 import '../../../shared/widgets/search_icon_widget.dart';
 import '../../product/controller/add_to_cart_controller.dart';
-import '../../product/controller/new_product_list_controller.dart';
 import '../../product/controller/top_sales_controller.dart';
 import '../../product/model/product_model.dart';
-import '../../product/view/new_product_list_view.dart';
 import '../../product/widgets/add_to_cart_sheet.dart';
 import '../../product/widgets/star_row.dart';
 import '../controller/wishlist_controller.dart';
@@ -211,9 +208,7 @@ class _RecommendedSectionState extends State<_RecommendedSection> {
               Expanded(child: Text('Recommended for you'.tr, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))),
               TextButton(
                 onPressed: () {
-                  final ctrl = Get.put(NewProductListController(ProductRepository(ApiService())), tag: 'recommended_all');
-                  ctrl.overrideTitle('Recommended for you'.tr);
-                  Get.to(() => const NewProductListView(), arguments: {'title': 'Recommended for you'.tr, 'sorting': 'popular'});
+                  Get.toNamed(AppRoutes.topSaleProductView, arguments: {'title': 'Recommended for you'.tr, 'sorting': 'popular'});
                 },
                 child: Text('View All'.tr),
               ),
