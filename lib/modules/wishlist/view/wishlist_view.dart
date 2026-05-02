@@ -224,8 +224,8 @@ class _RecommendedSectionState extends State<_RecommendedSection> {
           height: 200,
           child: Obx(() {
             if (_ctrl.isLoading.value) return const Center(child: CircularProgressIndicator());
-            if (_ctrl.products.isEmpty) return const SizedBox.shrink();
-            final items = _ctrl.products.take(10).toList();
+            if (_ctrl.items.isEmpty) return const SizedBox.shrink();
+            final items = _ctrl.items.take(10).toList();
             return ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
