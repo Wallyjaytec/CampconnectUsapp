@@ -50,8 +50,7 @@ class _HomeViewState extends State<HomeView> {
     final List<Future<void>> futures = [];
 
     if (Get.isRegistered<CurrencyController>()) {
-      final curCtl = Get.find<CurrencyController>();
-      futures.add(curCtl.fetchCurrencies(force: true));
+      futures.add(Get.find<CurrencyController>().fetchCurrencies(force: true));
     }
     if (Get.isRegistered<BannerController>()) {
       final c = Get.find<BannerController>();
@@ -80,9 +79,9 @@ class _HomeViewState extends State<HomeView> {
     }
     futures.add(NewProductSection.refreshSection());
     futures.add(ForYouSection.refreshSection());
-    CartController cartCtl = Get.isRegistered<CartController>() ? Get.find<CartController>() : Get.put(CartController(Get.find()));
+    final cartCtl = Get.isRegistered<CartController>() ? Get.find<CartController>() : Get.put(CartController(Get.find()));
     futures.add(cartCtl.loadCart());
-    NotificationController notifCtl = Get.isRegistered<NotificationController>() ? Get.find<NotificationController>() : Get.put(NotificationController());
+    final notifCtl = Get.isRegistered<NotificationController>() ? Get.find<NotificationController>() : Get.put(NotificationController());
     futures.add(notifCtl.refreshList());
     await Future.wait(futures);
   }
@@ -117,9 +116,9 @@ class _HomeViewState extends State<HomeView> {
     if (metrics.pixels >= metrics.maxScrollExtent - 200) {
       _forYouCtl.loadMoreRandom();
     }
-    if (metrics.pixels > 300 && !_showBackToTop) {
+    if (metrics.pixels > 100 && !_showBackToTop) {
       setState(() => _showBackToTop = true);
-    } else if (metrics.pixels <= 300 && _showBackToTop) {
+    } else if (metrics.pixels <= 100 && _showBackToTop) {
       setState(() => _showBackToTop = false);
     }
     _hideTimer?.cancel();
@@ -194,8 +193,7 @@ class _HomeViewState extends State<HomeView> {
                             final c = Get.put(NewProductListController(ProductRepository(ApiService())));
                             String? name;
                             if (Get.isRegistered<CategoryController>()) {
-                              final cat = Get.find<CategoryController>();
-                              name = cat.categories.firstWhereOrNull((e) => e.id == id)?.name;
+                              name = Get.find<CategoryController>().categories.firstWhereOrNull((e) => e.id == id)?.name;
                             }
                             c.openForCategory(categoryId: id, categoryName: name);
                             Get.to(() => const NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
