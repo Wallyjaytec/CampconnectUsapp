@@ -52,7 +52,8 @@ class CartView extends StatelessWidget {
             NotificationIconWidget(),
           ],
         ),
-        body: Obx(() {
+        body: LoginService().isLoggedIn()
+            ? Obx(() {
           if (controller.isLoading.value) {
             return ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -81,10 +82,28 @@ class CartView extends StatelessWidget {
               onRefresh: controller.loadCart,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  child: Center(child: Text('Cart is Empty'.tr)),
-                ),
+                child: Column(children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Image.asset('assets/icons/cart.png', width: 100, height: 100),
+                      const SizedBox(height: 24),
+                      Text('Your cart is empty'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      Text('Browse products and add them to your cart to get started.'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5)),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity, height: 44,
+                        child: ElevatedButton(
+                          onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                          child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ]),
               ),
             );
           }
@@ -426,8 +445,30 @@ class CartView extends StatelessWidget {
               },
             ),
           );
-        }),
-        bottomNavigationBar: Obx(() {
+        })
+            : Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Image.asset('assets/icons/wishlist_guest.png', width: 120, height: 120),
+                    const SizedBox(height: 24),
+                    Text('Please sign in to access your cart'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 8),
+                    Text('One step away from managing your cart'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity, height: 48,
+                      child: ElevatedButton(
+                        onPressed: () => Get.offAllNamed(AppRoutes.loginView),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                        child: Text('Login'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+        bottomNavigationBar: LoginService().isLoggedIn()
+            ? Obx(() {
           final disabled = controller.selectedCount == 0;
           final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -578,7 +619,8 @@ class CartView extends StatelessWidget {
               ),
             ),
           );
-        }),
+        })
+            : const SizedBox.shrink(),
       ),
     );
   }
