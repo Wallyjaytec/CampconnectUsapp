@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
@@ -42,7 +41,7 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
+class _HomeViewState extends State<HomeView> {
   final ForYouController _forYouCtl = ForYouController.ensure();
   final ScrollController _scrollCtrl = ScrollController();
   bool _showBackToTop = false;
@@ -99,7 +98,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _scrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (Get.isRegistered<CurrencyController>()) {
@@ -114,18 +112,10 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _hideTimer?.cancel();
     _scrollCtrl.removeListener(_onScrollDetected);
     _scrollCtrl.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached || state == AppLifecycleState.paused) {
-      SystemNavigator.pop();
-    }
   }
 
   void _handleScrollMetrics(ScrollMetrics metrics) {
@@ -226,10 +216,10 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                       SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 1, title: 'Electronics')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
-                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 2, title: 'Men\'s Fashion')),
-                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 3, title: 'Women\'s Fashion')),
-                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 4, title: 'Jewelry')),
-                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 5, title: 'Phones and Tablets')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 41, title: 'Men\'s Fashion')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 42, title: 'Women\'s Fashion')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 43, title: 'Jewelry')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 60, title: 'Phones and Tablets')),
                       const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
                       SliverToBoxAdapter(child: ForYouSection()),
                     ],
