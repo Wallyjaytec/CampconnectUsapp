@@ -7,6 +7,7 @@ class AppRoutes {
   static const allCategoriesView = '/all_categories_view';
   static const newProductListView = '/new_product_list_view';
   static const flashDealsView = '/flash_deals_view';
+  static const discountSalesView = '/discount_sales_view';
   static const productDetailsView = '/product_details_view';
   static const fullScreenImageView = '/full_screen_image_view';
   static const productFilterView = '/product_filter_view';
