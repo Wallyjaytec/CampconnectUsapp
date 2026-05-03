@@ -245,6 +245,7 @@ class _NewProductListViewState extends State<NewProductListView> {
     ),
   ),
 );
+          }
           return RefreshIndicator(
             onRefresh: controller.loadInitial,
             child: CustomScrollView(
