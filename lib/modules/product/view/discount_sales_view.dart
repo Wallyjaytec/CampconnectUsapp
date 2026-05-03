@@ -68,56 +68,103 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
         children: [
           Obx(() {
             if (controller.isLoading.value) {
-              return GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: 240),
-                itemCount: 6,
-                itemBuilder: (_, __) => Container(
-                  decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
-                  child: const Column(children: [Expanded(child: ShimmerBox(borderRadius: 10)), SizedBox(height: 10), ShimmerBox(height: 12, borderRadius: 6)]),
-                ),
+              return Column(
+                children: [
+                  Container(
+                    width: double.infinity, height: 150,
+                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.grey[300]),
+                  ),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: 240),
+                      itemCount: 6,
+                      itemBuilder: (_, __) => Container(
+                        decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
+                        child: const Column(children: [Expanded(child: ShimmerBox(borderRadius: 10)), SizedBox(height: 10), ShimmerBox(height: 12, borderRadius: 6)]),
+                      ),
+                    ),
+                  ),
+                ],
               );
             }
 
             if (controller.products.isEmpty) {
-              return Center(child: Text('No discounted products available'.tr));
-            }
-
-            return GridView.builder(
-              controller: _scrollCtrl,
-              padding: const EdgeInsets.all(12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: 240),
-              itemCount: controller.products.length,
-              itemBuilder: (_, i) {
-                final p = controller.products[i];
-                return GestureDetector(
-                  onTap: () {
-                    if (p.slug.isNotEmpty) {
-                      Get.toNamed(AppRoutes.productDetailsView, arguments: {'permalink': p.slug});
-                    }
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(color: isDark ? AppColors.darkProductCardColor : AppColors.lightProductCardColor, borderRadius: BorderRadius.circular(10)),
-                    child: Column(
-                      children: [
-                        Expanded(child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(10)), child: CachedNetworkImage(imageUrl: p.imageUrl, fit: BoxFit.cover, width: double.infinity))),
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(children: [
-                            Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-                            const SizedBox(height: 4),
-                            StarRow(rating: p.rating),
-                            const SizedBox(height: 4),
-                            Text(formatCurrency(p.price, applyConversion: true), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.whiteColor : AppColors.primaryColor)),
-                            if (p.oldPrice != null && p.oldPrice! > p.price)
-                              Text(formatCurrency(p.oldPrice!, applyConversion: true), style: const TextStyle(decoration: TextDecoration.lineThrough, fontSize: 11, color: Colors.grey)),
-                          ]),
-                        ),
-                      ],
+              return Column(
+                children: [
+                  Container(
+                    width: double.infinity, height: 150,
+                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: AppColors.primaryColor,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset('assets/icons/discount_banner.png', fit: BoxFit.cover),
                     ),
                   ),
-                );
-              },
+                  const Expanded(child: Center(child: Text('No discounted products available'))),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                // Banner
+                Container(
+                  width: double.infinity,
+                  height: 150,
+                  margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.primaryColor,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset('assets/icons/discount_banner.png', fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: 240),
+                    itemCount: controller.products.length,
+                    itemBuilder: (_, i) {
+                      final p = controller.products[i];
+                      return GestureDetector(
+                        onTap: () {
+                          if (p.slug.isNotEmpty) {
+                            Get.toNamed(AppRoutes.productDetailsView, arguments: {'permalink': p.slug});
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(color: isDark ? AppColors.darkProductCardColor : AppColors.lightProductCardColor, borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            children: [
+                              Expanded(child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(10)), child: CachedNetworkImage(imageUrl: p.imageUrl, fit: BoxFit.cover, width: double.infinity))),
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(children: [
+                                  Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                                  const SizedBox(height: 4),
+                                  StarRow(rating: p.rating),
+                                  const SizedBox(height: 4),
+                                  Text(formatCurrency(p.price, applyConversion: true), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppColors.whiteColor : AppColors.primaryColor)),
+                                  if (p.oldPrice != null && p.oldPrice! > p.price)
+                                    Text(formatCurrency(p.oldPrice!, applyConversion: true), style: const TextStyle(decoration: TextDecoration.lineThrough, fontSize: 11, color: Colors.grey)),
+                                ]),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           }),
           AnimatedPositioned(
