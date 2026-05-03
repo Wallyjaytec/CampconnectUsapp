@@ -222,9 +222,29 @@ class _NewProductListViewState extends State<NewProductListView> {
               controller.error.isEmpty &&
               controller.products.isEmpty &&
               !controller.hasMore) {
-            return Center(child: Text('There is no item to show'.tr));
-          }
-
+            return Center(
+  child: Padding(
+    padding: const EdgeInsets.all(32),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('assets/icons/categories_empty.png', width: 100, height: 100),
+        const SizedBox(height: 16),
+        Text(
+          'This category has no products yet'.tr,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Browse later or check other categories'.tr,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+      ],
+    ),
+  ),
+);
           return RefreshIndicator(
             onRefresh: controller.loadInitial,
             child: CustomScrollView(
