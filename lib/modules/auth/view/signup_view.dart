@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/modules/account/widgets/custom_text_form_field.dart';
 import 'package:phone_form_field/phone_form_field.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
 import '../../../core/routes/app_routes.dart';
 import '../controller/auth_controller.dart';
@@ -97,7 +98,7 @@ class SignupView extends StatelessWidget {
                         ),
                         child: Center(
                           child: PhoneFormField(
-                            initialValue: PhoneNumber(isoCode: 'NG', nsn: ''),
+                            initialValue: PhoneNumber(isoCode: IsoCode.NG, nsn: ''),
                             countrySelectorNavigator:
                                 const CountrySelectorNavigator.page(),
                             decoration: InputDecoration(
