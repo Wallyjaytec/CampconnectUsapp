@@ -6,6 +6,9 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/modules/product/controller/discount_sales_controller.dart';
 import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
+import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
+import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
+import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
 
 class DiscountSalesView extends StatelessWidget {
@@ -20,6 +23,11 @@ class DiscountSalesView extends StatelessWidget {
       appBar: AppBar(
         title: Text('Discount Sales'.tr),
         centerTitle: true,
+        actions: const [
+          SearchIconWidget(),
+          CartIconWidget(),
+          NotificationIconWidget(),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
