@@ -220,6 +220,7 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
     ),
   ),
 );
+                              }
                               return GridView.builder(
                                 controller: _rightScrollCtrl,
                                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
