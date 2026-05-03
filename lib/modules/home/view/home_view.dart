@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
