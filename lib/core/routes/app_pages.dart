@@ -7,6 +7,7 @@ import 'package:kartly_e_commerce/modules/account/view/my_order_list_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_wallet_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/privacy_policy_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
+import 'package:kartly_e_commerce/modules/product/view/discount_sales_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_checkout_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_order_summary_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/new_product_list_view.dart';
@@ -94,6 +95,10 @@ class AppPages {
       page: () => const TopSaleProductView(),
     ),
     GetPage(name: AppRoutes.flashDealsView, page: () => const FlashDealsView()),
+    GetPage(
+      name: AppRoutes.discountSalesView,
+      page: () => const DiscountSalesView(),
+    ),
     GetPage(name: AppRoutes.newProductView, page: () => const NewProductView()),
     GetPage(name: AppRoutes.myAddressView, page: () => const MyAddressView()),
     GetPage(name: AppRoutes.addAddressView, page: () => const AddAddressView()),
