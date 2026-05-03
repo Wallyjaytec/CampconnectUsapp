@@ -12,6 +12,7 @@ import 'package:kartly_e_commerce/modules/brand/view/all_brands_view.dart';
 import 'package:kartly_e_commerce/modules/brand/view/brand_view.dart';
 import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/category_product_section.dart';
+import 'package:kartly_e_commerce/modules/product/view/discount_sales_section.dart';
 import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 
@@ -212,12 +213,11 @@ class _HomeViewState extends State<HomeView> {
                         ),
                       ),
                       const SliverToBoxAdapter(child: FlashDealsSection()),
+                      const SliverToBoxAdapter(child: DiscountSalesSection()),
                       SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
-                     
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 45, title: 'Health & Beauty')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 43, title: 'Jewelry')),
-                      
                       const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
                       SliverToBoxAdapter(child: ForYouSection()),
                     ],
