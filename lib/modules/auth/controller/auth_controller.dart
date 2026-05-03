@@ -196,6 +196,14 @@ class AuthController extends GetxController {
             'Account not verified'.tr,
             'Please check your email to verify your account before logging in'.tr,
           );
+        } else if (msg.toLowerCase().contains('suspend') || 
+                   msg.toLowerCase().contains('deactivate') ||
+                   msg.toLowerCase().contains('disabled') ||
+                   msg.toLowerCase().contains('banned')) {
+          _showSnackbar(
+            'Account suspended'.tr,
+            'Your account has been temporarily suspended. Please contact support@campconnectus.store for more information.'.tr,
+          );
         } else {
           _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
         }
