@@ -199,10 +199,14 @@ class AuthController extends GetxController {
         } else if (msg.toLowerCase().contains('suspend') || 
                    msg.toLowerCase().contains('deactivate') ||
                    msg.toLowerCase().contains('disabled') ||
-                   msg.toLowerCase().contains('banned')) {
+                   msg.toLowerCase().contains('banned') ||
+                   msg.toLowerCase().contains('deleted') ||
+                   msg.toLowerCase().contains('not found') ||
+                   msg.toLowerCase().contains('does not exist') ||
+                   msg.toLowerCase().contains('no account')) {
           _showSnackbar(
             'Account suspended'.tr,
-            'Your account has been temporarily suspended. Please contact support@campconnectus.store for more information.'.tr,
+            'This account has been permanently suspended. For more information, please contact support@campconnectus.store.'.tr,
           );
         } else {
           _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
