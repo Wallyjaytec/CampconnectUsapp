@@ -6,7 +6,6 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
-import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:kartly_e_commerce/modules/product/view/new_product_list_view.dart';
 import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
 import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
