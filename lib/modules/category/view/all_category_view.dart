@@ -197,8 +197,29 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
                                 ));
                               }
                               if (ctrl.products.isEmpty && !ctrl.hasMore) {
-                                return Center(child: Text('No products in this category'.tr));
-                              }
+                                return Center(
+  child: Padding(
+    padding: const EdgeInsets.all(32),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('assets/icons/categories_empty.png', width: 100, height: 100),
+        const SizedBox(height: 16),
+        Text(
+          'No products in this category yet'.tr,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Wait for sellers to add products and browse here later'.tr,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+      ],
+    ),
+  ),
+);
                               return GridView.builder(
                                 controller: _rightScrollCtrl,
                                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
