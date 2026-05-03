@@ -11,7 +11,6 @@ import 'package:kartly_e_commerce/modules/brand/controller/brand_controller.dart
 import 'package:kartly_e_commerce/modules/brand/view/all_brands_view.dart';
 import 'package:kartly_e_commerce/modules/brand/view/brand_view.dart';
 import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
-import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:kartly_e_commerce/modules/product/view/category_product_section.dart';
 import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
@@ -27,7 +26,7 @@ import '../../product/controller/for_you_controller.dart';
 import '../../product/controller/top_sales_controller.dart';
 import '../../product/view/flash_deals_section.dart';
 import '../../product/view/for_you_section.dart';
-import '../../product/view/new_product_list_view.dart';
+import '../../product/view/new_product_list_view.dart' as product_list_view;
 import '../../product/view/new_product_section.dart';
 import '../../product/view/top_sales_section.dart';
 import '../controller/banner_controller.dart';
@@ -193,7 +192,7 @@ class _HomeViewState extends State<HomeView> {
                               name = Get.find<CategoryController>().categories.firstWhereOrNull((e) => e.id == id)?.name;
                             }
                             c.openForCategory(categoryId: id, categoryName: name);
-                            Get.to(() => const NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
+                            Get.to(() => const product_list_view.NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
                           },
                         ),
                       ),
@@ -203,12 +202,12 @@ class _HomeViewState extends State<HomeView> {
                             Get.back();
                             final c = Get.put(NewProductListController(ProductRepository(ApiService())));
                             c.openForBrand(brandId: brand.id, brandName: brand.name);
-                            Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                            Get.to(() => const product_list_view.NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
                           })),
                           onTapBrand: (brand) {
                             final c = Get.put(NewProductListController(ProductRepository(ApiService())));
                             c.openForBrand(brandId: brand.id, brandName: brand.name);
-                            Get.to(() => const NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                            Get.to(() => const product_list_view.NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
                           },
                         ),
                       ),
