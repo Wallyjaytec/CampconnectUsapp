@@ -309,6 +309,15 @@ class ProductDetailsController extends GetxController {
     final p = product.value;
     if (p == null) return;
 
+    // Prevent multiple sheets
+    if (isAddingToCart.value) return;
+    isAddingToCart.value = true;
+
+    // Close any existing bottom sheet first
+    if (Get.isBottomSheetOpen ?? false) {
+      Get.back();
+    }
+
     final safeName = (p.name).toString();
     final safePrice = p.price;
     final safeRating = p.rating;
@@ -381,7 +390,13 @@ class ProductDetailsController extends GetxController {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-    );
+    ).then((_) {
+      // Reset when sheet closes
+      isAddingToCart.value = false;
+      if (Get.isRegistered<AddToCartController>(tag: tag)) {
+        Get.delete<AddToCartController>(tag: tag, force: true);
+      }
+    });
   }
 
   @override
