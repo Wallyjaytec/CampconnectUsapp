@@ -97,6 +97,7 @@ class SignupView extends StatelessWidget {
                         ),
                         child: Center(
                           child: PhoneFormField(
+                            initialValue: PhoneNumber(isoCode: 'NG', nsn: ''),
                             countrySelectorNavigator:
                                 const CountrySelectorNavigator.page(),
                             decoration: InputDecoration(
