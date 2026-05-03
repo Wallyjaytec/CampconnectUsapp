@@ -1343,19 +1343,14 @@ class _BottomBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-              Expanded(
+               Expanded(
               flex: 2,
               child: _BigCTA(
                 text: 'Add To Cart'.tr,
                 background: AppColors.primaryColor,
                 onTap: () {
                   final c = Get.find<ProductDetailsController>();
-                  if (c.isAddingToCart.value) return;
-                  c.isAddingToCart.value = true;
                   c.openAddToCartSheet();
-                  Future.delayed(const Duration(milliseconds: 800), () {
-                    c.isAddingToCart.value = false;
-                  });
                 },
               ),
             ),
