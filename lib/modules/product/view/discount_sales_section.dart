@@ -47,7 +47,7 @@ class DiscountSalesSection extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.asset(
-                    'assets/images/discount_banner.png',
+                    'assets/icons/discount_banner.png',
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
