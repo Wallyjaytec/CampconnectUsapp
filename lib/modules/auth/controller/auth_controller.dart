@@ -188,7 +188,7 @@ class AuthController extends GetxController {
       if (Get.context == null) return;
       if (!loginRes.success) {
         final msg = loginRes.message ?? '';
-        // Check banned/suspended/deleted FIRST
+        // Check suspended/banned/deleted/inactive FIRST
         if (msg.toLowerCase().contains('suspend') || 
             msg.toLowerCase().contains('deactivate') ||
             msg.toLowerCase().contains('disabled') ||
@@ -196,13 +196,13 @@ class AuthController extends GetxController {
             msg.toLowerCase().contains('deleted') ||
             msg.toLowerCase().contains('not found') ||
             msg.toLowerCase().contains('does not exist') ||
-            msg.toLowerCase().contains('no account')) {
+            msg.toLowerCase().contains('no account') ||
+            msg.toLowerCase().contains('inactive')) {
           _showSnackbar(
             'Account suspended'.tr,
-            'This account has been permanently suspended. For more information, please contact support@campconnectus.store.'.tr,
+            'Your account has been suspended. Please contact support@campconnectus.store for more information.'.tr,
           );
-        } else if (msg.toLowerCase().contains('inactive') || 
-            msg.toLowerCase().contains('verify') ||
+        } else if (msg.toLowerCase().contains('verify') ||
             msg.toLowerCase().contains('not verified') ||
             msg.toLowerCase().contains('not active')) {
           _showSnackbar(
