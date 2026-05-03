@@ -11,7 +11,6 @@ import 'package:kartly_e_commerce/modules/product/view/new_product_list_view.dar
 import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
 import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
 
-// ... rest stays same, just change one line below ...
 class CategoryProductSection extends StatefulWidget {
   final int categoryId;
   final String title;
