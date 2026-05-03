@@ -52,22 +52,25 @@ class FlashDealsSection extends StatelessWidget {
           children: [
             // Flash Sale Banner Image
             if (deal.backgroundImage != null && deal.backgroundImage!.isNotEmpty)
-              Container(
-                width: double.infinity,
-                height: 150,
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: deal.backgroundImage!,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.error),
+              GestureDetector(
+                onTap: () => Get.toNamed(AppRoutes.flashDealsView),
+                child: Container(
+                  width: double.infinity,
+                  height: 150,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: deal.backgroundImage!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey[300],
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.error),
+                      ),
                     ),
                   ),
                 ),
