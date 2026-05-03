@@ -44,10 +44,7 @@ class AuthController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.whiteColor),
-            ),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.whiteColor)),
             Text(message, style: const TextStyle(color: AppColors.whiteColor)),
           ],
         ),
@@ -190,7 +187,18 @@ class AuthController extends GetxController {
       final loginRes = await _repo.loginCustomer(email: email, password: pass);
       if (Get.context == null) return;
       if (!loginRes.success) {
-        _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
+        final msg = loginRes.message ?? '';
+        if (msg.toLowerCase().contains('inactive') || 
+            msg.toLowerCase().contains('verify') ||
+            msg.toLowerCase().contains('not verified') ||
+            msg.toLowerCase().contains('not active')) {
+          _showSnackbar(
+            'Account not verified'.tr,
+            'Please check your email to verify your account before logging in'.tr,
+          );
+        } else {
+          _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
+        }
         return;
       }
       storage.saveLogin(true, remember: isRemember.value);
