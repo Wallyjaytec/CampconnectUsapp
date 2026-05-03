@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,6 +27,8 @@ class NewProductListView extends StatefulWidget {
 
 class _NewProductListViewState extends State<NewProductListView> {
   final _scrollCtrl = ScrollController();
+  bool _showBackToTop = false;
+  Timer? _hideTimer;
   late final NewProductListController controller;
 
   @override
@@ -105,7 +109,6 @@ class _NewProductListViewState extends State<NewProductListView> {
 
       controller.clearOnlyFilters(resetSorting: true);
 
-      // Check if brandId was passed
       final int brandId = (args is Map) ? toInt(args['brandId']) : 0;
       final String? brandName = (args is Map) ? args['brandName']?.toString() : null;
 
@@ -131,10 +134,20 @@ class _NewProductListViewState extends State<NewProductListView> {
     if (pos.pixels >= pos.maxScrollExtent - 200) {
       controller.loadMore();
     }
+    if (!_showBackToTop) setState(() => _showBackToTop = true);
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _showBackToTop) setState(() => _showBackToTop = false);
+    });
+  }
+
+  void _scrollToTop() {
+    _scrollCtrl.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
   @override
   void dispose() {
+    _hideTimer?.cancel();
     _scrollCtrl.removeListener(_onScroll);
     _scrollCtrl.dispose();
     super.dispose();
@@ -194,63 +207,74 @@ class _NewProductListViewState extends State<NewProductListView> {
                   children: [
                     Image.asset('assets/icons/categories_empty.png', width: 100, height: 100),
                     const SizedBox(height: 16),
-                    Text(
-                      'No products found under this brand'.tr,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+                    Text('No products found under this brand'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
-                    Text(
-                      'Browse later or check other brands'.tr,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
+                    Text('Browse later or check other brands'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
                   ],
                 ),
               ),
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: controller.loadInitial,
-            child: CustomScrollView(
-              controller: _scrollCtrl,
-              slivers: [
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                SliverToBoxAdapter(
-                  child: SizedBox(height: 36, child: Obx(() {
-                    final brandModels = controller.brands;
-                    final selectedBrandId = controller.selectedBrandId.value;
-                    return ListView.separated(
-                      scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12),
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemCount: 1 + brandModels.length,
-                      itemBuilder: (_, i) {
-                        if (i == 0) {
-                          return controller.products.isEmpty ? const SizedBox.shrink() : _CategoryChip(
-                            label: 'Filter'.tr, selected: false,
-                            leading: const Icon(Iconsax.filter_copy), trailing: const Icon(Iconsax.arrow_down_1_copy),
-                            onTap: () async { final res = await Get.toNamed(AppRoutes.productFilterView); if (res is Map) controller.applyFilter(res); },
-                          );
-                        }
-                        final b = brandModels[i - 1];
-                        final on = (b.id == selectedBrandId);
-                        return _CategoryChip(label: b.name, selected: on, onTap: () => controller.pickBrand(b.id));
-                      },
-                    );
-                  })),
+          return Stack(
+            children: [
+              RefreshIndicator(
+                onRefresh: controller.loadInitial,
+                child: CustomScrollView(
+                  controller: _scrollCtrl,
+                  slivers: [
+                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: 36, child: Obx(() {
+                        final brandModels = controller.brands;
+                        final selectedBrandId = controller.selectedBrandId.value;
+                        return ListView.separated(
+                          scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12),
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemCount: 1 + brandModels.length,
+                          itemBuilder: (_, i) {
+                            if (i == 0) {
+                              return controller.products.isEmpty ? const SizedBox.shrink() : _CategoryChip(
+                                label: 'Filter'.tr, selected: false,
+                                leading: const Icon(Iconsax.filter_copy), trailing: const Icon(Iconsax.arrow_down_1_copy),
+                                onTap: () async { final res = await Get.toNamed(AppRoutes.productFilterView); if (res is Map) controller.applyFilter(res); },
+                              );
+                            }
+                            final b = brandModels[i - 1];
+                            final on = (b.id == selectedBrandId);
+                            return _CategoryChip(label: b.name, selected: on, onTap: () => controller.pickBrand(b.id));
+                          },
+                        );
+                      })),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 96),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 14, crossAxisSpacing: 14, mainAxisExtent: 240),
+                        delegate: SliverChildBuilderDelegate((context, i) => _ListCard(index: i), childCount: controller.products.length),
+                      ),
+                    ),
+                    SliverToBoxAdapter(child: Obx(() => controller.isLoadingMore.value ? const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Center(child: CircularProgressIndicator())) : const SizedBox.shrink())),
+                    SliverToBoxAdapter(child: (!controller.hasMore && controller.products.isNotEmpty) ? Padding(padding: const EdgeInsets.only(bottom: 24), child: Center(child: Text('No more products'.tr))) : const SizedBox.shrink()),
+                  ],
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 96),
-                  sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 14, crossAxisSpacing: 14, mainAxisExtent: 240),
-                    delegate: SliverChildBuilderDelegate((context, i) => _ListCard(index: i), childCount: controller.products.length),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                bottom: _showBackToTop ? 20 : -60,
+                right: 20,
+                child: AnimatedOpacity(
+                  opacity: _showBackToTop ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: AppColors.primaryColor,
+                    onPressed: _scrollToTop,
+                    child: const Icon(Iconsax.arrow_up_2_copy, color: Colors.white),
                   ),
                 ),
-                SliverToBoxAdapter(child: Obx(() => controller.isLoadingMore.value ? const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Center(child: CircularProgressIndicator())) : const SizedBox.shrink())),
-                SliverToBoxAdapter(child: (!controller.hasMore && controller.products.isNotEmpty) ? Padding(padding: const EdgeInsets.only(bottom: 24), child: Center(child: Text('No more products'.tr))) : const SizedBox.shrink()),
-              ],
-            ),
+              ),
+            ],
           );
         }),
       ),
