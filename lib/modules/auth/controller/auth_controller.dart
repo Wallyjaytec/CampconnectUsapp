@@ -188,25 +188,26 @@ class AuthController extends GetxController {
       if (Get.context == null) return;
       if (!loginRes.success) {
         final msg = loginRes.message ?? '';
-        if (msg.toLowerCase().contains('inactive') || 
+        // Check banned/suspended/deleted FIRST
+        if (msg.toLowerCase().contains('suspend') || 
+            msg.toLowerCase().contains('deactivate') ||
+            msg.toLowerCase().contains('disabled') ||
+            msg.toLowerCase().contains('banned') ||
+            msg.toLowerCase().contains('deleted') ||
+            msg.toLowerCase().contains('not found') ||
+            msg.toLowerCase().contains('does not exist') ||
+            msg.toLowerCase().contains('no account')) {
+          _showSnackbar(
+            'Account suspended'.tr,
+            'This account has been permanently suspended. For more information, please contact support@campconnectus.store.'.tr,
+          );
+        } else if (msg.toLowerCase().contains('inactive') || 
             msg.toLowerCase().contains('verify') ||
             msg.toLowerCase().contains('not verified') ||
             msg.toLowerCase().contains('not active')) {
           _showSnackbar(
             'Account not verified'.tr,
             'Please check your email to verify your account before logging in'.tr,
-          );
-        } else if (msg.toLowerCase().contains('suspend') || 
-                   msg.toLowerCase().contains('deactivate') ||
-                   msg.toLowerCase().contains('disabled') ||
-                   msg.toLowerCase().contains('banned') ||
-                   msg.toLowerCase().contains('deleted') ||
-                   msg.toLowerCase().contains('not found') ||
-                   msg.toLowerCase().contains('does not exist') ||
-                   msg.toLowerCase().contains('no account')) {
-          _showSnackbar(
-            'Account suspended'.tr,
-            'This account has been permanently suspended. For more information, please contact support@campconnectus.store.'.tr,
           );
         } else {
           _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
