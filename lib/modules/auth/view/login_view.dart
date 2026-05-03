@@ -192,9 +192,9 @@ class LoginView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        '${'If you have no account'.tr}?',
-                        style: const TextStyle(fontSize: 14),
-                      ),
+                   '${'Don\'t have a CampconnectUs account yet'.tr}?',
+                    style: const TextStyle(fontSize: 14),
+                    ),
                       const SizedBox(width: 5),
                       GestureDetector(
                         onTap: () {
