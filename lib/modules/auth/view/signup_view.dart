@@ -65,7 +65,7 @@ class SignupView extends StatelessWidget {
                 const SizedBox(height: 30),
                 CustomTextFormField(
                   controller: controller.nameController,
-                  hint: "Name".tr,
+                  hint: "Full Name".tr,
                   icon: Iconsax.user_copy,
                   onTap: () => controller.nameError.value = '',
                   onChanged: (_) => controller.nameError.value = '',
