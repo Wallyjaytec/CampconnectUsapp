@@ -43,7 +43,7 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
     }
     final c = Get.put(NewProductListController(ProductRepository(ApiService())), tag: tag);
     c.openForCategory(categoryId: widget.categoryId, categoryName: widget.title);
-    Get.to(() => const NewProductListView(), arguments: {'categoryId': widget.categoryId, 'categoryName': widget.title});
+    Get.to(() => const product_list_view.NewProductListView(), arguments: {'categoryId': widget.categoryId, 'categoryName': widget.title});
   }
 
   @override
