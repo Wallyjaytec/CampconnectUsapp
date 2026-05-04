@@ -215,6 +215,16 @@ class ApiService {
     }
 
     if (statusCode == 401) {
+      // Check for force_logout flag from backend middleware
+      try {
+        final decoded = json.decode(body);
+        if (decoded is Map<String, dynamic> && decoded['force_logout'] == true) {
+          final login = LoginService();
+          login.logout();
+        }
+      } catch (_) {}
+
+      // Always logout on 401
       try {
         final login = LoginService();
         login.logout();
