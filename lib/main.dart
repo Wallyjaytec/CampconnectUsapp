@@ -68,13 +68,13 @@ Future<void> main() async {
 
   // Handle deep link that opened the app
   final initialUri = Uri.base;
-  String? initialRoute;
   if (initialUri.host == 'password' || initialUri.path.contains('password/reset')) {
     final token = initialUri.queryParameters['u'] ?? '';
     if (token.isNotEmpty) {
-      initialRoute = '/password-reset?u=$token';
+      box.write('deep_link_token', token);
+      box.write('deep_link_type', 'password_reset');
     }
   }
 
-  runApp(MyApp(initialLocaleCode: savedApiCode, initialDeepLink: initialRoute));
+  runApp(MyApp(initialLocaleCode: savedApiCode));
 }
