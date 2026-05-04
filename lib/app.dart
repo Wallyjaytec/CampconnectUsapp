@@ -36,19 +36,23 @@ class MyApp extends StatelessWidget {
       getPages: AppPages.pages,
       onGenerateRoute: (settings) {
         final uri = Uri.tryParse(settings.name ?? '');
-        if (uri != null && uri.path.contains('email-verification')) {
-          final code = uri.queryParameters['u'] ?? '';
-          return GetPageRoute(
-            page: () => VerificationSuccessView(code: code),
-            routeName: '/verify-email',
-          );
-        }
-        if (uri != null && uri.path.contains('password/reset')) {
-          final token = uri.queryParameters['u'] ?? '';
-          return GetPageRoute(
-            page: () => PasswordResetView(token: token),
-            routeName: '/password-reset',
-          );
+        if (uri != null) {
+          if (uri.host == 'password' || uri.path.contains('password/reset')) {
+            final token = uri.queryParameters['u'] ?? '';
+            if (token.isNotEmpty) {
+              return GetPageRoute(
+                page: () => PasswordResetView(token: token),
+                routeName: '/password-reset',
+              );
+            }
+          }
+          if (uri.path.contains('email-verification')) {
+            final code = uri.queryParameters['u'] ?? '';
+            return GetPageRoute(
+              page: () => VerificationSuccessView(code: code),
+              routeName: '/verify-email',
+            );
+          }
         }
         return null;
       },
