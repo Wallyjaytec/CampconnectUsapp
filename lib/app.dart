@@ -1,80 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
-import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
-import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
-import 'package:kartly_e_commerce/core/services/currency_service.dart';
-import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
-import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 
-import 'app.dart';
-import 'core/config/app_config.dart';
-import 'core/services/api_service.dart';
-import 'core/services/language_service.dart';
-import 'core/services/network_service.dart';
-import 'data/repositories/cart_repository.dart';
-import 'data/repositories/category_repository.dart';
-import 'data/repositories/product_repository.dart';
-import 'modules/account/controller/notifications_controller.dart';
-import 'modules/category/controller/category_controller.dart';
-import 'modules/product/controller/cart_controller.dart';
-import 'modules/product/controller/new_product_list_controller.dart';
+import 'core/bindings/initial_bindings.dart';
+import 'core/config/app_scroll_behavior.dart';
+import 'core/routes/app_pages.dart';
+import 'core/routes/app_routes.dart';
+import 'core/theme/app_theme.dart';
+import 'core/utils/locale_mapper.dart';
+import 'modules/auth/view/password_reset_view.dart';
+import 'modules/auth/view/verification_success_view.dart';
 
-Future<void> initServices() async {
-  await Get.putAsync<NetworkService>(() async => NetworkService().init());
-}
+class MyApp extends StatelessWidget {
+  final String initialLocaleCode;
+  final String? initialDeepLink;
+  const MyApp({super.key, required this.initialLocaleCode, this.initialDeepLink});
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initServices();
-  await GetStorage.init();
-  Get.put(ThemeController(), permanent: true);
-  Get.put(
-    LanguageController(SiteSettingsPropertiesRepository(ApiService())),
-    permanent: true,
-  );
-  final siteRepo = SiteSettingsPropertiesRepository(ApiService());
+  @override
+  Widget build(BuildContext context) {
+    final initialLocale = LocaleMapper.fromApiCode(initialLocaleCode);
 
-  final currencyService = CurrencyService(siteRepo);
-
-  Get.put<CurrencyService>(currencyService, permanent: true);
-
-  Get.put<CurrencyController>(
-    CurrencyController(siteRepo, currencyService),
-    permanent: true,
-  );
-  Get.put<NotificationController>(NotificationController(), permanent: true);
-
-  Get.put(CategoryController(CategoryRepository(ApiService())));
-
-  Get.put<NewProductListController>(
-    NewProductListController(ProductRepository(ApiService())),
-    permanent: true,
-  );
-
-  Get.put(CartRepository(ApiService()), permanent: true);
-
-  Get.put<CartController>(
-    CartController(CartRepository(ApiService())),
-    permanent: true,
-  );
-  Get.put(AuthController(), permanent: true);
-
-  final box = GetStorage();
-  final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
-
-  await LanguageService.load(savedApiCode);
-
-  // Handle deep link that opened the app
-  final initialUri = Uri.base;
-  String? initialRoute;
-  if (initialUri.host == 'password' || initialUri.path.contains('password/reset')) {
-    final token = initialUri.queryParameters['u'] ?? '';
-    if (token.isNotEmpty) {
-      initialRoute = '/password-reset?u=$token';
-    }
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      scrollBehavior: AppScrollBehavior(),
+      useInheritedMediaQuery: true,
+      locale: initialLocale,
+      fallbackLocale: const Locale('en'),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('en'), Locale('bn'), Locale('ar', 'SA')],
+      onGenerateTitle: (_) => 'app_title'.tr,
+      theme: AppTheme.lightFor(initialLocale),
+      darkTheme: AppTheme.darkFor(initialLocale),
+      themeMode: ThemeMode.system,
+      initialBinding: InitialBindings(),
+      initialRoute: initialDeepLink ?? AppRoutes.splashView,
+      getPages: AppPages.pages,
+      onGenerateRoute: (settings) {
+        final uri = Uri.tryParse(settings.name ?? '');
+        if (uri != null) {
+          if (uri.host == 'password' || uri.path.contains('password/reset')) {
+            final token = uri.queryParameters['u'] ?? '';
+            if (token.isNotEmpty) {
+              return GetPageRoute(
+                page: () => PasswordResetView(token: token),
+                routeName: '/password-reset',
+              );
+            }
+          }
+          if (uri.path.contains('email-verification')) {
+            final code = uri.queryParameters['u'] ?? '';
+            return GetPageRoute(
+              page: () => VerificationSuccessView(code: code),
+              routeName: '/verify-email',
+            );
+          }
+        }
+        return null;
+      },
+    );
   }
-
-  runApp(MyApp(initialLocaleCode: savedApiCode, initialDeepLink: initialRoute));
 }
