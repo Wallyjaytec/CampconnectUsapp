@@ -5,6 +5,10 @@ class AppConfig {
   static const String baseUrl = 'https://campconnectus.store';
 
   //api endpoint
+  static const String verifyResetTokenPath =
+    '/api/v1/ecommerce-core/auth/verify-customer-reset-password-token';
+static const String resetPasswordPath =
+    '/api/v1/ecommerce-core/auth/customer-reset-password';
   static const String sitePropertiesPath =
       '/api/v1/ecommerce-core/site-properties';
   static const String localePath = '/api/v1/locale';
@@ -224,6 +228,8 @@ class AppConfig {
       '$baseUrl$activePaymentMethodsPath';
   static String customerForgotPasswordUrl() =>
       '$baseUrl$customerForgotPasswordPath';
+  static String verifyResetTokenUrl() => '$baseUrl$verifyResetTokenPath';
+static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   static String customerEmailResetLinkUrl() =>
       '$baseUrl$customerEmailResetLinkPath';
   static String storeContactMessageUrl() => '$baseUrl$storeContactMessagePath';
