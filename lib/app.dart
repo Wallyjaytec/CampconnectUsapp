@@ -9,7 +9,6 @@ import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'modules/auth/view/verification_success_view.dart';
-import 'modules/auth/view/reset_password_view.dart';
 
 class MyApp extends StatelessWidget {
   final String initialLocaleCode;
@@ -34,24 +33,14 @@ class MyApp extends StatelessWidget {
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
       getPages: AppPages.pages,
-      // Handle deep links from email
       onGenerateRoute: (settings) {
         final uri = Uri.tryParse(settings.name ?? '');
-        if (uri != null) {
-          if (uri.path.contains('email-verification')) {
-            final code = uri.queryParameters['u'] ?? '';
-            return GetPageRoute(
-              page: () => VerificationSuccessView(code: code),
-              routeName: '/verify-email',
-            );
-          }
-          if (uri.path.contains('password/reset')) {
-            final code = uri.queryParameters['u'] ?? '';
-            return GetPageRoute(
-              page: () => ResetPasswordView(code: code),
-              routeName: '/reset-password',
-            );
-          }
+        if (uri != null && uri.path.contains('email-verification')) {
+          final code = uri.queryParameters['u'] ?? '';
+          return GetPageRoute(
+            page: () => VerificationSuccessView(code: code),
+            routeName: '/verify-email',
+          );
         }
         return null;
       },
