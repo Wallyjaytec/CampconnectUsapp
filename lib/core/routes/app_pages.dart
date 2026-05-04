@@ -25,6 +25,7 @@ import '../../modules/account/view/recharge_wallet_view.dart';
 import '../../modules/account/view/refund_request_details_view.dart';
 import '../../modules/account/view/refund_request_list_view.dart';
 import '../../modules/auth/view/login_view.dart';
+import '../../modules/auth/view/password_reset_view.dart';
 import '../../modules/auth/view/signup_view.dart';
 import '../../modules/bottom_navbar/view/bottom_navbar_view.dart';
 import '../../modules/category/view/all_category_view.dart';
@@ -206,6 +207,14 @@ class AppPages {
       page: () {
         final int id = Get.arguments as int;
         return RefundRequestDetailsView(refundId: id);
+      },
+    ),
+    GetPage(
+      name: '/password-reset',
+      page: () {
+        final uri = Uri.base;
+        final token = uri.queryParameters['u'] ?? '';
+        return PasswordResetView(token: token);
       },
     ),
   ];
