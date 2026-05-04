@@ -145,6 +145,7 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.message_question_copy, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
                     _menuItem(Iconsax.information_copy, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
+                    _menuItem(Iconsax.user_add_copy, "Register".tr, () => Get.offAllNamed(AppRoutes.signupView)),
                     _menuItem(Iconsax.login_1_copy, "Login".tr, () => Get.offAllNamed(AppRoutes.loginView)),
                     const SizedBox(height: 20),
                   ]),
