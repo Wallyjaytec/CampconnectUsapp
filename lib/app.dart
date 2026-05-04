@@ -8,6 +8,7 @@ import 'core/routes/app_pages.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
+import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 
 class MyApp extends StatelessWidget {
@@ -40,6 +41,13 @@ class MyApp extends StatelessWidget {
           return GetPageRoute(
             page: () => VerificationSuccessView(code: code),
             routeName: '/verify-email',
+          );
+        }
+        if (uri != null && uri.path.contains('password/reset')) {
+          final token = uri.queryParameters['u'] ?? '';
+          return GetPageRoute(
+            page: () => PasswordResetView(token: token),
+            routeName: '/password-reset',
           );
         }
         return null;
