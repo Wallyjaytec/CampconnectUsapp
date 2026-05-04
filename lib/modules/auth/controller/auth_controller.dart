@@ -188,7 +188,6 @@ class AuthController extends GetxController {
       if (Get.context == null) return;
       if (!loginRes.success) {
         final msg = loginRes.message ?? '';
-        // Check suspended/banned/deleted/inactive FIRST
         if (msg.toLowerCase().contains('suspend') || 
             msg.toLowerCase().contains('deactivate') ||
             msg.toLowerCase().contains('disabled') ||
@@ -200,7 +199,7 @@ class AuthController extends GetxController {
             msg.toLowerCase().contains('inactive')) {
           _showSnackbar(
             'Account suspended'.tr,
-            'Your account has been suspended. Please contact support@campconnectus.store for more information.'.tr,
+            msg,
           );
         } else if (msg.toLowerCase().contains('verify') ||
             msg.toLowerCase().contains('not verified') ||
