@@ -63,4 +63,25 @@ class AuthRepository {
     final json = await _api.getJson(url);
     return ForgotPasswordResponse.fromJson(json);
   }
+
+  Future<bool> verifyResetToken(String identifier) async {
+    final url = AppConfig.verifyResetTokenUrl();
+    final fields = <String, String>{'identifier': identifier};
+    final json = await _api.postMultipart(url, fields: fields);
+    return json['success'] == true;
+  }
+
+  Future<bool> resetPassword({
+    required String identifier,
+    required String password,
+  }) async {
+    final url = AppConfig.resetPasswordUrl();
+    final fields = <String, String>{
+      'identifier': identifier,
+      'password': password,
+      'password_confirmation': password,
+    };
+    final json = await _api.postMultipart(url, fields: fields);
+    return json['success'] == true;
+  }
 }
