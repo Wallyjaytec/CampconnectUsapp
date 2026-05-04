@@ -47,12 +47,15 @@
                     android:pathPrefix="/password/reset" />
             </intent-filter>
             
-            <!-- Custom scheme for password reset -->
-            <intent-filter>
+            <!-- Password Reset Deep Link (with trailing slash) -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="campconnectus" android:host="password" android:pathPrefix="/reset" />
+                <data
+                    android:scheme="https"
+                    android:host="campconnectus.store"
+                    android:pathPrefix="/password/reset/" />
             </intent-filter>
             
             <!-- All CampconnectUs Links -->
