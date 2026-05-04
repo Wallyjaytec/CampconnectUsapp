@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 import 'core/bindings/initial_bindings.dart';
 import 'core/config/app_scroll_behavior.dart';
@@ -13,8 +14,7 @@ import 'modules/auth/view/verification_success_view.dart';
 
 class MyApp extends StatelessWidget {
   final String initialLocaleCode;
-  final String? initialDeepLink;
-  const MyApp({super.key, required this.initialLocaleCode, this.initialDeepLink});
+  const MyApp({super.key, required this.initialLocaleCode});
 
   @override
   Widget build(BuildContext context) {
@@ -33,27 +33,29 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkFor(initialLocale),
       themeMode: ThemeMode.system,
       initialBinding: InitialBindings(),
-      initialRoute: initialDeepLink ?? AppRoutes.splashView,
+      initialRoute: AppRoutes.splashView,
       getPages: AppPages.pages,
       onGenerateRoute: (settings) {
+        final box = GetStorage();
+        final deepLinkType = box.read<String>('deep_link_type');
+
+        if (deepLinkType == 'password_reset') {
+          final token = box.read<String>('deep_link_token') ?? '';
+          box.remove('deep_link_type');
+          box.remove('deep_link_token');
+          return GetPageRoute(
+            page: () => PasswordResetView(token: token),
+            routeName: '/password-reset',
+          );
+        }
+
         final uri = Uri.tryParse(settings.name ?? '');
-        if (uri != null) {
-          if (uri.host == 'password' || uri.path.contains('password/reset')) {
-            final token = uri.queryParameters['u'] ?? '';
-            if (token.isNotEmpty) {
-              return GetPageRoute(
-                page: () => PasswordResetView(token: token),
-                routeName: '/password-reset',
-              );
-            }
-          }
-          if (uri.path.contains('email-verification')) {
-            final code = uri.queryParameters['u'] ?? '';
-            return GetPageRoute(
-              page: () => VerificationSuccessView(code: code),
-              routeName: '/verify-email',
-            );
-          }
+        if (uri != null && uri.path.contains('email-verification')) {
+          final code = uri.queryParameters['u'] ?? '';
+          return GetPageRoute(
+            page: () => VerificationSuccessView(code: code),
+            routeName: '/verify-email',
+          );
         }
         return null;
       },
