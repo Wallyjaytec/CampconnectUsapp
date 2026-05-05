@@ -52,7 +52,7 @@ class AuthRepository {
 
   Future<ForgotPasswordResponse> forgotPassword({required String email}) async {
     final url = AppConfig.customerForgotPasswordUrl();
-    final fields = <String, String>{'email': email};
+    final fields = <String, String>{'email': email, 'from': 'app'};
 
     final json = await _api.postMultipart(url, fields: fields);
     return ForgotPasswordResponse.fromJson(json);
