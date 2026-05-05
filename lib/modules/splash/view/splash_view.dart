@@ -48,14 +48,10 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       
-      // Check if app was opened from a deep link
-      final uri = Uri.base;
-      if (uri.host == 'password' && uri.path.contains('reset')) {
-        final token = uri.queryParameters['u'] ?? '';
-        if (token.isNotEmpty) {
-          Get.offAll(() => PasswordResetView(token: token));
-          return;
-        }
+      final token = Get.parameters['u'] ?? '';
+      if (token.isNotEmpty) {
+        Get.offAll(() => PasswordResetView(token: token));
+        return;
       }
       
       Get.offAllNamed(AppRoutes.bottomNavbarView);
