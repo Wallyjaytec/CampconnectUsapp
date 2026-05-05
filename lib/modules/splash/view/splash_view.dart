@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
+import '../../auth/view/verification_success_view.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -48,9 +49,15 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       
-      final token = Get.parameters['u'] ?? '';
+      final uri = Uri.base;
+      final token = uri.queryParameters['u'] ?? '';
+      
       if (token.isNotEmpty) {
-        Get.offAll(() => PasswordResetView(token: token));
+        if (uri.path.contains('email-verification')) {
+          Get.offAll(() => VerificationSuccessView(code: token));
+        } else {
+          Get.offAll(() => PasswordResetView(token: token));
+        }
         return;
       }
       
