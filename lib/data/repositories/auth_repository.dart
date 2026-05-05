@@ -30,6 +30,7 @@ class AuthRepository {
       'phone': phone,
       'password': password,
       'password_confirmation': passwordConfirmation,
+      'from': 'app',
     };
 
     if ((phoneWithCode ?? '').isNotEmpty) {
