@@ -49,14 +49,22 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       
+      final rawUri = Uri.base.toString();
       final uri = Uri.base;
       final token = uri.queryParameters['u'] ?? '';
       
-      if (token.isNotEmpty) {
-        if (uri.path.contains('email-verification')) {
-          Get.offAll(() => VerificationSuccessView(code: token));
+      String? tokenFromRaw;
+      if (rawUri.contains('?u=')) {
+        tokenFromRaw = rawUri.split('?u=').last;
+      }
+      
+      final finalToken = token.isNotEmpty ? token : (tokenFromRaw ?? '');
+      
+      if (finalToken.isNotEmpty) {
+        if (uri.path.contains('email-verification') || rawUri.contains('email-verification')) {
+          Get.offAll(() => VerificationSuccessView(code: finalToken));
         } else {
-          Get.offAll(() => PasswordResetView(token: token));
+          Get.offAll(() => PasswordResetView(token: finalToken));
         }
         return;
       }
