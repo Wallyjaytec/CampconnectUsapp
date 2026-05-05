@@ -5,6 +5,7 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../auth/view/password_reset_view.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -46,6 +47,17 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
+      
+      // Check if app was opened from a deep link
+      final uri = Uri.base;
+      if (uri.host == 'password' && uri.path.contains('reset')) {
+        final token = uri.queryParameters['u'] ?? '';
+        if (token.isNotEmpty) {
+          Get.offAll(() => PasswordResetView(token: token));
+          return;
+        }
+      }
+      
       Get.offAllNamed(AppRoutes.bottomNavbarView);
     });
   }
