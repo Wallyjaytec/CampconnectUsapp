@@ -66,15 +66,5 @@ Future<void> main() async {
 
   await LanguageService.load(savedApiCode);
 
-  // Handle deep link that opened the app
-  final initialUri = Uri.base;
-  if (initialUri.host == 'password' || initialUri.path.contains('password/reset')) {
-    final token = initialUri.queryParameters['u'] ?? '';
-    if (token.isNotEmpty) {
-      box.write('deep_link_token', token);
-      box.write('deep_link_type', 'password_reset');
-    }
-  }
-
   runApp(MyApp(initialLocaleCode: savedApiCode));
 }
