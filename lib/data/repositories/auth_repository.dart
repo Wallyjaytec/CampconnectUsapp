@@ -64,11 +64,14 @@ class AuthRepository {
     return ForgotPasswordResponse.fromJson(json);
   }
 
-  Future<bool> verifyResetToken(String identifier) async {
+  Future<Map<String, dynamic>?> verifyResetToken(String identifier) async {
     final url = AppConfig.verifyResetTokenUrl();
     final fields = <String, String>{'identifier': identifier};
     final json = await _api.postMultipart(url, fields: fields);
-    return json['success'] == true;
+    if (json['success'] == true) {
+      return {'success': true, 'email': json['email'] ?? ''};
+    }
+    return null;
   }
 
   Future<bool> resetPassword({
