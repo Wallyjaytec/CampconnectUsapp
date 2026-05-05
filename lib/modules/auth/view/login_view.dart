@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:iconsax_flutter/iconsax_flutter_copy.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/modules/account/widgets/custom_text_form_field.dart';
 
@@ -41,6 +41,21 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
+
+    // Show forgot password dialog if coming from expired reset link
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = Get.arguments;
+      if (args is Map && args['show_forgot'] == true) {
+        final forgotCtrl = Get.put(
+          ForgotPasswordController(),
+          permanent: false,
+        );
+        Get.dialog(
+          ForgotPasswordDialog(controller: forgotCtrl),
+          barrierDismissible: false,
+        );
+      }
+    });
 
     return SafeArea(
       child: Scaffold(
