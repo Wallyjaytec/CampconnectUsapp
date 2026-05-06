@@ -5,8 +5,6 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../auth/view/password_reset_view.dart';
-import '../../auth/view/verification_success_view.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,27 +47,23 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
 
-      final uri = Uri.base;
-      final rawUri = uri.toString();
-      
-      String token = '';
-      if (rawUri.contains('?u=')) {
-        token = rawUri.split('?u=').last.split('&').first;
-      }
-      if (token.isEmpty) {
-        token = uri.queryParameters['u'] ?? '';
-      }
+      final rawUri = Uri.base.toString();
 
-      if (token.isNotEmpty) {
-        if (rawUri.contains('email-verification')) {
-          Get.offAll(() => VerificationSuccessView(code: token));
-        } else {
-          Get.offAll(() => PasswordResetView(token: token));
-        }
-        return;
-      }
-
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.dialog(
+        AlertDialog(
+          title: const Text('DEBUG'),
+          content: Text('URI: $rawUri'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back();
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     });
   }
 
