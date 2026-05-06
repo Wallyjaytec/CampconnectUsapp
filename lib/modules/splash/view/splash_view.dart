@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:get_storage/get_storage.dart';
 import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
@@ -48,27 +49,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      
-      final rawUri = Uri.base.toString();
-      final uri = Uri.base;
-      final token = uri.queryParameters['u'] ?? '';
-      
-      String? tokenFromRaw;
-      if (rawUri.contains('?u=')) {
-        tokenFromRaw = rawUri.split('?u=').last;
-      }
-      
-      final finalToken = token.isNotEmpty ? token : (tokenFromRaw ?? '');
-      
-      if (finalToken.isNotEmpty) {
-        if (uri.path.contains('email-verification') || rawUri.contains('email-verification')) {
-          Get.offAll(() => VerificationSuccessView(code: finalToken));
+
+      final box = GetStorage();
+      final deepLinkType = box.read<String>('deep_link_type');
+      final token = box.read<String>('deep_link_token') ?? '';
+
+      if (token.isNotEmpty) {
+        box.remove('deep_link_type');
+        box.remove('deep_link_token');
+        if (deepLinkType == 'email_verify') {
+          Get.offAll(() => VerificationSuccessView(code: token));
         } else {
-          Get.offAll(() => PasswordResetView(token: finalToken));
+          Get.offAll(() => PasswordResetView(token: token));
         }
         return;
       }
-      
+
       Get.offAllNamed(AppRoutes.bottomNavbarView);
     });
   }
