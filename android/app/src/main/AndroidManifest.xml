@@ -25,12 +25,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             
-            <!-- Custom scheme for all campconnectus links -->
+            <!-- Custom scheme for campconnectus links -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="campconnectus" />
+                <data android:scheme="campconnectus" android:host="*" />
             </intent-filter>
             
             <!-- Email Verification Deep Link -->
