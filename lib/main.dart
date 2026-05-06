@@ -1,4 +1,3 @@
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -66,24 +65,6 @@ Future<void> main() async {
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
 
   await LanguageService.load(savedApiCode);
-
-  // Get initial deep link
-  final appLinks = AppLinks();
-  try {
-    final initialLink = await appLinks.getInitialLink();
-    if (initialLink != null) {
-      final uri = Uri.parse(initialLink.toString());
-      final token = uri.queryParameters['u'] ?? '';
-      if (token.isNotEmpty) {
-        box.write('deep_link_token', token);
-        if (uri.path.contains('email-verification')) {
-          box.write('deep_link_type', 'email_verify');
-        } else {
-          box.write('deep_link_type', 'password_reset');
-        }
-      }
-    }
-  } catch (_) {}
 
   runApp(MyApp(initialLocaleCode: savedApiCode));
 }
