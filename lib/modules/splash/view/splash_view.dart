@@ -50,10 +50,18 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
 
       final uri = Uri.base;
-      final token = uri.queryParameters['u'] ?? '';
+      final rawUri = uri.toString();
+      
+      String token = '';
+      if (rawUri.contains('?u=')) {
+        token = rawUri.split('?u=').last.split('&').first;
+      }
+      if (token.isEmpty) {
+        token = uri.queryParameters['u'] ?? '';
+      }
 
       if (token.isNotEmpty) {
-        if (uri.path.contains('email-verification')) {
+        if (rawUri.contains('email-verification')) {
           Get.offAll(() => VerificationSuccessView(code: token));
         } else {
           Get.offAll(() => PasswordResetView(token: token));
