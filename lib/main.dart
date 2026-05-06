@@ -1,3 +1,4 @@
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -7,7 +8,6 @@ import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
-
 import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/services/api_service.dart';
@@ -21,6 +21,8 @@ import 'modules/category/controller/category_controller.dart';
 import 'modules/product/controller/cart_controller.dart';
 import 'modules/product/controller/new_product_list_controller.dart';
 
+final _appLinks = AppLinks();
+
 Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
@@ -30,41 +32,42 @@ Future<void> main() async {
   await initServices();
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
-  Get.put(
-    LanguageController(SiteSettingsPropertiesRepository(ApiService())),
-    permanent: true,
-  );
+  Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
   final siteRepo = SiteSettingsPropertiesRepository(ApiService());
-
   final currencyService = CurrencyService(siteRepo);
-
   Get.put<CurrencyService>(currencyService, permanent: true);
-
-  Get.put<CurrencyController>(
-    CurrencyController(siteRepo, currencyService),
-    permanent: true,
-  );
+  Get.put<CurrencyController>(CurrencyController(siteRepo, currencyService), permanent: true);
   Get.put<NotificationController>(NotificationController(), permanent: true);
-
   Get.put(CategoryController(CategoryRepository(ApiService())));
-
-  Get.put<NewProductListController>(
-    NewProductListController(ProductRepository(ApiService())),
-    permanent: true,
-  );
-
+  Get.put<NewProductListController>(NewProductListController(ProductRepository(ApiService())), permanent: true);
   Get.put(CartRepository(ApiService()), permanent: true);
-
-  Get.put<CartController>(
-    CartController(CartRepository(ApiService())),
-    permanent: true,
-  );
+  Get.put<CartController>(CartController(CartRepository(ApiService())), permanent: true);
   Get.put(AuthController(), permanent: true);
 
   final box = GetStorage();
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
-
   await LanguageService.load(savedApiCode);
+
+  // Get initial deep link
+  try {
+    final uri = await _appLinks.getInitialLink();
+    if (uri != null) {
+      final token = uri.queryParameters['u'] ?? '';
+      if (token.isNotEmpty) {
+        box.write('deep_link_token', token);
+        box.write('deep_link_type', uri.path.contains('email-verification') ? 'email_verify' : 'password_reset');
+      }
+    }
+  } catch (_) {}
+
+  // Listen for links while app is running
+  _appLinks.uriLinkStream.listen((uri) {
+    final token = uri.queryParameters['u'] ?? '';
+    if (token.isNotEmpty) {
+      box.write('deep_link_token', token);
+      box.write('deep_link_type', uri.path.contains('email-verification') ? 'email_verify' : 'password_reset');
+    }
+  });
 
   runApp(MyApp(initialLocaleCode: savedApiCode));
 }
