@@ -359,8 +359,11 @@ Map<String, dynamic>? orderAttachment;
       return;
     }
 
-    try {
-      final variantText = _buildVariantText();
+    if (_addingToCart) return;
+_addingToCart = true;
+
+try {
+  final variantText = _buildVariantText();
       final variantCode = _buildVariantCode();
       final unitPrice = effectivePrice;
       final oldPrice = (effectiveOldPrice ?? unitPrice);
@@ -480,7 +483,9 @@ Map<String, dynamic>? orderAttachment;
         backgroundColor: AppColors.redColor,
         colorText: AppColors.whiteColor,
       );
-    }
+    } finally {
+  _addingToCart = false;
+}  
   }
 
   Future<void> buyNow() async {
