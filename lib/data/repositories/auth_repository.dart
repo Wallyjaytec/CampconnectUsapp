@@ -87,7 +87,6 @@ class AuthRepository {
     };
     final json = await _api.postMultipart(url, fields: fields);
     if (json['success'] == true) return true;
-    if (json['message'] != null) return 'old_password';
-    return false;
+    return json.toString();
   }
 }
