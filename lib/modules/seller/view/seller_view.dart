@@ -120,6 +120,8 @@ class SellerView extends StatelessWidget {
     ),
   ),
 );
+  }
+}
 class _SellerHeader extends GetView<SellerProductsController> {
   final SellerNavArgs args;
   const _SellerHeader({required this.args});
