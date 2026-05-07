@@ -179,7 +179,7 @@ class _SellerHeader extends GetView<SellerProductsController> {
                         ),
                       ),
                     const SizedBox(height: 2),
-                    if (followers > 0)
+           
                       Text(
                         '${_compactCount(followers)} ${'Followers'.tr}',
                         maxLines: 1,
