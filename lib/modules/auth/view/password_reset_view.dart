@@ -15,6 +15,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _loading = false;
   bool _validating = true;
   bool _isValid = false;
   String _email = '';
@@ -53,53 +54,44 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    showDialog(
-      context: context,
-      builder: (ctx) => const AlertDialog(
-        title: Text('Testing'),
-        content: Text('Button pressed'),
-      ),
-    );
-    
+    setState(() => _loading = true);
     try {
       final authRepo = AuthRepository(api: ApiService());
       final result = await authRepo.resetPassword(
         identifier: widget.token,
         password: _passwordController.text,
       );
-      
-      if (!mounted) return;
-      Navigator.pop(context);
-      
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(result == true ? 'Success' : 'Result'),
-          content: Text(result.toString()),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-        ),
-      );
+      if (result == true) {
+        Get.offAllNamed('/login_view');
+        Get.snackbar('Success', 'Password reset successfully. Please login.',
+          backgroundColor: Colors.green, colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3));
+      } else if (result == 'old_password') {
+        Get.snackbar('Error', 'You are using your old password. Please enter a new one.',
+          backgroundColor: Colors.red, colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3));
+      } else {
+        Get.snackbar('Error', 'Failed to reset password.',
+          backgroundColor: Colors.red, colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3));
+      }
     } catch (e) {
-      if (!mounted) return;
-      Navigator.pop(context);
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Error'),
-          content: Text(e.toString()),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-        ),
-      );
+      Get.snackbar('Error', 'Something went wrong.',
+        backgroundColor: Colors.red, colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3));
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_validating) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (!_isValid) {
@@ -153,7 +145,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                     const SizedBox(height: 16),
                     TextFormField(controller: _confirmController, obscureText: _obscureConfirm, decoration: InputDecoration(labelText: 'Confirm Password', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.lock_outlined), suffixIcon: IconButton(icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm))), validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null),
                     const SizedBox(height: 24),
-                    SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _resetPassword, style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: const Text('Change password', style: TextStyle(fontSize: 16, color: Colors.white)))),
+                    SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _loading ? null : _resetPassword, style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Change password', style: TextStyle(fontSize: 16, color: Colors.white)))),
                   ],
                 ),
               ),
