@@ -59,6 +59,8 @@ class ProductDetailsController extends GetxController {
   static const int idxDetails = 5;
   static const int idxRecommendations = 6;
 
+  bool _isSheetOpen = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -246,12 +248,13 @@ class ProductDetailsController extends GetxController {
   void openAllReviewsScreen() => openAllReviews();
 
   void openAddToCartSheet() {
-    final p = product.value;
-    if (p == null) return;
+    if (_isSheetOpen) return;
+    _isSheetOpen = true;
 
-    // Prevent only if a sheet is already open
-    if (Get.isBottomSheetOpen ?? false) {
-      Get.back();
+    final p = product.value;
+    if (p == null) {
+      _isSheetOpen = false;
+      return;
     }
 
     final safeName = (p.name).toString();
@@ -287,7 +290,7 @@ class ProductDetailsController extends GetxController {
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       enableDrag: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    );
+    ).whenComplete(() => _isSheetOpen = false);
   }
 
   @override
