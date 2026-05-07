@@ -34,9 +34,7 @@ class SellerProductsController extends GetxController {
 
   void seedHeaderMetaFromArgs(SellerNavArgs args) {
     followers.value = args.followers;
-    if (_store.isFollowed(slug)) {
-      isFollowing.value = true;
-    }
+    isFollowing.value = _store.isFollowed(slug) || args.isFollowing;
   }
 
   void seedHeaderMeta({
@@ -53,7 +51,22 @@ class SellerProductsController extends GetxController {
     if (_store.isFollowed(slug)) {
       isFollowing.value = true;
     }
+    _fetchFollowStatus();
     if (autoLoad) load();
+  }
+
+  Future<void> _fetchFollowStatus() async {
+    try {
+      final login = LoginService();
+      if (!login.isLoggedIn()) return;
+      final res = await repo.fetchShopDetails(slug: slug);
+      if (res['success'] == true &&
+          res['details'] != null &&
+          res['details']['is_following'] == true) {
+        isFollowing.value = true;
+        _store.setFollowed(slug, true);
+      }
+    } catch (_) {}
   }
 
   Future<void> load() async {
