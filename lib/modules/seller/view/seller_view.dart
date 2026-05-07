@@ -39,8 +39,9 @@ class SellerView extends StatelessWidget {
     child: RefreshIndicator(
       onRefresh: () => ctrl.load(),
       child: NestedScrollView(
-        floatHeaderSlivers: true,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
+  floatHeaderSlivers: true,
+  physics: const BouncingScrollPhysics(),
+  headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
               automaticallyImplyLeading: false,
