@@ -75,7 +75,7 @@ class AuthRepository {
     return null;
   }
 
-  Future<bool> resetPassword({
+  Future<dynamic> resetPassword({
     required String identifier,
     required String password,
   }) async {
@@ -86,6 +86,8 @@ class AuthRepository {
       'password_confirmation': password,
     };
     final json = await _api.postMultipart(url, fields: fields);
-    return json['success'] == true;
+    if (json['success'] == true) return true;
+    if (json['message'] != null) return 'old_password';
+    return false;
   }
 }
