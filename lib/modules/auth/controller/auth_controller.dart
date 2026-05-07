@@ -8,7 +8,6 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
-import '../../../core/utils/follow_store.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class AuthController extends GetxController {
@@ -197,17 +196,11 @@ class AuthController extends GetxController {
             msg.toLowerCase().contains('does not exist') ||
             msg.toLowerCase().contains('no account') ||
             msg.toLowerCase().contains('inactive')) {
-          _showSnackbar(
-            'Account suspended'.tr,
-            msg,
-          );
+          _showSnackbar('Account suspended'.tr, msg);
         } else if (msg.toLowerCase().contains('verify') ||
             msg.toLowerCase().contains('not verified') ||
             msg.toLowerCase().contains('not active')) {
-          _showSnackbar(
-            'Account not verified'.tr,
-            'Please check your email to verify your account before logging in'.tr,
-          );
+          _showSnackbar('Account not verified'.tr, 'Please check your email to verify your account before logging in'.tr);
         } else {
           _showSnackbar('Failed'.tr, 'Invalid email or password'.tr);
         }
@@ -237,7 +230,6 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
-      FollowStore().clearAllFollowed();
       storage.logout();
       _showSnackbar('Logged out'.tr, 'You have been signed out'.tr);
       Get.offAllNamed(AppRoutes.bottomNavbarView);
