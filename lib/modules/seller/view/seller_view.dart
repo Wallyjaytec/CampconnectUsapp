@@ -37,43 +37,36 @@ class SellerView extends StatelessWidget {
     top: true,
     bottom: false,
     child: RefreshIndicator(
-      onRefresh: () => ctrl.load(),
-      child: NestedScrollView(
-  floatHeaderSlivers: true,
-  physics: const BouncingScrollPhysics(),
-  headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              automaticallyImplyLeading: false,
-              titleSpacing: 0,
-              leadingWidth: 44,
-              elevation: 0,
-              leading: const BackIconWidget(),
-              centerTitle: false,
-              title: Text(
-                args.title,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 18,
-                ),
-              ),
-              actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-              actions: const [
-                SearchIconWidget(),
-                CartIconWidget(),
-                NotificationIconWidget(),
-              ],
-              primary: false,
-              floating: true,
-              snap: true,
-              pinned: false,
-            ),
-          ];
-        },
-        body: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          slivers: [
+  onRefresh: () => ctrl.load(),
+  child: CustomScrollView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    slivers: [
+      SliverAppBar(
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        leadingWidth: 44,
+        elevation: 0,
+        leading: const BackIconWidget(),
+        centerTitle: false,
+        title: Text(
+          args.title,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 18,
+          ),
+        ),
+        actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+        actions: const [
+          SearchIconWidget(),
+          CartIconWidget(),
+          NotificationIconWidget(),
+        ],
+        primary: false,
+        floating: true,
+        snap: true,
+        pinned: true,
+      ),
             SliverToBoxAdapter(
               child: Builder(
                 builder: (context) {
@@ -581,3 +574,4 @@ class _CenterStrike extends StatelessWidget {
   }
 }
 
+ 
