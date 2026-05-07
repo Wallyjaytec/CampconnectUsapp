@@ -106,6 +106,32 @@ class SellerProductsController extends GetxController {
     await _followInternal();
   }
 
+  Future<void> unfollowShop() async {
+    if (_followBusy.value || !isFollowing.value) return;
+
+    final ok = await _ensureLoggedInWithPrompt();
+    if (!ok) return;
+
+    _followBusy.value = true;
+    try {
+      final res = await repo.unfollowShop(slug: slug);
+      if (res.success) {
+        isFollowing.value = false;
+        _store.setFollowed(slug, false);
+        followers.value = (followers.value - 1).clamp(0, double.infinity).toInt();
+        Get.snackbar('Unfollowed'.tr, 'Shop removed from your following list'.tr,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
+      }
+    } catch (_) {
+      Get.snackbar('Error'.tr, 'Something went wrong'.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
+    } finally {
+      _followBusy.value = false;
+    }
+  }
+
   Future<void> _followInternal() async {
     _followBusy.value = true;
     try {
@@ -148,7 +174,7 @@ class SellerProductsController extends GetxController {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       title: const Text('Login required', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-      content: Text('You must log in to follow'.tr, style: const TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3)),
+      content: Text('You must log in to unfollow'.tr, style: const TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3)),
       actions: [
         SizedBox(height: 44, child: TextButton(onPressed: () => Get.back(result: false), child: Text('Cancel'.tr))),
         SizedBox(height: 44, child: ElevatedButton(onPressed: () => Get.back(result: true), child: Text('Login'.tr))),
