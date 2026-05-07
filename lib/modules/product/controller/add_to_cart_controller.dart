@@ -74,10 +74,10 @@ class AddToCartController extends GetxController {
   }) : variationGroups = groups ?? const [],
        _repo = variantRepo ?? ProductVariantRepository(ApiService()),
        _cartRepo = cartRepository ?? Get.find<CartRepository>(),
-       attachmentRepo =
-           attachmentRepo ?? OrderAttachmentRepository(ApiService()) {
-    _applyDefaultSelections();
-      currentImageUrl.value = _fallbackImage();
+            attachmentRepo =
+         attachmentRepo ?? OrderAttachmentRepository(ApiService()) {
+  _applyDefaultSelections();
+  currentImageUrl.value = _fallbackImage();
 }
 
 @override
