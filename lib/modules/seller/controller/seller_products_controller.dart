@@ -83,6 +83,8 @@ class SellerProductsController extends GetxController {
       newItems.assignAll(res.newItems.data);
       featuredItems.assignAll(res.featuredItems.data);
       topSellingItems.assignAll(res.topSellingItems.data);
+
+      await _fetchFollowStatus();
     } catch (e) {
       isError.value = true;
       errorMessage.value = 'Something went wrong'.tr;
