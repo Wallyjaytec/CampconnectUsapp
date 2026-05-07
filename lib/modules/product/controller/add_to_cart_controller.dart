@@ -77,12 +77,14 @@ class AddToCartController extends GetxController {
        attachmentRepo =
            attachmentRepo ?? OrderAttachmentRepository(ApiService()) {
     _applyDefaultSelections();
-    currentImageUrl.value = _fallbackImage();
-    @override
+      currentImageUrl.value = _fallbackImage();
+}
+
+@override
 void onInit() {
   super.onInit();
   _primeVariantPrice();
-  }
+}
 
   Map<String, dynamic>? orderAttachment;
 
