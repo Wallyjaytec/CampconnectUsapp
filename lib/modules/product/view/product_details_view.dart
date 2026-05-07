@@ -1025,6 +1025,7 @@ class _ShopCard extends StatelessWidget {
                           ratingPercent: ratingPercent,
                           followers: followers,
                           shopBanner: s.shopBanner,
+                          isFollowing: s.isFollowing,
                         ),
                       );
                     },
@@ -1083,6 +1084,7 @@ class _ShopCard extends StatelessWidget {
                                 ratingPercent: ratingPercent,
                                 followers: followers,
                                 shopBanner: s.shopBanner,
+                                isFollowing: s.isFollowing,
                               ),
                             );
                           },
@@ -1324,6 +1326,7 @@ class _BottomBar extends StatelessWidget {
                       ratingPercent: ratingPercent,
                       followers: followers,
                       shopBanner: s.shopBanner,
+                      isFollowing: s.isFollowing,
                     ),
                   );
                 },
