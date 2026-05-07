@@ -71,7 +71,7 @@ class SellerView extends StatelessWidget {
           ];
         },
         body: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           slivers: [
             SliverToBoxAdapter(
               child: Builder(
