@@ -33,96 +33,93 @@ class SellerView extends StatelessWidget {
     ctrl.seedHeaderMetaFromArgs(args);
 
     return Scaffold(
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: NestedScrollView(
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                automaticallyImplyLeading: false,
-                titleSpacing: 0,
-                leadingWidth: 44,
-                elevation: 0,
-                leading: const BackIconWidget(),
-                centerTitle: false,
-                title: Text(
-                  args.title,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 18,
-                  ),
+  body: SafeArea(
+    top: true,
+    bottom: false,
+    child: RefreshIndicator(
+      onRefresh: () => ctrl.load(),
+      child: NestedScrollView(
+        floatHeaderSlivers: true,
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              automaticallyImplyLeading: false,
+              titleSpacing: 0,
+              leadingWidth: 44,
+              elevation: 0,
+              leading: const BackIconWidget(),
+              centerTitle: false,
+              title: Text(
+                args.title,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 18,
                 ),
-                      actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-      actions: [
-        IconButton(
-          icon: const Icon(Iconsax.refresh, size: 20),
-          onPressed: () => ctrl.load(),
-        ),
-        const SearchIconWidget(),
-        const CartIconWidget(),
-        const NotificationIconWidget(),
-      ],
-      primary: false,
-      floating: true,
-      snap: true,
-      pinned: false,
-    ),
-  ];
-},
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Builder(
-                  builder: (context) {
-                    final banner = args.shopBanner ?? '';
+              ),
+              actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+              actions: const [
+                SearchIconWidget(),
+                CartIconWidget(),
+                NotificationIconWidget(),
+              ],
+              primary: false,
+              floating: true,
+              snap: true,
+              pinned: false,
+            ),
+          ];
+        },
+        body: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Builder(
+                builder: (context) {
+                  final banner = args.shopBanner ?? '';
 
-                    if (banner.isEmpty) {
-                      return const SizedBox();
-                    }
+                  if (banner.isEmpty) {
+                    return const SizedBox();
+                  }
 
-                    return CachedNetworkImage(
-                      imageUrl: banner,
-                      height: 100,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => const _ImageBoxShimmer(),
-                      errorWidget: (_, __, ___) =>
-                          const Icon(Iconsax.gallery_remove_copy),
-                    );
-                  },
-                ),
+                  return CachedNetworkImage(
+                    imageUrl: banner,
+                    height: 100,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => const _ImageBoxShimmer(),
+                    errorWidget: (_, __, ___) =>
+                        const Icon(Iconsax.gallery_remove_copy),
+                  );
+                },
               ),
-              SliverToBoxAdapter(child: _SellerHeader(args: args)),
-              SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
-              const SliverToBoxAdapter(
-                child: _SellerCarousel(section: _SellerSection.newItems),
+            ),
+            SliverToBoxAdapter(child: _SellerHeader(args: args)),
+            SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
+            const SliverToBoxAdapter(
+              child: _SellerCarousel(section: _SellerSection.newItems),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            SliverToBoxAdapter(
+              child: _SectionHeader('Top Selling Products'.tr),
+            ),
+            const SliverToBoxAdapter(
+              child: _SellerCarousel(section: _SellerSection.topSelling),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
+            const SliverToBoxAdapter(
+              child: _SellerCarousel(
+                section: _SellerSection.featured,
+                bottomPadding: 12,
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
-              SliverToBoxAdapter(
-                child: _SectionHeader('Top Selling Products'.tr),
-              ),
-              const SliverToBoxAdapter(
-                child: _SellerCarousel(section: _SellerSection.topSelling),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
-              SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
-              const SliverToBoxAdapter(
-                child: _SellerCarousel(
-                  section: _SellerSection.featured,
-                  bottomPadding: 12,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
+    ),
+  ),
+);
 class _SellerHeader extends GetView<SellerProductsController> {
   final SellerNavArgs args;
   const _SellerHeader({required this.args});
