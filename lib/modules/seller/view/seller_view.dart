@@ -102,7 +102,7 @@ class SellerView extends StatelessWidget {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
             SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
-            const SliverToBoxAdapter(
+                        const SliverToBoxAdapter(
               child: _SellerCarousel(
                 section: _SellerSection.featured,
                 bottomPadding: 12,
@@ -112,7 +112,6 @@ class SellerView extends StatelessWidget {
         ),
       ),
     ),
-  ),
 );
   }
 }
