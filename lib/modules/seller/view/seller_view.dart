@@ -192,29 +192,28 @@ class _SellerHeader extends GetView<SellerProductsController> {
             ),
             const SizedBox(width: 10),
             Obx(() {
-              final c = Get.find<SellerProductsController>();
-              final following = c.isFollowing.value;
-              final busy = c.followBusy;
-              return TextButton(
-                onPressed: (following || busy) ? null : c.followShop,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  backgroundColor: following
-                      ? Theme.of(context).colorScheme.surfaceContainerHighest
-                      : AppColors.primaryColor,
-                  foregroundColor: following
-                      ? Theme.of(context).colorScheme.onSurface
-                      : AppColors.whiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-                child: Text(following ? 'Following'.tr : 'Follow'.tr),
-              );
-            }),
+  final c = Get.find<SellerProductsController>();
+  final following = c.isFollowing.value;
+  final busy = c.followBusy;
+  return TextButton(
+    onPressed: busy
+        ? null
+        : following
+            ? () => c.unfollowShop()
+            : () => c.followShop(),
+    style: TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      backgroundColor: following
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
+          : AppColors.primaryColor,
+      foregroundColor: following
+          ? Theme.of(context).colorScheme.onSurface
+          : AppColors.whiteColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+    ),
+    child: Text(following ? 'Following'.tr : 'Follow'.tr),
+  );
+}),
           ],
         ),
       ),
@@ -577,3 +576,4 @@ class _CenterStrike extends StatelessWidget {
     );
   }
 }
+k
