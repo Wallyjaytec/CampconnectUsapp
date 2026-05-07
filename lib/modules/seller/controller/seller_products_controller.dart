@@ -60,11 +60,15 @@ class SellerProductsController extends GetxController {
       final login = LoginService();
       if (!login.isLoggedIn()) return;
       final res = await repo.fetchShopDetails(slug: slug);
-      if (res['success'] == true &&
-          res['details'] != null &&
-          res['details']['is_following'] == true) {
-        isFollowing.value = true;
-        _store.setFollowed(slug, true);
+      if (res['success'] == true && res['details'] != null) {
+        if (res['details']['is_following'] == true) {
+          isFollowing.value = true;
+          _store.setFollowed(slug, true);
+        }
+        final apiFollowers = res['details']['total_followers'];
+        if (apiFollowers != null) {
+          followers.value = apiFollowers is int ? apiFollowers : int.tryParse(apiFollowers.toString()) ?? 0;
+        }
       }
     } catch (_) {}
   }
