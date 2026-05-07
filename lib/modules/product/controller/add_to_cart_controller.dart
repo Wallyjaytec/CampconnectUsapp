@@ -111,6 +111,7 @@ Map<String, dynamic>? orderAttachment;
   final RxInt _serverStock = 0.obs;
 
   final RxString currentImageUrl = ''.obs;
+  bool _addingToCart = false;
 
   bool get shouldShowRange {
     final min = details.priceRangeMin;
