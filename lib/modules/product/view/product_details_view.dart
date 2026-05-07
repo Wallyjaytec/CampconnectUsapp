@@ -957,7 +957,7 @@ class _ShopCard extends StatelessWidget {
       return tf;
     })();
 
-    const bool alreadyFollowing = false;
+    final bool alreadyFollowing = s.isFollowing;
 
     final tag = 'seller_header_$slug';
     final sellerCtrl = Get.isRegistered<SellerProductsController>(tag: tag)
@@ -967,12 +967,10 @@ class _ShopCard extends StatelessWidget {
             tag: tag,
           );
 
-    if (sellerCtrl.followers.value == 0) {
-      sellerCtrl.seedHeaderMeta(
-        followersCount: seedFollowers,
-        alreadyFollowing: alreadyFollowing,
-      );
-    }
+    sellerCtrl.seedHeaderMeta(
+      followersCount: seedFollowers,
+      alreadyFollowing: alreadyFollowing,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
