@@ -53,6 +53,15 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => const AlertDialog(
+        title: Text('Testing'),
+        content: Text('Button pressed'),
+      ),
+    );
+    
     try {
       final authRepo = AuthRepository(api: ApiService());
       final result = await authRepo.resetPassword(
@@ -60,21 +69,28 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         password: _passwordController.text,
       );
       
-      await Future.delayed(const Duration(milliseconds: 100));
+      if (!mounted) return;
+      Navigator.pop(context);
       
-      if (result == true) {
-        Get.offAllNamed('/login_view');
-      } else {
-        Get.snackbar('Message', result.toString(),
-          backgroundColor: Colors.orange, colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 4));
-      }
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(result == true ? 'Success' : 'Result'),
+          content: Text(result.toString()),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
     } catch (e) {
-      Get.snackbar('Error', e.toString(),
-        backgroundColor: Colors.red, colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 4));
+      if (!mounted) return;
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error'),
+          content: Text(e.toString()),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
     }
   }
 
