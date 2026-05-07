@@ -55,19 +55,23 @@ class SellerView extends StatelessWidget {
                     fontSize: 18,
                   ),
                 ),
-                actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-                actions: const [
-                  SearchIconWidget(),
-                  CartIconWidget(),
-                  NotificationIconWidget(),
-                ],
-                primary: false,
-                floating: true,
-                snap: true,
-                pinned: false,
-              ),
-            ];
-          },
+                      actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+      actions: [
+        IconButton(
+          icon: const Icon(Iconsax.refresh, size: 20),
+          onPressed: () => ctrl.load(),
+        ),
+        const SearchIconWidget(),
+        const CartIconWidget(),
+        const NotificationIconWidget(),
+      ],
+      primary: false,
+      floating: true,
+      snap: true,
+      pinned: false,
+    ),
+  ];
+},
           body: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
