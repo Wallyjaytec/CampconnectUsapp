@@ -84,31 +84,28 @@ class SellerProductsController extends GetxController {
       featuredItems.assignAll(res.featuredItems.data);
       topSellingItems.assignAll(res.topSellingItems.data);
 
-      // Fetch shop details to update followers count
+      // Always try to update shop details
       try {
         final detailsRes = await repo.fetchShopDetails(slug: slug);
-        if (detailsRes['success'] == true && detailsRes['details'] != null) {
+        print('SHOP DETAILS: $detailsRes');
+        if (detailsRes['details'] != null) {
           final d = detailsRes['details'];
           
-          // Update followers
           final apiFollowers = d['total_followers'];
+          print('FOLLOWERS: $apiFollowers');
           if (apiFollowers != null) {
             followers.value = apiFollowers is int 
                 ? apiFollowers 
                 : int.tryParse(apiFollowers.toString()) ?? followers.value;
           }
           
-          // Update follow status  
           if (d['is_following'] == true) {
             isFollowing.value = true;
             _store.setFollowed(slug, true);
-          } else if (d['is_following'] == false) {
-            isFollowing.value = false;
-            _store.setFollowed(slug, false);
           }
         }
-      } catch (_) {
-        // Silently fail - products still loaded
+      } catch (e) {
+        print('DETAILS ERROR: $e');
       }
     } catch (e) {
       isError.value = true;
