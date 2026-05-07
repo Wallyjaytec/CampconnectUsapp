@@ -314,6 +314,7 @@ class ShopInfo {
   final int totalProduct;
   final String positiveRating;
   final double avgRating;
+  final bool isFollowing;
 
   ShopInfo({
     required this.id,
@@ -327,6 +328,7 @@ class ShopInfo {
     required this.totalProduct,
     required this.positiveRating,
     required this.avgRating,
+    required this.isFollowing,
   });
 
   factory ShopInfo.fromJson(Map<String, dynamic> json) {
@@ -358,6 +360,7 @@ class ShopInfo {
       totalProduct: i(json['total_product']),
       positiveRating: s(json['positive_rating']),
       avgRating: d(json['avg_rating']),
+      isFollowing: json['is_following'] == true || json['is_following'] == 1,
     );
   }
 }
