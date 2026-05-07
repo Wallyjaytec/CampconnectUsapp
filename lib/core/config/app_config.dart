@@ -102,6 +102,7 @@ static const String resetPasswordPath =
       '/api/v1/ecommerce-core/customer/order/details';
   static const String shopProductsSummaryPath =
       '/api/v1/multivendor/shop-products';
+  static const String shopDetailsPath = '/api/v1/multivendor/shop-details';
   static const String followShopPath =
       '/api/v1/multivendor/store-shop-follower';
   static const String shopAllProductsPath =
@@ -211,6 +212,7 @@ static const String resetPasswordPath =
   static String customerOrderDetailsUrl() =>
       '$baseUrl$customerOrderDetailsPath';
   static String shopProductsSummaryUrl() => '$baseUrl$shopProductsSummaryPath';
+  static String shopDetailsUrl() => '$baseUrl$shopDetailsPath';
   static String followShopUrl() => '$baseUrl$followShopPath';
   static String shopAllProductsUrl() => '$baseUrl$shopAllProductsPath';
   static String shopAllReviewsUrl() => '$baseUrl$shopAllReviewsPath';
