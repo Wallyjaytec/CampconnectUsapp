@@ -29,6 +29,12 @@ class SellerRepository {
     return FollowShopResponse.fromJson(res);
   }
 
+  Future<Map<String, dynamic>> fetchShopDetails({required String slug}) async {
+    final url = AppConfig.shopDetailsUrl();
+    final fields = <String, String>{'slug': slug};
+    return await api.postMultipart(url, fields: fields);
+  }
+
   Future<SellerAllProductsResponse> fetchShopAllProducts({
     required String slug,
     required int page,
