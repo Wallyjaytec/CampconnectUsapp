@@ -61,28 +61,19 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         identifier: widget.token,
         password: _passwordController.text,
       );
+      Get.snackbar('DEBUG', 'Result: $result',
+        backgroundColor: Colors.blue, colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 5));
+      
       if (result == true) {
         Get.offAllNamed('/login_view');
-        Get.snackbar('Success', 'Password reset successfully. Please login.',
-          backgroundColor: Colors.green, colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3));
-      } else if (result == 'old_password') {
-        Get.snackbar('Error', 'You are using your old password. Please enter a new one.',
-          backgroundColor: Colors.red, colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3));
-      } else {
-        Get.snackbar('Error', 'Failed to reset password.',
-          backgroundColor: Colors.red, colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3));
       }
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong.',
-        backgroundColor: Colors.red, colorText: Colors.white,
+      Get.snackbar('DEBUG', 'Error: $e',
+        backgroundColor: Colors.blue, colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3));
+        duration: const Duration(seconds: 5));
     } finally {
       setState(() => _loading = false);
     }
