@@ -74,7 +74,7 @@ class AddToCartController extends GetxController {
   }) : variationGroups = groups ?? const [],
        _repo = variantRepo ?? ProductVariantRepository(ApiService()),
        _cartRepo = cartRepository ?? Get.find<CartRepository>(),
-            attachmentRepo =
+                 attachmentRepo =
          attachmentRepo ?? OrderAttachmentRepository(ApiService()) {
   _applyDefaultSelections();
   currentImageUrl.value = _fallbackImage();
@@ -86,8 +86,8 @@ void onInit() {
   _primeVariantPrice();
 }
 
-  Map<String, dynamic>? orderAttachment;
-
+Map<String, dynamic>? orderAttachment;
+  
   final CartUiProduct cart;
   final ProductDetailsModel details;
   final int stock;
