@@ -1115,34 +1115,29 @@ class _ShopCard extends StatelessWidget {
                     ),
                   ),
 
-                  Obx(() {
-                    final following = sellerCtrl.isFollowing.value;
-                    final busy = sellerCtrl.followBusy;
+                 Obx(() {
+  final following = sellerCtrl.isFollowing.value;
+  final busy = sellerCtrl.followBusy;
 
-                    return TextButton(
-                      onPressed: (following || busy)
-                          ? null
-                          : () => sellerCtrl.followShop(),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        backgroundColor: following
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest
-                            : AppColors.primaryColor,
-                        foregroundColor: following
-                            ? Theme.of(context).colorScheme.onSurface
-                            : AppColors.whiteColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      child: Text(following ? 'Following'.tr : 'Follow'.tr),
-                    );
-                  }),
+  return TextButton(
+    onPressed: busy
+        ? null
+        : following
+            ? () => sellerCtrl.unfollowShop()
+            : () => sellerCtrl.followShop(),
+    style: TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      backgroundColor: following
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
+          : AppColors.primaryColor,
+      foregroundColor: following
+          ? Theme.of(context).colorScheme.onSurface
+          : AppColors.whiteColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+    ),
+    child: Text(following ? 'Following'.tr : 'Follow'.tr),
+  );
+}), 
                 ],
               ),
             ),
