@@ -57,14 +57,17 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     setState(() => _loading = true);
     try {
       final authRepo = AuthRepository(api: ApiService());
-      final success = await authRepo.resetPassword(
+      final result = await authRepo.resetPassword(
         identifier: widget.token,
         password: _passwordController.text,
       );
-      if (success) {
+      if (result == true) {
         Get.offAllNamed('/login_view');
         Get.snackbar('Success', 'Password reset successfully. Please login.',
           backgroundColor: Colors.green, colorText: Colors.white);
+      } else if (result == 'old_password') {
+        Get.snackbar('Error', 'You are using your old password. Please enter a new one.',
+          backgroundColor: Colors.red, colorText: Colors.white);
       } else {
         Get.snackbar('Error', 'Failed to reset password.',
           backgroundColor: Colors.red, colorText: Colors.white);
