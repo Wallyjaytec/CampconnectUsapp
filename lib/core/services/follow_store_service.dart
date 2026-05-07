@@ -22,4 +22,8 @@ class FollowStore {
     }
     _box.write(_key, items);
   }
+
+  void clearAllFollowed() {
+    _box.remove(_key);
+  }
 }
