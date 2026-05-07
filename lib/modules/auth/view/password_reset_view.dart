@@ -19,6 +19,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   bool _validating = true;
   bool _isValid = false;
   String _email = '';
+  String _errorMessage = '';
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
@@ -54,7 +55,10 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _errorMessage = '';
+    });
     try {
       final authRepo = AuthRepository(api: ApiService());
       final result = await authRepo.resetPassword(
@@ -65,28 +69,19 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         Get.offAllNamed('/login_view');
         return;
       }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _loading = false;
         if (result == 'old_password') {
-          Get.snackbar('Error', 'You are using your old password. Please enter a new one.',
-            backgroundColor: Colors.red, colorText: Colors.white,
-            snackPosition: SnackPosition.BOTTOM,
-            duration: const Duration(seconds: 3));
+          _errorMessage = 'You are using your old password. Please enter a new one.';
         } else {
-          Get.snackbar('Error', 'Failed to reset password.',
-            backgroundColor: Colors.red, colorText: Colors.white,
-            snackPosition: SnackPosition.BOTTOM,
-            duration: const Duration(seconds: 3));
+          _errorMessage = 'Failed to reset password. Please try again.';
         }
       });
     } catch (e) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar('Error', 'Something went wrong.',
-          backgroundColor: Colors.red, colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3));
+      setState(() {
+        _loading = false;
+        _errorMessage = 'Something went wrong. Please try again.';
       });
-    } finally {
-      setState(() => _loading = false);
     }
   }
 
@@ -148,6 +143,11 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                     TextFormField(controller: _confirmController, obscureText: _obscureConfirm, decoration: InputDecoration(labelText: 'Confirm Password', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.lock_outlined), suffixIcon: IconButton(icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm))), validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null),
                     const SizedBox(height: 24),
                     SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _loading ? null : _resetPassword, style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Change password', style: TextStyle(fontSize: 16, color: Colors.white)))),
+                    if (_errorMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14)),
+                      ),
                   ],
                 ),
               ),
