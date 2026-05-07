@@ -99,13 +99,19 @@ class CartController extends GetxController {
   }
 
   Future<void> refreshFromServer({String? prioritizeUid}) async {
-    await loadCart();
-    if (prioritizeUid == null || prioritizeUid.isEmpty) return;
-    final i = items.indexWhere((e) => e.uid == prioritizeUid);
-    if (i > 0) {
-      final picked = items.removeAt(i);
-      items.insert(0, picked);
+  try {
+    if (_isLoggedIn) {
+      final res = await _repo.fetchCartItems();
+      items.assignAll(res.items);
     }
+  } catch (_) {}
+  
+  if (prioritizeUid == null || prioritizeUid.isEmpty) return;
+  final i = items.indexWhere((e) => e.uid == prioritizeUid);
+  if (i > 0) {
+    final picked = items.removeAt(i);
+    items.insert(0, picked);
+  }
   }
 
   Future<void> _validateAllAndMark() async {
