@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../core/services/follow_store_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -207,6 +208,8 @@ class AuthController extends GetxController {
         return;
       }
       storage.saveLogin(true, remember: isRemember.value);
+      final followStore = FollowStore();
+      followStore.clearAllFollowed();
       final token = loginRes.accessToken ?? '';
       if (token.isNotEmpty) {
         storage.saveToken(token, tokenType: loginRes.tokenType ?? 'bearer');
@@ -230,6 +233,8 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      final followStore = FollowStore();
+      followStore.clearAllFollowed();
       storage.logout();
       _showSnackbar('Logged out'.tr, 'You have been signed out'.tr);
       Get.offAllNamed(AppRoutes.bottomNavbarView);
