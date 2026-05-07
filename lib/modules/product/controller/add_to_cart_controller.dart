@@ -402,10 +402,7 @@ try {
 
           await _cartRepo.updateCartItem(updItem);
 
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: existing.uid);
-          }
+   
         } else {
           final uid = DateTime.now().millisecondsSinceEpoch.toString();
           final newItem = CartApiItem(
@@ -431,10 +428,7 @@ try {
 
           await _cartRepo.storeCartItem(newItem);
 
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: uid);
-          }
+ 
         }
       } else {
         final payload = CartApiItem(
@@ -461,10 +455,7 @@ try {
         final guest = GuestCartService();
         final uid = guest.addOrMerge(payload);
 
-        if (Get.isRegistered<CartController>()) {
-          final cc = Get.find<CartController>();
-          await cc.refreshFromServer(prioritizeUid: uid);
-        }
+        
       }
 
       Get.close(1);
@@ -573,10 +564,7 @@ try {
 
           await _cartRepo.updateCartItem(updItem);
 
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: existing.uid);
-          }
+          
         } else {
           final uid = DateTime.now().millisecondsSinceEpoch.toString();
           final newItem = CartApiItem(
@@ -602,10 +590,7 @@ try {
 
           await _cartRepo.storeCartItem(newItem);
 
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: uid);
-          }
+          
         }
       } else {
         final payload = CartApiItem(
@@ -632,10 +617,7 @@ try {
         final guest = GuestCartService();
         final uid = guest.addOrMerge(payload);
 
-        if (Get.isRegistered<CartController>()) {
-          final cc = Get.find<CartController>();
-          await cc.refreshFromServer(prioritizeUid: uid);
-        }
+       
       }
 
       Get.back();
