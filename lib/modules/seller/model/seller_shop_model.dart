@@ -5,6 +5,7 @@ class SellerNavArgs {
   final int ratingPercent;
   final int followers;
   final String? shopBanner;
+  final bool isFollowing;
 
   const SellerNavArgs({
     required this.title,
@@ -13,6 +14,7 @@ class SellerNavArgs {
     this.ratingPercent = 0,
     this.followers = 0,
     this.shopBanner,
+    this.isFollowing = false,
   });
 }
 
