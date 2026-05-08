@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/address_repository.dart';
 import '../../../data/repositories/site_settings_properties_repository.dart';
+import '../../../shared/utils/dialog_utils.dart';
 import '../model/address_field_visibility_model.dart';
 import '../model/address_model.dart';
 
@@ -248,7 +249,7 @@ class AddressController extends GetxController {
           (res['success'] == true) || (res['success']?.toString() == 'true');
 
       if (success) {
-        Get.back(result: true);
+        safeBack(result: true);
       } else {
         Get.snackbar(
           'Address not added'.tr,
