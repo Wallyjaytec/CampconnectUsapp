@@ -1023,7 +1023,7 @@ class _ShopCard extends StatelessWidget {
                           logo: s.logo,
                           slug: slug,
                           ratingPercent: ratingPercent,
-                          followers: followers,
+                          followers: sellerCtrl.followers.value,
                           shopBanner: s.shopBanner,
                           isFollowing: s.isFollowing,
                         ),
@@ -1082,7 +1082,7 @@ class _ShopCard extends StatelessWidget {
                                 logo: s.logo,
                                 slug: slug,
                                 ratingPercent: ratingPercent,
-                                followers: followers,
+                                followers: sellerCtrl.followers.value,
                                 shopBanner: s.shopBanner,
                                 isFollowing: s.isFollowing,
                               ),
@@ -1285,46 +1285,53 @@ class _BottomBar extends StatelessWidget {
                 }),
                 label: 'Store'.tr,
                 onTap: () {
-                  final p = controller.product.value;
-                  if (p == null) return;
+  final p = controller.product.value;
+  if (p == null) return;
 
-                  final s = p.shopInfo;
+  final s = p.shopInfo;
 
-                  String slug = '';
-                  final rawSlug = (s.slug).toString().trim();
-                  final rawShopSlug = (s.slug).toString().trim();
+  String slug = '';
+  final rawSlug = (s.slug).toString().trim();
 
-                  if (rawSlug.isNotEmpty) {
-                    slug = rawSlug;
-                  } else if (rawShopSlug.isNotEmpty) {
-                    slug = rawShopSlug;
-                  } else {
-                    slug = s.name
-                        .toLowerCase()
-                        .trim()
-                        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-                        .replaceAll(RegExp(r'-+'), '-')
-                        .replaceAll(RegExp(r'^-|-$'), '');
-                  }
+  if (rawSlug.isNotEmpty) {
+    slug = rawSlug;
+  } else {
+    slug = s.name
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+  }
 
-                  final int ratingPercent =
-                      int.tryParse((s.positiveRating).toString()) ?? 0;
+  final int ratingPercent =
+      int.tryParse((s.positiveRating).toString()) ?? 0;
 
-                  final int followers = s.totalFollowers;
+  final tag2 = 'seller_bottom_$slug';
+  final sellerCtrl2 = Get.isRegistered<SellerProductsController>(tag: tag2)
+      ? Get.find<SellerProductsController>(tag: tag2)
+      : Get.put(
+          SellerProductsController(slug: slug, autoLoad: false),
+          tag: tag2,
+        );
+  sellerCtrl2.seedHeaderMeta(
+    followersCount: s.totalFollowers,
+    alreadyFollowing: s.isFollowing,
+  );
 
-                  Get.toNamed(
-                    AppRoutes.sellerBottomNavbar,
-                    arguments: SellerNavArgs(
-                      title: s.name,
-                      logo: s.logo,
-                      slug: slug,
-                      ratingPercent: ratingPercent,
-                      followers: followers,
-                      shopBanner: s.shopBanner,
-                      isFollowing: s.isFollowing,
-                    ),
-                  );
-                },
+  Get.toNamed(
+    AppRoutes.sellerBottomNavbar,
+    arguments: SellerNavArgs(
+      title: s.name,
+      logo: s.logo,
+      slug: slug,
+      ratingPercent: ratingPercent,
+      followers: sellerCtrl2.followers.value,
+      shopBanner: s.shopBanner,
+      isFollowing: s.isFollowing,
+    ),
+  );
+},
               ),
             ),
             Expanded(
