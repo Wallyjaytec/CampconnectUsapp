@@ -6,6 +6,7 @@ class SellerNavArgs {
   final int followers;
   final String? shopBanner;
   final bool isFollowing;
+  final bool isVerified;
 
   const SellerNavArgs({
     required this.title,
@@ -15,6 +16,7 @@ class SellerNavArgs {
     this.followers = 0,
     this.shopBanner,
     this.isFollowing = false,
+    this.isVerified = false,
   });
 }
 
@@ -28,6 +30,7 @@ class SellerShopModel {
   final String? logo;
   final String? shopBanner;
   final String? shopAddress;
+  final bool isVerified;
 
   SellerShopModel({
     required this.id,
@@ -39,6 +42,7 @@ class SellerShopModel {
     this.logo,
     this.shopBanner,
     this.shopAddress,
+    this.isVerified = false,
   });
 
   factory SellerShopModel.fromMap(Map<String, dynamic> json) {
@@ -55,6 +59,7 @@ class SellerShopModel {
       logo: json['logo']?.toString(),
       shopBanner: json['shop_banner']?.toString(),
       shopAddress: json['shop_address']?.toString(),
+      isVerified: json['is_verified'] == true || json['is_verified'] == 1,
     );
   }
 }
