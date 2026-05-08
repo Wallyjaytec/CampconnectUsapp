@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../shared/utils/dialog_utils.dart';
 
 class EmailResetController extends GetxController {
   EmailResetController({AuthRepository? repo})
@@ -68,7 +69,7 @@ class EmailResetController extends GetxController {
       final res = await _repo.sendEmailResetLink();
 
       if (res.success) {
-        Get.back();
+        safeBack();
         clear();
         Get.snackbar(
           'Success'.tr,
