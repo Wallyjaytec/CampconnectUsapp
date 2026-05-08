@@ -6,6 +6,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/services/follow_store_service.dart';
 import '../../../core/services/login_service.dart';
 import '../../../data/repositories/seller_repository.dart';
+import '../../../shared/utils/dialog_utils.dart';
 import '../../product/controller/product_details_controller.dart';
 import '../model/seller_shop_model.dart';
 
@@ -181,18 +182,14 @@ class SellerProductsController extends GetxController {
           SizedBox(
             height: 44,
             child: TextButton(
-              onPressed: () {
-                if (Get.isDialogOpen ?? false) Get.back(result: false);
-              },
+              onPressed: () => safeBack(result: false),
               child: Text('Cancel'.tr),
             ),
           ),
           SizedBox(
             height: 44,
             child: ElevatedButton(
-              onPressed: () {
-                if (Get.isDialogOpen ?? false) Get.back(result: true);
-              },
+              onPressed: () => safeBack(result: true),
               child: Text('Login'.tr),
             ),
           ),
