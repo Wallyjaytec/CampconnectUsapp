@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../routes/app_routes.dart';
+import '../../shared/utils/dialog_utils.dart';
 
 class AuthService extends GetxService {
   final RxBool _loggedIn = false.obs;
@@ -30,11 +31,11 @@ class _LoginDialog extends StatelessWidget {
       content: Text('You need to login to use wishlist'.tr),
       actions: [
         TextButton(
-          onPressed: () => Get.back(result: false),
+          onPressed: () => safeBack(result: false),
           child: Text('Cancel'.tr),
         ),
         ElevatedButton(
-          onPressed: () => Get.back(result: true),
+          onPressed: () => safeBack(result: true),
           child: Text('Login'.tr),
         ),
       ],
