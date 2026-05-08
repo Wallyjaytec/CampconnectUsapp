@@ -140,7 +140,7 @@ class _SellerHeader extends GetView<SellerProductsController> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Container(
-        height: 115,
+        height: 92,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -200,19 +200,10 @@ class _SellerHeader extends GetView<SellerProductsController> {
                       ),
                     const SizedBox(height: 2),
                     Text(
-                      '${_compactCount(followers)} ${'Followers'.tr}',
+                      '${_compactCount(followers)} ${'Followers'.tr}  •  ${'Verified'.tr}: ${args.isVerified ? "Yes" : "No"}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.normal),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Verify: ${args.isVerified ? "Yes" : "No"}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                        color: args.isVerified ? Colors.green : Colors.red,
-                      ),
                     ),
                   ],
                 );
