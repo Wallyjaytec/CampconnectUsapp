@@ -140,7 +140,7 @@ class _SellerHeader extends GetView<SellerProductsController> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Container(
-        height: 92,
+        height: 100,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -186,24 +186,22 @@ class _SellerHeader extends GetView<SellerProductsController> {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 2),
-                    if (args.ratingPercent > 0) const SizedBox(height: 0),
-                    if (args.ratingPercent > 0)
-                      Text(
-                        '${args.ratingPercent}% ${'Seller Ratings'.tr}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          height: 1,
-                        ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${args.ratingPercent}% ${'Seller Ratings'.tr}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.normal,
+                        height: 1.3,
                       ),
-                    const SizedBox(height: 2),
+                    ),
+                    const SizedBox(height: 5),
                     Text(
                       '${_compactCount(followers)} ${'Followers'.tr}  •  ${'Verified'.tr}: ${args.isVerified ? "Yes" : "No"}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.normal),
+                      style: const TextStyle(fontWeight: FontWeight.normal, height: 1.3),
                     ),
                   ],
                 );
