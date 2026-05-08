@@ -96,6 +96,18 @@ class CompareController extends GetxController {
     _persistIdsDebounced();
   }
 
+  void removeFromCompareById(int productId) {
+    compareList.removeWhere((e) => e.id == productId);
+    compareList.refresh();
+    _persistIdsDebounced();
+  }
+
+  bool isInCompare(int productId) {
+    return compareList.any((e) => e.id == productId);
+  }
+
+  int get compareCount => compareList.length;
+
   Future<void> replaceAt(int columnIndex, int productId) async {
     final items = await _compareRepo.fetchCompareItems([productId]);
     if (items.isEmpty) return;
