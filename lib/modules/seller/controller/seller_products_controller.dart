@@ -71,6 +71,7 @@ class SellerProductsController extends GetxController {
 
   Future<void> _fetchFollowStatus() async {
     try {
+      await Future.delayed(const Duration(milliseconds: 500));
       final res = await repo.fetchShopDetails(slug: slug);
       if (res['details'] != null) {
         final d = res['details'];
