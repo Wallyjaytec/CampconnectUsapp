@@ -71,6 +71,21 @@ class SellerProductsController extends GetxController {
     // Intentionally empty - API returns cached data
   }
 
+  void _syncToProductDetail() {
+    final tag = 'seller_header_$slug';
+    if (Get.isRegistered<SellerProductsController>(tag: tag)) {
+      final pCtrl = Get.find<SellerProductsController>(tag: tag);
+      pCtrl.followers.value = followers.value;
+      pCtrl.isFollowing.value = isFollowing.value;
+    }
+    final tag2 = 'seller_bottom_$slug';
+    if (Get.isRegistered<SellerProductsController>(tag: tag2)) {
+      final pCtrl = Get.find<SellerProductsController>(tag: tag2);
+      pCtrl.followers.value = followers.value;
+      pCtrl.isFollowing.value = isFollowing.value;
+    }
+  }
+
   void onProductTap(int id) {
     if (Get.isRegistered<ProductDetailsController>()) {
       Get.delete<ProductDetailsController>(force: true);
@@ -103,6 +118,7 @@ class SellerProductsController extends GetxController {
         isFollowing.value = false;
         _store.setFollowed(slug, false);
         followers.value = (followers.value - 1).clamp(0, double.infinity).toInt();
+        _syncToProductDetail();
         Get.snackbar('Unfollowed'.tr, 'Shop removed from your following list'.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
@@ -126,6 +142,7 @@ class SellerProductsController extends GetxController {
 
         if (!res.duplicate) {
           followers.value = followers.value + 1;
+          _syncToProductDetail();
           Get.snackbar('Followed'.tr, 'Shop added to your following list'.tr,
             snackPosition: SnackPosition.TOP,
             backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
