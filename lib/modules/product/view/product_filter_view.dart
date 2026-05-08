@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -106,7 +107,7 @@ class ProductFilterController extends GetxController {
   void onClose() {
     minPriceCtrl.dispose();
     maxPriceCtrl.dispose();
-    super.dispose();
+    super.onClose();
   }
 }
 
@@ -255,7 +256,7 @@ class ProductFilterView extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () =>
-                            Get.back(result: controller.toResult()),
+                            safeBack(result: controller.toResult()),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
