@@ -12,6 +12,7 @@ import '../../../core/services/login_service.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/customer_repository.dart';
+import '../../../shared/utils/dialog_utils.dart';
 import '../model/customer_basic_info.dart';
 
 class CustomerBasicInfoController extends GetxController {
@@ -202,7 +203,7 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        Get.back();
+        safeBack();
         Get.snackbar(
           'Success'.tr,
           'Profile updated successfully'.tr,
