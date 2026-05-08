@@ -32,6 +32,7 @@ class SellerProductsController extends GetxController {
 
   final followers = 0.obs;
   final isFollowing = false.obs;
+  final RxBool _dialogBusy = false.obs;
 
   void seedHeaderMetaFromArgs(SellerNavArgs args) {
     followers.value = args.followers;
@@ -170,6 +171,9 @@ class SellerProductsController extends GetxController {
     final login = LoginService();
     if (login.isLoggedIn()) return true;
 
+    if (_dialogBusy.value) return false;
+    _dialogBusy.value = true;
+
     final goLogin = await Get.dialog<bool>(
       AlertDialog(
         backgroundColor: Get.theme.brightness == Brightness.dark
@@ -197,6 +201,9 @@ class SellerProductsController extends GetxController {
       ),
       barrierDismissible: false,
     );
+
+    _dialogBusy.value = false;
+
     if (goLogin == true) Get.toNamed(AppRoutes.loginView);
     return false;
   }
