@@ -200,6 +200,7 @@ class _ErrorPane extends StatelessWidget {
   }
 }
 
+
 class _Gallery extends StatelessWidget {
   const _Gallery({required this.p});
   final ProductDetailsModel p;
@@ -387,20 +388,49 @@ class _Gallery extends StatelessWidget {
                   );
                 }),
                 const SizedBox(height: 8),
-                _CircleIconButton(
-                  icon: Iconsax.arrow_swap_horizontal_copy,
-                  color: AppColors.whiteColor,
-                  onTap: () async {
-                    await compareCtrl.addToCompareByIds([p.id]);
-                    Get.snackbar(
-                      'Compare'.tr,
-                      '${p.name} ${'added to compare'.tr}',
-                      snackPosition: SnackPosition.TOP,
-                      backgroundColor: AppColors.primaryColor,
-                      colorText: AppColors.whiteColor,
-                    );
-                  },
-                ),
+                Obx(() {
+                  final isInCompare = compareCtrl.isInCompare(p.id);
+                  final count = compareCtrl.compareCount;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _CircleIconButton(
+                        icon: Iconsax.arrow_swap_horizontal_copy,
+                        color: isInCompare ? Colors.black : AppColors.whiteColor,
+                        onTap: () async {
+                          if (isInCompare) {
+                            compareCtrl.removeFromCompareById(p.id);
+                          } else {
+                            await compareCtrl.addToCompareByIds([p.id]);
+                            Get.snackbar(
+                              'Compare'.tr,
+                              '${p.name} ${'added to compare'.tr}',
+                              snackPosition: SnackPosition.TOP,
+                              backgroundColor: AppColors.primaryColor,
+                              colorText: AppColors.whiteColor,
+                            );
+                          }
+                        },
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '$count',
+                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 8),
                 _CircleIconButton(
                   icon: Iconsax.share,
@@ -417,7 +447,7 @@ class _Gallery extends StatelessWidget {
     );
   }
 }
-
+                    
 class _ImageAuto extends StatelessWidget {
   const _ImageAuto(this.path);
   final String path;
