@@ -35,86 +35,92 @@ class SellerView extends StatelessWidget {
     ctrl.seedHeaderMetaFromArgs(args);
 
     return Scaffold(
-  body: SafeArea(
-    top: true,
-    bottom: false,
-    child: NestedScrollView(
-      floatHeaderSlivers: true,
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            titleSpacing: 0,
-            leadingWidth: 44,
-            elevation: 0,
-            leading: const BackIconWidget(),
-            centerTitle: false,
-            title: Text(
-              args.title,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 18,
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: NestedScrollView(
+          floatHeaderSlivers: true,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                automaticallyImplyLeading: false,
+                titleSpacing: 0,
+                leadingWidth: 44,
+                elevation: 0,
+                leading: const BackIconWidget(),
+                centerTitle: false,
+                title: Text(
+                  args.title,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18,
+                  ),
+                ),
+                actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+                actions: const [
+                  SearchIconWidget(),
+                  CartIconWidget(),
+                  NotificationIconWidget(),
+                ],
+                primary: false,
+                floating: true,
+                snap: true,
+                pinned: false,
               ),
-            ),
-            actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-            actions: const [
-              SearchIconWidget(),
-              CartIconWidget(),
-              NotificationIconWidget(),
+            ];
+          },
+          body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Builder(
+                  builder: (context) {
+                    final banner = args.shopBanner ?? '';
+
+                    if (banner.isEmpty) {
+                      return const SizedBox();
+                    }
+
+                    return CachedNetworkImage(
+                      imageUrl: banner,
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const _ImageBoxShimmer(),
+                      errorWidget: (_, __, ___) =>
+                          const Icon(Iconsax.gallery_remove_copy),
+                    );
+                  },
+                ),
+              ),
+              SliverToBoxAdapter(child: _SellerHeader(args: args)),
+              SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
+              const SliverToBoxAdapter(
+                child: _SellerCarousel(section: _SellerSection.newItems),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              SliverToBoxAdapter(
+                child: _SectionHeader('Top Selling Products'.tr),
+              ),
+              const SliverToBoxAdapter(
+                child: _SellerCarousel(section: _SellerSection.topSelling),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
+              const SliverToBoxAdapter(
+                child: _SellerCarousel(
+                  section: _SellerSection.featured,
+                  bottomPadding: 12,
+                ),
+              ),
             ],
-            primary: false,
-            floating: true,
-            snap: true,
-            pinned: false,
           ),
-        ];
-      },
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Builder(
-              builder: (context) {
-                final banner = args.shopBanner ?? '';
-                if (banner.isEmpty) return const SizedBox();
-                return CachedNetworkImage(
-                  imageUrl: banner,
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => const _ImageBoxShimmer(),
-                  errorWidget: (_, __, ___) => const Icon(Iconsax.gallery_remove_copy),
-                );
-              },
-            ),
-          ),
-          SliverToBoxAdapter(child: _SellerHeader(args: args)),
-          SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
-          const SliverToBoxAdapter(
-            child: _SellerCarousel(section: _SellerSection.newItems),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          SliverToBoxAdapter(
-            child: _SectionHeader('Top Selling Products'.tr),
-          ),
-          const SliverToBoxAdapter(
-            child: _SellerCarousel(section: _SellerSection.topSelling),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
-          const SliverToBoxAdapter(
-            child: _SellerCarousel(
-              section: _SellerSection.featured,
-              bottomPadding: 12,
-            ),
-          ),
-        ],
+        ),
       ),
-    ),
-  ),
-);
+    );
   }
 }
+
 class _SellerHeader extends GetView<SellerProductsController> {
   final SellerNavArgs args;
   const _SellerHeader({required this.args});
@@ -175,41 +181,40 @@ class _SellerHeader extends GetView<SellerProductsController> {
                         ),
                       ),
                     const SizedBox(height: 2),
-           
-                      Text(
-                        '${_compactCount(followers)} ${'Followers'.tr}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.normal),
-                      ),
+                    Text(
+                      '${_compactCount(followers)} ${'Followers'.tr}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.normal),
+                    ),
                   ],
                 );
               }),
             ),
             const SizedBox(width: 10),
             Obx(() {
-  final c = Get.find<SellerProductsController>();
-  final following = c.isFollowing.value;
-  final busy = c.followBusy;
-  return TextButton(
-    onPressed: busy
-        ? null
-        : following
-            ? () => c.unfollowShop()
-            : () => c.followShop(),
-    style: TextButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      backgroundColor: following
-          ? Theme.of(context).colorScheme.surfaceContainerHighest
-          : AppColors.primaryColor,
-      foregroundColor: following
-          ? Theme.of(context).colorScheme.onSurface
-          : AppColors.whiteColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-    ),
-    child: Text(following ? 'Following'.tr : 'Follow'.tr),
-  );
-}),
+              final c = Get.find<SellerProductsController>();
+              final following = c.isFollowing.value;
+              final busy = c.followBusy;
+              return TextButton(
+                onPressed: busy
+                    ? null
+                    : following
+                        ? () => c.unfollowShop()
+                        : () => c.followShop(),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  backgroundColor: following
+                      ? Theme.of(context).colorScheme.surfaceContainerHighest
+                      : AppColors.primaryColor,
+                  foregroundColor: following
+                      ? Theme.of(context).colorScheme.onSurface
+                      : AppColors.whiteColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                child: Text(following ? 'Following'.tr : 'Follow'.tr),
+              );
+            }),
           ],
         ),
       ),
