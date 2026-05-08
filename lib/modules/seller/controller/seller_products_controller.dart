@@ -84,33 +84,14 @@ class SellerProductsController extends GetxController {
       featuredItems.assignAll(res.featuredItems.data);
       topSellingItems.assignAll(res.topSellingItems.data);
 
-      // Always update shop details
+      // Try shop details
       try {
         final detailsRes = await repo.fetchShopDetails(slug: slug);
-        if (detailsRes['details'] != null) {
-          final d = detailsRes['details'];
-          
-          final apiFollowers = d['total_followers'];
-          if (apiFollowers != null) {
-            final newCount = apiFollowers is int 
-                ? apiFollowers 
-                : int.tryParse(apiFollowers.toString()) ?? followers.value;
-            followers.value = newCount;
-            Get.snackbar('Refresh', 'Followers updated to: $newCount',
-              snackPosition: SnackPosition.BOTTOM,
-              duration: const Duration(seconds: 2));
-          } else {
-            Get.snackbar('Debug', 'No total_followers in response. Keys: ${d.keys}',
-              snackPosition: SnackPosition.BOTTOM,
-              duration: const Duration(seconds: 3));
-          }
-        } else {
-          Get.snackbar('Debug', 'No details in response. Keys: ${detailsRes.keys}',
-            snackPosition: SnackPosition.BOTTOM,
-            duration: const Duration(seconds: 3));
-        }
+        Get.snackbar('API Response', '${detailsRes.keys}: success=${detailsRes['success']}, hasDetails=${detailsRes['details'] != null}',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3));
       } catch (e) {
-        Get.snackbar('Error', 'Details fetch failed: $e',
+        Get.snackbar('Error', '$e',
           snackPosition: SnackPosition.BOTTOM,
           duration: const Duration(seconds: 3));
       }
