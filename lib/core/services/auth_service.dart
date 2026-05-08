@@ -6,6 +6,7 @@ import '../../shared/utils/dialog_utils.dart';
 
 class AuthService extends GetxService {
   final RxBool _loggedIn = false.obs;
+  final RxBool _dialogBusy = false.obs;
 
   bool get isLoggedIn => _loggedIn.value;
 
@@ -14,7 +15,13 @@ class AuthService extends GetxService {
   Future<bool> ensureLoggedIn() async {
     if (isLoggedIn) return true;
 
-    final ok = await Get.dialog<bool>(_LoginDialog(), barrierDismissible: true);
+    if (_dialogBusy.value) return false;
+    _dialogBusy.value = true;
+
+    final ok = await Get.dialog<bool>(_LoginDialog(), barrierDismissible: false);
+    
+    _dialogBusy.value = false;
+
     if (ok == true) {
       Get.toNamed(AppRoutes.loginView);
       return false;
