@@ -1160,49 +1160,21 @@ class _ShopCard extends StatelessWidget {
               color: theme.dividerColor.withValues(alpha: 0.2),
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                top: 8,
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Positive feedback'.tr,
-                        value: '${s.positiveRating}%',
-                      ),
-                    ),
-                    VerticalDivider(
-                      width: 24,
-                      thickness: 1,
-                      color: theme.dividerColor.withValues(alpha: 0.25),
-                    ),
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Products'.tr,
-                        value: '${s.totalProduct}',
-                      ),
-                    ),
-                    VerticalDivider(
-                      width: 24,
-                      thickness: 1,
-                      color: theme.dividerColor.withValues(alpha: 0.25),
-                    ),
-                    Expanded(
-                      child: Obx(
-                        () => _ShopStat(
-                          label: 'Followers'.tr,
-                          value: '${sellerCtrl.followers.value}',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+  padding: const EdgeInsets.only(left: 4, right: 4, bottom: 8, top: 8),
+  child: IntrinsicHeight(
+    child: Row(
+      children: [
+        Flexible(flex: 1, child: _ShopStat(label: 'Positive feedback'.tr, value: '${s.positiveRating}%')),
+        VerticalDivider(width: 12, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.25)),
+        Flexible(flex: 1, child: _ShopStat(label: 'Products'.tr, value: '${s.totalProduct}')),
+        VerticalDivider(width: 12, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.25)),
+        Flexible(flex: 1, child: Obx(() => _ShopStat(label: 'Followers'.tr, value: '${sellerCtrl.followers.value}'))),
+        VerticalDivider(width: 12, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.25)),
+        Flexible(flex: 1, child: _ShopStat(label: 'Verified'.tr, value: s.isVerified ? 'Yes' : 'No')),
+      ],
+    ),
+  ),
+),
           ],
         ),
       ),
@@ -1217,6 +1189,7 @@ String _slugify(String input) => input
     .replaceAll(RegExp(r'-+'), '-')
     .replaceAll(RegExp(r'^-|-$'), '');
 
+
 class _ShopStat extends StatelessWidget {
   final String label;
   final String value;
@@ -1224,21 +1197,25 @@ class _ShopStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
-        Text(label, style: theme.textTheme.labelMedium),
+        Text(
+          label,
+          style: TextStyle(fontSize: 10, color: Theme.of(context).textTheme.labelMedium?.color),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
       ],
     );
   }
 }
-
 class _InfoItem {
   final IconData icon;
   final String title;
