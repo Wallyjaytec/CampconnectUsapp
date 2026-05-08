@@ -47,13 +47,23 @@ class SellerView extends StatelessWidget {
                 elevation: 0,
                 leading: const BackIconWidget(),
                 centerTitle: false,
-                title: Text(
-                  args.title,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 18,
-                  ),
+                title: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        args.title,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    if (args.isVerified) ...[
+                      const SizedBox(width: 4),
+                      Image.asset('assets/images/verifybadge.png', height: 18, width: 18),
+                    ],
+                  ],
                 ),
                 actionsPadding: const EdgeInsetsDirectional.only(end: 10),
                 actions: const [
@@ -130,7 +140,7 @@ class _SellerHeader extends GetView<SellerProductsController> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Container(
-        height: 92,
+        height: 115,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -157,14 +167,24 @@ class _SellerHeader extends GetView<SellerProductsController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      args.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            args.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        if (args.isVerified) ...[
+                          const SizedBox(width: 4),
+                          Image.asset('assets/images/verifybadge.png', height: 18, width: 18),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     if (args.ratingPercent > 0) const SizedBox(height: 0),
@@ -179,41 +199,49 @@ class _SellerHeader extends GetView<SellerProductsController> {
                         ),
                       ),
                     const SizedBox(height: 2),
-           
-                      Text(
-                        '${_compactCount(followers)} ${'Followers'.tr}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.normal),
+                    Text(
+                      '${_compactCount(followers)} ${'Followers'.tr}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.normal),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Verify: ${args.isVerified ? "Yes" : "No"}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: args.isVerified ? Colors.green : Colors.red,
                       ),
+                    ),
                   ],
                 );
               }),
             ),
             const SizedBox(width: 10),
             Obx(() {
-  final c = controller;
-  final following = c.isFollowing.value;
-  final busy = c.followBusy;
-  return TextButton(
-    onPressed: busy
-        ? null
-        : following
-            ? () => c.unfollowShop()
-            : () => c.followShop(),
-    style: TextButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      backgroundColor: following
-          ? Theme.of(context).colorScheme.surfaceContainerHighest
-          : AppColors.primaryColor,
-      foregroundColor: following
-          ? Theme.of(context).colorScheme.onSurface
-          : AppColors.whiteColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-    ),
-    child: Text(following ? 'Following'.tr : 'Follow'.tr),
-  );
-}),
+              final c = controller;
+              final following = c.isFollowing.value;
+              final busy = c.followBusy;
+              return TextButton(
+                onPressed: busy
+                    ? null
+                    : following
+                        ? () => c.unfollowShop()
+                        : () => c.followShop(),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  backgroundColor: following
+                      ? Theme.of(context).colorScheme.surfaceContainerHighest
+                      : AppColors.primaryColor,
+                  foregroundColor: following
+                      ? Theme.of(context).colorScheme.onSurface
+                      : AppColors.whiteColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                child: Text(following ? 'Following'.tr : 'Follow'.tr),
+              );
+            }),
           ],
         ),
       ),
