@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
+import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -300,7 +301,7 @@ class ReturnDialog extends StatelessWidget {
                 : () async {
                     final ok = await rc.submit();
                     if (ok) {
-                      Get.back();
+                      safeBack();
                       Get.snackbar(
                         'Success'.tr,
                         'Return product submitted'.tr,
@@ -364,7 +365,7 @@ class ReturnDialog extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => safeBack(),
                     icon: const Icon(Iconsax.close_circle_copy),
                   ),
                 ],
