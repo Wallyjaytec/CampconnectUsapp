@@ -51,7 +51,7 @@ class SellerProductsController extends GetxController {
     if (_store.isFollowed(slug)) {
       isFollowing.value = true;
     }
-    if (autoLoad) load();
+    load();
   }
 
   Future<void> load() async {
@@ -64,27 +64,11 @@ class SellerProductsController extends GetxController {
     featuredItems.assignAll(res.featuredItems.data);
     topSellingItems.assignAll(res.topSellingItems.data);
 
-    await _fetchFollowStatus();
-
     isLoading.value = false;
   }
 
   Future<void> _fetchFollowStatus() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 500));
-      final res = await repo.fetchShopDetails(slug: slug);
-      if (res['details'] != null) {
-        final d = res['details'];
-        final f = d['total_followers'];
-        if (f != null) {
-          followers.value = f is int ? f : int.parse('$f');
-        }
-        if (d['is_following'] == true) {
-          isFollowing.value = true;
-          _store.setFollowed(slug, true);
-        }
-      }
-    } catch (_) {}
+    // Intentionally empty - API returns cached data
   }
 
   void onProductTap(int id) {
