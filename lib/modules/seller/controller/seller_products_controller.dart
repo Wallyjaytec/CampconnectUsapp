@@ -74,29 +74,26 @@ class SellerProductsController extends GetxController {
   }
 
   Future<void> load() async {
-    Get.snackbar('TEST', 'Load started',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2));
-    
-    try {
-      isLoading.value = true;
-      isError.value = false;
-      errorMessage.value = '';
+    isLoading.value = true;
+    isError.value = false;
+    errorMessage.value = '';
 
-      final res = await repo.fetchShopProductSummary(slug: slug);
-      newItems.assignAll(res.newItems.data);
-      featuredItems.assignAll(res.featuredItems.data);
-      topSellingItems.assignAll(res.topSellingItems.data);
-      
-      Get.snackbar('TEST', 'Products loaded',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2));
-    } catch (e) {
-      isError.value = true;
-      errorMessage.value = 'Something went wrong'.tr;
-    } finally {
-      isLoading.value = false;
+    final res = await repo.fetchShopProductSummary(slug: slug);
+    newItems.assignAll(res.newItems.data);
+    featuredItems.assignAll(res.featuredItems.data);
+    topSellingItems.assignAll(res.topSellingItems.data);
+
+    // Also refresh shop details
+    final detailsRes = await repo.fetchShopDetails(slug: slug);
+    if (detailsRes['details'] != null) {
+      final d = detailsRes['details'];
+      final f = d['total_followers'];
+      if (f != null) {
+        followers.value = f is int ? f : int.parse('$f');
+      }
     }
+
+    isLoading.value = false;
   }
 
   void onProductTap(int id) {
