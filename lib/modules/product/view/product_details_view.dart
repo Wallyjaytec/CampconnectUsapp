@@ -1164,13 +1164,13 @@ class _ShopCard extends StatelessWidget {
   child: IntrinsicHeight(
     child: Row(
       children: [
-        Flexible(flex: 1, child: _ShopStat(label: 'Positive feedback'.tr, value: '${s.positiveRating}%')),
+        Expanded(child: _ShopStat(label: 'Positive feedback'.tr, value: '${s.positiveRating}%')),
         VerticalDivider(width: 12, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.25)),
-        Flexible(flex: 1, child: _ShopStat(label: 'Products'.tr, value: '${s.totalProduct}')),
+        Expanded(child: _ShopStat(label: 'Products'.tr, value: '${s.totalProduct}')),
         VerticalDivider(width: 12, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.25)),
-        Flexible(flex: 1, child: Obx(() => _ShopStat(label: 'Followers'.tr, value: '${sellerCtrl.followers.value}'))),
+        Expanded(child: Obx(() => _ShopStat(label: 'Followers'.tr, value: '${sellerCtrl.followers.value}'))),
         VerticalDivider(width: 12, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.25)),
-        Flexible(flex: 1, child: _ShopStat(label: 'Verified'.tr, value: s.isVerified ? 'Yes' : 'No')),
+        Expanded(child: _ShopStat(label: 'Verified'.tr, value: s.isVerified ? '100%' : '0%')),
       ],
     ),
   ),
@@ -1198,20 +1198,11 @@ class _ShopStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-          overflow: TextOverflow.ellipsis,
-        ),
+        Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
         const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(fontSize: 10, color: Theme.of(context).textTheme.labelMedium?.color),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
+        Text(label, style: const TextStyle(fontSize: 10), overflow: TextOverflow.ellipsis, maxLines: 1),
       ],
     );
   }
