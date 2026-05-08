@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 
 import '../../../core/routes/app_routes.dart';
 
@@ -151,7 +152,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               alignment: Alignment.topRight,
               child: IconButton(
                 splashRadius: 24,
-                onPressed: () => Get.back(),
+                onPressed: () => safeBack(),
                 icon: const Icon(
                   Iconsax.close_circle_copy,
                   color: Colors.white,
