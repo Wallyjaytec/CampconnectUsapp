@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/address_repository.dart';
 import '../../../data/repositories/site_settings_properties_repository.dart';
+import '../../../shared/utils/dialog_utils.dart';
 import '../model/address_field_visibility_model.dart';
 import '../model/address_model.dart';
 
@@ -261,7 +262,7 @@ class EditAddressController extends GetxController {
           colorText: AppColors.whiteColor,
         );
         await Future.delayed(const Duration(seconds: 2));
-        Get.back(result: true);
+        safeBack(result: true);
       } else {
         Get.snackbar(
           'Failed'.tr,
