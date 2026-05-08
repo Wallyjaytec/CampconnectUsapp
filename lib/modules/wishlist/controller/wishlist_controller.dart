@@ -22,6 +22,7 @@ class WishlistController extends GetxController {
   final RxList<ProductModel> items = <ProductModel>[].obs;
 
   final RxSet<int> _ids = <int>{}.obs;
+  final RxBool _dialogBusy = false.obs;
 
   RxSet<int> get ids => _ids;
 
@@ -82,6 +83,9 @@ class WishlistController extends GetxController {
     final login = LoginService();
     if (login.isLoggedIn()) return true;
 
+    if (_dialogBusy.value) return false;
+    _dialogBusy.value = true;
+
     final goLogin =
         await Get.dialog<bool>(
           AlertDialog(
@@ -126,6 +130,8 @@ class WishlistController extends GetxController {
           ),
         ) ??
         false;
+
+    _dialogBusy.value = false;
 
     if (goLogin) {
       Get.toNamed(AppRoutes.loginView);
