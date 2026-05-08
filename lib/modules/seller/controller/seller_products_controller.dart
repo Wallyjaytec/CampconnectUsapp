@@ -74,6 +74,10 @@ class SellerProductsController extends GetxController {
   }
 
   Future<void> load() async {
+    Get.snackbar('TEST', 'Load started',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2));
+    
     try {
       isLoading.value = true;
       isError.value = false;
@@ -83,18 +87,10 @@ class SellerProductsController extends GetxController {
       newItems.assignAll(res.newItems.data);
       featuredItems.assignAll(res.featuredItems.data);
       topSellingItems.assignAll(res.topSellingItems.data);
-
-      // Try shop details
-      try {
-        final detailsRes = await repo.fetchShopDetails(slug: slug);
-        Get.snackbar('API Response', '${detailsRes.keys}: success=${detailsRes['success']}, hasDetails=${detailsRes['details'] != null}',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3));
-      } catch (e) {
-        Get.snackbar('Error', '$e',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3));
-      }
+      
+      Get.snackbar('TEST', 'Products loaded',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2));
     } catch (e) {
       isError.value = true;
       errorMessage.value = 'Something went wrong'.tr;
