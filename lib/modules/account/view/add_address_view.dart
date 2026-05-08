@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
+import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -301,7 +302,7 @@ class AddAddressView extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.back();
+                      safeBack();
                     },
                     child: const Icon(Iconsax.close_circle_copy, size: 18),
                   ),
@@ -357,7 +358,7 @@ class AddAddressView extends StatelessWidget {
                         title: Text(itemLabel(item)),
                         onTap: () async {
                           await onSelected(item);
-                          Get.back();
+                          safeBack();
                         },
                       );
                     },
