@@ -192,7 +192,7 @@ class _SellerHeader extends GetView<SellerProductsController> {
             ),
             const SizedBox(width: 10),
             Obx(() {
-  final c = Get.find<SellerProductsController>();
+  final c = controller;
   final following = c.isFollowing.value;
   final busy = c.followBusy;
   return TextButton(
