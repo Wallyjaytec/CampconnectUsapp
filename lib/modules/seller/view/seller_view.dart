@@ -25,8 +25,10 @@ class SellerView extends StatelessWidget {
   Widget build(BuildContext context) {
     final args = Get.arguments as SellerNavArgs;
 
+    final tag = 'seller_${args.slug}_${DateTime.now().millisecondsSinceEpoch}';
     final ctrl = Get.put<SellerProductsController>(
       SellerProductsController(slug: args.slug),
+      tag: tag,
       permanent: false,
     );
 
@@ -36,84 +38,80 @@ class SellerView extends StatelessWidget {
   body: SafeArea(
     top: true,
     bottom: false,
-    child: RefreshIndicator(
-  onRefresh: () async {
-    await ctrl.load();
-  },
-  child: CustomScrollView(
-    physics: const AlwaysScrollableScrollPhysics(),
-    slivers: [
-      SliverAppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        leadingWidth: 44,
-        elevation: 0,
-        leading: const BackIconWidget(),
-        centerTitle: false,
-        title: Text(
-          args.title,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontWeight: FontWeight.normal,
-            fontSize: 18,
+    child: NestedScrollView(
+      floatHeaderSlivers: true,
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            titleSpacing: 0,
+            leadingWidth: 44,
+            elevation: 0,
+            leading: const BackIconWidget(),
+            centerTitle: false,
+            title: Text(
+              args.title,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 18,
+              ),
+            ),
+            actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+            actions: const [
+              SearchIconWidget(),
+              CartIconWidget(),
+              NotificationIconWidget(),
+            ],
+            primary: false,
+            floating: true,
+            snap: true,
+            pinned: false,
           ),
-        ),
-        actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-        actions: const [
-          SearchIconWidget(),
-          CartIconWidget(),
-          NotificationIconWidget(),
+        ];
+      },
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Builder(
+              builder: (context) {
+                final banner = args.shopBanner ?? '';
+                if (banner.isEmpty) return const SizedBox();
+                return CachedNetworkImage(
+                  imageUrl: banner,
+                  height: 100,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => const _ImageBoxShimmer(),
+                  errorWidget: (_, __, ___) => const Icon(Iconsax.gallery_remove_copy),
+                );
+              },
+            ),
+          ),
+          SliverToBoxAdapter(child: _SellerHeader(args: args)),
+          SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
+          const SliverToBoxAdapter(
+            child: _SellerCarousel(section: _SellerSection.newItems),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          SliverToBoxAdapter(
+            child: _SectionHeader('Top Selling Products'.tr),
+          ),
+          const SliverToBoxAdapter(
+            child: _SellerCarousel(section: _SellerSection.topSelling),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
+          const SliverToBoxAdapter(
+            child: _SellerCarousel(
+              section: _SellerSection.featured,
+              bottomPadding: 12,
+            ),
+          ),
         ],
-        primary: false,
-        floating: true,
-        snap: true,
-        pinned: true,
-      ),
-            SliverToBoxAdapter(
-              child: Builder(
-                builder: (context) {
-                  final banner = args.shopBanner ?? '';
-
-                  if (banner.isEmpty) {
-                    return const SizedBox();
-                  }
-
-                  return CachedNetworkImage(
-                    imageUrl: banner,
-                    height: 100,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => const _ImageBoxShimmer(),
-                    errorWidget: (_, __, ___) =>
-                        const Icon(Iconsax.gallery_remove_copy),
-                  );
-                },
-              ),
-            ),
-            SliverToBoxAdapter(child: _SellerHeader(args: args)),
-            SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
-            const SliverToBoxAdapter(
-              child: _SellerCarousel(section: _SellerSection.newItems),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            SliverToBoxAdapter(
-              child: _SectionHeader('Top Selling Products'.tr),
-            ),
-            const SliverToBoxAdapter(
-              child: _SellerCarousel(section: _SellerSection.topSelling),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
-                        const SliverToBoxAdapter(
-              child: _SellerCarousel(
-                section: _SellerSection.featured,
-                bottomPadding: 12,
-              ),
-            ),
-          ],
-        ),
       ),
     ),
+  ),
 );
   }
 }
