@@ -51,26 +51,7 @@ class SellerProductsController extends GetxController {
     if (_store.isFollowed(slug)) {
       isFollowing.value = true;
     }
-    _fetchFollowStatus();
     if (autoLoad) load();
-  }
-
-  Future<void> _fetchFollowStatus() async {
-    try {
-      final login = LoginService();
-      if (!login.isLoggedIn()) return;
-      final res = await repo.fetchShopDetails(slug: slug);
-      if (res['success'] == true && res['details'] != null) {
-        if (res['details']['is_following'] == true) {
-          isFollowing.value = true;
-          _store.setFollowed(slug, true);
-        }
-        final apiFollowers = res['details']['total_followers'];
-        if (apiFollowers != null) {
-          followers.value = apiFollowers is int ? apiFollowers : int.tryParse(apiFollowers.toString()) ?? 0;
-        }
-      }
-    } catch (_) {}
   }
 
   Future<void> load() async {
@@ -83,17 +64,26 @@ class SellerProductsController extends GetxController {
     featuredItems.assignAll(res.featuredItems.data);
     topSellingItems.assignAll(res.topSellingItems.data);
 
-    // Also refresh shop details
-    final detailsRes = await repo.fetchShopDetails(slug: slug);
-    if (detailsRes['details'] != null) {
-      final d = detailsRes['details'];
-      final f = d['total_followers'];
-      if (f != null) {
-        followers.value = f is int ? f : int.parse('$f');
-      }
-    }
+    await _fetchFollowStatus();
 
     isLoading.value = false;
+  }
+
+  Future<void> _fetchFollowStatus() async {
+    try {
+      final res = await repo.fetchShopDetails(slug: slug);
+      if (res['details'] != null) {
+        final d = res['details'];
+        final f = d['total_followers'];
+        if (f != null) {
+          followers.value = f is int ? f : int.parse('$f');
+        }
+        if (d['is_following'] == true) {
+          isFollowing.value = true;
+          _store.setFollowed(slug, true);
+        }
+      }
+    } catch (_) {}
   }
 
   void onProductTap(int id) {
