@@ -6,6 +6,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
 import '../../../data/repositories/wishlist_repository.dart';
+import '../../../shared/utils/dialog_utils.dart';
 import '../../product/model/product_model.dart';
 
 class WishlistController extends GetxController {
@@ -110,14 +111,14 @@ class WishlistController extends GetxController {
               SizedBox(
                 height: 44,
                 child: TextButton(
-                  onPressed: () => Get.back(result: false),
+                  onPressed: () => safeBack(result: false),
                   child: Text('Cancel'.tr),
                 ),
               ),
               SizedBox(
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: () => Get.back(result: true),
+                  onPressed: () => safeBack(result: true),
                   child: Text('Login'.tr),
                 ),
               ),
