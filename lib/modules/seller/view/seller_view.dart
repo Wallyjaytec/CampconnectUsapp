@@ -37,7 +37,9 @@ class SellerView extends StatelessWidget {
     top: true,
     bottom: false,
     child: RefreshIndicator(
-  onRefresh: () => ctrl.load(),
+  onRefresh: () async {
+    await ctrl.load();
+  },
   child: CustomScrollView(
     physics: const AlwaysScrollableScrollPhysics(),
     slivers: [
@@ -572,5 +574,3 @@ class _CenterStrike extends StatelessWidget {
     );
   }
 }
-
- 
