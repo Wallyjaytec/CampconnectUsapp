@@ -8,6 +8,7 @@ import 'package:kartly_e_commerce/modules/account/view/settings_view.dart';
 import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
+import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 
 import '../../../core/controllers/currency_controller.dart';
 import '../../../core/routes/app_routes.dart';
@@ -33,7 +34,7 @@ class AccountView extends StatelessWidget {
             SizedBox(
               width: double.infinity, height: 44,
               child: ElevatedButton(
-                onPressed: () { Get.back(); Get.offAllNamed(AppRoutes.loginView); },
+                onPressed: () { safeBack(); Get.offAllNamed(AppRoutes.loginView); },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                 child: Text('Login'.tr, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ),
