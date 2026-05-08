@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import '../../shared/utils/dialog_utils.dart';
 
 import '../../core/controllers/language_controller.dart';
 
@@ -125,10 +126,7 @@ class LanguageSelect extends StatelessWidget {
                           ),
                         ),
                         SliverList(
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
+                          delegate: SliverChildBuilderDelegate((context, index) {
                             final lang = langs[index];
                             final code = lang.code.toString();
 
@@ -179,7 +177,7 @@ class LanguageSelect extends StatelessWidget {
                           ),
                           onPressed: () async {
                             await controller.setLanguage(selected);
-                            Get.back();
+                            safeBack();
                           },
                           child: Text('Select'.tr),
                         ),
