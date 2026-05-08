@@ -37,7 +37,10 @@ class SellerRepository {
 
   Future<Map<String, dynamic>> fetchShopDetails({required String slug}) async {
     final url = AppConfig.shopDetailsUrl();
-    final fields = <String, String>{'slug': slug};
+    final fields = <String, String>{
+      'slug': slug,
+      '_t': DateTime.now().millisecondsSinceEpoch.toString(),
+    };
     return await api.postMultipart(url, fields: fields);
   }
 
