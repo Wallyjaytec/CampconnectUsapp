@@ -1026,6 +1026,7 @@ class _ShopCard extends StatelessWidget {
                           followers: sellerCtrl.followers.value,
                           shopBanner: s.shopBanner,
                           isFollowing: s.isFollowing,
+                          isVerified: s.isVerified,
                         ),
                       );
                     },
@@ -1085,15 +1086,27 @@ class _ShopCard extends StatelessWidget {
                                 followers: sellerCtrl.followers.value,
                                 shopBanner: s.shopBanner,
                                 isFollowing: s.isFollowing,
+                                isVerified: s.isVerified,
                               ),
                             );
                           },
-                          child: Text(
-                            s.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  s.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (s.isVerified) ...[
+                                const SizedBox(width: 4),
+                                Image.asset('assets/images/verifybadge.png', height: 18, width: 18),
+                              ],
+                            ],
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -1329,6 +1342,7 @@ class _BottomBar extends StatelessWidget {
       followers: sellerCtrl2.followers.value,
       shopBanner: s.shopBanner,
       isFollowing: s.isFollowing,
+      isVerified: s.isVerified,
     ),
   );
 },
