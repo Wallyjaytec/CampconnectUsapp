@@ -169,20 +169,38 @@ class SellerProductsController extends GetxController {
     final login = LoginService();
     if (login.isLoggedIn()) return true;
 
-    final goLogin = await Get.dialog<bool>(AlertDialog(
-      backgroundColor: Get.theme.brightness == Brightness.dark
-          ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      title: const Text('Login required', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-      content: Text('You must log in to unfollow'.tr, style: const TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3)),
-      actions: [
-        SizedBox(height: 44, child: TextButton(onPressed: () => Get.back(result: false), child: Text('Cancel'.tr))),
-        SizedBox(height: 44, child: ElevatedButton(onPressed: () => Get.back(result: true), child: Text('Login'.tr))),
-      ],
-    )) ?? false;
-
-    if (goLogin) Get.toNamed(AppRoutes.loginView);
+    final goLogin = await Get.dialog<bool>(
+      AlertDialog(
+        backgroundColor: Get.theme.brightness == Brightness.dark
+            ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        title: const Text('Login required', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        content: Text('You must log in to continue'.tr, style: const TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3)),
+        actions: [
+          SizedBox(
+            height: 44,
+            child: TextButton(
+              onPressed: () {
+                if (Get.isDialogOpen ?? false) Get.back(result: false);
+              },
+              child: Text('Cancel'.tr),
+            ),
+          ),
+          SizedBox(
+            height: 44,
+            child: ElevatedButton(
+              onPressed: () {
+                if (Get.isDialogOpen ?? false) Get.back(result: true);
+              },
+              child: Text('Login'.tr),
+            ),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+    if (goLogin == true) Get.toNamed(AppRoutes.loginView);
     return false;
   }
 }
