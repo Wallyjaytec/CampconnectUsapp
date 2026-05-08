@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../shared/utils/dialog_utils.dart';
 import '../../account/widgets/custom_text_form_field.dart';
 import '../controller/checkout_controller.dart';
 
@@ -61,7 +62,7 @@ class BankPaymentDialog extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => safeBack(),
                       icon: const Icon(Iconsax.close_circle_copy),
                     ),
                   ],
@@ -171,7 +172,7 @@ class BankPaymentDialog extends StatelessWidget {
                   height: 44,
                   child: ElevatedButton(
                     onPressed: () {
-                      Get.back();
+                      safeBack();
                       Get.snackbar(
                         'Bank Payment'.tr,
                         'Details captured'.tr,
