@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -467,7 +468,9 @@ try {
         }
       }
 
-      Get.close(1);
+      if (Get.isBottomSheetOpen ?? false) {
+        safeBack();
+      }
       Get.snackbar(
         'Cart'.tr,
         '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
@@ -638,7 +641,7 @@ try {
         }
       }
 
-      Get.back();
+      safeBack();
       Get.toNamed(AppRoutes.cartView);
     } catch (e) {
       Get.snackbar(
