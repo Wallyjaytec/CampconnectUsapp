@@ -275,7 +275,10 @@ class ProductDetailsController extends GetxController {
       );
     }).toList();
 
-    final tag = 'add-to-cart-${p.id}-${DateTime.now().millisecondsSinceEpoch}';
+    final tag = 'add-to-cart-${p.id}';
+    if (Get.isRegistered<AddToCartController>(tag: tag)) {
+      Get.delete<AddToCartController>(tag: tag, force: true);
+    }
 
     final cartUi = CartUiProduct(id: p.id, title: safeName, imageUrl: img, price: safePrice, rating: safeRating);
 
