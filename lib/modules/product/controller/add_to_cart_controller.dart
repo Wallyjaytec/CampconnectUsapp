@@ -468,9 +468,6 @@ try {
         }
       }
 
-      if (Get.isBottomSheetOpen ?? false) {
-        safeBack();
-      }
       Get.snackbar(
         'Cart'.tr,
         '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
