@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:kartly_e_commerce/modules/product/controller/following_products_controller.dart';
 import 'package:kartly_e_commerce/modules/product/view/following_section.dart';
+import 'package:kartly_e_commerce/modules/product/view/recently_viewed_section.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -219,6 +220,7 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       const SliverToBoxAdapter(child: FlashDealsSection()),
                       const SliverToBoxAdapter(child: DiscountSalesSection()),
+                      const SliverToBoxAdapter(child: RecentlyViewedSection()),
                       SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
                       const SliverToBoxAdapter(child: FollowingSection()),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 55, title: 'Gaming')),
