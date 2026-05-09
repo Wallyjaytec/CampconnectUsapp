@@ -1,617 +1,298 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:kartly_e_commerce/modules/product/controller/related_products_controller.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
 import '../../../core/utils/currency_formatters.dart';
-import '../../product/model/product_details_model.dart';
-import '../controller/add_to_cart_controller.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../data/repositories/product_details_repository.dart';
+import '../../../data/repositories/product_reviews_repository.dart';
+import '../model/product_details_model.dart';
+import '../model/product_model.dart';
+import '../model/review_model.dart';
+import '../view/all_reviews_view.dart';
+import '../widgets/add_to_cart_sheet.dart';
+import 'add_to_cart_controller.dart';
 
-class AddToCartSheet extends GetView<AddToCartController> {
-  const AddToCartSheet({
-    super.key,
-    required this.controllerTag,
-    required this.p,
-  });
+enum ReviewSort { recent, ratingHigh, ratingLow }
 
-  final String controllerTag;
-  final ProductDetailsModel p;
+enum QuickSection { overview, reviews, details, recommendations }
 
-  @override
-  String? get tag => controllerTag;
+class ProductDetailsController extends GetxController {
+  ProductDetailsController(this._detailsRepo)
+    : _reviewsRepo = ProductReviewsRepository(ApiService());
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final c = controller;
+  final ProductDetailsRepository _detailsRepo;
+  final ProductReviewsRepository _reviewsRepo;
 
-    final double screenHeight = MediaQuery.of(context).size.height;
-    final double maxSheetHeight = screenHeight * 0.85;
+  late final String permalink;
 
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(maxHeight: maxSheetHeight),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            fit: FlexFit.loose,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              physics: const ClampingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 10),
-                  _HeaderBlock(p: p, c: c),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Obx(
-                        () => Text(
-                          '${c.displayStock} ${'In Stock'.tr}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (c.hasVariations)
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: c.variationGroups.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (_, i) => _VariationGroupView(
-                        group: c.variationGroups[i],
-                        controllerTag: controllerTag,
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Quantity'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        const Spacer(),
-                        _QtyBtn(icon: Iconsax.minus_copy, onTap: c.dec),
-                        const SizedBox(width: 10),
-                        Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0B1220)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.10)
-                                  : const Color(0xFFE5E7EB),
-                            ),
-                          ),
-                          child: Obx(() => Text('${c.qty.value}')),
-                        ),
-                        const SizedBox(width: 10),
-                        _QtyBtn(icon: Iconsax.add_copy, onTap: c.inc),
-                      ],
-                    ),
-                  ),
+  final RxBool isLoading = false.obs;
+  final RxString error = ''.obs;
+  final Rxn<ProductDetailsModel> product = Rxn<ProductDetailsModel>();
 
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Total Price'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        const Spacer(),
-                        Obx(
-                          () => Text(
-                            formatCurrency(
-                              c.totalEffective,
-                              applyConversion: true,
-                            ),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+  final RxInt galleryIndex = 0.obs;
+  final RxBool showQuickBar = false.obs;
+  final Rx<QuickSection> activeSection = QuickSection.overview.obs;
 
-                  if ((p.attachmentTitle ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _AttachmentPickerSection(
-                      title: p.attachmentTitle!,
-                      controllerTag: controllerTag,
-                    ),
-                  ],
+  final RxMap<String, String> selected = <String, String>{}.obs;
 
-                  const SizedBox(height: 14),
-                ],
-              ),
-            ),
-          ),
+  final RxBool isLoadingRecent = false.obs;
+  final RxList<ProductReview> recentReviews = <ProductReview>[].obs;
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: SizedBox(
-              height: 48,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 44,
-                      child: ElevatedButton(
-                        onPressed: c.buyNow,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.lightBlueColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text('Buy Now'.tr),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SizedBox(
-                      height: 44,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: c.addToCartAndClose,
-                        child: Text('Add To Cart'.tr),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+  final RxBool isLoadingAll = false.obs;
+  final RxList<ProductReview> allReviews = <ProductReview>[].obs;
+  final Rx<ReviewSort> reviewSort = ReviewSort.recent.obs;
 
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ],
-      ),
-    );
-  }
-}
+  int _allPage = 1;
+  int _allLastPage = 1;
+  final RxInt reviewsTotal = 0.obs;
 
-class _HeaderBlock extends StatelessWidget {
-  const _HeaderBlock({required this.p, required this.c});
-  final ProductDetailsModel p;
-  final AddToCartController c;
+  static const int idxGallery = 0;
+  static const int idxOverview = 1;
+  static const int idxQuickConnect = 2;
+  static const int idxReviews = 3;
+  static const int idxSeller = 4;
+  static const int idxDetails = 5;
+  static const int idxRecommendations = 6;
+
+  bool _isSheetOpen = false;
 
   @override
-  Widget build(BuildContext context) {
-    final String name = (p.name).toString();
-    final double rating = p.rating;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Obx(() {
-            final img = c.currentImageUrl.value;
-            return CachedNetworkImage(
-              imageUrl: img,
-              width: 64,
-              height: 64,
-              fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => const SizedBox(
-                width: 64,
-                height: 64,
-                child: Icon(Iconsax.gallery_remove_copy),
-              ),
-            );
-          }),
-        ),
-        const SizedBox(width: 12),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 2),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      rating.toStringAsFixed(1),
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Obx(() {
-                final double? minPrice = (p.priceRangeMin is num)
-                    ? (p.priceRangeMin as num).toDouble()
-                    : null;
-                final double? maxPrice = (p.priceRangeMax is num)
-                    ? (p.priceRangeMax as num).toDouble()
-                    : null;
-                final double? minOld = (p.priceRangeMinOld is num)
-                    ? (p.priceRangeMinOld as num).toDouble()
-                    : null;
-                final double? maxOld = (p.priceRangeMaxOld is num)
-                    ? (p.priceRangeMaxOld as num).toDouble()
-                    : null;
-                final bool showRange =
-                    c.shouldShowRange &&
-                    minPrice != null &&
-                    maxPrice != null &&
-                    maxPrice > minPrice;
-
-                final price = c.effectivePrice;
-                final old = c.effectiveOldPrice;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (showRange) ...[
-                      if (minOld != null && maxOld != null)
-                        Text(
-                          '${formatCurrency(minPrice, applyConversion: true)} – ${formatCurrency(maxPrice, applyConversion: true)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryColor,
-                            height: 1.2,
-                          ),
-                        ),
-                      Text(
-                        '${formatCurrency(minOld, applyConversion: true)} – ${formatCurrency(maxOld, applyConversion: true)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF9CA3AF),
-                          decoration: TextDecoration.lineThrough,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                    ],
-                    Row(
-                      children: [
-                        Text(
-                          formatCurrency(price, applyConversion: true),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        if (old != null)
-                          Text(
-                            formatCurrency(old, applyConversion: true),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF9CA3AF),
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                );
-              }),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _QtyBtn extends StatelessWidget {
-  const _QtyBtn({required this.icon, required this.onTap});
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return SizedBox(
-      width: 36,
-      height: 36,
-      child: Material(
-        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: AppColors.primaryColor),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: onTap,
-          child: Icon(icon, size: 18),
-        ),
-      ),
-    );
-  }
-}
-
-class _VariationGroupView extends GetView<AddToCartController> {
-  const _VariationGroupView({required this.group, required this.controllerTag});
-  final VariationGroup group;
-  final String controllerTag;
-
-  @override
-  String? get tag => controllerTag;
-
-  @override
-  Widget build(BuildContext context) {
-    final title = group.name;
-    final opts = group.options;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-            if (group.required)
-              const Text(' *', style: TextStyle(color: Colors.red)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Obx(
-          () => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: opts.map((o) {
-              final selected = controller.isSelected(group.name, o.id);
-              return _RoundChoice(
-                label: o.label,
-                imageUrl: o.imageUrl,
-                hex: o.hex,
-                selected: selected,
-                onTap: () => controller.selectVariation(group.name, o.id),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _RoundChoice extends StatelessWidget {
-  const _RoundChoice({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.imageUrl,
-    this.hex,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  final String? imageUrl;
-  final String? hex;
-
-  static const double _rectChipWidth = 70;
-  static const double _rectChipHeight = 36;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasImg = (imageUrl ?? '').trim().isNotEmpty;
-    final validHex =
-        hex != null &&
-        RegExp(r'^[#]?[0-9a-fA-F]{6}$').hasMatch(hex!.replaceAll('#', ''));
-
-    final onlyLabel = !hasImg && !validHex;
-
-    if (onlyLabel) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: _rectChipWidth,
-          height: _rectChipHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: selected
-                ? AppColors.primaryColor.withValues(alpha: 0.08)
-                : isDark
-                ? AppColors.darkBackgroundColor
-                : AppColors.primaryColor.withValues(alpha: 0.04),
-            border: Border.all(
-              color: selected
-                  ? AppColors.primaryColor
-                  : const Color(0xFFD1D5DB),
-              width: selected ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: selected
-                        ? AppColors.primaryColor
-                        : isDark
-                        ? AppColors.whiteColor
-                        : AppColors.blackColor,
-                  ),
-                ),
-              ),
-              if (selected) ...[
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.check,
-                  size: 14,
-                  color: AppColors.primaryColor,
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    permalink =
+        (args is Map && (args['permalink'] != null || args['slug'] != null))
+        ? (args['permalink'] ?? args['slug']).toString()
+        : '';
+    if (permalink.isEmpty) {
+      error.value = 'Invalid product permalink.';
+    } else {
+      load();
     }
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: hasImg
-                  ? DecorationImage(
-                      image: CachedNetworkImageProvider(
-                        AppConfig.assetUrl(imageUrl!),
-                      ),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-              color: hasImg
-                  ? null
-                  : (validHex ? _hexToColor(hex!) : const Color(0xFFE5E7EB)),
-              border: Border.all(
-                color: selected
-                    ? AppColors.primaryColor
-                    : const Color(0xFFD1D5DB),
-                width: selected ? 2 : 1,
-              ),
-            ),
-          ),
-          if (selected)
-            const Positioned(
-              right: -2,
-              bottom: -2,
-              child: Icon(
-                Icons.check_circle,
-                size: 16,
-                color: AppColors.primaryColor,
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
-  Color _hexToColor(String v) {
-    final s = v.replaceAll('#', '');
-    return Color(int.parse('FF$s', radix: 16));
+  bool get hasVariationsProduct {
+    final p = product.value;
+    if (p == null) return false;
+    final groupsWithChoice = p.attributes.where((g) => g.options.length > 1);
+    return groupsWithChoice.isNotEmpty;
   }
-}
 
-class _AttachmentPickerSection extends GetView<AddToCartController> {
-  const _AttachmentPickerSection({
-    required this.title,
-    required this.controllerTag,
-  });
+  Future<void> load() async {
+    try {
+      isLoading.value = true;
+      error.value = '';
+      final res = await _detailsRepo.fetchByPermalink(permalink);
+      product.value = res;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.isRegistered<RelatedProductsController>()) {
+          Get.find<RelatedProductsController>().loadFor(res.id);
+        }
+      });
+      await loadRecentReviews();
+    } catch (e) {
+      error.value = 'Something went wrong';
+      product.value = null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
-  final String title;
-  final String controllerTag;
+  Future<void> loadRecentReviews() async {
+    final p = product.value;
+    if (p == null) return;
+    if (isLoadingRecent.value) return;
+    try {
+      isLoadingRecent.value = true;
+      final page = await _reviewsRepo.fetch(productId: p.id, page: 1, perPage: 5, sorting: 'DESC');
+      recentReviews.assignAll(page.items);
+      reviewsTotal.value = page.total;
+    } catch (e) {
+      recentReviews.clear();
+    } finally {
+      isLoadingRecent.value = false;
+    }
+  }
+
+  Future<void> loadAllReviews({bool reset = false}) async {
+    final p = product.value;
+    if (p == null) return;
+    if (isLoadingAll.value) return;
+    if (reset) { _allPage = 1; _allLastPage = 1; allReviews.clear(); }
+    if (_allPage > _allLastPage) return;
+    try {
+      isLoadingAll.value = true;
+      final page = await _reviewsRepo.fetch(productId: p.id, page: _allPage, perPage: 10, sorting: reviewSort.value == ReviewSort.ratingLow ? 'ASC' : 'DESC');
+      if (reset) allReviews.clear();
+      allReviews.addAll(page.items);
+      reviewsTotal.value = page.total;
+      _allLastPage = page.lastPage;
+      _allPage = page.currentPage + 1;
+    } catch (_) {} finally {
+      isLoadingAll.value = false;
+    }
+  }
+
+  void openAllReviews() async {
+    await loadAllReviews(reset: allReviews.isEmpty);
+    Get.to(const AllReviewsView());
+  }
+
+  void setReviewSort(ReviewSort v) async {
+    reviewSort.value = v;
+    await loadAllReviews(reset: true);
+  }
+
+  String get totalReviewsText => formatCount(reviewsTotal.value);
+
+  List<ProductReview> get reviewsByCurrentSort {
+    final list = [...allReviews];
+    if (reviewSort.value == ReviewSort.ratingHigh) {
+      list.sort((a, b) => b.rating.compareTo(a.rating));
+    } else if (reviewSort.value == ReviewSort.ratingLow) {
+      list.sort((a, b) => a.rating.compareTo(b.rating));
+    } else {
+      list.sort((a, b) {
+        final at = a.time?.millisecondsSinceEpoch ?? 0;
+        final bt = b.time?.millisecondsSinceEpoch ?? 0;
+        return bt.compareTo(at);
+      });
+    }
+    return list;
+  }
+
+  bool get canLoadMoreAll => !isLoadingAll.value && _allPage <= _allLastPage;
+  void onPageChanged(int i) => galleryIndex.value = i;
+
+  void selectAttr(String groupName, String optionId) {
+    selected[groupName] = optionId;
+    update();
+  }
+
+  bool get allRequiredSelected {
+    final p = product.value;
+    if (p == null) return false;
+    final reqGroups = p.attributes.where((g) => g.required).toList();
+    if (reqGroups.isEmpty) return selected.isNotEmpty;
+    for (final g in reqGroups) if ((selected[g.name] ?? '').isEmpty) return false;
+    return true;
+  }
+
+  bool isSelected(String groupName, String optionId) => selected[groupName] == optionId;
+
+  double get effectivePrice {
+    final p = product.value;
+    if (p == null) return 0.0;
+    if (p.selectedVariant?.price != null) return p.selectedVariant!.price!;
+    if (allRequiredSelected) {
+      for (final g in p.attributes) {
+        final pick = selected[g.name];
+        if (pick == null) continue;
+        final opt = g.options.firstWhereOrNull((o) => o.id == pick);
+        if (opt?.price != null) return opt!.price!;
+      }
+    }
+    return p.price;
+  }
+
+  double? get effectiveOldPrice {
+    final p = product.value;
+    if (p == null) return null;
+    if (p.selectedVariant?.oldPrice != null && p.selectedVariant!.oldPrice! > effectivePrice) return p.selectedVariant!.oldPrice!;
+    if (allRequiredSelected) {
+      for (final g in p.attributes) {
+        final pick = selected[g.name];
+        if (pick == null) continue;
+        final opt = g.options.firstWhereOrNull((o) => o.id == pick);
+        if (opt?.oldPrice != null && opt!.oldPrice! > effectivePrice) return opt.oldPrice!;
+      }
+    }
+    return (p.oldPrice != null && p.oldPrice! > effectivePrice) ? p.oldPrice : null;
+  }
+
+  bool get shouldShowRange {
+    final p = product.value;
+    if (p == null) return false;
+    final hasRange = (p.priceRangeMin != null && p.priceRangeMax != null && p.priceRangeMax! > p.priceRangeMin!);
+    return p.hasVariant && hasRange && !allRequiredSelected;
+  }
+
+  String get rangeText {
+    final p = product.value;
+    if (p == null) return '';
+    final min = p.priceRangeMin ?? p.price;
+    final max = p.priceRangeMax ?? p.price;
+    return '${formatCurrency(min, applyConversion: true)} – ${formatCurrency(max, applyConversion: true)}';
+  }
+
+  Future<void> shareProduct(BuildContext context) async {
+    final p = product.value;
+    if (p == null) return;
+    final priceText = formatCurrency(effectivePrice, applyConversion: true);
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box != null ? (box.localToGlobal(Offset.zero) & box.size) : null;
+    await SharePlus.instance.share(ShareParams(text: '${p.name} — $priceText\n${p.url}', subject: p.name, sharePositionOrigin: origin));
+  }
+
+  void addToCompare() {
+    final p = product.value;
+    if (p == null) return;
+    Get.snackbar('Compare', '${p.name} added to compare list', snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
+  }
+
+  void openAllReviewsScreen() => openAllReviews();
+
+  void openAddToCartSheet() {
+    if (_isSheetOpen) return;
+    _isSheetOpen = true;
+
+    final p = product.value;
+    if (p == null) {
+      _isSheetOpen = false;
+      return;
+    }
+
+    final safeName = (p.name).toString();
+    final safePrice = p.price;
+    final safeRating = p.rating;
+    final safeQty = p.quantity;
+    final String img = (p.galleryImages.isNotEmpty) ? (p.galleryImages.first.imageUrl) : '';
+
+    final groups = p.attributes.map((g) {
+      final backendKey = (g.id).toString().trim();
+      return VariationGroup(name: g.name, backendKey: backendKey, required: g.required,
+        options: g.options.map((o) {
+          final bool isColorGroup = g.name.toLowerCase().contains('color') || g.id == 'color';
+          final String? hex = isColorGroup ? (o.hex?.isNotEmpty == true ? o.hex : (o.valueHex?.isNotEmpty == true ? o.valueHex : (o.value?.isNotEmpty == true ? o.value : null))) : null;
+          final String? img = isColorGroup && (o.image?.isNotEmpty == true) ? AppConfig.assetUrl(o.image) : null;
+          return VariationOption(id: o.id, label: o.label, hex: hex, imageUrl: img, price: o.price, oldPrice: o.oldPrice);
+        }).toList(),
+      );
+    }).toList();
+
+    final tag = 'add-to-cart-${p.id}-${DateTime.now().millisecondsSinceEpoch}';
+
+    final cartUi = CartUiProduct(id: p.id, title: safeName, imageUrl: img, price: safePrice, rating: safeRating);
+
+    Get.put(AddToCartController(cartUi, details: p, stock: safeQty, groups: groups), tag: tag);
+
+    Get.bottomSheet(
+      AddToCartSheet(controllerTag: tag, p: p),
+      isScrollControlled: true,
+      backgroundColor: Get.theme.scaffoldBackgroundColor,
+      enableDrag: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    ).whenComplete(() => _isSheetOpen = false);
+  }
 
   @override
-  String? get tag => controllerTag;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        Obx(() {
-          final c = controller;
-          final uploading = c.isUploadingAttachment.value;
-          final hasFile = c.attachmentFileId.value != null;
-          final fileName = c.attachmentFileName.value;
-
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.darkCardColor
-                  : AppColors.lightCardColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    uploading
-                        ? 'Uploading'.tr
-                        : (hasFile ? fileName : 'No file chosen'.tr),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: uploading
-                      ? null
-                      : () => c.pickAndUploadAttachment(),
-                  child: Text(
-                    hasFile ? 'Change'.tr : 'Choose file'.tr,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
+  void onClose() {
+    if (Get.isRegistered<RelatedProductsController>()) Get.find<RelatedProductsController>().onClose();
+    super.onClose();
   }
 }
