@@ -452,7 +452,14 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // Close sheet using Navigator.pop
+      // Update cart count in background
+      Future.microtask(() {
+        if (Get.isRegistered<CartController>()) {
+          Get.find<CartController>().refreshFromServer();
+        }
+      });
+
+      // Close sheet
       Navigator.of(Get.context!).pop();
     } catch (e) {
       Get.snackbar(
