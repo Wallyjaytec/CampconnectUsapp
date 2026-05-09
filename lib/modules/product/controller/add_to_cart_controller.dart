@@ -452,11 +452,16 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // Close sheet FIRST
-      Navigator.of(Get.context!).pop();
+      // CLOSE SHEET USING OVERLAY CONTEXT
+      if (Get.overlayContext != null) {
+        final nav = Navigator.of(Get.overlayContext!);
+        if (nav.canPop()) {
+          nav.pop();
+        }
+      }
 
-      // Refresh cart AFTER sheet is closed
-      Future.delayed(Duration(milliseconds: 500), () {
+      // Refresh cart in background
+      Future.delayed(Duration(milliseconds: 600), () {
         if (Get.isRegistered<CartController>()) {
           Get.find<CartController>().refreshFromServer();
         }
@@ -617,9 +622,17 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // Close sheet first, then navigate
-      Navigator.of(Get.context!).pop();
-      Future.delayed(Duration(milliseconds: 400), () {
+      // Close sheet, then navigate
+      if (Get.overlayContext != null) {
+        final nav = Navigator.of(Get.overlayContext!);
+        if (nav.canPop()) {
+          nav.pop();
+        }
+      }
+      Future.delayed(Duration(milliseconds: 500), () {
+        if (Get.isRegistered<CartController>()) {
+          Get.find<CartController>().refreshFromServer();
+        }
         Get.toNamed(AppRoutes.cartView);
       });
     } catch (e) {
