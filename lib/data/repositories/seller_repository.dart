@@ -134,4 +134,13 @@ class SellerRepository {
 
     return await api.postMultipart(url, fields: fields);
   }
+
+  Future<Map<String, dynamic>> fetchFollowedSellersProducts({int page = 1, int perPage = 10}) async {
+    final url = '${AppConfig.baseUrl}/api/v1/multivendor/followed-sellers-products';
+    final fields = <String, String>{
+      'page': '$page',
+      'perPage': '$perPage',
+    };
+    return await api.postMultipart(url, fields: fields);
+  }
 }
