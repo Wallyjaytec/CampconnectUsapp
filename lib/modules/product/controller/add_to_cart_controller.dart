@@ -29,7 +29,6 @@ class _ShopPick {
 
 _ShopPick _pickShop(ProductDetailsModel d) {
   final shop = d.shopInfo;
-
   return _ShopPick(id: shop.id, name: shop.name, slug: shop.slug);
 }
 
@@ -75,19 +74,18 @@ class AddToCartController extends GetxController {
   }) : variationGroups = groups ?? const [],
        _repo = variantRepo ?? ProductVariantRepository(ApiService()),
        _cartRepo = cartRepository ?? Get.find<CartRepository>(),
-                 attachmentRepo =
-         attachmentRepo ?? OrderAttachmentRepository(ApiService()) {
-  _applyDefaultSelections();
-  currentImageUrl.value = _fallbackImage();
-}
+       attachmentRepo = attachmentRepo ?? OrderAttachmentRepository(ApiService()) {
+    _applyDefaultSelections();
+    currentImageUrl.value = _fallbackImage();
+  }
 
-@override
-void onInit() {
-  super.onInit();
-  _primeVariantPrice();
-}
+  @override
+  void onInit() {
+    super.onInit();
+    _primeVariantPrice();
+  }
 
-Map<String, dynamic>? orderAttachment;
+  Map<String, dynamic>? orderAttachment;
   
   final CartUiProduct cart;
   final ProductDetailsModel details;
@@ -134,8 +132,7 @@ Map<String, dynamic>? orderAttachment;
   }
 
   double? get effectiveOldPrice {
-    if (_serverOldPrice.value != null &&
-        _serverOldPrice.value! > effectivePrice) {
+    if (_serverOldPrice.value != null && _serverOldPrice.value! > effectivePrice) {
       return _serverOldPrice.value!;
     }
     for (final g in variationGroups) {
@@ -201,8 +198,7 @@ Map<String, dynamic>? orderAttachment;
 
   bool get _variationsOk {
     for (final g in variationGroups) {
-      if (g.required &&
-          (selected[g.name] == null || selected[g.name]!.isEmpty)) {
+      if (g.required && (selected[g.name] == null || selected[g.name]!.isEmpty)) {
         return false;
       }
     }
@@ -210,8 +206,7 @@ Map<String, dynamic>? orderAttachment;
   }
 
   bool get canAddToCart =>
-      _variationsOk &&
-      (!isAttachmentRequired || attachmentFileId.value != null);
+      _variationsOk && (!isAttachmentRequired || attachmentFileId.value != null);
 
   CartListItem? _findExistingLine(String variantCode) {
     if (!Get.isRegistered<CartController>()) return null;
@@ -223,18 +218,10 @@ Map<String, dynamic>? orderAttachment;
 
   Future<void> pickAndUploadAttachment() async {
     if (!isAttachmentRequired) return;
-
     try {
       isUploadingAttachment.value = true;
-
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-        withData: false,
-      );
-
-      if (result == null || result.files.isEmpty) {
-        return;
-      }
+      final result = await FilePicker.platform.pickFiles(allowMultiple: false, withData: false);
+      if (result == null || result.files.isEmpty) return;
 
       final fileInfo = result.files.single;
       final path = fileInfo.path;
@@ -243,19 +230,12 @@ Map<String, dynamic>? orderAttachment;
         attachmentFileName.value = '';
         orderAttachment = null;
         attachmentJson.value = '';
-
-        Get.snackbar(
-          'Attachment'.tr,
-          'Selected file has no path'.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.redColor,
-          colorText: AppColors.whiteColor,
-        );
+        Get.snackbar('Attachment'.tr, 'Selected file has no path'.tr,
+          snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
         return;
       }
 
       final file = File(path);
-
       final resp = await attachmentRepo.uploadOrderAttachment(file);
 
       if (!resp.success || resp.fileId == null) {
@@ -264,55 +244,26 @@ Map<String, dynamic>? orderAttachment;
         orderAttachment = null;
         attachmentJson.value = '';
         attachmentPath.value = '';
-
-        Get.snackbar(
-          'Attachment'.tr,
-          'Failed to upload file'.tr,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.redColor,
-          colorText: AppColors.whiteColor,
-        );
+        Get.snackbar('Attachment'.tr, 'Failed to upload file'.tr,
+          snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
         return;
       }
 
       attachmentFileId.value = resp.fileId;
-      attachmentFileName.value = fileInfo.name.isNotEmpty
-          ? fileInfo.name
-          : (resp.fileName ?? '');
+      attachmentFileName.value = fileInfo.name.isNotEmpty ? fileInfo.name : (resp.fileName ?? '');
       attachmentPath.value = resp.path ?? '';
+      orderAttachment = {'file_name': resp.fileName ?? fileInfo.name, 'file_id': resp.fileId, 'path': resp.path ?? ''};
+      attachmentJson.value = jsonEncode(orderAttachment!);
 
-      orderAttachment = {
-        'file_name': resp.fileName ?? fileInfo.name,
-        'file_id': resp.fileId,
-        'path': resp.path ?? '',
-      };
-
-      attachmentJson.value = jsonEncode({
-        'file_name': resp.fileName ?? fileInfo.name,
-        'file_id': resp.fileId,
-        'path': resp.path ?? '',
-      });
-
-      Get.snackbar(
-        'Attachment'.tr,
-        'File uploaded successfully'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Attachment'.tr, 'File uploaded successfully'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
     } catch (e) {
       attachmentFileId.value = null;
       attachmentFileName.value = '';
       orderAttachment = null;
       attachmentJson.value = '';
-
-      Get.snackbar(
-        'Attachment'.tr,
-        'Invalid file type'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.redColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Attachment'.tr, 'Invalid file type'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
     } finally {
       isUploadingAttachment.value = false;
     }
@@ -321,336 +272,161 @@ Map<String, dynamic>? orderAttachment;
   Future<void> addToCartAndClose() async {
     if (!_variationsOk) {
       final missing = variationGroups.firstWhere(
-        (g) =>
-            g.required &&
-            (selected[g.name] == null || selected[g.name]!.isEmpty),
-        orElse: () =>
-            VariationGroup(name: 'Option', backendKey: '', options: const []),
+        (g) => g.required && (selected[g.name] == null || selected[g.name]!.isEmpty),
+        orElse: () => VariationGroup(name: 'Option', backendKey: '', options: const []),
       );
-      Get.snackbar(
-        '${'Select'.tr} ${missing.name}',
-        '${'Please choose a'.tr} ${missing.name.toLowerCase()}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('${'Select'.tr} ${missing.name}', '${'Please choose a'.tr} ${missing.name.toLowerCase()}',
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
       return;
     }
 
     if (isAttachmentRequired && attachmentFileId.value == null) {
-      Get.snackbar(
-        details.attachmentTitle ?? 'Attachment'.tr,
-        'Please upload the required file'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar(details.attachmentTitle ?? 'Attachment'.tr, 'Please upload the required file'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
       return;
     }
 
     final maxStock = _serverStock.value > 0 ? _serverStock.value : stock;
     if (maxStock <= 0) {
-      Get.snackbar(
-        'Out of stock'.tr,
-        'This variant is currently unavailable'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.redColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Out of stock'.tr, 'This variant is currently unavailable'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
       return;
     }
 
     if (_addingToCart) return;
-_addingToCart = true;
+    _addingToCart = true;
 
-try {
-  final variantText = _buildVariantText();
+    try {
+      final variantText = _buildVariantText();
       final variantCode = _buildVariantCode();
       final unitPrice = effectivePrice;
       final oldPrice = (effectiveOldPrice ?? unitPrice);
       final shop = _pickShop(details);
-
       final loggedIn = LoginService().isLoggedIn();
 
       if (loggedIn) {
         final existing = _findExistingLine(variantCode);
-
         if (existing != null) {
-          final mergedQty = (existing.quantity + qty.value).clamp(
-            1,
-            existing.maxItem,
-          );
+          final mergedQty = (existing.quantity + qty.value).clamp(1, existing.maxItem);
           final updItem = CartApiItem(
-            uid: existing.uid,
-            id: details.id,
-            name: (details.name).toString(),
-            permalink: (details.permalink).toString(),
-            image: _bestImage(details),
-            variant: variantText.isEmpty ? null : variantText,
-            variantCode: variantCode.isEmpty ? null : variantCode,
-            quantity: mergedQty,
-            unitPrice: unitPrice,
-            oldPrice: oldPrice,
-            minItem: existing.minItem,
-            maxItem: existing.maxItem,
-            attachment: orderAttachment,
-            seller: shop.id,
-            shopName: shop.name,
-            shopSlug: shop.slug,
-            isAvailable: 1,
-            isSelected: true,
+            uid: existing.uid, id: details.id, name: (details.name).toString(), permalink: (details.permalink).toString(),
+            image: _bestImage(details), variant: variantText.isEmpty ? null : variantText,
+            variantCode: variantCode.isEmpty ? null : variantCode, quantity: mergedQty,
+            unitPrice: unitPrice, oldPrice: oldPrice, minItem: existing.minItem, maxItem: existing.maxItem,
+            attachment: orderAttachment, seller: shop.id, shopName: shop.name, shopSlug: shop.slug, isAvailable: 1, isSelected: true,
           );
-
           await _cartRepo.updateCartItem(updItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: existing.uid);
-          }
         } else {
           final uid = DateTime.now().millisecondsSinceEpoch.toString();
           final newItem = CartApiItem(
-            uid: uid,
-            id: details.id,
-            name: (details.name).toString(),
-            permalink: (details.permalink).toString(),
-            image: _bestImage(details),
-            variant: variantText.isEmpty ? null : variantText,
-            variantCode: variantCode.isEmpty ? null : variantCode,
-            quantity: qty.value.clamp(1, maxStock),
-            unitPrice: unitPrice,
-            oldPrice: oldPrice,
-            minItem: 1,
-            maxItem: maxStock,
-            attachment: orderAttachment,
-            seller: shop.id,
-            shopName: shop.name,
-            shopSlug: shop.slug,
-            isAvailable: 1,
-            isSelected: true,
+            uid: uid, id: details.id, name: (details.name).toString(), permalink: (details.permalink).toString(),
+            image: _bestImage(details), variant: variantText.isEmpty ? null : variantText,
+            variantCode: variantCode.isEmpty ? null : variantCode, quantity: qty.value.clamp(1, maxStock),
+            unitPrice: unitPrice, oldPrice: oldPrice, minItem: 1, maxItem: maxStock,
+            attachment: orderAttachment, seller: shop.id, shopName: shop.name, shopSlug: shop.slug, isAvailable: 1, isSelected: true,
           );
-
           await _cartRepo.storeCartItem(newItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: uid);
-          }
         }
       } else {
         final payload = CartApiItem(
-          uid: '',
-          id: details.id,
-          name: (details.name).toString(),
-          permalink: (details.permalink).toString(),
-          image: _bestImage(details),
-          variant: variantText.isEmpty ? null : variantText,
-          variantCode: variantCode.isEmpty ? null : variantCode,
-          quantity: qty.value.clamp(1, maxStock),
-          unitPrice: unitPrice,
-          oldPrice: oldPrice,
-          minItem: 1,
-          maxItem: maxStock,
-          attachment: orderAttachment,
-          seller: shop.id,
-          shopName: shop.name,
-          shopSlug: shop.slug,
-          isAvailable: 1,
-          isSelected: true,
+          uid: '', id: details.id, name: (details.name).toString(), permalink: (details.permalink).toString(),
+          image: _bestImage(details), variant: variantText.isEmpty ? null : variantText,
+          variantCode: variantCode.isEmpty ? null : variantCode, quantity: qty.value.clamp(1, maxStock),
+          unitPrice: unitPrice, oldPrice: oldPrice, minItem: 1, maxItem: maxStock,
+          attachment: orderAttachment, seller: shop.id, shopName: shop.name, shopSlug: shop.slug, isAvailable: 1, isSelected: true,
         );
-
         final guest = GuestCartService();
-        final uid = guest.addOrMerge(payload);
-
-        if (Get.isRegistered<CartController>()) {
-          final cc = Get.find<CartController>();
-          await cc.refreshFromServer(prioritizeUid: uid);
-        }
+        guest.addOrMerge(payload);
       }
 
-      Get.snackbar(
-        'Cart'.tr,
-        '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Cart'.tr, '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
     } catch (e) {
-      Get.snackbar(
-        'Cart'.tr,
-        'Failed to add to cart'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.redColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Cart'.tr, 'Failed to add to cart'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
     } finally {
-  _addingToCart = false;
-}  
+      _addingToCart = false;
+    }
   }
 
   Future<void> buyNow() async {
     if (!_variationsOk) {
       final missing = variationGroups.firstWhere(
-        (g) =>
-            g.required &&
-            (selected[g.name] == null || selected[g.name]!.isEmpty),
-        orElse: () =>
-            VariationGroup(name: 'Option', backendKey: '', options: const []),
+        (g) => g.required && (selected[g.name] == null || selected[g.name]!.isEmpty),
+        orElse: () => VariationGroup(name: 'Option', backendKey: '', options: const []),
       );
-      Get.snackbar(
-        '${'Select'.tr} ${missing.name}',
-        '${'Please choose a'.tr} ${missing.name.toLowerCase()}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('${'Select'.tr} ${missing.name}', '${'Please choose a'.tr} ${missing.name.toLowerCase()}',
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
       return;
     }
 
     if (isAttachmentRequired && attachmentFileId.value == null) {
-      Get.snackbar(
-        details.attachmentTitle ?? 'Attachment'.tr,
-        'Please upload the required file'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar(details.attachmentTitle ?? 'Attachment'.tr, 'Please upload the required file'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
       return;
     }
 
     final maxStock = _serverStock.value > 0 ? _serverStock.value : stock;
     if (maxStock <= 0) {
-      Get.snackbar(
-        'Out of stock'.tr,
-        'This variant is currently unavailable'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.redColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Out of stock'.tr, 'This variant is currently unavailable'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
       return;
     }
 
     if (_addingToCart) return;
-_addingToCart = true;
+    _addingToCart = true;
 
-try {
-  final variantText = _buildVariantText();
+    try {
+      final variantText = _buildVariantText();
       final variantCode = _buildVariantCode();
       final unitPrice = effectivePrice;
       final oldPrice = (effectiveOldPrice ?? unitPrice);
       final shop = _pickShop(details);
-
       final loggedIn = LoginService().isLoggedIn();
 
       if (loggedIn) {
         final existing = _findExistingLine(variantCode);
-
         if (existing != null) {
-          final mergedQty = (existing.quantity + qty.value).clamp(
-            1,
-            existing.maxItem,
-          );
+          final mergedQty = (existing.quantity + qty.value).clamp(1, existing.maxItem);
           final updItem = CartApiItem(
-            uid: existing.uid,
-            id: details.id,
-            name: (details.name).toString(),
-            permalink: (details.permalink).toString(),
-            image: _bestImage(details),
-            variant: variantText.isEmpty ? null : variantText,
-            variantCode: variantCode.isEmpty ? null : variantCode,
-            quantity: mergedQty,
-            unitPrice: unitPrice,
-            oldPrice: oldPrice,
-            minItem: existing.minItem,
-            maxItem: existing.maxItem,
-            attachment: orderAttachment,
-            seller: shop.id,
-            shopName: shop.name,
-            shopSlug: shop.slug,
-            isAvailable: 1,
-            isSelected: true,
+            uid: existing.uid, id: details.id, name: (details.name).toString(), permalink: (details.permalink).toString(),
+            image: _bestImage(details), variant: variantText.isEmpty ? null : variantText,
+            variantCode: variantCode.isEmpty ? null : variantCode, quantity: mergedQty,
+            unitPrice: unitPrice, oldPrice: oldPrice, minItem: existing.minItem, maxItem: existing.maxItem,
+            attachment: orderAttachment, seller: shop.id, shopName: shop.name, shopSlug: shop.slug, isAvailable: 1, isSelected: true,
           );
-
           await _cartRepo.updateCartItem(updItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: existing.uid);
-          }
         } else {
           final uid = DateTime.now().millisecondsSinceEpoch.toString();
           final newItem = CartApiItem(
-            uid: uid,
-            id: details.id,
-            name: (details.name).toString(),
-            permalink: (details.permalink).toString(),
-            image: _bestImage(details),
-            variant: variantText.isEmpty ? null : variantText,
-            variantCode: variantCode.isEmpty ? null : variantCode,
-            quantity: qty.value.clamp(1, maxStock),
-            unitPrice: unitPrice,
-            oldPrice: oldPrice,
-            minItem: 1,
-            maxItem: maxStock,
-            attachment: orderAttachment,
-            seller: shop.id,
-            shopName: shop.name,
-            shopSlug: shop.slug,
-            isAvailable: 1,
-            isSelected: true,
+            uid: uid, id: details.id, name: (details.name).toString(), permalink: (details.permalink).toString(),
+            image: _bestImage(details), variant: variantText.isEmpty ? null : variantText,
+            variantCode: variantCode.isEmpty ? null : variantCode, quantity: qty.value.clamp(1, maxStock),
+            unitPrice: unitPrice, oldPrice: oldPrice, minItem: 1, maxItem: maxStock,
+            attachment: orderAttachment, seller: shop.id, shopName: shop.name, shopSlug: shop.slug, isAvailable: 1, isSelected: true,
           );
-
           await _cartRepo.storeCartItem(newItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: uid);
-          }
         }
       } else {
         final payload = CartApiItem(
-          uid: '',
-          id: details.id,
-          name: (details.name).toString(),
-          permalink: (details.permalink).toString(),
-          image: _bestImage(details),
-          variant: variantText.isEmpty ? null : variantText,
-          variantCode: variantCode.isEmpty ? null : variantCode,
-          quantity: qty.value.clamp(1, maxStock),
-          unitPrice: unitPrice,
-          oldPrice: oldPrice,
-          minItem: 1,
-          maxItem: maxStock,
-          attachment: orderAttachment,
-          seller: shop.id,
-          shopName: shop.name,
-          shopSlug: shop.slug,
-          isAvailable: 1,
-          isSelected: true,
+          uid: '', id: details.id, name: (details.name).toString(), permalink: (details.permalink).toString(),
+          image: _bestImage(details), variant: variantText.isEmpty ? null : variantText,
+          variantCode: variantCode.isEmpty ? null : variantCode, quantity: qty.value.clamp(1, maxStock),
+          unitPrice: unitPrice, oldPrice: oldPrice, minItem: 1, maxItem: maxStock,
+          attachment: orderAttachment, seller: shop.id, shopName: shop.name, shopSlug: shop.slug, isAvailable: 1, isSelected: true,
         );
-
         final guest = GuestCartService();
-        final uid = guest.addOrMerge(payload);
-
-        if (Get.isRegistered<CartController>()) {
-          final cc = Get.find<CartController>();
-          await cc.refreshFromServer(prioritizeUid: uid);
-        }
+        guest.addOrMerge(payload);
       }
 
       safeBack();
       Get.toNamed(AppRoutes.cartView);
     } catch (e) {
-      Get.snackbar(
-        'Cart'.tr,
-        'Failed to add to cart'.tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.redColor,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Cart'.tr, 'Failed to add to cart'.tr,
+        snackPosition: SnackPosition.TOP, backgroundColor: AppColors.redColor, colorText: AppColors.whiteColor);
     } finally {
-  _addingToCart = false;
-}
+      _addingToCart = false;
+    }
   }
 
   void _applyDefaultSelections() {
@@ -669,9 +445,7 @@ try {
     for (final g in variationGroups) {
       final picked = selected[g.name];
       if (picked != null && picked.isNotEmpty) {
-        if (g.backendKey.isEmpty) {
-          continue;
-        }
+        if (g.backendKey.isEmpty) continue;
         out[g.backendKey] = picked;
       }
     }
@@ -709,96 +483,59 @@ try {
 
   Future<void> _primeVariantPrice() async {
     if (variationGroups.isEmpty) return;
-
     final byKey = _buildSelectionsByBackendKey();
     if (byKey.isEmpty) return;
-
     String changedBackendKey = 'color';
     if (!byKey.containsKey('color')) {
       changedBackendKey = variationGroups.first.backendKey;
     }
-
     try {
-      final resp = await _repo.fetchVariantInfoByKey(
-        productId: details.id,
-        selectionsByKey: byKey,
-        changedBackendKey: changedBackendKey,
-      );
-
+      final resp = await _repo.fetchVariantInfoByKey(productId: details.id, selectionsByKey: byKey, changedBackendKey: changedBackendKey);
       if (resp.success) {
         _serverPrice.value = resp.basePrice;
         _serverOldPrice.value = resp.oldPrice;
         _serverStock.value = resp.quantity;
-        if (_serverStock.value > 0 && qty.value > _serverStock.value) {
-          qty.value = _serverStock.value;
-        }
+        if (_serverStock.value > 0 && qty.value > _serverStock.value) qty.value = _serverStock.value;
       } else {
-        _serverPrice.value = null;
-        _serverOldPrice.value = null;
-        _serverStock.value = 0;
+        _serverPrice.value = null; _serverOldPrice.value = null; _serverStock.value = 0;
       }
       qty.refresh();
     } catch (e) {
-      _serverPrice.value = null;
-      _serverOldPrice.value = null;
-      _serverStock.value = 0;
+      _serverPrice.value = null; _serverOldPrice.value = null; _serverStock.value = 0;
       qty.refresh();
     }
   }
 
   Future<void> _hitVariantInfoApi(String changedGroupLabel) async {
     try {
-      final grp = variationGroups.firstWhereOrNull(
-        (g) => g.name == changedGroupLabel,
-      );
+      final grp = variationGroups.firstWhereOrNull((g) => g.name == changedGroupLabel);
       final changedBackendKey = grp?.backendKey ?? '';
       if (changedBackendKey.isEmpty) {
-        _serverPrice.value = null;
-        _serverOldPrice.value = null;
-        _serverStock.value = 0;
+        _serverPrice.value = null; _serverOldPrice.value = null; _serverStock.value = 0;
         return;
       }
-
       final byKey = _buildSelectionsByBackendKey();
-
-      final resp = await _repo.fetchVariantInfoByKey(
-        productId: details.id,
-        selectionsByKey: byKey,
-        changedBackendKey: changedBackendKey,
-      );
-
+      final resp = await _repo.fetchVariantInfoByKey(productId: details.id, selectionsByKey: byKey, changedBackendKey: changedBackendKey);
       if (resp.success) {
         _serverPrice.value = resp.basePrice;
         _serverOldPrice.value = resp.oldPrice;
         _serverStock.value = resp.quantity;
-
-        if (_serverStock.value > 0 && qty.value > _serverStock.value) {
-          qty.value = _serverStock.value;
-        }
+        if (_serverStock.value > 0 && qty.value > _serverStock.value) qty.value = _serverStock.value;
       } else {
-        _serverPrice.value = null;
-        _serverOldPrice.value = null;
-        _serverStock.value = 0;
+        _serverPrice.value = null; _serverOldPrice.value = null; _serverStock.value = 0;
       }
     } catch (e) {
-      _serverPrice.value = null;
-      _serverOldPrice.value = null;
-      _serverStock.value = 0;
+      _serverPrice.value = null; _serverOldPrice.value = null; _serverStock.value = 0;
     }
   }
 
   Future<void> _maybeUpdateColorImages() async {
     try {
       final byKey = _buildSelectionsByBackendKey();
-      final resp = await _repo.fetchVariantImagesByKey(
-        productId: details.id,
-        selectionsByKey: byKey,
-      );
+      final resp = await _repo.fetchVariantImagesByKey(productId: details.id, selectionsByKey: byKey);
       if (resp.success && resp.images.isNotEmpty) {
         final next = (resp.images.first.regular).trim();
-        if (next.isNotEmpty) {
-          _setImageIfNonEmpty(next);
-        }
+        if (next.isNotEmpty) _setImageIfNonEmpty(next);
       }
     } catch (_) {
       final fb = _fallbackImage();
@@ -809,8 +546,7 @@ try {
   bool isValidHex(String? input) {
     if (input == null || input.isEmpty) return false;
     final s = input.replaceAll('#', '');
-    final hexRegex = RegExp(r'^[0-9a-fA-F]{6}$');
-    return hexRegex.hasMatch(s);
+    return RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(s);
   }
 
   Color colorFromHex(String hex, {Color fallback = const Color(0xFF999999)}) {
@@ -824,12 +560,8 @@ try {
       final imgItem = details.galleryImages.firstWhereOrNull(
         (g) => (g.type.toLowerCase() == 'image') && ((g.imageUrl).isNotEmpty),
       );
-      if (imgItem != null) {
-        return AppConfig.assetUrl(imgItem.imageUrl);
-      }
-      final vidItem = details.galleryImages.firstWhereOrNull(
-        (g) => g.type.toLowerCase() == 'video',
-      );
+      if (imgItem != null) return AppConfig.assetUrl(imgItem.imageUrl);
+      final vidItem = details.galleryImages.firstWhereOrNull((g) => g.type.toLowerCase() == 'video');
       if (vidItem != null) {
         try {
           final dyn = vidItem as dynamic;
@@ -838,41 +570,20 @@ try {
         } catch (_) {}
       }
     }
-
     try {
       final dyn = details as dynamic;
       final primary = (dyn.thumbnail ?? dyn.image ?? '').toString();
       if (primary.isNotEmpty) return AppConfig.assetUrl(primary);
     } catch (_) {}
-
     return '';
   }
 
-  int get stockToShow {
-    if (_serverStock.value > 0) return _serverStock.value;
-
-    if (stock > 0) return stock;
-    return 0;
-  }
-
-  int get displayStock {
-    if (_serverStock.value > 0) {
-      return _serverStock.value;
-    }
-
-    if (stock > 0) {
-      return stock;
-    }
-
-    return 0;
-  }
-
+  int get stockToShow => _serverStock.value > 0 ? _serverStock.value : (stock > 0 ? stock : 0);
+  int get displayStock => _serverStock.value > 0 ? _serverStock.value : (stock > 0 ? stock : 0);
   bool get isUnlimitedStock => _serverStock.value < 0 || stock < 0;
 
   void _setImageIfNonEmpty(String? url) {
     final u = (url ?? '').trim();
-    if (u.isNotEmpty) {
-      currentImageUrl.value = AppConfig.assetUrl(u);
-    }
+    if (u.isNotEmpty) currentImageUrl.value = AppConfig.assetUrl(u);
   }
 }
