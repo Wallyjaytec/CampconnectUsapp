@@ -8,6 +8,7 @@ import 'package:kartly_e_commerce/modules/account/view/my_wallet_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/privacy_policy_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_view.dart';
+import 'package:kartly_e_commerce/modules/product/view/following_products_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_checkout_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_order_summary_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/new_product_list_view.dart';
@@ -129,53 +130,33 @@ class AppPages {
       name: AppRoutes.myOrderDetailsView,
       page: () {
         final args = Get.arguments;
-
         int orderId = 0;
         bool fromSummary = false;
         bool fromNotification = false;
-
         if (args is Map) {
           if (args['order_id'] != null) {
             final raw = args['order_id'];
             orderId = raw is int ? raw : int.tryParse(raw.toString()) ?? 0;
           }
-          if (args['from_summary'] == true) {
-            fromSummary = true;
-          }
-          if (args['from_notification'] == true) {
-            fromNotification = true;
-          }
+          if (args['from_summary'] == true) fromSummary = true;
+          if (args['from_notification'] == true) fromNotification = true;
         } else if (args is OrderItem) {
           orderId = args.id;
         } else if (args is int) {
           orderId = args;
         }
-
-        return MyOrderDetailsView(
-          orderId: orderId,
-          fromSummary: fromSummary,
-          fromNotification: fromNotification,
-        );
+        return MyOrderDetailsView(orderId: orderId, fromSummary: fromSummary, fromNotification: fromNotification);
       },
     ),
     GetPage(name: AppRoutes.sellerView, page: () => const SellerView()),
-    GetPage(
-      name: AppRoutes.refundRequestListView,
-      page: () => const RefundRequestListView(),
-    ),
+    GetPage(name: AppRoutes.refundRequestListView, page: () => const RefundRequestListView()),
     GetPage(name: AppRoutes.contactUsView, page: () => const ContactUsView()),
-    GetPage(
-      name: AppRoutes.guestCheckoutView,
-      page: () => const GuestCheckoutView(),
-    ),
+    GetPage(name: AppRoutes.guestCheckoutView, page: () => const GuestCheckoutView()),
     GetPage(
       name: AppRoutes.orderSummaryView,
       page: () {
         final args = Get.arguments;
-        final orderId = args is int
-            ? args
-            : int.tryParse(args?.toString() ?? '') ?? 0;
-
+        final orderId = args is int ? args : int.tryParse(args?.toString() ?? '') ?? 0;
         return OrderSummaryView(orderId: orderId);
       },
     ),
@@ -183,31 +164,23 @@ class AppPages {
       name: AppRoutes.guestOrderSummaryView,
       page: () {
         final args = Get.arguments;
-        final orderId = args is int
-            ? args
-            : int.tryParse(args?.toString() ?? '') ?? 0;
-
+        final orderId = args is int ? args : int.tryParse(args?.toString() ?? '') ?? 0;
         return GuestOrderSummaryView(orderId: orderId);
       },
     ),
-    GetPage(
-      name: AppRoutes.notificationsView,
-      page: () => const NotificationsView(),
-    ),
-    GetPage(
-      name: AppRoutes.privacyPolicyView,
-      page: () => const PrivacyPolicyView(),
-    ),
-    GetPage(
-      name: AppRoutes.termsConditionsView,
-      page: () => const TermsConditionsView(),
-    ),
+    GetPage(name: AppRoutes.notificationsView, page: () => const NotificationsView()),
+    GetPage(name: AppRoutes.privacyPolicyView, page: () => const PrivacyPolicyView()),
+    GetPage(name: AppRoutes.termsConditionsView, page: () => const TermsConditionsView()),
     GetPage(
       name: AppRoutes.refundRequestDetailsView,
       page: () {
         final int id = Get.arguments as int;
         return RefundRequestDetailsView(refundId: id);
       },
+    ),
+    GetPage(
+      name: AppRoutes.followingProductsView,
+      page: () => const FollowingProductsView(),
     ),
     GetPage(
       name: '/password-reset',
