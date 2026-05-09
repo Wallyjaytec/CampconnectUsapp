@@ -290,7 +290,14 @@ class ProductDetailsController extends GetxController {
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       enableDrag: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    ).whenComplete(() => _isSheetOpen = false);
+    ).whenComplete(() {
+      _isSheetOpen = false;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (Get.isRegistered<CartController>()) {
+          Get.find<CartController>().loadCart();
+        }
+      });
+    });
   }
 
   @override
