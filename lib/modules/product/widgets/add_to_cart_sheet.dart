@@ -151,25 +151,26 @@ class AddToCartSheet extends GetView<AddToCartController> {
             ),
           ),
 
-          // FIXED: Buttons with loading state
+          // BOTTOM BUTTONS: Each shows its own spinner
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: SizedBox(
               height: 48,
               child: Row(
                 children: [
+                  // BUY NOW BUTTON
                   Expanded(
                     child: SizedBox(
                       height: 44,
                       child: Obx(() => ElevatedButton(
-                        onPressed: c.isAdding.value ? null : c.buyNow,
+                        onPressed: (c.isAddingToCart.value || c.isBuyingNow.value) ? null : c.buyNow,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.lightBlueColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: c.isAdding.value
+                        child: c.isBuyingNow.value
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
@@ -183,6 +184,7 @@ class AddToCartSheet extends GetView<AddToCartController> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  // ADD TO CART BUTTON
                   Expanded(
                     child: SizedBox(
                       height: 44,
@@ -194,8 +196,8 @@ class AddToCartSheet extends GetView<AddToCartController> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: c.isAdding.value ? null : c.addToCartAndClose,
-                        child: c.isAdding.value
+                        onPressed: (c.isAddingToCart.value || c.isBuyingNow.value) ? null : c.addToCartAndClose,
+                        child: c.isAddingToCart.value
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
