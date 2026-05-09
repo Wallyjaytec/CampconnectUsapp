@@ -101,6 +101,11 @@ class ProductDetailsController extends GetxController {
           image: (res.galleryImages.isNotEmpty) ? res.galleryImages.first.imageUrl : '',
           price: res.price,
           rating: res.rating,
+          currency: '',
+          totalReviews: res.totalReviews,
+          hasVariant: false,
+          quantity: 1,
+          unit: '',
         ));
       } else {
         final rv = Get.put(RecentlyViewedController(), permanent: true);
@@ -111,6 +116,11 @@ class ProductDetailsController extends GetxController {
           image: (res.galleryImages.isNotEmpty) ? res.galleryImages.first.imageUrl : '',
           price: res.price,
           rating: res.rating,
+          currency: '',
+          totalReviews: res.totalReviews,
+          hasVariant: false,
+          quantity: 1,
+          unit: '',
         ));
       }
       
