@@ -34,6 +34,23 @@ class ProductModel {
   String get imageUrl => AppConfig.assetUrl(image);
   bool get hasDiscount => oldPrice != null && oldPrice! > price;
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': title,
+      'slug': slug,
+      'thumbnail_image': image,
+      'price': price,
+      'base_price': oldPrice,
+      'currency': currency,
+      'avg_rating': rating,
+      'total_reviews': totalReviews,
+      'has_variant': hasVariant ? 1 : 0,
+      'quantity': quantity,
+      'unit': unit,
+    };
+  }
+
   static int _asInt(dynamic v) {
     if (v is int) return v;
     return int.tryParse(v?.toString() ?? '') ?? 0;
