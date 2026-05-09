@@ -68,89 +68,92 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
         children: [
           Obx(() {
             if (controller.isLoading.value) {
-              return GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  mainAxisExtent: 240,
-                ),
-                itemCount: 7,
-                itemBuilder: (_, index) {
-                  if (index == 0) {
-                    return Container(
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Container(
                       width: double.infinity,
                       height: 150,
+                      margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: Colors.grey[300],
                       ),
-                    );
-                  }
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Column(
-                      children: [
-                        Expanded(child: ShimmerBox(borderRadius: 10)),
-                        SizedBox(height: 10),
-                        ShimmerBox(height: 12, borderRadius: 6),
-                      ],
-                    ),
-                  );
-                },
-              );
-            }
-
-            if (controller.products.isEmpty) {
-              return ListView(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    height: 150,
-                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: AppColors.primaryColor,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        'assets/icons/discount_banner.png',
-                        fit: BoxFit.cover,
-                      ),
                     ),
                   ),
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Text('No discounted products available'),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        mainAxisExtent: 240,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (_, __) => Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Column(
+                            children: [
+                              Expanded(child: ShimmerBox(borderRadius: 10)),
+                              SizedBox(height: 10),
+                              ShimmerBox(height: 12, borderRadius: 6),
+                            ],
+                          ),
+                        ),
+                        childCount: 6,
+                      ),
                     ),
                   ),
                 ],
               );
             }
 
-            // Banner scrolls with products inside GridView
-            return GridView.builder(
+            if (controller.products.isEmpty) {
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Container(
+                      width: double.infinity,
+                      height: 150,
+                      margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.primaryColor,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/icons/discount_banner.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Text('No discounted products available'),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            // Banner scrolls with products, full width
+            return CustomScrollView(
               controller: _scrollCtrl,
-              padding: const EdgeInsets.all(12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                mainAxisExtent: 240,
-              ),
-              itemCount: controller.products.length + 1, // +1 for banner
-              itemBuilder: (_, i) {
-                // Banner as first item spanning full width
-                if (i == 0) {
-                  return Container(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Container(
                     width: double.infinity,
                     height: 150,
+                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       color: AppColors.primaryColor,
@@ -164,73 +167,90 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                         height: double.infinity,
                       ),
                     ),
-                  );
-                }
-                final p = controller.products[i - 1];
-                return GestureDetector(
-                  onTap: () {
-                    if (p.slug.isNotEmpty) {
-                      Get.toNamed(
-                        AppRoutes.productDetailsView,
-                        arguments: {'permalink': p.slug},
-                      );
-                    }
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkProductCardColor : AppColors.lightProductCardColor,
-                      borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      mainAxisExtent: 240,
                     ),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                            child: CachedNetworkImage(
-                              imageUrl: p.imageUrl,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) {
+                        final p = controller.products[i];
+                        return GestureDetector(
+                          onTap: () {
+                            if (p.slug.isNotEmpty) {
+                              Get.toNamed(
+                                AppRoutes.productDetailsView,
+                                arguments: {'permalink': p.slug},
+                              );
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkProductCardColor : AppColors.lightProductCardColor,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            children: [
-                              Text(
-                                p.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              const SizedBox(height: 4),
-                              StarRow(rating: p.rating),
-                              const SizedBox(height: 4),
-                              Text(
-                                formatCurrency(p.price, applyConversion: true),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                  color: isDark ? AppColors.whiteColor : AppColors.primaryColor,
-                                ),
-                              ),
-                              if (p.oldPrice != null && p.oldPrice! > p.price)
-                                Text(
-                                  formatCurrency(p.oldPrice!, applyConversion: true),
-                                  style: const TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    fontSize: 11,
-                                    color: Colors.grey,
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                                    child: CachedNetworkImage(
+                                      imageUrl: p.imageUrl,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    ),
                                   ),
                                 ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        p.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      StarRow(rating: p.rating),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        formatCurrency(p.price, applyConversion: true),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 13,
+                                          color: isDark ? AppColors.whiteColor : AppColors.primaryColor,
+                                        ),
+                                      ),
+                                      if (p.oldPrice != null && p.oldPrice! > p.price)
+                                        Text(
+                                          formatCurrency(p.oldPrice!, applyConversion: true),
+                                          style: const TextStyle(
+                                            decoration: TextDecoration.lineThrough,
+                                            fontSize: 11,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        );
+                      },
+                      childCount: controller.products.length,
                     ),
                   ),
-                );
-              },
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              ],
             );
           }),
           AnimatedPositioned(
