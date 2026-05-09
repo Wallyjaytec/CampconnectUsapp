@@ -215,6 +215,7 @@ class _HomeViewState extends State<HomeView> {
                       const SliverToBoxAdapter(child: FlashDealsSection()),
                       const SliverToBoxAdapter(child: DiscountSalesSection()),
                       SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 55, title: 'Gaming')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 45, title: 'Health & Beauty')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 43, title: 'Jewelry')),
