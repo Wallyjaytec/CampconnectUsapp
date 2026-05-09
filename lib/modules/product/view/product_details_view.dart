@@ -1349,26 +1349,40 @@ class _BottomBar extends StatelessWidget {
             ),
             Expanded(
               flex: 2,
-              child: _BigCTA(
-                text: 'Buy Now'.tr,
-                background: AppColors.lightBlueColor,
-                onTap: () {
-                  final c = Get.find<ProductDetailsController>();
-                  _handleBuyNow(c);
-                },
-              ),
+              child: Obx(() {
+                final isLoading = controller.isLoading.value;
+                return _BigCTA(
+                  text: 'Buy Now'.tr,
+                  background: isLoading
+                      ? AppColors.lightBlueColor.withValues(alpha: 0.5)
+                      : AppColors.lightBlueColor,
+                  onTap: isLoading
+                      ? null
+                      : () {
+                          final c = Get.find<ProductDetailsController>();
+                          _handleBuyNow(c);
+                        },
+                );
+              }),
             ),
             const SizedBox(width: 10),
-               Expanded(
+            Expanded(
               flex: 2,
-              child: _BigCTA(
-                text: 'Add To Cart'.tr,
-                background: AppColors.primaryColor,
-                onTap: () {
-                  final c = Get.find<ProductDetailsController>();
-                  c.openAddToCartSheet();
-                },
-              ),
+              child: Obx(() {
+                final isLoading = controller.isLoading.value;
+                return _BigCTA(
+                  text: 'Add To Cart'.tr,
+                  background: isLoading
+                      ? AppColors.primaryColor.withValues(alpha: 0.5)
+                      : AppColors.primaryColor,
+                  onTap: isLoading
+                      ? null
+                      : () {
+                          final c = Get.find<ProductDetailsController>();
+                          c.openAddToCartSheet();
+                        },
+                );
+              }),
             ),
           ],
         ),
