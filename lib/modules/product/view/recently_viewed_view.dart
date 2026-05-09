@@ -74,7 +74,23 @@ class _RecentlyViewedViewState extends State<RecentlyViewedView> {
           centerTitle: false,
           title: Text('Recently Viewed'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
           actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-          actions: const [SearchIconWidget(), CartIconWidget(), NotificationIconWidget()],
+          actions: [
+            IconButton(
+              onPressed: () {
+                controller.clearAll();
+                Get.snackbar('Cleared'.tr, 'Recently viewed history cleared'.tr,
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: AppColors.primaryColor,
+                  colorText: AppColors.whiteColor,
+                  duration: const Duration(seconds: 2),
+                );
+              },
+              icon: const Icon(Iconsax.trash_copy, size: 20),
+            ),
+            const SearchIconWidget(),
+            const CartIconWidget(),
+            const NotificationIconWidget(),
+          ],
         ),
         body: Stack(
           children: [
