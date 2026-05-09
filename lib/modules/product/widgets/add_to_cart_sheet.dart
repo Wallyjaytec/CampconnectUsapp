@@ -151,6 +151,7 @@ class AddToCartSheet extends GetView<AddToCartController> {
             ),
           ),
 
+          // FIXED: Buttons with loading state
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: SizedBox(
@@ -160,23 +161,32 @@ class AddToCartSheet extends GetView<AddToCartController> {
                   Expanded(
                     child: SizedBox(
                       height: 44,
-                      child: ElevatedButton(
-                        onPressed: c.buyNow,
+                      child: Obx(() => ElevatedButton(
+                        onPressed: c.isAdding.value ? null : c.buyNow,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.lightBlueColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Text('Buy Now'.tr),
-                      ),
+                        child: c.isAdding.value
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text('Buy Now'.tr),
+                      )),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: SizedBox(
                       height: 44,
-                      child: ElevatedButton(
+                      child: Obx(() => ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           foregroundColor: Colors.white,
@@ -184,9 +194,18 @@ class AddToCartSheet extends GetView<AddToCartController> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: c.addToCartAndClose,
-                        child: Text('Add To Cart'.tr),
-                      ),
+                        onPressed: c.isAdding.value ? null : c.addToCartAndClose,
+                        child: c.isAdding.value
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text('Add To Cart'.tr),
+                      )),
                     ),
                   ),
                 ],
