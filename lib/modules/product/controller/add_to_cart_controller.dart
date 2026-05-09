@@ -467,10 +467,8 @@ try {
         }
       }
 
-      if (Get.isBottomSheetOpen ?? false) {
-        Get.back(closeOverlays: true);
-      }
-      Get.back();
+      // FIXED: Use Navigator.pop instead of Get.back
+      Navigator.of(Get.context!).pop();
       Get.snackbar(
         'Cart'.tr,
         '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
@@ -641,11 +639,9 @@ try {
         }
       }
 
-      if (Get.isBottomSheetOpen ?? false) {
-        Get.back(closeOverlays: true);
-      }
-      Get.back();
-      Future.delayed(Duration(milliseconds: 500), () {
+      // FIXED: Close sheet with Navigator.pop, then navigate
+      Navigator.of(Get.context!).pop();
+      Future.delayed(Duration(milliseconds: 400), () {
         Get.toNamed(AppRoutes.cartView);
       });
     } catch (e) {
