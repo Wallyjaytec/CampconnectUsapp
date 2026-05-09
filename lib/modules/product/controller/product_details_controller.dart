@@ -284,12 +284,14 @@ class ProductDetailsController extends GetxController {
 
     Get.put(AddToCartController(cartUi, details: p, stock: safeQty, groups: groups), tag: tag);
 
-    Get.bottomSheet(
-      AddToCartSheet(controllerTag: tag, p: p),
+    // FIXED: Use showModalBottomSheet with Navigator.pop for proper dismissal
+    showModalBottomSheet(
+      context: Get.context!,
       isScrollControlled: true,
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       enableDrag: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (context) => AddToCartSheet(controllerTag: tag, p: p),
     ).whenComplete(() => _isSheetOpen = false);
   }
 
