@@ -1357,8 +1357,8 @@ class _BottomBar extends StatelessWidget {
                       ? AppColors.lightBlueColor.withValues(alpha: 0.5)
                       : AppColors.lightBlueColor,
                   onTap: isLoading
-                      ? null
-                      : () {
+                  ? () {}
+                  : () {
                           final c = Get.find<ProductDetailsController>();
                           _handleBuyNow(c);
                         },
@@ -1376,8 +1376,8 @@ class _BottomBar extends StatelessWidget {
                       ? AppColors.primaryColor.withValues(alpha: 0.5)
                       : AppColors.primaryColor,
                   onTap: isLoading
-                      ? null
-                      : () {
+                  ? () {}
+                  : () {
                           final c = Get.find<ProductDetailsController>();
                           c.openAddToCartSheet();
                         },
