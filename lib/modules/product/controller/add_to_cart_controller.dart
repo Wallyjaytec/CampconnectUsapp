@@ -467,7 +467,9 @@ try {
         }
       }
 
-      // FIXED: Use Get.back() instead of Get.close(1)
+      if (Get.isBottomSheetOpen ?? false) {
+        Get.back(closeOverlays: true);
+      }
       Get.back();
       Get.snackbar(
         'Cart'.tr,
@@ -639,9 +641,11 @@ try {
         }
       }
 
-      // FIXED: Close sheet first with delay, then navigate
+      if (Get.isBottomSheetOpen ?? false) {
+        Get.back(closeOverlays: true);
+      }
       Get.back();
-      Future.delayed(Duration(milliseconds: 300), () {
+      Future.delayed(Duration(milliseconds: 500), () {
         Get.toNamed(AppRoutes.cartView);
       });
     } catch (e) {
