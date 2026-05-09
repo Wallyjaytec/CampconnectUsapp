@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/modules/product/controller/related_products_controller.dart';
-import 'package:kartly_e_commerce/modules/product/controller/cart_controller.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/config/app_config.dart';
@@ -291,14 +290,7 @@ class ProductDetailsController extends GetxController {
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       enableDrag: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    ).whenComplete(() {
-      _isSheetOpen = false;
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (Get.isRegistered<CartController>()) {
-          Get.find<CartController>().loadCart();
-        }
-      });
-    });
+    ).whenComplete(() => _isSheetOpen = false);
   }
 
   @override
