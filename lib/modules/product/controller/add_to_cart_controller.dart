@@ -360,10 +360,10 @@ Map<String, dynamic>? orderAttachment;
     }
 
     if (_addingToCart) return;
-_addingToCart = true;
+    _addingToCart = true;
 
-try {
-  final variantText = _buildVariantText();
+    try {
+      final variantText = _buildVariantText();
       final variantCode = _buildVariantCode();
       final unitPrice = effectivePrice;
       final oldPrice = (effectiveOldPrice ?? unitPrice);
@@ -401,11 +401,6 @@ try {
           );
 
           await _cartRepo.updateCartItem(updItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: existing.uid);
-          }
         } else {
           final uid = DateTime.now().millisecondsSinceEpoch.toString();
           final newItem = CartApiItem(
@@ -430,11 +425,6 @@ try {
           );
 
           await _cartRepo.storeCartItem(newItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: uid);
-          }
         }
       } else {
         final payload = CartApiItem(
@@ -459,16 +449,19 @@ try {
         );
 
         final guest = GuestCartService();
-        final uid = guest.addOrMerge(payload);
-
-        if (Get.isRegistered<CartController>()) {
-          final cc = Get.find<CartController>();
-          await cc.refreshFromServer(prioritizeUid: uid);
-        }
+        guest.addOrMerge(payload);
       }
 
-      // FIXED: Use Navigator.pop instead of Get.back
+      // Close sheet FIRST
       Navigator.of(Get.context!).pop();
+
+      // Refresh cart AFTER sheet is closed
+      Future.delayed(Duration(milliseconds: 500), () {
+        if (Get.isRegistered<CartController>()) {
+          Get.find<CartController>().refreshFromServer();
+        }
+      });
+
       Get.snackbar(
         'Cart'.tr,
         '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
@@ -485,8 +478,8 @@ try {
         colorText: AppColors.whiteColor,
       );
     } finally {
-  _addingToCart = false;
-}  
+      _addingToCart = false;
+    }
   }
 
   Future<void> buyNow() async {
@@ -532,10 +525,10 @@ try {
     }
 
     if (_addingToCart) return;
-_addingToCart = true;
+    _addingToCart = true;
 
-try {
-  final variantText = _buildVariantText();
+    try {
+      final variantText = _buildVariantText();
       final variantCode = _buildVariantCode();
       final unitPrice = effectivePrice;
       final oldPrice = (effectiveOldPrice ?? unitPrice);
@@ -573,11 +566,6 @@ try {
           );
 
           await _cartRepo.updateCartItem(updItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: existing.uid);
-          }
         } else {
           final uid = DateTime.now().millisecondsSinceEpoch.toString();
           final newItem = CartApiItem(
@@ -602,11 +590,6 @@ try {
           );
 
           await _cartRepo.storeCartItem(newItem);
-
-          if (Get.isRegistered<CartController>()) {
-            final cc = Get.find<CartController>();
-            await cc.refreshFromServer(prioritizeUid: uid);
-          }
         }
       } else {
         final payload = CartApiItem(
@@ -631,15 +614,10 @@ try {
         );
 
         final guest = GuestCartService();
-        final uid = guest.addOrMerge(payload);
-
-        if (Get.isRegistered<CartController>()) {
-          final cc = Get.find<CartController>();
-          await cc.refreshFromServer(prioritizeUid: uid);
-        }
+        guest.addOrMerge(payload);
       }
 
-      // FIXED: Close sheet with Navigator.pop, then navigate
+      // Close sheet first, then navigate
       Navigator.of(Get.context!).pop();
       Future.delayed(Duration(milliseconds: 400), () {
         Get.toNamed(AppRoutes.cartView);
@@ -653,8 +631,8 @@ try {
         colorText: AppColors.whiteColor,
       );
     } finally {
-  _addingToCart = false;
-}
+      _addingToCart = false;
+    }
   }
 
   void _applyDefaultSelections() {
