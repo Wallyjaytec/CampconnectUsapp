@@ -49,5 +49,8 @@ class RecentlyViewedController extends GetxController {
   void clearAll() {
     products.clear();
     box.remove(_key);
+    Future.delayed(const Duration(milliseconds: 100), () {
+      products.refresh();
+    });
   }
 }
