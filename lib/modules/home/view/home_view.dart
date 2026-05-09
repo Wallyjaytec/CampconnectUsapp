@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
+import 'package:kartly_e_commerce/modules/product/controller/following_products_controller.dart';
 import 'package:kartly_e_commerce/modules/product/view/following_section.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,9 @@ class _HomeViewState extends State<HomeView> {
       final b = Get.find<BrandController>();
       b.brands.clear(); b.error.value = ''; b.isLoading.value = true;
       futures.add(b.fetchBrands());
+    }
+    if (Get.isRegistered<FollowingProductsController>(tag: 'followingSection')) {
+      futures.add(Get.find<FollowingProductsController>(tag: 'followingSection').refresh());
     }
     futures.add(FlashDealsSection.refreshSection());
     if (Get.isRegistered<TopSalesController>(tag: 'topSalesSection')) {
