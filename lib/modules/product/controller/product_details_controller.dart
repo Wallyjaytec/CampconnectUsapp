@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/modules/product/controller/related_products_controller.dart';
+import 'package:kartly_e_commerce/modules/product/controller/recently_viewed_controller.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/config/app_config.dart';
@@ -89,6 +90,30 @@ class ProductDetailsController extends GetxController {
       error.value = '';
       final res = await _detailsRepo.fetchByPermalink(permalink);
       product.value = res;
+      
+      // Record recently viewed
+      if (Get.isRegistered<RecentlyViewedController>()) {
+        final rv = Get.find<RecentlyViewedController>();
+        rv.addProduct(ProductModel(
+          id: res.id,
+          title: res.name,
+          slug: res.permalink,
+          image: (res.galleryImages.isNotEmpty) ? res.galleryImages.first.imageUrl : '',
+          price: res.price,
+          rating: res.rating,
+        ));
+      } else {
+        final rv = Get.put(RecentlyViewedController(), permanent: true);
+        rv.addProduct(ProductModel(
+          id: res.id,
+          title: res.name,
+          slug: res.permalink,
+          image: (res.galleryImages.isNotEmpty) ? res.galleryImages.first.imageUrl : '',
+          price: res.price,
+          rating: res.rating,
+        ));
+      }
+      
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (Get.isRegistered<RelatedProductsController>()) {
           Get.find<RelatedProductsController>().loadFor(res.id);
@@ -284,7 +309,6 @@ class ProductDetailsController extends GetxController {
 
     Get.put(AddToCartController(cartUi, details: p, stock: safeQty, groups: groups), tag: tag);
 
-    // USE showModalBottomSheet INSTEAD OF Get.bottomSheet
     showModalBottomSheet(
       context: Get.context!,
       isScrollControlled: true,
