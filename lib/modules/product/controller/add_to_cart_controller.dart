@@ -613,8 +613,11 @@ Map<String, dynamic>? orderAttachment;
       // Close sheet
       Navigator.of(Get.context!).pop();
 
-      // Navigate to cart after sheet closes
-      Future.delayed(Duration(milliseconds: 300), () {
+      // Refresh cart FIRST, then navigate
+      Future.delayed(Duration(milliseconds: 300), () async {
+        if (Get.isRegistered<CartController>()) {
+          await Get.find<CartController>().refreshFromServer();
+        }
         Get.toNamed(AppRoutes.cartView);
       });
     } catch (e) {
