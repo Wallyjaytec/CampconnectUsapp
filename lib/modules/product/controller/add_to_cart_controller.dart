@@ -467,7 +467,8 @@ try {
         }
       }
 
-      Get.close(1);
+      // FIXED: Use Get.back() instead of Get.close(1)
+      Get.back();
       Get.snackbar(
         'Cart'.tr,
         '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
@@ -638,8 +639,11 @@ try {
         }
       }
 
+      // FIXED: Close sheet first with delay, then navigate
       Get.back();
-      Get.toNamed(AppRoutes.cartView);
+      Future.delayed(Duration(milliseconds: 300), () {
+        Get.toNamed(AppRoutes.cartView);
+      });
     } catch (e) {
       Get.snackbar(
         'Cart'.tr,
