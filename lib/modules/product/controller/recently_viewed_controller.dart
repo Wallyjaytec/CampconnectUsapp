@@ -29,11 +29,8 @@ class RecentlyViewedController extends GetxController {
   }
 
   void addProduct(ProductModel product) {
-    // Remove if already exists
     products.removeWhere((p) => p.id == product.id);
-    // Add to front
     products.insert(0, product);
-    // Keep only max
     if (products.length > maxProducts) {
       products.removeRange(maxProducts, products.length);
     }
@@ -49,8 +46,6 @@ class RecentlyViewedController extends GetxController {
   void clearAll() {
     products.clear();
     box.remove(_key);
-    Future.delayed(const Duration(milliseconds: 100), () {
-      products.refresh();
-    });
+    Get.back();
   }
 }
