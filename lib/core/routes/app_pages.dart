@@ -14,6 +14,7 @@ import 'package:kartly_e_commerce/modules/product/view/guest_order_summary_view.
 import 'package:kartly_e_commerce/modules/product/view/new_product_list_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/order_summary_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/product_filter_view.dart';
+import 'package:kartly_e_commerce/modules/product/view/recently_viewed_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/top_sale_product_view.dart';
 import 'package:kartly_e_commerce/modules/seller/view/seller_view.dart';
 import 'package:kartly_e_commerce/modules/splash/view/splash_view.dart';
@@ -181,6 +182,10 @@ class AppPages {
     GetPage(
       name: AppRoutes.followingProductsView,
       page: () => const FollowingProductsView(),
+    ),
+    GetPage(
+      name: AppRoutes.recentlyViewedView,
+      page: () => const RecentlyViewedView(),
     ),
     GetPage(
       name: '/password-reset',
