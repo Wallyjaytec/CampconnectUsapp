@@ -452,20 +452,8 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // CLOSE SHEET USING OVERLAY CONTEXT
-      if (Get.overlayContext != null) {
-        final nav = Navigator.of(Get.overlayContext!);
-        if (nav.canPop()) {
-          nav.pop();
-        }
-      }
-
-      // Refresh cart in background
-      Future.delayed(Duration(milliseconds: 600), () {
-        if (Get.isRegistered<CartController>()) {
-          Get.find<CartController>().refreshFromServer();
-        }
-      });
+      // DO NOT REFRESH CART - THIS IS WHAT BREAKS THE UI
+      // Cart will refresh naturally when user opens cart page
 
       Get.snackbar(
         'Cart'.tr,
@@ -474,6 +462,9 @@ Map<String, dynamic>? orderAttachment;
         backgroundColor: AppColors.primaryColor,
         colorText: AppColors.whiteColor,
       );
+
+      // Close sheet AFTER snackbar
+      Get.back();
     } catch (e) {
       Get.snackbar(
         'Cart'.tr,
@@ -622,17 +613,11 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // Close sheet, then navigate
-      if (Get.overlayContext != null) {
-        final nav = Navigator.of(Get.overlayContext!);
-        if (nav.canPop()) {
-          nav.pop();
-        }
-      }
-      Future.delayed(Duration(milliseconds: 500), () {
-        if (Get.isRegistered<CartController>()) {
-          Get.find<CartController>().refreshFromServer();
-        }
+      // Close sheet first
+      Get.back();
+
+      // Navigate after sheet is fully closed
+      Future.delayed(Duration(milliseconds: 300), () {
         Get.toNamed(AppRoutes.cartView);
       });
     } catch (e) {
