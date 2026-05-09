@@ -111,7 +111,7 @@ Map<String, dynamic>? orderAttachment;
   final RxInt _serverStock = 0.obs;
 
   final RxString currentImageUrl = ''.obs;
-  bool _addingToCart = false;
+  final RxBool isAdding = false.obs;
 
   bool get shouldShowRange {
     final min = details.priceRangeMin;
@@ -359,8 +359,8 @@ Map<String, dynamic>? orderAttachment;
       return;
     }
 
-    if (_addingToCart) return;
-    _addingToCart = true;
+    if (isAdding.value) return;
+    isAdding.value = true;
 
     try {
       final variantText = _buildVariantText();
@@ -470,7 +470,7 @@ Map<String, dynamic>? orderAttachment;
         colorText: AppColors.whiteColor,
       );
     } finally {
-      _addingToCart = false;
+      isAdding.value = false;
     }
   }
 
@@ -516,8 +516,8 @@ Map<String, dynamic>? orderAttachment;
       return;
     }
 
-    if (_addingToCart) return;
-    _addingToCart = true;
+    if (isAdding.value) return;
+    isAdding.value = true;
 
     try {
       final variantText = _buildVariantText();
@@ -625,7 +625,7 @@ Map<String, dynamic>? orderAttachment;
         colorText: AppColors.whiteColor,
       );
     } finally {
-      _addingToCart = false;
+      isAdding.value = false;
     }
   }
 
