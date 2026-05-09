@@ -452,19 +452,8 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // DO NOT REFRESH CART - THIS IS WHAT BREAKS THE UI
-      // Cart will refresh naturally when user opens cart page
-
-      Get.snackbar(
-        'Cart'.tr,
-        '${'Added'.tr} ${qty.value} ${'items to cart'.tr}',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
-
-      // Close sheet AFTER snackbar
-      Get.back();
+      // Close sheet using Navigator.pop
+      Navigator.of(Get.context!).pop();
     } catch (e) {
       Get.snackbar(
         'Cart'.tr,
@@ -613,10 +602,10 @@ Map<String, dynamic>? orderAttachment;
         guest.addOrMerge(payload);
       }
 
-      // Close sheet first
-      Get.back();
+      // Close sheet
+      Navigator.of(Get.context!).pop();
 
-      // Navigate after sheet is fully closed
+      // Navigate to cart after sheet closes
       Future.delayed(Duration(milliseconds: 300), () {
         Get.toNamed(AppRoutes.cartView);
       });
