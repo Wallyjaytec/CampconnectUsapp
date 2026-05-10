@@ -79,6 +79,8 @@ static const String resetPasswordPath =
       '/api/v1/ecommerce-core/customer/get-customer-all-address';
   static const String updateCustomerAddressPath =
       '/api/v1/ecommerce-core/customer/update-customer-address';
+  static const String deleteCustomerAddressPath =
+      '/api/v1/ecommerce-core/customer/delete-customer-address';
   static const String customerWalletTransactionPath =
       '/api/wallet/v1/customer-wallet-transaction';
   static const String customerWalletSummaryPath =
@@ -192,6 +194,8 @@ static const String resetPasswordPath =
       '$baseUrl$getCustomerAllAddressPath';
   static String updateCustomerAddressUrl() =>
       '$baseUrl$updateCustomerAddressPath';
+  static String deleteCustomerAddressUrl() =>
+      '$baseUrl$deleteCustomerAddressPath';
   static String customerWalletTransactionUrl() =>
       '$baseUrl$customerWalletTransactionPath';
   static String customerWalletSummaryUrl() =>
