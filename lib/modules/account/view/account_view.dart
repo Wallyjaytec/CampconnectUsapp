@@ -187,7 +187,17 @@ class _AvatarCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasNet = url.isNotEmpty;
-    return CircleAvatar(radius: 40, backgroundColor: Colors.white, backgroundImage: hasNet ? CachedNetworkImageProvider(url) : const AssetImage("assets/icons/profile.png") as ImageProvider, onBackgroundImageError: (_, __) {});
+    return CircleAvatar(
+      radius: 40,
+      backgroundColor: Colors.white,
+      backgroundImage: hasNet
+          ? CachedNetworkImageProvider(url)
+          : null,
+      onBackgroundImageError: (_, __) {},
+      child: hasNet
+          ? null
+          : Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
+    );
   }
 }
 
