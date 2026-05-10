@@ -8,13 +8,15 @@ void safeBack<T>({T? result}) {
   }
   if (Get.overlayContext != null) {
     try {
-      Navigator.of(Get.overlayContext!).pop();
+      Navigator.of(Get.overlayContext!).pop(result);
       return;
     } catch (_) {}
   }
   try {
     if (Navigator.of(Get.context!).canPop()) {
-      Get.back<T>(result: result);
+      Navigator.of(Get.context!).pop(result);
     }
-  } catch (_) {}
+  } catch (_) {
+    Get.back();
+  }
 }
