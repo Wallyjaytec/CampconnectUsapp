@@ -7,7 +7,7 @@ class RecentlyViewedController extends GetxController {
   static const String _key = 'recently_viewed_products';
   static const int maxProducts = 20;
 
-  final RxList<ProductModel> products = <ProductModel>[].obs;
+  List<ProductModel> products = [];
 
   @override
   void onInit() {
@@ -25,16 +25,17 @@ class RecentlyViewedController extends GetxController {
         } catch (_) {}
       }
     }
-    products.assignAll(list);
+    products = list;
+    update();
   }
 
   void addProduct(ProductModel product) {
     products.removeWhere((p) => p.id == product.id);
     products.insert(0, product);
     if (products.length > maxProducts) {
-      products.removeRange(maxProducts, products.length);
+      products = products.sublist(0, maxProducts);
     }
-    products.refresh();
+    update();
     _saveToStorage();
   }
 
@@ -44,8 +45,8 @@ class RecentlyViewedController extends GetxController {
   }
 
   void clearAll() {
-    products.clear();
+    products = [];
     box.remove(_key);
-    Get.back();
+    update();
   }
 }
