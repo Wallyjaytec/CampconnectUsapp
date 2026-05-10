@@ -461,9 +461,9 @@ try {
   if (Get.context == null) return;
 
   await _handleOrderResponse(resp);
-} catch (e) {
+} catch (e, stackTrace) {
   if (Get.context == null) return;
-  _showSnackbar('Checkout'.tr, '$e');
+  _showSnackbar('Checkout'.tr, 'Error: $e\n\n$stackTrace');
 } finally {
   isScreenLoading.value = false;
 }
