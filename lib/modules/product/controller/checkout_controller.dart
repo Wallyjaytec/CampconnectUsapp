@@ -849,101 +849,100 @@ try {
   }
 
   Future<void> _handleOrderResponse(Map<String, dynamic> resp) async {
-    final success =
-        resp['success'] == true ||
-        resp['status']?.toString().toLowerCase() == 'success';
+  final success =
+      resp['success'] == true ||
+      resp['status']?.toString().toLowerCase() == 'success';
 
+  if (!success) {
     final msg =
         resp['message']?.toString() ??
         resp['error']?.toString() ??
-        (success ? 'Order placed successfully'.tr : 'Something went wrong'.tr);
+        'Server error: ${resp.toString()}';
+    _showSnackbar('Checkout'.tr, msg);
+    return;
+  }
 
-    if (!success) {
-      _showSnackbar('Checkout'.tr, msg);
-      return;
-    }
+  final orderId = _extractOrderId(resp);
+  final responseUrl = _extractRedirectUrl(resp);
 
-    final orderId = _extractOrderId(resp);
-    final responseUrl = _extractRedirectUrl(resp);
+  if (responseUrl.isEmpty) {
+    await _afterOrderSuccess(orderId);
+    return;
+  }
 
-    if (responseUrl.isEmpty) {
+  _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
+
+  final result = await Get.to<PaymentPageResult?>(
+    () => OrderPayWebView(
+      initialUrl: responseUrl,
+      successUrlContains: const [
+        'payment/success',
+        'payment-success',
+        'status=success',
+        'payment_status=success',
+        'redirect_status=succeeded',
+        'succeeded',
+        'success=true',
+        'paid',
+      ],
+      cancelUrlContains: const [
+        'payment/cancel',
+        'payment-cancel',
+        'status=cancel',
+        'status=cancelled',
+        'payment_status=cancelled',
+        'canceled',
+        'cancelled',
+      ],
+      failedUrlContains: const [
+        'payment/fail',
+        'payment/failed',
+        'payment-error',
+        'status=failed',
+        'status=error',
+        'payment_status=failed',
+      ],
+      pendingUrlContains: const ['pending', 'processing', 'awaiting'],
+    ),
+  );
+
+  if (Get.context == null) return;
+
+  switch (result?.status) {
+    case PaymentPageResultStatus.success:
       await _afterOrderSuccess(orderId);
       return;
-    }
 
-    _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
+    case PaymentPageResultStatus.cancelled:
+      _showSnackbar(
+        'Payment'.tr,
+        result?.message ?? 'Payment was cancelled'.tr,
+      );
+      return;
 
-    final result = await Get.to<PaymentPageResult?>(
-      () => OrderPayWebView(
-        initialUrl: responseUrl,
-        successUrlContains: const [
-          'payment/success',
-          'payment-success',
-          'status=success',
-          'payment_status=success',
-          'redirect_status=succeeded',
-          'succeeded',
-          'success=true',
-          'paid',
-        ],
-        cancelUrlContains: const [
-          'payment/cancel',
-          'payment-cancel',
-          'status=cancel',
-          'status=cancelled',
-          'payment_status=cancelled',
-          'canceled',
-          'cancelled',
-        ],
-        failedUrlContains: const [
-          'payment/fail',
-          'payment/failed',
-          'payment-error',
-          'status=failed',
-          'status=error',
-          'payment_status=failed',
-        ],
-        pendingUrlContains: const ['pending', 'processing', 'awaiting'],
-      ),
-    );
+    case PaymentPageResultStatus.failed:
+      _showSnackbar('Payment'.tr, result?.message ?? 'Payment failed'.tr);
+      return;
 
-    if (Get.context == null) return;
+    case PaymentPageResultStatus.timeout:
+      _showSnackbar(
+        'Payment'.tr,
+        result?.message ?? 'Payment page timed out. Please try again.'.tr,
+      );
+      return;
 
-    switch (result?.status) {
-      case PaymentPageResultStatus.success:
-        await _afterOrderSuccess(orderId);
-        return;
+    case PaymentPageResultStatus.error:
+      _showSnackbar(
+        'Payment'.tr,
+        result?.message ??
+            'Could not open payment page. Please try again.'.tr,
+      );
+      return;
 
-      case PaymentPageResultStatus.cancelled:
-        _showSnackbar(
-          'Payment'.tr,
-          result?.message ?? 'Payment was cancelled'.tr,
-        );
-        return;
-
-      case PaymentPageResultStatus.failed:
-        _showSnackbar('Payment'.tr, result?.message ?? 'Payment failed'.tr);
-        return;
-
-      case PaymentPageResultStatus.timeout:
-        _showSnackbar(
-          'Payment'.tr,
-          result?.message ?? 'Payment page timed out. Please try again.'.tr,
-        );
-        return;
-
-      case PaymentPageResultStatus.error:
-        _showSnackbar(
-          'Payment'.tr,
-          result?.message ??
-              'Could not open payment page. Please try again.'.tr,
-        );
-        return;
-
-      case null:
-        _showSnackbar('Payment'.tr, 'Payment was not completed'.tr);
-        return;
-    }
+    case null:
+      _showSnackbar('Payment'.tr, 'Payment was not completed'.tr);
+      return;
+  }
   }
 
   Future<void> _afterOrderSuccess(int? orderId) async {
