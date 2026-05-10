@@ -203,7 +203,6 @@ class AddressController extends GetxController {
   Future<void> submitNewAddress() async {
     final v = fieldVisibility.value;
 
-    // Validate each required field with specific message
     if (v.showName) {
       if (nameC.text.trim().isEmpty) {
         Get.snackbar(
@@ -402,6 +401,28 @@ class AddressController extends GetxController {
       );
     } finally {
       isRefreshing.value = false;
+    }
+  }
+
+  Future<void> deleteAddress(int addressId) async {
+    try {
+      await _addressRepo.deleteCustomerAddress(addressId);
+      addresses.removeWhere((a) => a.id == addressId);
+      Get.snackbar(
+        'Deleted'.tr,
+        'Address deleted successfully'.tr,
+        backgroundColor: AppColors.primaryColor,
+        snackPosition: SnackPosition.TOP,
+        colorText: AppColors.whiteColor,
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Error'.tr,
+        'Failed to delete address'.tr,
+        backgroundColor: AppColors.redColor,
+        snackPosition: SnackPosition.TOP,
+        colorText: AppColors.whiteColor,
+      );
     }
   }
 
