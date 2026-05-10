@@ -88,17 +88,16 @@ class EditProfileView extends StatelessWidget {
                         if (!hasImage) return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(left: 6),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: const Color(0xFFFF8C00),
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(
+                          child: GestureDetector(
+                            onTap: loading ? null : c.removeProfilePicture,
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFF8C00),
+                              child: Icon(
                                 Iconsax.trash_copy,
                                 size: 16,
                                 color: Colors.white,
                               ),
-                              onPressed: loading ? null : c.removeProfilePicture,
                             ),
                           ),
                         );
