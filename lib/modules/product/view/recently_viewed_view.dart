@@ -83,13 +83,18 @@ class _RecentlyViewedViewState extends State<RecentlyViewedView> {
             IconButton(
               onPressed: () {
                 controller.clearAll();
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  Get.snackbar('Cleared'.tr, 'Recently viewed history cleared'.tr,
-                    snackPosition: SnackPosition.TOP,
-                    backgroundColor: AppColors.primaryColor,
-                    colorText: AppColors.whiteColor,
-                    duration: const Duration(seconds: 2),
-                  );
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Recently viewed history cleared'.tr),
+                        backgroundColor: AppColors.primaryColor,
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        margin: const EdgeInsets.only(top: 50, left: 10, right: 10),
+                      ),
+                    );
+                  }
                 });
               },
               icon: const Icon(Iconsax.trash_copy, size: 20),
