@@ -69,6 +69,45 @@ class CustomerBasicInfoController extends GetxController {
 
   void clearPickedImage() => pickedImagePath.value = '';
 
+  Future<void> removeProfilePicture() async {
+    if (!LoginService().isLoggedIn()) return;
+
+    try {
+      isLoading.value = true;
+      final res = await _repo.removeProfilePicture();
+
+      if (res.success) {
+        await fetchBasicInfo();
+        pickedImagePath.value = '';
+        Get.snackbar(
+          'Success'.tr,
+          'Profile picture removed'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+        );
+      } else {
+        Get.snackbar(
+          'Failed'.tr,
+          'Could not remove profile picture'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Failed'.tr,
+        'Something went wrong'.tr,
+        backgroundColor: AppColors.primaryColor,
+        snackPosition: SnackPosition.TOP,
+        colorText: AppColors.whiteColor,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> fetchBasicInfo() async {
     if (!LoginService().isLoggedIn()) {
       _bindGuest();
