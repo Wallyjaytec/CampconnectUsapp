@@ -203,6 +203,35 @@ class AddressController extends GetxController {
   Future<void> submitNewAddress() async {
     final v = fieldVisibility.value;
 
+    // Validate each required field with specific message
+    if (v.showName) {
+      if (nameC.text.trim().isEmpty) {
+        Get.snackbar(
+          'Required'.tr,
+          'Please enter your full name'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+    }
+
+    if (v.showPhone) {
+      if (phoneC.text.trim().isEmpty) {
+        Get.snackbar(
+          'Required'.tr,
+          'Please enter your phone number'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+    }
+
     final co = selectedCountry.value;
     final st = selectedState.value;
     final ci = selectedCity.value;
@@ -212,23 +241,70 @@ class AddressController extends GetxController {
     int cityId = 0;
 
     if (v.showLocation) {
-      if (co == null || st == null || ci == null) {
+      if (co == null) {
         Get.snackbar(
-          'Missing info'.tr,
-          '${'Country'.tr}, ${'State'.tr}, ${'City'.tr} ${'required'.tr}',
+          'Required'.tr,
+          'Please select your country'.tr,
           backgroundColor: AppColors.primaryColor,
           snackPosition: SnackPosition.TOP,
           colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+      if (st == null) {
+        Get.snackbar(
+          'Required'.tr,
+          'Please select your state'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+      if (ci == null) {
+        Get.snackbar(
+          'Required'.tr,
+          'Please select your city'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
         );
         return;
       }
       countryId = co.id;
       stateId = st.id;
       cityId = ci.id;
-    } else {
-      countryId = 0;
-      stateId = 0;
-      cityId = 0;
+    }
+
+    if (v.showPostalCode) {
+      if (postalC.text.trim().isEmpty) {
+        Get.snackbar(
+          'Required'.tr,
+          'Please enter your postal code'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+    }
+
+    if (v.showAddress) {
+      if (addressC.text.trim().isEmpty) {
+        Get.snackbar(
+          'Required'.tr,
+          'Please enter your address'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
     }
 
     try {
@@ -252,9 +328,9 @@ class AddressController extends GetxController {
         safeBack(result: true);
       } else {
         Get.snackbar(
-          'Address not added'.tr,
-          'Check required fields'.tr,
-          backgroundColor: AppColors.primaryColor,
+          'Error'.tr,
+          'Failed to save address. Please try again.'.tr,
+          backgroundColor: AppColors.redColor,
           snackPosition: SnackPosition.TOP,
           colorText: AppColors.whiteColor,
         );
