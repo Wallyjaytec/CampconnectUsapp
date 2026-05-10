@@ -455,18 +455,18 @@ class CheckoutController extends GetxController {
     }
 
     isScreenLoading.value = true;
-    try {
-      final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body);
+try {
+  final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body);
 
-      if (Get.context == null) return;
+  if (Get.context == null) return;
 
-      await _handleOrderResponse(resp);
-    } catch (e) {
-      if (Get.context == null) return;
-      _showSnackbar('Checkout'.tr, 'Failed to place order'.tr);
-    } finally {
-      isScreenLoading.value = false;
-    }
+  await _handleOrderResponse(resp);
+} catch (e) {
+  if (Get.context == null) return;
+  _showSnackbar('Checkout'.tr, '$e');
+} finally {
+  isScreenLoading.value = false;
+}
   }
 
   String _productsJsonString() {
