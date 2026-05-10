@@ -45,4 +45,11 @@ class CustomerRepository {
 
     return CustomerBasicInfoResponse.fromJson(json);
   }
+
+  Future<CustomerBasicInfoResponse> removeProfilePicture() async {
+    final url = AppConfig.updateCustomerBasicInfoUrl();
+    final fields = <String, String>{'remove_image': '1'};
+    final json = await _api.postMultipart(url, fields: fields);
+    return CustomerBasicInfoResponse.fromJson(json);
+  }
 }
