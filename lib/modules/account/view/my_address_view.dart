@@ -54,16 +54,6 @@ class MyAddressView extends StatelessWidget {
 
             if (changed == true) {
               await c.refreshAddresses();
-
-              if (!context.mounted) return;
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Address added successfully'.tr),
-                  backgroundColor: AppColors.primaryColor,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
             }
           },
           child: const Icon(
@@ -148,10 +138,15 @@ class MyAddressView extends StatelessWidget {
                                 arguments: a,
                               );
                               if (changed == true) {
-                                c.refreshAddresses();
+                                await c.refreshAddresses();
                               }
                             },
                             child: const Icon(Iconsax.edit_copy, size: 16),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () => _confirmDelete(context, c, a),
+                            child: const Icon(Iconsax.trash_copy, size: 16, color: Colors.red),
                           ),
                         ],
                       ),
@@ -192,6 +187,29 @@ class MyAddressView extends StatelessWidget {
             ),
           );
         }),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, AddressController c, CustomerAddress a) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete Address'.tr),
+        content: Text('Are you sure you want to delete this address?'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              c.deleteAddress(a.id);
+            },
+            child: Text('Delete'.tr, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
