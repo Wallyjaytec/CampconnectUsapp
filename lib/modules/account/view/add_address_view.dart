@@ -274,9 +274,17 @@ class AddAddressView extends StatelessWidget {
     final searchC = TextEditingController();
     final filtered = RxList<T>([]);
     final isDark = Get.theme.brightness == Brightness.dark;
+    final isProcessing = false.obs;
 
-    Get.bottomSheet(
-      SafeArea(
+    showModalBottomSheet(
+      context: Get.context!,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => Obx(() => AbsorbPointer(
+        absorbing: isProcessing.value,
         child: Container(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           decoration: BoxDecoration(
@@ -301,16 +309,13 @@ class AddAddressView extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      safeBack();
-                    },
+                    onTap: () => Navigator.of(sheetContext).pop(),
                     child: const Icon(Iconsax.close_circle_copy, size: 18),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkCardColor
@@ -351,14 +356,18 @@ class AddAddressView extends StatelessWidget {
                   return ListView.separated(
                     itemCount: filtered.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, i) {
+                    itemBuilder: (ctx, i) {
                       final item = filtered[i];
                       return ListTile(
                         dense: true,
                         title: Text(itemLabel(item)),
                         onTap: () async {
+                          if (isProcessing.value) return;
+                          isProcessing.value = true;
                           await onSelected(item);
-                          safeBack();
+                          if (sheetContext.mounted) {
+                            Navigator.of(sheetContext).pop();
+                          }
                         },
                       );
                     },
@@ -368,12 +377,8 @@ class AddAddressView extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      isScrollControlled: true,
-      backgroundColor: isDark
-          ? AppColors.darkBackgroundColor
-          : AppColors.lightBackgroundColor,
-    );
+      )),
+    ).whenComplete(() => isProcessing.value = false);
 
     Future.microtask(() async {
       await ensureLoad();
