@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+here import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -190,12 +190,16 @@ class _AvatarCircle extends StatelessWidget {
     return CircleAvatar(
       radius: 40,
       backgroundColor: Colors.white,
-      backgroundImage: hasNet
-          ? CachedNetworkImageProvider(url)
-          : null,
-      onBackgroundImageError: (_, __) {},
       child: hasNet
-          ? null
+          ? ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: url,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
+              ),
+            )
           : Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
     );
   }
