@@ -97,4 +97,11 @@ class AddressRepository {
     );
     return res;
   }
+
+  Future<void> deleteCustomerAddress(int addressId) async {
+    await _api.postJson(
+      AppConfig.deleteCustomerAddressUrl(),
+      body: {'id': addressId},
+    );
+  }
 }
