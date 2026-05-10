@@ -44,7 +44,9 @@ class RecentlyViewedController extends GetxController {
   }
 
   void clearAll() {
-    products.value = [];
     box.remove(_key);
+    Future.microtask(() {
+      products.value = [];
+    });
   }
 }
