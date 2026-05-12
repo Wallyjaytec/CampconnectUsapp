@@ -184,29 +184,12 @@ class AccountView extends StatelessWidget {
 class _AvatarCircle extends StatelessWidget {
   const _AvatarCircle({required this.url});
   final String url;
-
-  bool get _isValidUrl {
-    if (url.isEmpty) return false;
-    return url.contains('http') || url.contains('uploaded');
-  }
-
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: 40,
       backgroundColor: Colors.white,
-      child: _isValidUrl
-          ? ClipOval(
-              child: CachedNetworkImage(
-                imageUrl: url,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
-                errorWidget: (_, __, ___) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
-              ),
-            )
-          : Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
+      child: Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
     );
   }
 }
