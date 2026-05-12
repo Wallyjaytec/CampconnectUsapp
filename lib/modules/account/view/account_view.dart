@@ -184,13 +184,18 @@ class AccountView extends StatelessWidget {
 class _AvatarCircle extends StatelessWidget {
   const _AvatarCircle({required this.url});
   final String url;
+
+  bool get _isValidUrl {
+    if (url.isEmpty) return false;
+    return url.contains('http') || url.contains('uploaded');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasNet = url.isNotEmpty;
     return CircleAvatar(
       radius: 40,
       backgroundColor: Colors.white,
-      child: hasNet
+      child: _isValidUrl
           ? ClipOval(
               child: CachedNetworkImage(
                 imageUrl: url,
