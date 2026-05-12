@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -146,7 +147,9 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   void _bindInfo(CustomerBasicInfo info) {
-    avatarUrl.value = '${AppConfig.assetUrl(info.image)}?t=${DateTime.now().millisecondsSinceEpoch}';
+    final url = '${AppConfig.assetUrl(info.image)}?t=${DateTime.now().millisecondsSinceEpoch}';
+    CachedNetworkImage.evictFromCache(url);
+    avatarUrl.value = url;
     name.value = info.name;
     email.value = info.email;
 
@@ -236,13 +239,13 @@ class CustomerBasicInfoController extends GetxController {
       );
 
       if (res.success) {
-        await fetchBasicInfo();
         pickedImagePath.value = '';
-
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        safeBack();
+        Get.back();
+        await fetchBasicInfo();
+
         Get.snackbar(
           'Success'.tr,
           'Profile updated successfully'.tr,
