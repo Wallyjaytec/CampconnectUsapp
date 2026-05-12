@@ -36,22 +36,31 @@ class EditProfileView extends StatelessWidget {
           final picked = c.pickedImagePath.value;
           final avatar = c.avatarUrl.value;
 
-          ImageProvider avatarProvider;
-          if (picked.isNotEmpty && File(picked).existsSync()) {
-            avatarProvider = FileImage(File(picked));
-          } else if (avatar.isNotEmpty) {
-            avatarProvider = CachedNetworkImageProvider(avatar);
-          } else {
-            avatarProvider = const AssetImage("assets/icons/profile.png");
-          }
-
           return Padding(
             padding: const EdgeInsets.all(16),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CircleAvatar(radius: 50, backgroundImage: avatarProvider),
+                  // Avatar
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey.shade200,
+                    child: ClipOval(
+                      child: picked.isNotEmpty && File(picked).existsSync()
+                          ? Image.file(File(picked), width: 100, height: 100, fit: BoxFit.cover)
+                          : avatar.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: avatar,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Image.asset("assets/icons/profile.png", width: 100, height: 100, fit: BoxFit.cover),
+                                  errorWidget: (_, __, ___) => Image.asset("assets/icons/profile.png", width: 100, height: 100, fit: BoxFit.cover),
+                                )
+                              : Image.asset("assets/icons/profile.png", width: 100, height: 100, fit: BoxFit.cover),
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisSize: MainAxisSize.min,
