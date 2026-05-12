@@ -146,7 +146,7 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   void _bindInfo(CustomerBasicInfo info) {
-    avatarUrl.value = AppConfig.assetUrl(info.image);
+    avatarUrl.value = '${AppConfig.assetUrl(info.image)}?t=${DateTime.now().millisecondsSinceEpoch}';
     name.value = info.name;
     email.value = info.email;
 
