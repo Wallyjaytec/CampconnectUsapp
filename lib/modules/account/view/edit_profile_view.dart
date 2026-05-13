@@ -42,7 +42,7 @@ class EditProfileView extends StatelessWidget {
           ImageProvider avatarProvider;
           if (picked.isNotEmpty && File(picked).existsSync()) {
             avatarProvider = FileImage(File(picked));
-          } else if (avatar.isNotEmpty) {
+          } else if (avatar.isNotEmpty && avatar != '/') {
             avatarProvider = CachedNetworkImageProvider(avatar);
           } else {
             avatarProvider = const AssetImage("assets/icons/profile.png");
@@ -79,7 +79,7 @@ class EditProfileView extends StatelessWidget {
                         ),
                       ),
                       Obx(() {
-                        final hasImage = c.avatarUrl.value.isNotEmpty || c.pickedImagePath.value.isNotEmpty;
+                        final hasImage = (c.avatarUrl.value.isNotEmpty && c.avatarUrl.value != '/') || c.pickedImagePath.value.isNotEmpty;
                         if (!hasImage) return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(left: 6),
