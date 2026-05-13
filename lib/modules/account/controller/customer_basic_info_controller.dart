@@ -139,11 +139,14 @@ class CustomerBasicInfoController extends GetxController {
     if (!LoginService().isLoggedIn()) return;
 
     final newName = nameController.text.trim();
-    final newPhone = _digitsOnly(phoneController.text.trim());
+    String phoneRaw = phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    if (phoneRaw.startsWith('234') && phoneRaw.length > 10) {
+      phoneRaw = phoneRaw.substring(3);
+    }
 
     if (newName.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Name is required'), backgroundColor: AppColors.primaryColor),
+        SnackBar(content: Text('Name is required'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -152,7 +155,7 @@ class CustomerBasicInfoController extends GetxController {
       isLoading.value = true;
       final res = await _repo.updateBasicInfo(
         name: newName,
-        phone: newPhone,
+        phone: phoneRaw,
         imageFile: pickedImagePath.value.isNotEmpty ? File(pickedImagePath.value) : null,
       );
 
@@ -162,16 +165,28 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Profile updated'), backgroundColor: AppColors.primaryColor),
+          SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Update failed'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Update failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
         );
       }
     } catch (e) {
+      String msg = 'Update failed';
+      if (e is ApiHttpException) {
+        try {
+          final body = json.decode(e.body);
+          if (body['errors'] != null) {
+            final errors = body['errors'] as Map<String, dynamic>;
+            msg = errors.values.expand((v) => v is List ? v.map((x) => x.toString()) : [v.toString()]).join('\n');
+          } else if (body['message'] != null) {
+            msg = body['message'].toString();
+          }
+        } catch (_) {}
+      }
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
       );
     } finally {
       isLoading.value = false;
