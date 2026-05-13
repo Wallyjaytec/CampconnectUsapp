@@ -50,9 +50,16 @@ class CustomerRepository {
     return CustomerBasicInfoResponse.fromJson(json);
   }
 
-  Future<CustomerBasicInfoResponse> removeProfilePicture() async {
+  Future<CustomerBasicInfoResponse> removeProfilePicture({
+    required String name,
+    required String phone,
+  }) async {
     final url = AppConfig.updateCustomerBasicInfoUrl();
-    final fields = <String, String>{'remove_image': '1'};
+    final fields = <String, String>{
+      'name': name,
+      'phone': phone,
+      'remove_image': '1',
+    };
     final json = await _api.postMultipart(url, fields: fields);
     return CustomerBasicInfoResponse.fromJson(json);
   }
