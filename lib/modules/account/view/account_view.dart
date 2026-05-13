@@ -48,7 +48,7 @@ class AccountView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authCtrl = Get.find<AuthController>();
-    final infoCtrl = Get.put(CustomerBasicInfoController(), permanent: false);
+    final infoCtrl = Get.put(CustomerBasicInfoController(), permanent: true);
     final dashCtrl = Get.put(CustomerDashboardController(), permanent: false);
     final currencyCtrl = Get.find<CurrencyController>();
 
@@ -186,10 +186,22 @@ class _AvatarCircle extends StatelessWidget {
   final String url;
   @override
   Widget build(BuildContext context) {
+    final hasNet = url.isNotEmpty;
     return CircleAvatar(
       radius: 40,
       backgroundColor: Colors.white,
-      child: Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
+      child: hasNet
+          ? ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: url,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
+                errorWidget: (_, __, ___) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
+              ),
+            )
+          : Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
     );
   }
 }
