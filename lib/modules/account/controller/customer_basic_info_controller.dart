@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -197,21 +198,26 @@ class CustomerBasicInfoController extends GetxController {
       );
 
       if (res.success) {
-        await fetchBasicInfo();
         pickedImagePath.value = '';
 
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
+        await fetchBasicInfo();
+
+        CachedNetworkImage.evictFromCache(avatarUrl.value);
+
         Get.offAllNamed(AppRoutes.bottomNavbarView);
 
-        Get.snackbar(
-          'Success'.tr,
-          'Profile updated successfully'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
+        Future.delayed(const Duration(milliseconds: 300), () {
+          Get.snackbar(
+            'Success'.tr,
+            'Profile updated successfully'.tr,
+            backgroundColor: AppColors.primaryColor,
+            snackPosition: SnackPosition.TOP,
+            colorText: AppColors.whiteColor,
+          );
+        });
       } else {
         Get.snackbar(
           'Failed'.tr,
