@@ -73,9 +73,16 @@ class CustomerBasicInfoController extends GetxController {
 
     try {
       isLoading.value = true;
+
+      String phoneToSend = phoneController.text.trim();
+      if (phoneToSend.startsWith('+')) {
+        phoneToSend = phoneToSend.substring(1);
+      }
+      phoneToSend = phoneToSend.replaceAll(RegExp(r'[^0-9]'), '');
+
       final res = await _repo.removeProfilePicture(
         name: nameController.text.trim().isEmpty ? name.value : nameController.text.trim(),
-        phone: _digitsOnly(phoneController.text.trim().isEmpty ? phone.value : phoneController.text.trim()),
+        phone: phoneToSend.isEmpty ? _digitsOnly(phone.value) : phoneToSend,
       );
 
       if (res.success) {
