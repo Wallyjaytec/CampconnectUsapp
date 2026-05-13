@@ -202,10 +202,7 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        if (Get.context != null) {
-          Navigator.of(Get.context!).pop();
-        }
-
+        Get.back();
         Get.snackbar(
           'Success'.tr,
           'Profile updated successfully'.tr,
@@ -410,3 +407,4 @@ class CustomerBasicInfoController extends GetxController {
     super.onClose();
   }
 }
+ 
