@@ -143,10 +143,7 @@ class CustomerBasicInfoController extends GetxController {
     final newName = nameController.text.trim();
     final newPhoneDisplay = phoneController.text.trim();
 
-    final nameChanged = newName != _originalName;
-    final phoneChanged = newPhoneDisplay != _originalPhoneDisplay;
-
-    if (nameChanged && newName.isEmpty) {
+    if (newName.isEmpty) {
       Get.snackbar(
         'Name Required'.tr,
         'Name is required'.tr,
@@ -156,7 +153,7 @@ class CustomerBasicInfoController extends GetxController {
       );
       return;
     }
-    if (phoneChanged && newPhoneDisplay.isEmpty) {
+    if (newPhoneDisplay.isEmpty) {
       Get.snackbar(
         'Phone Required'.tr,
         'Phone is required',
@@ -164,25 +161,12 @@ class CustomerBasicInfoController extends GetxController {
         snackPosition: SnackPosition.TOP,
         colorText: AppColors.whiteColor,
       );
-    }
-
-    final hasImage = pickedImagePath.value.isNotEmpty;
-    if (!nameChanged && !phoneChanged && !hasImage) {
-      Get.snackbar(
-        'Nothing changed'.tr,
-        'There is nothing to update'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
       return;
     }
 
-    final nameToSend = nameChanged ? newName : _originalName;
+    final hasImage = pickedImagePath.value.isNotEmpty;
 
-    final phoneToSend = _digitsOnly(
-      phoneChanged ? newPhoneDisplay : _originalPhoneDisplay,
-    );
+    final phoneToSend = _digitsOnly(newPhoneDisplay);
 
     try {
       isLoading.value = true;
@@ -190,7 +174,7 @@ class CustomerBasicInfoController extends GetxController {
       final file = hasImage ? File(pickedImagePath.value) : null;
 
       final res = await _repo.updateBasicInfo(
-        name: nameToSend,
+        name: newName,
         phone: phoneToSend,
         imageFile: file,
       );
@@ -223,7 +207,13 @@ class CustomerBasicInfoController extends GetxController {
         _bindGuest();
         return;
       }
-      _handleException(e, fallback: 'Update failed'.tr);
+      Get.snackbar(
+        'Error'.tr,
+        '$e'.tr,
+        backgroundColor: AppColors.redColor,
+        snackPosition: SnackPosition.TOP,
+        colorText: AppColors.whiteColor,
+      );
     } finally {
       isLoading.value = false;
     }
