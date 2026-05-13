@@ -155,9 +155,6 @@ class CustomerBasicInfoController extends GetxController {
     phone.value = phoneWithCode;
 
     nameController.text = info.name;
-    if (phoneController.text.isEmpty) {
-      phoneController.text = phoneWithCode;
-    }
 
     _originalName = info.name;
     _originalPhoneDisplay = phoneWithCode;
