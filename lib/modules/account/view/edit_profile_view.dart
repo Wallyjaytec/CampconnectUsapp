@@ -192,12 +192,11 @@ class EditProfileView extends StatelessWidget {
 PhoneNumber _parsePhone(String text) {
   if (text.isEmpty) return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
   try {
-    return PhoneNumber.parse(text);
-  } catch (_) {
-    try {
-      return PhoneNumber.parse('+$text');
-    } catch (_) {
-      return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+    if (text.startsWith('+')) {
+      return PhoneNumber.parse(text);
     }
+    return PhoneNumber.parse('+$text');
+  } catch (_) {
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
   }
 }
