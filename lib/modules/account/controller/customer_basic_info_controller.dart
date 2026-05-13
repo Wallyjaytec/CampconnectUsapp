@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,7 +12,6 @@ import '../../../core/services/login_service.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/customer_repository.dart';
-import '../../../shared/utils/dialog_utils.dart';
 import '../model/customer_basic_info.dart';
 
 class CustomerBasicInfoController extends GetxController {
@@ -70,45 +68,6 @@ class CustomerBasicInfoController extends GetxController {
 
   void clearPickedImage() => pickedImagePath.value = '';
 
-  Future<void> removeProfilePicture() async {
-    if (!LoginService().isLoggedIn()) return;
-
-    try {
-      isLoading.value = true;
-      final res = await _repo.removeProfilePicture();
-
-      if (res.success) {
-        await fetchBasicInfo();
-        pickedImagePath.value = '';
-        Get.snackbar(
-          'Success'.tr,
-          'Profile picture removed'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-      } else {
-        Get.snackbar(
-          'Failed'.tr,
-          'Could not remove profile picture'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Failed'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
   Future<void> fetchBasicInfo() async {
     if (!LoginService().isLoggedIn()) {
       _bindGuest();
@@ -147,9 +106,7 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   void _bindInfo(CustomerBasicInfo info) {
-    final url = '${AppConfig.assetUrl(info.image)}?t=${DateTime.now().millisecondsSinceEpoch}';
-    CachedNetworkImage.evictFromCache(url);
-    avatarUrl.value = url;
+    avatarUrl.value = AppConfig.assetUrl(info.image);
     name.value = info.name;
     email.value = info.email;
 
@@ -239,15 +196,15 @@ class CustomerBasicInfoController extends GetxController {
       );
 
       if (res.success) {
+        await fetchBasicInfo();
         pickedImagePath.value = '';
+
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
         if (Get.context != null) {
           Navigator.of(Get.context!).pop();
         }
-
-        await fetchBasicInfo();
 
         Get.snackbar(
           'Success'.tr,
