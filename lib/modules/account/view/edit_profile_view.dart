@@ -127,9 +127,7 @@ class EditProfileView extends StatelessWidget {
                     ),
                     child: Center(
                       child: PhoneFormField(
-                        initialValue: c.phoneController.text.isNotEmpty
-                            ? PhoneNumber.parse(c.phoneController.text)
-                            : PhoneNumber(isoCode: IsoCode.NG, nsn: ''),
+                        initialValue: PhoneNumber(isoCode: IsoCode.NG, nsn: ''),
                         countrySelectorNavigator: const CountrySelectorNavigator.page(),
                         decoration: InputDecoration(
                           isDense: true,
