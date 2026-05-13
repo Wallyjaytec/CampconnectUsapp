@@ -73,7 +73,10 @@ class CustomerBasicInfoController extends GetxController {
 
     try {
       isLoading.value = true;
-      final res = await _repo.removeProfilePicture();
+      final res = await _repo.removeProfilePicture(
+        name: nameController.text.trim().isEmpty ? name.value : nameController.text.trim(),
+        phone: _digitsOnly(phoneController.text.trim().isEmpty ? phone.value : phoneController.text.trim()),
+      );
 
       if (res.success) {
         await fetchBasicInfo();
