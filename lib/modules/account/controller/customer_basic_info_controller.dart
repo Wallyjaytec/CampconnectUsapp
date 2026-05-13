@@ -203,7 +203,14 @@ class CustomerBasicInfoController extends GetxController {
         _originalPhoneDisplay = phoneController.text.trim();
 
         Get.back();
-        fetchBasicInfo();
+
+        Get.snackbar(
+          'Success'.tr,
+          'Profile updated successfully'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+        );
       } else {
         Get.snackbar(
           'Failed'.tr,
