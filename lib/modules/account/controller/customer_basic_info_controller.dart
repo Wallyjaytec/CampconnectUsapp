@@ -203,6 +203,7 @@ class CustomerBasicInfoController extends GetxController {
         _originalPhoneDisplay = phoneController.text.trim();
 
         Get.back();
+        fetchBasicInfo();
       } else {
         Get.snackbar(
           'Failed'.tr,
