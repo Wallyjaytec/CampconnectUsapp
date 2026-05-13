@@ -117,8 +117,10 @@ class CustomerBasicInfoController extends GetxController {
     phone.value = displayPhone;
 
     nameController.text = info.name;
-    // Keep user's phone selection, don't overwrite from server
-    // phoneController.text = displayPhone;
+    // Only set phone if controller is empty (first load)
+    if (phoneController.text.isEmpty) {
+      phoneController.text = displayPhone;
+    }
 
     _originalName = info.name;
     _originalPhoneDisplay = displayPhone;
