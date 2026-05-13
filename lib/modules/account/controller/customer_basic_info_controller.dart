@@ -202,7 +202,9 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        Get.back();
+        if (Get.context != null) {
+          Navigator.of(Get.context!).pop();
+        }
 
         Get.snackbar(
           'Success'.tr,
