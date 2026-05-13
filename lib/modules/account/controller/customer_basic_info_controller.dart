@@ -86,8 +86,8 @@ class CustomerBasicInfoController extends GetxController {
       );
 
       if (res.success) {
-        await fetchBasicInfo();
         pickedImagePath.value = '';
+        await fetchBasicInfo();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(content: Text('Profile picture removed'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
@@ -147,9 +147,10 @@ class CustomerBasicInfoController extends GetxController {
     name.value = info.name;
     email.value = info.email;
 
-    final displayPhone = (info.phoneWithCode?.trim().isNotEmpty ?? false)
-        ? info.phoneWithCode!.trim()
-        : ((info.phone?.trim().isNotEmpty ?? false) ? info.phone!.trim() : '');
+    // Use phone only, not phone_with_code (prevents double country code)
+    final displayPhone = (info.phone?.trim().isNotEmpty ?? false)
+        ? info.phone!.trim()
+        : '';
 
     phone.value = displayPhone;
 
