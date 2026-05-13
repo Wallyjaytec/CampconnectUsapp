@@ -62,25 +62,31 @@ class AccountView extends StatelessWidget {
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(120),
             child: Obx(
-              () => Container(
-                width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                decoration: const BoxDecoration(color: AppColors.primaryColor, borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12))),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _AvatarCircle(url: infoCtrl.avatarUrl.value),
-                    const SizedBox(width: 10),
-                    Expanded(child: _HeaderTexts(isLoggedIn: LoginService().isLoggedIn(), name: infoCtrl.name.value, email: infoCtrl.email.value, phone: infoCtrl.phone.value)),
-                    IconButton(
-                      icon: const Icon(Iconsax.edit_copy, size: 18, color: Colors.white),
-                      onPressed: () {
-                        if (!LoginService().isLoggedIn()) { Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.editProfileView}); return; }
-                        Get.toNamed(AppRoutes.editProfileView);
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              () {
+                final avatarUrl = infoCtrl.avatarUrl.value;
+                final userName = infoCtrl.name.value;
+                final userEmail = infoCtrl.email.value;
+                final userPhone = infoCtrl.phone.value;
+                return Container(
+                  width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  decoration: const BoxDecoration(color: AppColors.primaryColor, borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12))),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _AvatarCircle(url: avatarUrl),
+                      const SizedBox(width: 10),
+                      Expanded(child: _HeaderTexts(isLoggedIn: LoginService().isLoggedIn(), name: userName, email: userEmail, phone: userPhone)),
+                      IconButton(
+                        icon: const Icon(Iconsax.edit_copy, size: 18, color: Colors.white),
+                        onPressed: () {
+                          if (!LoginService().isLoggedIn()) { Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.editProfileView}); return; }
+                          Get.toNamed(AppRoutes.editProfileView);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ),
