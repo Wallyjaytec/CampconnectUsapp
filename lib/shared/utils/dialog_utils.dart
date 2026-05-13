@@ -14,9 +14,7 @@ void safeBack<T>({T? result}) {
   }
   try {
     if (Navigator.of(Get.context!).canPop()) {
-      Navigator.of(Get.context!).pop(result);
+      Get.back<T>(result: result);
     }
-  } catch (_) {
-    Get.back();
-  }
+  } catch (_) {}
 }
