@@ -241,136 +241,62 @@ class CustomerBasicInfoController extends GetxController {
     }
   }
 
-  void _handleException(Object e, {required String fallback}) {
-    try {
-      if (e is ApiHttpException) {
-        final map = json.decode(e.body) as Map<String, dynamic>;
-        if (map['errors'] is Map<String, dynamic>) {
-          final errors = map['errors'] as Map<String, dynamic>;
-          _applyFieldErrors(errors);
-        } else {
-          if (e.statusCode != 401) {
-            Get.snackbar(
-              'Failed'.tr,
-              'Something went wrong'.tr,
-              backgroundColor: AppColors.primaryColor,
-              snackPosition: SnackPosition.TOP,
-              colorText: AppColors.whiteColor,
-            );
-          }
-        }
-      } else {
-        Get.snackbar(
-          'Failed'.tr,
-          'Something went wrong'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-      }
-    } catch (_) {
-      Get.snackbar(
-        'Failed'.tr,
-        fallback,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
-    }
-  }
-
   Future<void> sendForgotPasswordLink() async {
     final currentEmail = email.value.trim();
-
     if (currentEmail.isEmpty) {
-      Get.snackbar(
-        'Error'.tr,
-        'No email found for this account'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('No email found'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
       );
       return;
     }
-
     try {
       final res = await _authRepo.forgotPassword(email: currentEmail);
-
       if (res.success) {
-        Get.snackbar(
-          'Success'.tr,
-          res.message ??
-              '${'Password reset link has been sent to your email'.tr} ($currentEmail)',
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text(res.message ?? 'Password reset link sent'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
       } else {
-        Get.snackbar(
-          'Failed'.tr,
-          'Could not send password reset link'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Could not send password reset link'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
         );
       }
     } catch (e) {
-      try {
-        if (e is ApiHttpException) {
-          Get.snackbar(
-            'Failed'.tr,
-            'Request failed'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        } else {
-          Get.snackbar(
-            'Failed'.tr,
-            'Request failed'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        }
-      } catch (_) {
-        Get.snackbar(
-          'Failed'.tr,
-          'Request failed'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-      }
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
     }
   }
 
   Future<void> sendResetEmailLink() async {
     final currentEmail = email.value.trim();
-
     if (currentEmail.isEmpty) {
-      Get.snackbar(
-        'Error'.tr,
-        'No email found for this account'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('No email found'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
       );
       return;
     }
-
     try {
       final res = await _authRepo.sendEmailResetLink();
-
       if (res.success) {
-        Get.snackbar(
-          'Success'.tr,
-          res.message ??
-              '${'Reset email has been sent to your email'.tr} ($currentEmail)',
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text(res.message ?? 'Reset email link sent'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
       } else {
-        Get.snackbar(
-          'Failed'.
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Could not send reset email'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  @override
+  void onClose() {
+    nameController.dispose();
+    phoneController.dispose();
+    super.onClose();
+  }
+}
