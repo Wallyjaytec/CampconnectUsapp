@@ -78,6 +78,21 @@ class EditProfileView extends StatelessWidget {
                           onPressed: loading ? null : c.pickFromCamera,
                         ),
                       ),
+                      Obx(() {
+                        final hasImage = c.avatarUrl.value.isNotEmpty || c.pickedImagePath.value.isNotEmpty;
+                        if (!hasImage) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: GestureDetector(
+                            onTap: loading ? null : c.removeProfilePicture,
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFF8C00),
+                              child: Icon(Iconsax.trash_copy, size: 16, color: Colors.white),
+                            ),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                   const SizedBox(height: 30),
