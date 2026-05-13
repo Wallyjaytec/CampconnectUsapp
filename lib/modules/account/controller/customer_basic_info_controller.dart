@@ -203,7 +203,7 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        Get.offNamed(AppRoutes.accountView);
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
 
         Get.snackbar(
           'Success'.tr,
