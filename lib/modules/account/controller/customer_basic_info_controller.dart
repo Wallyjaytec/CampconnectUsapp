@@ -68,6 +68,33 @@ class CustomerBasicInfoController extends GetxController {
 
   void clearPickedImage() => pickedImagePath.value = '';
 
+  Future<void> removeProfilePicture() async {
+    if (!LoginService().isLoggedIn()) return;
+
+    try {
+      isLoading.value = true;
+      final res = await _repo.removeProfilePicture();
+
+      if (res.success) {
+        await fetchBasicInfo();
+        pickedImagePath.value = '';
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Profile picture removed'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
+        );
+      } else {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Could not remove profile picture'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Something went wrong'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> fetchBasicInfo() async {
     if (!LoginService().isLoggedIn()) {
       _bindGuest();
@@ -117,7 +144,6 @@ class CustomerBasicInfoController extends GetxController {
     phone.value = displayPhone;
 
     nameController.text = info.name;
-    // Only set phone if controller is empty (first load)
     if (phoneController.text.isEmpty) {
       phoneController.text = displayPhone;
     }
@@ -144,7 +170,7 @@ class CustomerBasicInfoController extends GetxController {
     final newName = nameController.text.trim();
 
     String phoneRaw = phoneController.text.trim();
-    String phoneCode = '+234'; // default Nigeria
+    String phoneCode = '+234';
 
     if (phoneRaw.startsWith('+')) {
       final match = RegExp(r'^\+(\d{1,3})').firstMatch(phoneRaw);
