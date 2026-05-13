@@ -143,24 +143,24 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   void _bindInfo(CustomerBasicInfo info) {
-    avatarUrl.value = AppConfig.assetUrl(info.image);
+    final rawImage = info.image ?? '';
+    avatarUrl.value = (rawImage.isEmpty || rawImage == '/') ? '' : AppConfig.assetUrl(rawImage);
     name.value = info.name;
     email.value = info.email;
 
-    // Use phone only, not phone_with_code (prevents double country code)
-    final displayPhone = (info.phone?.trim().isNotEmpty ?? false)
-        ? info.phone!.trim()
-        : '';
+    final phoneWithCode = (info.phoneWithCode?.trim().isNotEmpty ?? false)
+        ? info.phoneWithCode!.trim()
+        : ((info.phone?.trim().isNotEmpty ?? false) ? info.phone!.trim() : '');
 
-    phone.value = displayPhone;
+    phone.value = phoneWithCode;
 
     nameController.text = info.name;
     if (phoneController.text.isEmpty) {
-      phoneController.text = displayPhone;
+      phoneController.text = phoneWithCode;
     }
 
     _originalName = info.name;
-    _originalPhoneDisplay = displayPhone;
+    _originalPhoneDisplay = phoneWithCode;
   }
 
   void _clearFieldErrors() {
@@ -373,48 +373,4 @@ class CustomerBasicInfoController extends GetxController {
         );
       } else {
         Get.snackbar(
-          'Failed'.tr,
-          'Could not send reset email'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-      }
-    } catch (e) {
-      try {
-        if (e is ApiHttpException) {
-          Get.snackbar(
-            'Failed'.tr,
-            'Request failed'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        } else {
-          Get.snackbar(
-            'Failed'.tr,
-            'Request failed'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        }
-      } catch (_) {
-        Get.snackbar(
-          'Failed'.tr,
-          'Request failed'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-      }
-    }
-  }
-
-  @override
-  void onClose() {
-    nameController.dispose();
-    phoneController.dispose();
-    super.onClose();
-  }
-}
+          'Failed'.
