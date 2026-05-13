@@ -20,11 +20,15 @@ class CustomerRepository {
   Future<CustomerBasicInfoResponse> updateBasicInfo({
     required String name,
     required String phone,
+    String? phoneCode,
     File? imageFile,
   }) async {
     final url = AppConfig.updateCustomerBasicInfoUrl();
 
     final fields = <String, String>{'name': name, 'phone': phone};
+    if (phoneCode != null) {
+      fields['phone_code'] = phoneCode;
+    }
 
     final files = <http.MultipartFile>[];
     if (imageFile != null) {
