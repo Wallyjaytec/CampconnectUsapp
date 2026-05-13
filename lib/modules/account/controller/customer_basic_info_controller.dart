@@ -136,7 +136,46 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   Future<void> saveBasicInfo() async {
-    Get.snackbar('TEST', 'Button works');
+    if (!LoginService().isLoggedIn()) return;
+
+    final newName = nameController.text.trim();
+    final newPhone = _digitsOnly(phoneController.text.trim());
+
+    if (newName.isEmpty) {
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Name is required'), backgroundColor: AppColors.primaryColor),
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      final res = await _repo.updateBasicInfo(
+        name: newName,
+        phone: newPhone,
+        imageFile: pickedImagePath.value.isNotEmpty ? File(pickedImagePath.value) : null,
+      );
+
+      if (res.success) {
+        await fetchBasicInfo();
+        pickedImagePath.value = '';
+        _originalName = nameController.text.trim();
+        _originalPhoneDisplay = phoneController.text.trim();
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Profile updated'), backgroundColor: AppColors.primaryColor),
+        );
+      } else {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Update failed'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void _handleException(Object e, {required String fallback}) {
