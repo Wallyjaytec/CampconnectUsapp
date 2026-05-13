@@ -202,10 +202,6 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        Future.delayed(const Duration(milliseconds: 100), () {
-          Get.back();
-        });
-
         Get.snackbar(
           'Success'.tr,
           'Profile updated successfully'.tr,
