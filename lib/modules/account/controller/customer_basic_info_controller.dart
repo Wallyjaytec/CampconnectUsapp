@@ -117,7 +117,8 @@ class CustomerBasicInfoController extends GetxController {
     phone.value = displayPhone;
 
     nameController.text = info.name;
-    phoneController.text = displayPhone;
+    // Keep user's phone selection, don't overwrite from server
+    // phoneController.text = displayPhone;
 
     _originalName = info.name;
     _originalPhoneDisplay = displayPhone;
@@ -140,13 +141,10 @@ class CustomerBasicInfoController extends GetxController {
 
     final newName = nameController.text.trim();
 
-    // Phone comes from PhoneFormField with + prefix: +2348144317152 or +18144317152
     String phoneRaw = phoneController.text.trim();
-    // Remove the + prefix
     if (phoneRaw.startsWith('+')) {
       phoneRaw = phoneRaw.substring(1);
     }
-    // Remove all non-digits
     phoneRaw = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
 
     if (newName.isEmpty) {
@@ -168,7 +166,6 @@ class CustomerBasicInfoController extends GetxController {
         await fetchBasicInfo();
         pickedImagePath.value = '';
         _originalName = nameController.text.trim();
-        _originalPhoneDisplay = phoneController.text.trim();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
