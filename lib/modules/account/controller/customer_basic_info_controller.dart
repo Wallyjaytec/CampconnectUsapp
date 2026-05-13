@@ -144,8 +144,14 @@ class CustomerBasicInfoController extends GetxController {
     final newName = nameController.text.trim();
 
     String phoneRaw = phoneController.text.trim();
+    String phoneCode = '+234'; // default Nigeria
+
     if (phoneRaw.startsWith('+')) {
-      phoneRaw = phoneRaw.substring(1);
+      final match = RegExp(r'^\+(\d{1,3})').firstMatch(phoneRaw);
+      if (match != null) {
+        phoneCode = '+${match.group(1)}';
+        phoneRaw = phoneRaw.substring(match.group(0)!.length);
+      }
     }
     phoneRaw = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
 
@@ -161,6 +167,7 @@ class CustomerBasicInfoController extends GetxController {
       final res = await _repo.updateBasicInfo(
         name: newName,
         phone: phoneRaw,
+        phoneCode: phoneCode,
         imageFile: pickedImagePath.value.isNotEmpty ? File(pickedImagePath.value) : null,
       );
 
