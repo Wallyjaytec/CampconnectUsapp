@@ -139,10 +139,15 @@ class CustomerBasicInfoController extends GetxController {
     if (!LoginService().isLoggedIn()) return;
 
     final newName = nameController.text.trim();
-    String phoneRaw = phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
-    if (phoneRaw.startsWith('234') && phoneRaw.length > 10) {
-      phoneRaw = phoneRaw.substring(3);
+
+    // Phone comes from PhoneFormField with + prefix: +2348144317152 or +18144317152
+    String phoneRaw = phoneController.text.trim();
+    // Remove the + prefix
+    if (phoneRaw.startsWith('+')) {
+      phoneRaw = phoneRaw.substring(1);
     }
+    // Remove all non-digits
+    phoneRaw = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
 
     if (newName.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
