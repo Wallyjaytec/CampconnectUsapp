@@ -127,7 +127,8 @@ class EditProfileView extends StatelessWidget {
                     ),
                     child: Center(
                       child: PhoneFormField(
-                        initialValue: PhoneNumber(isoCode: IsoCode.NG, nsn: ''),
+                        key: ValueKey(c.phoneController.text),
+                        initialValue: _parsePhone(c.phoneController.text),
                         countrySelectorNavigator: const CountrySelectorNavigator.page(),
                         decoration: InputDecoration(
                           isDense: true,
@@ -170,5 +171,18 @@ class EditProfileView extends StatelessWidget {
         }),
       ),
     );
+  }
+}
+
+PhoneNumber _parsePhone(String text) {
+  if (text.isEmpty) return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+  try {
+    return PhoneNumber.parse(text);
+  } catch (_) {
+    try {
+      return PhoneNumber.parse('+$text');
+    } catch (_) {
+      return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+    }
   }
 }
