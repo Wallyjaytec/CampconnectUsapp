@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
 import '../../../core/services/permission_service.dart';
@@ -202,9 +203,7 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         _originalPhoneDisplay = phoneController.text.trim();
 
-        if (Get.context != null) {
-          Navigator.of(Get.context!).pop();
-        }
+        Get.offNamed(AppRoutes.accountView);
 
         Get.snackbar(
           'Success'.tr,
