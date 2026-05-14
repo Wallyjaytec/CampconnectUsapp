@@ -142,7 +142,7 @@ class EditProfileView extends StatelessWidget {
                     ),
                     child: Center(
                       child: PhoneFormField(
-                        key: ValueKey(c.phoneController.text),
+                        key: const ValueKey('phone-field'),
                         initialValue: _parsePhone(c.phoneController.text),
                         countrySelectorNavigator: const CountrySelectorNavigator.page(),
                         decoration: InputDecoration(
