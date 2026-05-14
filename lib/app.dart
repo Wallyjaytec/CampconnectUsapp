@@ -11,7 +11,6 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
-import 'modules/auth/view/email_reset_view.dart';
 
 class MyApp extends StatelessWidget {
   final String initialLocaleCode;
@@ -43,8 +42,9 @@ class MyApp extends StatelessWidget {
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
             final token = uri.queryParameters['u'] ?? '';
+            final isEmail = rawPath.contains('type=email');
             return GetPageRoute(
-              page: () => PasswordResetView(token: token),
+              page: () => PasswordResetView(token: token, isEmailReset: isEmail),
               routeName: '/password-reset',
             );
           }
