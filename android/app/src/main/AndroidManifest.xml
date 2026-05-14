@@ -66,6 +66,17 @@
                     android:pathPrefix="/password/reset/" />
             </intent-filter>
             
+            <!-- Email Reset Deep Link -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="campconnectus.store"
+                    android:pathPrefix="/email/reset" />
+            </intent-filter>
+            
             <!-- All CampconnectUs Links -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
