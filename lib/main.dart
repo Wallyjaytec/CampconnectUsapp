@@ -23,6 +23,9 @@ import 'modules/product/controller/new_product_list_controller.dart';
 
 final _appLinks = AppLinks();
 
+// Global variable for email reset token
+String? pendingEmailResetToken;
+
 Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
@@ -55,7 +58,7 @@ Future<void> main() async {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
         if (uri.toString().contains('type=email')) {
-          box.write('pending_email_reset_token', token);
+          pendingEmailResetToken = token;
         } else if (uri.toString().contains('email-verification')) {
           box.write('deep_link_token', token);
           box.write('deep_link_type', 'email_verify');
@@ -72,7 +75,7 @@ Future<void> main() async {
     final token = uri.queryParameters['u'] ?? '';
     if (token.isNotEmpty) {
       if (uri.toString().contains('type=email')) {
-        box.write('pending_email_reset_token', token);
+        pendingEmailResetToken = token;
       } else if (uri.toString().contains('email-verification')) {
         box.write('deep_link_token', token);
         box.write('deep_link_type', 'email_verify');
