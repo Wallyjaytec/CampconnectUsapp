@@ -30,22 +30,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      final box = GetStorage();
-      final token = box.read<String>('deep_link_token') ?? '';
-      final type = box.read<String>('deep_link_type') ?? '';
-      if (token.isNotEmpty) {
-        box.remove('deep_link_token');
-        box.remove('deep_link_type');
-        if (type == 'email_verify') {
-          Get.offAll(() => VerificationSuccessView(code: token));
-        } else if (type == 'email_reset') {
-          Get.offAll(() => EmailResetView(token: token));
-        } else {
-          Get.offAll(() => PasswordResetView(token: token));
-        }
-        return;
-      }
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      // TEMPORARY: Force email reset for testing
+      Get.offAll(() => EmailResetView(token: 'test'));
     });
   }
 
