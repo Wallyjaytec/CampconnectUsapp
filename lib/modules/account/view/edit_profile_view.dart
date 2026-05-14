@@ -4,8 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:phone_form_field/phone_form_field.dart';
-import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
@@ -133,36 +131,46 @@ class EditProfileView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Phone with country picker
-                  Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: PhoneFormField(
-                        key: const ValueKey('phone-field'),
-                        initialValue: _parsePhone(c.phoneController.text),
-                        countrySelectorNavigator: const CountrySelectorNavigator.page(),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          filled: true,
-                          fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                          hintText: 'Phone number'.tr,
-                          contentPadding: EdgeInsets.zero,
-                          errorStyle: const TextStyle(height: 0, fontSize: 0),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
+                  // Phone with country code
+                  Row(
+                    children: [
+                      // Country code dropdown
+                      Container(
+                        height: 50,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        style: const TextStyle(fontSize: 16, height: 1.2),
-                        onChanged: (p) {
-                          c.phoneController.text = p.international;
-                        },
+                        child: Obx(() => DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: c.phoneCode.value,
+                            style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black),
+                            items: const [
+                              DropdownMenuItem(value: '+234', child: Text('🇳🇬 +234', style: TextStyle(fontSize: 14))),
+                              DropdownMenuItem(value: '+1', child: Text('🇺🇸 +1', style: TextStyle(fontSize: 14))),
+                              DropdownMenuItem(value: '+44', child: Text('🇬🇧 +44', style: TextStyle(fontSize: 14))),
+                              DropdownMenuItem(value: '+91', child: Text('🇮🇳 +91', style: TextStyle(fontSize: 14))),
+                              DropdownMenuItem(value: '+971', child: Text('🇦🇪 +971', style: TextStyle(fontSize: 14))),
+                              DropdownMenuItem(value: '+233', child: Text('🇬🇭 +233', style: TextStyle(fontSize: 14))),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) c.phoneCode.value = v;
+                            },
+                          ),
+                        )),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      // Phone number field
+                      Expanded(
+                        child: CustomTextFormField(
+                          controller: c.phoneController,
+                          hint: 'Phone number'.tr,
+                          icon: Iconsax.call_copy,
+                          keyboardType: TextInputType.phone,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -186,17 +194,5 @@ class EditProfileView extends StatelessWidget {
         }),
       ),
     );
-  }
-}
-
-PhoneNumber _parsePhone(String text) {
-  if (text.isEmpty) return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
-  try {
-    if (text.startsWith('+')) {
-      return PhoneNumber.parse(text);
-    }
-    return PhoneNumber.parse('+$text');
-  } catch (_) {
-    return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
   }
 }
