@@ -55,7 +55,13 @@ Future<void> main() async {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
         box.write('deep_link_token', token);
-        box.write('deep_link_type', uri.path.contains('email-verification') ? 'email_verify' : 'password_reset');
+        String type = 'password_reset';
+        if (uri.path.contains('email-verification')) {
+          type = 'email_verify';
+        } else if (uri.path.contains('email/reset')) {
+          type = 'email_reset';
+        }
+        box.write('deep_link_type', type);
       }
     }
   } catch (_) {}
@@ -65,7 +71,13 @@ Future<void> main() async {
     final token = uri.queryParameters['u'] ?? '';
     if (token.isNotEmpty) {
       box.write('deep_link_token', token);
-      box.write('deep_link_type', uri.path.contains('email-verification') ? 'email_verify' : 'password_reset');
+      String type = 'password_reset';
+      if (uri.path.contains('email-verification')) {
+        type = 'email_verify';
+      } else if (uri.path.contains('email/reset')) {
+        type = 'email_reset';
+      }
+      box.write('deep_link_type', type);
     }
   });
 
