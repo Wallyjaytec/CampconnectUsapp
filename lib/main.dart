@@ -54,14 +54,15 @@ Future<void> main() async {
     if (uri != null) {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
-        box.write('deep_link_token', token);
-        String type = 'password_reset';
-        if (uri.toString().contains('email-verification')) {
-          type = 'email_verify';
-        } else if (uri.toString().contains('type=email')) {
-          type = 'email_reset';
+        if (uri.toString().contains('type=email')) {
+          box.write('pending_email_reset_token', token);
+        } else if (uri.toString().contains('email-verification')) {
+          box.write('deep_link_token', token);
+          box.write('deep_link_type', 'email_verify');
+        } else {
+          box.write('deep_link_token', token);
+          box.write('deep_link_type', 'password_reset');
         }
-        box.write('deep_link_type', type);
       }
     }
   } catch (_) {}
@@ -70,14 +71,15 @@ Future<void> main() async {
   _appLinks.uriLinkStream.listen((uri) {
     final token = uri.queryParameters['u'] ?? '';
     if (token.isNotEmpty) {
-      box.write('deep_link_token', token);
-      String type = 'password_reset';
-      if (uri.toString().contains('email-verification')) {
-        type = 'email_verify';
-      } else if (uri.toString().contains('type=email')) {
-        type = 'email_reset';
+      if (uri.toString().contains('type=email')) {
+        box.write('pending_email_reset_token', token);
+      } else if (uri.toString().contains('email-verification')) {
+        box.write('deep_link_token', token);
+        box.write('deep_link_type', 'email_verify');
+      } else {
+        box.write('deep_link_token', token);
+        box.write('deep_link_type', 'password_reset');
       }
-      box.write('deep_link_type', type);
     }
   });
 
