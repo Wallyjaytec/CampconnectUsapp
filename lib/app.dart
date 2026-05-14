@@ -39,7 +39,9 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         final uri = Uri.tryParse(settings.name ?? '');
         if (uri != null) {
-          if (uri.host == 'email' && uri.path.contains('reset')) {
+          final path = settings.name ?? '';
+          
+          if (path.contains('/email/reset')) {
             final token = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
               page: () => EmailResetView(token: token),
