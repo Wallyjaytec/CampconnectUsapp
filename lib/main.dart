@@ -56,9 +56,9 @@ Future<void> main() async {
       if (token.isNotEmpty) {
         box.write('deep_link_token', token);
         String type = 'password_reset';
-        if (uri.path.contains('email-verification')) {
+        if (uri.toString().contains('email-verification')) {
           type = 'email_verify';
-        } else if (uri.path.contains('email/reset')) {
+        } else if (uri.toString().contains('type=email')) {
           type = 'email_reset';
         }
         box.write('deep_link_type', type);
@@ -72,9 +72,9 @@ Future<void> main() async {
     if (token.isNotEmpty) {
       box.write('deep_link_token', token);
       String type = 'password_reset';
-      if (uri.path.contains('email-verification')) {
+      if (uri.toString().contains('email-verification')) {
         type = 'email_verify';
-      } else if (uri.path.contains('email/reset')) {
+      } else if (uri.toString().contains('type=email')) {
         type = 'email_reset';
       }
       box.write('deep_link_type', type);
