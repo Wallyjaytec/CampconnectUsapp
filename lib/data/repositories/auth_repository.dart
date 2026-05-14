@@ -61,7 +61,8 @@ class AuthRepository {
 
   Future<ForgotPasswordResponse> sendEmailResetLink() async {
     final url = AppConfig.customerEmailResetLinkUrl();
-    final json = await _api.getJson(url);
+    final fields = <String, String>{'from': 'app'};
+    final json = await _api.postMultipart(url, fields: fields);
     return ForgotPasswordResponse.fromJson(json);
   }
 
