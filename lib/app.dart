@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
         if (uri != null) {
           final path = settings.name ?? '';
           
-          // Email reset - check FIRST with specific path
-          if (path.contains('/email/reset')) {
+          // Email reset via password reset path with type=email
+          if (path.contains('/password/reset') && uri.queryParameters['type'] == 'email') {
             final token = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
               page: () => EmailResetView(token: token),
