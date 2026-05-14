@@ -25,66 +25,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             
-            <!-- Custom scheme for campconnectus links -->
+            <!-- Deep Links -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="campconnectus" android:host="*" />
-            </intent-filter>
-            
-            <!-- Email Verification Deep Link -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="campconnectus.store"
-                    android:pathPrefix="/customer/email-verification" />
-            </intent-filter>
-            
-            <!-- Password Reset Deep Link -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="campconnectus.store"
-                    android:pathPrefix="/password/reset" />
-            </intent-filter>
-            
-            <!-- Password Reset Deep Link (with trailing slash) -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="campconnectus.store"
-                    android:pathPrefix="/password/reset/" />
-            </intent-filter>
-            
-            <!-- Email Reset Deep Link -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="campconnectus.store"
-                    android:pathPrefix="/email/reset" />
-            </intent-filter>
-            
-            <!-- All CampconnectUs Links -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="campconnectus.store" />
+                <data android:scheme="https" android:host="campconnectus.store" />
             </intent-filter>
         </activity>
         <meta-data android:name="flutterEmbedding" android:value="2" />
