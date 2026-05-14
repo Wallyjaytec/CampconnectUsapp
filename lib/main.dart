@@ -53,7 +53,7 @@ Future<void> main() async {
 
   // Get initial deep link
   try {
-    final uri = await _appLinks.getInitialUri();
+    final uri = await _appLinks.getInitialLink();
     if (uri != null) {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
