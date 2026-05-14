@@ -12,6 +12,7 @@ import 'core/utils/locale_mapper.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/auth/view/email_reset_view.dart';
+import 'main.dart';
 
 class MyApp extends StatelessWidget {
   final String initialLocaleCode;
@@ -42,12 +43,12 @@ class MyApp extends StatelessWidget {
         
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
-            final box = GetStorage();
-            final emailToken = box.read('pending_email_reset_token');
-            if (emailToken != null && emailToken.toString().isNotEmpty) {
-              box.remove('pending_email_reset_token');
+            // Check for pending email reset
+            if (pendingEmailResetToken != null && pendingEmailResetToken!.isNotEmpty) {
+              final token = pendingEmailResetToken!;
+              pendingEmailResetToken = null;
               return GetPageRoute(
-                page: () => EmailResetView(token: emailToken.toString()),
+                page: () => EmailResetView(token: token),
                 routeName: '/email-reset',
               );
             }
