@@ -52,6 +52,16 @@ class MyApp extends StatelessWidget {
               routeName: '/verify-email',
             );
           }
+          if (uri.path.contains('email') && uri.path.contains('reset')) {
+            final token = uri.queryParameters['u'] ?? '';
+            final box = GetStorage();
+            box.write('deep_link_token', token);
+            box.write('deep_link_type', 'email_reset');
+            return GetPageRoute(
+              page: () => PasswordResetView(token: token),
+              routeName: '/email-reset',
+            );
+          }
         }
         return null;
       },
