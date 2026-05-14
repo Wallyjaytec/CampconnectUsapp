@@ -133,7 +133,7 @@ class EditProfileView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Phone with country picker (same as original signup layout)
+                  // Phone with country picker
                   Container(
                     height: 50,
                     decoration: BoxDecoration(
@@ -192,15 +192,11 @@ class EditProfileView extends StatelessWidget {
 PhoneNumber _getInitialPhone(String code, String number) {
   try {
     if (number.isNotEmpty) {
-      final isoMap = {
-        '234': IsoCode.NG, '1': IsoCode.US, '44': IsoCode.GB,
-        '91': IsoCode.IN, '971': IsoCode.AE, '233': IsoCode.GH,
-        '254': IsoCode.KE, '27': IsoCode.ZA, '86': IsoCode.CN,
-        '81': IsoCode.JP, '49': IsoCode.DE, '33': IsoCode.FR,
-        '39': IsoCode.IT, '7': IsoCode.RU, '55': IsoCode.BR,
-        '61': IsoCode.AU, '966': IsoCode.SA,
-      };
-      final iso = isoMap[code.replaceAll('+', '')] ?? IsoCode.NG;
+      final cleanCode = code.replaceAll('+', '');
+      final iso = IsoCode.values.firstWhere(
+        (e) => e.countryCode == cleanCode,
+        orElse: () => IsoCode.NG,
+      );
       return PhoneNumber(isoCode: iso, nsn: number);
     }
     return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
