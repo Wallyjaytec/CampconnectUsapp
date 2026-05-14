@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
 import '../../auth/view/verification_success_view.dart';
+import '../../auth/view/email_reset_view.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,6 +38,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         box.remove('deep_link_type');
         if (type == 'email_verify') {
           Get.offAll(() => VerificationSuccessView(code: token));
+        } else if (type == 'email_reset') {
+          Get.offAll(() => EmailResetView(token: token));
         } else {
           Get.offAll(() => PasswordResetView(token: token));
         }
