@@ -190,17 +190,18 @@ class EditProfileView extends StatelessWidget {
 }
 
 PhoneNumber _getInitialPhone(String code, String number) {
+  if (number.isEmpty) return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
   try {
-    if (number.isNotEmpty) {
-      final cleanCode = code.replaceAll('+', '');
-      final iso = IsoCode.values.firstWhere(
-        (e) => e.countryCode == cleanCode,
-        orElse: () => IsoCode.NG,
-      );
-      return PhoneNumber(isoCode: iso, nsn: number);
+    final cleanCode = code.replaceAll('+', '');
+    for (final iso in IsoCode.values) {
+      try {
+        if (PhoneNumber(isoCode: iso, nsn: '').countryCode == cleanCode) {
+          return PhoneNumber(isoCode: iso, nsn: number);
+        }
+      } catch (_) {}
     }
-    return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: number);
   } catch (_) {
-    return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: number);
   }
 }
