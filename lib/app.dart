@@ -37,19 +37,20 @@ class MyApp extends StatelessWidget {
       initialRoute: AppRoutes.splashView,
       getPages: AppPages.pages,
       onGenerateRoute: (settings) {
-        final uri = Uri.tryParse(settings.name ?? '');
+        final rawPath = settings.name ?? '';
+        
+        // Email reset - check raw string first
+        if (rawPath.contains('type=email')) {
+          final uMatch = RegExp(r'u=([^&\s]+)').firstMatch(rawPath);
+          final token = Uri.decodeComponent(uMatch?.group(1) ?? '');
+          return GetPageRoute(
+            page: () => EmailResetView(token: token),
+            routeName: '/email-reset',
+          );
+        }
+        
+        final uri = Uri.tryParse(rawPath);
         if (uri != null) {
-          final rawPath = settings.name ?? '';
-          
-          // Email reset - check raw string for type=email
-          if (rawPath.contains('type=email')) {
-            final token = uri.queryParameters['u'] ?? '';
-            return GetPageRoute(
-              page: () => EmailResetView(token: token),
-              routeName: '/email-reset',
-            );
-          }
-          // Password reset
           if (rawPath.contains('/password/reset')) {
             final token = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
@@ -57,7 +58,6 @@ class MyApp extends StatelessWidget {
               routeName: '/password-reset',
             );
           }
-          // Email verification
           if (uri.path.contains('email-verification')) {
             final code = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
