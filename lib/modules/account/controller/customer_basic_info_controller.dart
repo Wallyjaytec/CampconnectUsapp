@@ -1,291 +1,205 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:phone_form_field/phone_form_field.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/services/api_service.dart';
-import '../../../core/services/login_service.dart';
-import '../../../core/services/permission_service.dart';
-import '../../../data/repositories/auth_repository.dart';
-import '../../../data/repositories/customer_repository.dart';
-import '../model/customer_basic_info.dart';
+import '../../../shared/widgets/back_icon_widget.dart';
+import '../controller/customer_basic_info_controller.dart';
+import '../widgets/custom_text_form_field.dart';
 
-class CustomerBasicInfoController extends GetxController {
-  final _repo = CustomerRepository();
-  final _picker = ImagePicker();
-
-  final _authRepo = AuthRepository();
-
-  final avatarUrl = ''.obs;
-  final name = ''.obs;
-  final email = ''.obs;
-  final phone = ''.obs;
-  final phoneCode = '+234'.obs;
-
-  final isLoading = false.obs;
-
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
-
-  String _originalName = '';
-  String _originalPhoneDisplay = '';
-
-  final pickedImagePath = ''.obs;
-
-  final nameError = ''.obs;
-  final phoneError = ''.obs;
+class EditProfileView extends StatelessWidget {
+  const EditProfileView({super.key});
 
   @override
-  void onInit() {
-    super.onInit();
-    fetchBasicInfo();
-  }
+  Widget build(BuildContext context) {
+    final c = Get.find<CustomerBasicInfoController>();
+    final basicCtrl = Get.find<CustomerBasicInfoController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leadingWidth: 44,
+          leading: const BackIconWidget(),
+          centerTitle: false,
+          titleSpacing: 0,
+          title: Text(
+            'Edit Profile'.tr,
+            style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+          ),
+        ),
+        body: Obx(() {
+          final loading = c.isLoading.value;
+          final picked = c.pickedImagePath.value;
+          final avatar = c.avatarUrl.value;
 
-  Future<void> pickFromGallery() async {
-    final ok = await PermissionService.I.canUseMediaOrExplain();
-    if (!ok) return;
-    final x = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
-    if (x != null) pickedImagePath.value = x.path;
-  }
-
-  Future<void> pickFromCamera() async {
-    final ok = await PermissionService.I.canUseMediaOrExplain();
-    if (!ok) return;
-    final x = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 85,
-    );
-    if (x != null) pickedImagePath.value = x.path;
-  }
-
-  void clearPickedImage() => pickedImagePath.value = '';
-
-  Future<void> removeProfilePicture() async {
-    if (!LoginService().isLoggedIn()) return;
-
-    try {
-      isLoading.value = true;
-
-      String phoneToSend = _digitsOnly(phoneController.text);
-      if (phoneToSend.isEmpty) phoneToSend = _digitsOnly(phone.value);
-      if (phoneToSend.startsWith('234') && phoneToSend.length > 10) {
-        phoneToSend = phoneToSend.substring(3);
-      }
-
-      final res = await _repo.removeProfilePicture(
-        name: nameController.text.isEmpty ? name.value : nameController.text,
-        phone: phoneToSend,
-      );
-
-      if (res.success) {
-        pickedImagePath.value = '';
-        await fetchBasicInfo();
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Profile picture removed'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
-        );
-      } else {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Could not remove profile picture'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Something went wrong'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> fetchBasicInfo() async {
-    if (!LoginService().isLoggedIn()) {
-      _bindGuest();
-      return;
-    }
-
-    try {
-      isLoading.value = true;
-      final res = await _repo.fetchBasicInfo();
-
-      if (res.info != null) {
-        _bindInfo(res.info!);
-      } else if (!res.success) {
-        _bindGuest();
-      }
-    } catch (e) {
-      if (e is ApiHttpException && e.statusCode == 401) {
-        _bindGuest();
-      }
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  void _bindGuest() {
-    avatarUrl.value = '';
-    name.value = '';
-    email.value = '';
-    phone.value = '';
-    phoneCode.value = '+234';
-
-    nameController.text = '';
-    phoneController.text = '';
-
-    _originalName = '';
-    _originalPhoneDisplay = '';
-  }
-
-  void _bindInfo(CustomerBasicInfo info) {
-    final rawImage = info.image ?? '';
-    avatarUrl.value = (rawImage.isEmpty || rawImage == '/') ? '' : AppConfig.assetUrl(rawImage);
-    name.value = info.name;
-    email.value = info.email;
-
-    phoneCode.value = info.phoneCode ?? '+234';
-    final phoneOnly = info.phone ?? '';
-    phone.value = '${phoneCode.value}$phoneOnly';
-
-    nameController.text = info.name;
-    if (phoneController.text.isEmpty) {
-      phoneController.text = phoneOnly;
-    }
-
-    _originalName = info.name;
-    _originalPhoneDisplay = phone.value;
-  }
-
-  void _clearFieldErrors() {
-    nameError.value = '';
-    phoneError.value = '';
-  }
-
-  void _applyFieldErrors(Map<String, dynamic> errors) {
-    String firstMsg(dynamic v) =>
-        (v is List && v.isNotEmpty) ? v.first.toString() : '';
-    nameError.value = firstMsg(errors['name']);
-    phoneError.value = firstMsg(errors['phone']);
-  }
-
-  Future<void> saveBasicInfo() async {
-    if (!LoginService().isLoggedIn()) return;
-
-    final newName = nameController.text.trim();
-    final phoneRaw = phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (newName.isEmpty) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Name is required'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-
-    try {
-      isLoading.value = true;
-      final res = await _repo.updateBasicInfo(
-        name: newName,
-        phone: phoneRaw,
-        phoneCode: phoneCode.value,
-        imageFile: pickedImagePath.value.isNotEmpty ? File(pickedImagePath.value) : null,
-      );
-
-      if (res.success) {
-        await fetchBasicInfo();
-        pickedImagePath.value = '';
-        _originalName = nameController.text.trim();
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
-        );
-      } else {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Update failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-        );
-      }
-    } catch (e) {
-      String msg = 'Update failed';
-      if (e is ApiHttpException) {
-        try {
-          final body = json.decode(e.body);
-          if (body['errors'] != null) {
-            final errors = body['errors'] as Map<String, dynamic>;
-            msg = errors.values.expand((v) => v is List ? v.map((x) => x.toString()) : [v.toString()]).join('\n');
-          } else if (body['message'] != null) {
-            msg = body['message'].toString();
+          ImageProvider avatarProvider;
+          if (picked.isNotEmpty && File(picked).existsSync()) {
+            avatarProvider = FileImage(File(picked));
+          } else if (avatar.isNotEmpty && avatar != '/') {
+            avatarProvider = CachedNetworkImageProvider(avatar);
+          } else {
+            avatarProvider = const AssetImage("assets/icons/profile.png");
           }
-        } catch (_) {}
-      }
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
-  Future<void> sendForgotPasswordLink() async {
-    final currentEmail = email.value.trim();
-    if (currentEmail.isEmpty) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('No email found'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-    try {
-      final res = await _authRepo.forgotPassword(email: currentEmail);
-      if (res.success) {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text(res.message ?? 'Password reset link sent'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
-        );
-      } else {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Could not send password reset link'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-    }
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(radius: 50, backgroundImage: avatarProvider),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryColor,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Iconsax.gallery_copy, size: 16, color: Colors.white),
+                          onPressed: loading ? null : c.pickFromGallery,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryColor,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Iconsax.camera_copy, size: 16, color: Colors.white),
+                          onPressed: loading ? null : c.pickFromCamera,
+                        ),
+                      ),
+                      Obx(() {
+                        final hasImage = (c.avatarUrl.value.isNotEmpty && c.avatarUrl.value != '/') || c.pickedImagePath.value.isNotEmpty;
+                        if (!hasImage) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: GestureDetector(
+                            onTap: loading ? null : c.removeProfilePicture,
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFF8C00),
+                              child: Icon(Iconsax.trash_copy, size: 16, color: Colors.white),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  CustomTextFormField(
+                    controller: c.nameController,
+                    hint: 'Full Name'.tr,
+                    icon: Iconsax.user_copy,
+                  ),
+                  const SizedBox(height: 10),
+                  CustomTextFormField(
+                    controller: TextEditingController(text: c.email.value),
+                    readOnly: true,
+                    icon: Iconsax.sms_copy,
+                    hint: 'Email'.tr,
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => basicCtrl.sendResetEmailLink(),
+                      child: Text("${'Reset Email'.tr} ${'?'}", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  CustomTextFormField(
+                    maxLines: 1, minLines: 1,
+                    hint: 'Password'.tr,
+                    icon: Iconsax.lock_1_copy,
+                    readOnly: true,
+                    controller: TextEditingController(text: '********'),
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => basicCtrl.sendForgotPasswordLink(),
+                      child: Text('Forgot Password${' ?'.tr}', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Phone with country picker
+                  Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: PhoneFormField(
+                        initialValue: _getInitialPhone(c.phoneCode.value, c.phoneController.text),
+                        countrySelectorNavigator: const CountrySelectorNavigator.page(),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                          hintText: 'Phone number'.tr,
+                          contentPadding: EdgeInsets.zero,
+                          errorStyle: const TextStyle(height: 0, fontSize: 0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        style: const TextStyle(fontSize: 16, height: 1.2),
+                        onChanged: (p) {
+                          c.phoneCode.value = '+${p.countryCode}';
+                          c.phoneController.text = p.nsn;
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity, height: 44,
+                    child: ElevatedButton(
+                      onPressed: loading ? null : c.saveBasicInfo,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: loading
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
+                          : Text('Save Changes'.tr, style: const TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    );
   }
+}
 
-  Future<void> sendResetEmailLink() async {
-    final currentEmail = email.value.trim();
-    if (currentEmail.isEmpty) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('No email found'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+PhoneNumber _getInitialPhone(String code, String number) {
+  try {
+    if (number.isNotEmpty) {
+      final iso = IsoCode.values.firstWhere(
+        (e) => e.countryCode == code.replaceAll('+', ''),
+        orElse: () => IsoCode.NG,
       );
-      return;
+      return PhoneNumber(isoCode: iso, nsn: number);
     }
-    try {
-      final res = await _authRepo.sendEmailResetLink();
-      if (res.success) {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text(res.message ?? 'Reset email link sent'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
-        );
-      } else {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Could not send reset email'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-    }
-  }
-
-  @override
-  void onClose() {
-    nameController.dispose();
-    phoneController.dispose();
-    super.onClose();
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+  } catch (_) {
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
   }
 }
