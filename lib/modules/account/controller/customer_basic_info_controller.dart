@@ -24,6 +24,7 @@ class CustomerBasicInfoController extends GetxController {
   final name = ''.obs;
   final email = ''.obs;
   final phone = ''.obs;
+  final phoneCode = '+234'.obs;
 
   final isLoading = false.obs;
 
@@ -74,13 +75,14 @@ class CustomerBasicInfoController extends GetxController {
     try {
       isLoading.value = true;
 
-      String phoneToSend = _digitsOnly(phone.value);
+      String phoneToSend = _digitsOnly(phoneController.text);
+      if (phoneToSend.isEmpty) phoneToSend = _digitsOnly(phone.value);
       if (phoneToSend.startsWith('234') && phoneToSend.length > 10) {
         phoneToSend = phoneToSend.substring(3);
       }
 
       final res = await _repo.removeProfilePicture(
-        name: name.value,
+        name: nameController.text.isEmpty ? name.value : nameController.text,
         phone: phoneToSend,
       );
 
@@ -133,6 +135,7 @@ class CustomerBasicInfoController extends GetxController {
     name.value = '';
     email.value = '';
     phone.value = '';
+    phoneCode.value = '+234';
 
     nameController.text = '';
     phoneController.text = '';
@@ -147,19 +150,17 @@ class CustomerBasicInfoController extends GetxController {
     name.value = info.name;
     email.value = info.email;
 
-    final phoneWithCode = (info.phoneWithCode?.trim().isNotEmpty ?? false)
-        ? info.phoneWithCode!.trim()
-        : ((info.phone?.trim().isNotEmpty ?? false) ? info.phone!.trim() : '');
-
-    phone.value = phoneWithCode;
+    phoneCode.value = info.phoneCode ?? '+234';
+    final phoneOnly = info.phone ?? '';
+    phone.value = '${phoneCode.value}$phoneOnly';
 
     nameController.text = info.name;
     if (phoneController.text.isEmpty) {
-      phoneController.text = phoneWithCode;
+      phoneController.text = phoneOnly;
     }
 
     _originalName = info.name;
-    _originalPhoneDisplay = phoneWithCode;
+    _originalPhoneDisplay = phone.value;
   }
 
   void _clearFieldErrors() {
@@ -178,18 +179,7 @@ class CustomerBasicInfoController extends GetxController {
     if (!LoginService().isLoggedIn()) return;
 
     final newName = nameController.text.trim();
-
-    String phoneRaw = phoneController.text.trim();
-    String phoneCode = '+234';
-
-    if (phoneRaw.startsWith('+')) {
-      final match = RegExp(r'^\+(\d{1,3})').firstMatch(phoneRaw);
-      if (match != null) {
-        phoneCode = '+${match.group(1)}';
-        phoneRaw = phoneRaw.substring(match.group(0)!.length);
-      }
-    }
-    phoneRaw = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
+    final phoneRaw = phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
 
     if (newName.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
@@ -203,7 +193,7 @@ class CustomerBasicInfoController extends GetxController {
       final res = await _repo.updateBasicInfo(
         name: newName,
         phone: phoneRaw,
-        phoneCode: phoneCode,
+        phoneCode: phoneCode.value,
         imageFile: pickedImagePath.value.isNotEmpty ? File(pickedImagePath.value) : null,
       );
 
