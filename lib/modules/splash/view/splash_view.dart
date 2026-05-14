@@ -7,8 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
 import '../../auth/view/verification_success_view.dart';
-import '../../auth/view/email_reset_view.dart';
-import '../../../main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,15 +29,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      
-      // Check global variable first (set by main.dart before runApp)
-      if (pendingEmailResetToken != null && pendingEmailResetToken!.isNotEmpty) {
-        final token = pendingEmailResetToken!;
-        pendingEmailResetToken = null;
-        Get.offAll(() => EmailResetView(token: token));
-        return;
-      }
-      
       final box = GetStorage();
       final token = box.read<String>('deep_link_token') ?? '';
       final type = box.read<String>('deep_link_type') ?? '';
@@ -48,8 +37,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         box.remove('deep_link_type');
         if (type == 'email_verify') {
           Get.offAll(() => VerificationSuccessView(code: token));
-        } else if (type == 'email_reset') {
-          Get.offAll(() => EmailResetView(token: token));
         } else {
           Get.offAll(() => PasswordResetView(token: token));
         }
