@@ -38,21 +38,20 @@ class MyApp extends StatelessWidget {
       getPages: AppPages.pages,
       onGenerateRoute: (settings) {
         final rawPath = settings.name ?? '';
-        
-        // Email reset - check raw string first
-        if (rawPath.contains('type=email')) {
-          final uMatch = RegExp(r'u=([^&\s]+)').firstMatch(rawPath);
-          final token = Uri.decodeComponent(uMatch?.group(1) ?? '');
-          return GetPageRoute(
-            page: () => EmailResetView(token: token),
-            routeName: '/email-reset',
-          );
-        }
-        
         final uri = Uri.tryParse(rawPath);
+        
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
             final token = uri.queryParameters['u'] ?? '';
+            // Check if this is actually email reset from deep link storage
+            final box = GetStorage();
+            final deepLinkType = box.read('deep_link_type') ?? '';
+            if (deepLinkType == 'email_reset') {
+              return GetPageRoute(
+                page: () => EmailResetView(token: token),
+                routeName: '/email-reset',
+              );
+            }
             return GetPageRoute(
               page: () => PasswordResetView(token: token),
               routeName: '/password-reset',
