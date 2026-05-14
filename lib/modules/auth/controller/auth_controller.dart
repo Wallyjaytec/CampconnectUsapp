@@ -262,6 +262,10 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<Map<String, dynamic>?> verifyEmailResetToken(String identifier) async {
+    return await _repo.verifyResetToken(identifier);
+  }
+
   Future<void> resetEmail({required String token, required String email}) async {
     if (email.isEmpty) {
       _showSnackbar('Required'.tr, 'Please enter your new email address'.tr);
@@ -275,7 +279,12 @@ class AuthController extends GetxController {
         _showSnackbar('Success'.tr, 'Email updated successfully'.tr);
         Get.offAllNamed(AppRoutes.loginView);
       } else {
-        _showSnackbar('Failed'.tr, res.message ?? 'Could not update email'.tr);
+        final msg = res.message ?? '';
+        if (msg.toLowerCase().contains('expired') || msg.toLowerCase().contains('invalid')) {
+          _showSnackbar('Link Expired'.tr, 'This reset link has expired or is invalid. Please request a new one.'.tr);
+        } else {
+          _showSnackbar('Failed'.tr, msg.isNotEmpty ? msg : 'Could not update email'.tr);
+        }
       }
     } catch (e) {
       if (Get.context != null) {
