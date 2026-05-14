@@ -42,16 +42,16 @@ class MyApp extends StatelessWidget {
         
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
-            final token = uri.queryParameters['u'] ?? '';
-            // Check if this is actually email reset from deep link storage
             final box = GetStorage();
-            final deepLinkType = box.read('deep_link_type') ?? '';
-            if (deepLinkType == 'email_reset') {
+            final emailToken = box.read('pending_email_reset_token');
+            if (emailToken != null && emailToken.toString().isNotEmpty) {
+              box.remove('pending_email_reset_token');
               return GetPageRoute(
-                page: () => EmailResetView(token: token),
+                page: () => EmailResetView(token: emailToken.toString()),
                 routeName: '/email-reset',
               );
             }
+            final token = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
               page: () => PasswordResetView(token: token),
               routeName: '/password-reset',
