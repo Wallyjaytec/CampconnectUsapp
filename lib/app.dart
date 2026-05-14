@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
         if (uri != null) {
           final path = settings.name ?? '';
           
+          // Email reset - check FIRST with specific path
           if (path.contains('/email/reset')) {
             final token = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
@@ -48,13 +49,15 @@ class MyApp extends StatelessWidget {
               routeName: '/email-reset',
             );
           }
-          if (uri.host == 'password' && uri.path.contains('reset')) {
+          // Password reset
+          if (path.contains('/password/reset')) {
             final token = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
               page: () => PasswordResetView(token: token),
               routeName: '/password-reset',
             );
           }
+          // Email verification
           if (uri.path.contains('email-verification')) {
             final code = uri.queryParameters['u'] ?? '';
             return GetPageRoute(
