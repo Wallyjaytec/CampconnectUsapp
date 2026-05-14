@@ -262,6 +262,30 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> resetEmail({required String token, required String email}) async {
+    if (email.isEmpty) {
+      _showSnackbar('Required'.tr, 'Please enter your new email address'.tr);
+      return;
+    }
+    try {
+      isLoading.value = true;
+      final res = await _repo.resetEmail(token: token, email: email);
+      if (Get.context == null) return;
+      if (res.success) {
+        _showSnackbar('Success'.tr, 'Email updated successfully'.tr);
+        Get.offAllNamed(AppRoutes.loginView);
+      } else {
+        _showSnackbar('Failed'.tr, res.message ?? 'Could not update email'.tr);
+      }
+    } catch (e) {
+      if (Get.context != null) {
+        _showSnackbar('Failed'.tr, 'Something went wrong'.tr);
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   final passwordObscure = true.obs;
   final confirmPasswordObscure = true.obs;
   void togglePasswordVisibility() => passwordObscure.toggle();
