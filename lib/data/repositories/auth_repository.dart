@@ -65,6 +65,19 @@ class AuthRepository {
     return ForgotPasswordResponse.fromJson(json);
   }
 
+  Future<ForgotPasswordResponse> resetEmail({
+    required String token,
+    required String email,
+  }) async {
+    final url = AppConfig.customerEmailResetLinkUrl();
+    final fields = <String, String>{
+      'identifier': token,
+      'email': email,
+    };
+    final json = await _api.postMultipart(url, fields: fields);
+    return ForgotPasswordResponse.fromJson(json);
+  }
+
   Future<Map<String, dynamic>?> verifyResetToken(String identifier) async {
     final url = AppConfig.verifyResetTokenUrl();
     final fields = <String, String>{'identifier': identifier};
