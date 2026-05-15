@@ -35,14 +35,21 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     _validateToken();
   }
 
-  // Helper method to determine where to go based on login status
   void _navigateAfterSuccess() {
-    final isLoggedIn = LoginService().isLoggedIn();
-    if (isLoggedIn) {
-      Get.offAllNamed('/edit_profile_view');
-    } else {
-      Get.offAllNamed('/login_view');
-    }
+    // Log the user out
+    LoginService().logout();
+    
+    // Show message
+    Get.snackbar(
+      'Success', 
+      'Your credentials have been updated. Please login again.',
+      duration: const Duration(seconds: 3),
+      backgroundColor: AppColors.primaryColor,
+      colorText: Colors.white,
+    );
+    
+    // Go to login page
+    Get.offAllNamed('/login_view');
   }
 
   Future<void> _validateToken() async {
@@ -96,7 +103,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           email: _emailController.text.trim(),
         );
         if (result.success) {
-          _navigateAfterSuccess(); // ← Uses login check
+          _navigateAfterSuccess();
         } else {
           setState(() {
             _loading = false;
@@ -117,7 +124,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           password: _passwordController.text,
         );
         if (result == true) {
-          _navigateAfterSuccess(); // ← Uses login check
+          _navigateAfterSuccess();
           return;
         }
         setState(() {
@@ -189,7 +196,6 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // If logged in, go to edit profile, else go to login
                       if (isLoggedIn) {
                         Get.offAllNamed('/edit_profile_view');
                       } else {
