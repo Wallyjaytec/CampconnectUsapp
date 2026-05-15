@@ -24,6 +24,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   String _errorMessage = '';
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _isEmailReset = false;
+  String _cleanToken = '';
 
   @override
   void initState() {
@@ -33,8 +35,21 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   Future<void> _validateToken() async {
     try {
+      _cleanToken = widget.token;
+      // Check if type=email is embedded in the token
+      if (_cleanToken.contains('type=email') || _cleanToken.contains('type%3Demail')) {
+        _isEmailReset = true;
+        _cleanToken = _cleanToken
+            .replaceAll('&type=email', '')
+            .replaceAll('&type%3Demail', '')
+            .replaceAll('%26type%3Demail', '')
+            .replaceAll('%26type=email', '');
+      } else {
+        _isEmailReset = widget.isEmailReset;
+      }
+      
       final authRepo = AuthRepository(api: ApiService());
-      final result = await authRepo.verifyResetToken(widget.token);
+      final result = await authRepo.verifyResetToken(_cleanToken);
       if (result != null && result['success'] == true) {
         setState(() {
           _isValid = true;
@@ -62,12 +77,11 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       _errorMessage = '';
     });
 
-    if (widget.isEmailReset) {
-      // Email reset
+    if (_isEmailReset) {
       try {
         final authRepo = AuthRepository(api: ApiService());
         final result = await authRepo.resetEmail(
-          token: widget.token,
+          token: _cleanToken,
           email: _emailController.text.trim(),
         );
         if (result.success) {
@@ -85,11 +99,10 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         });
       }
     } else {
-      // Password reset
       try {
         final authRepo = AuthRepository(api: ApiService());
         final result = await authRepo.resetPassword(
-          identifier: widget.token,
+          identifier: _cleanToken,
           password: _passwordController.text,
         );
         if (result == true) {
@@ -121,7 +134,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
     if (!_isValid) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEmailReset ? 'Reset Email' : 'Reset Password'), centerTitle: true),
+        appBar: AppBar(title: Text(_isEmailReset ? 'Reset Email' : 'Reset Password'), centerTitle: true),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -148,7 +161,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEmailReset ? 'Reset Email' : 'Reset Password'), centerTitle: true, elevation: 0),
+      appBar: AppBar(title: Text(_isEmailReset ? 'Reset Email' : 'Reset Password'), centerTitle: true, elevation: 0),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -160,13 +173,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.isEmailReset ? 'Update your email' : 'Reset your password', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                    Text(_isEmailReset ? 'Update your email' : 'Reset your password', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
                     const SizedBox(height: 8),
-                    Text(widget.isEmailReset ? 'Enter your new email address' : 'Insert your new password', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                    Text(_isEmailReset ? 'Enter your new email address' : 'Insert your new password', style: const TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 20),
                     TextFormField(enabled: false, initialValue: _email, decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email_outlined))),
                     const SizedBox(height: 16),
-                    if (widget.isEmailReset)
+                    if (_isEmailReset)
                       TextFormField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'New Email', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email_outlined)), validator: (v) { if (v == null || v.isEmpty) return 'Email is required'; if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email'; return null; })
                     else ...[
                       TextFormField(controller: _passwordController, obscureText: _obscurePassword, decoration: InputDecoration(labelText: 'Password', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.lock_outlined), suffixIcon: IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscurePassword = !_obscurePassword))), validator: (v) => v == null || v.length < 6 ? 'Min 6 characters' : null),
@@ -174,7 +187,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       TextFormField(controller: _confirmController, obscureText: _obscureConfirm, decoration: InputDecoration(labelText: 'Confirm Password', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.lock_outlined), suffixIcon: IconButton(icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm))), validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null),
                     ],
                     const SizedBox(height: 24),
-                    SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _loading ? null : _submit, style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : Text(widget.isEmailReset ? 'Update Email' : 'Change password', style: const TextStyle(fontSize: 16, color: Colors.white)))),
+                    SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _loading ? null : _submit, style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : Text(_isEmailReset ? 'Update Email' : 'Change password', style: const TextStyle(fontSize: 16, color: Colors.white)))),
                     if (_errorMessage.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
