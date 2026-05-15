@@ -36,20 +36,16 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   }
 
   void _navigateAfterSuccess() {
-    // Log the user out
-    LoginService().logout();
-    
-    // Show message
-    Get.snackbar(
-      'Success', 
-      'Your credentials have been updated. Please login again.',
-      duration: const Duration(seconds: 3),
-      backgroundColor: AppColors.primaryColor,
-      colorText: Colors.white,
-    );
-    
-    // Go to login page
-    Get.offAllNamed('/login_view');
+    final isLoggedIn = LoginService().isLoggedIn();
+    if (isLoggedIn) {
+      // Force reload EditProfileView
+      try {
+        Get.delete<CustomerBasicInfoController>();
+      } catch (_) {}
+      Get.offAllNamed('/edit_profile_view');
+    } else {
+      Get.offAllNamed('/login_view');
+    }
   }
 
   Future<void> _validateToken() async {
@@ -197,9 +193,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (isLoggedIn) {
+                        // Force reload EditProfileView
+                        try {
+                          Get.delete<CustomerBasicInfoController>();
+                        } catch (_) {}
                         Get.offAllNamed('/edit_profile_view');
                       } else {
-                        Get.offAllNamed('/login_view');
+                        Get.offAllNamed('/forgot_password_view');
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -207,7 +207,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text(
-                      isLoggedIn ? 'Back to Profile' : 'Back to Login',
+                      isLoggedIn ? 'Request New Link' : 'Back to Login',
                       style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
