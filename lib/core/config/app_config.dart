@@ -135,7 +135,7 @@ static const String resetPasswordPath =
   static const String customerEmailResetLinkPath =
       '/api/v1/ecommerce-core/customer/customer-email-reset-link';
   static const String customerResetEmailPath =
-      '/api/v1/ecommerce-core/customer-reset-email';
+      '/api/v1/ecommerce-core/auth/customer-reset-email';  // ← FIXED: Added /auth/
   static const String storeContactMessagePath = '/api/v1/store/contact/message';
   static const String customerCheckoutOrderPath =
       '/api/v1/ecommerce-core/customer/order/create';
