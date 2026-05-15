@@ -36,7 +36,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     _validateToken();
   }
 
-  void _navigateAfterSuccess({bool isEmailReset = false}) {
+  void _navigateAfterSuccess({bool isEmailReset = false}) async {
     // Show success message
     Get.snackbar(
       'Success',
@@ -47,8 +47,11 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       snackPosition: SnackPosition.BOTTOM,
     );
     
-    // Go to homepage
-    Get.offAllNamed('/bottom_navbar_view');
+    // Wait a moment so snackbar is visible
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // Go through splash screen to reinitialize everything
+    Get.offAllNamed('/');
   }
 
   Future<void> _validateToken() async {
@@ -195,15 +198,15 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Go to homepage for all expired links
-                      Get.offAllNamed('/bottom_navbar_view');
+                      // Go through splash screen to reinitialize
+                      Get.offAllNamed('/');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: const Text(
-                      'Go to Homepage',
+                      'Request New Link',
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
