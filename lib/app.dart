@@ -41,9 +41,19 @@ class MyApp extends StatelessWidget {
         
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
-            final token = uri.queryParameters['u'] ?? '';
-            final isEmail = rawPath.contains('type=email') || 
-                           (uri.queryParameters['type'] ?? '') == 'email';
+            var token = uri.queryParameters['u'] ?? '';
+            var isEmail = false;
+            
+            // Check if type=email is embedded in the u parameter
+            if (token.contains('type=email')) {
+              isEmail = true;
+              token = token.replaceAll('&type=email', '').replaceAll('%26type%3Demail', '');
+            }
+            // Also check separate type parameter
+            if ((uri.queryParameters['type'] ?? '') == 'email') {
+              isEmail = true;
+            }
+            
             return GetPageRoute(
               page: () => PasswordResetView(token: token, isEmailReset: isEmail),
               routeName: '/password-reset',
