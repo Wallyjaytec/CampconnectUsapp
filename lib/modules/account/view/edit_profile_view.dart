@@ -1,398 +1,206 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/services/api_service.dart';
-import '../../../../core/services/login_service.dart';
-import '../../../../data/repositories/auth_repository.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:phone_form_field/phone_form_field.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
-class PasswordResetView extends StatefulWidget {
-  final String token;
-  final bool isEmailReset;
-  const PasswordResetView({super.key, required this.token, this.isEmailReset = false});
+import '../../../core/constants/app_colors.dart';
+import '../../../shared/widgets/back_icon_widget.dart';
+import '../controller/customer_basic_info_controller.dart';
+import '../widgets/custom_text_form_field.dart';
 
-  @override
-  State<PasswordResetView> createState() => _PasswordResetViewState();
-}
-
-class _PasswordResetViewState extends State<PasswordResetView> {
-  final _passwordController = TextEditingController();
-  final _confirmController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _loading = false;
-  bool _validating = true;
-  bool _isValid = false;
-  String _email = '';
-  String _errorMessage = '';
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
-  bool _isEmailReset = false;
-  String _cleanToken = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _validateToken();
-  }
-
-  void _navigateAfterSuccess() {
-    // Log the user out
-    LoginService().logout();
-    
-    // Show message
-    Get.snackbar(
-      'Success', 
-      'Your credentials have been updated. Please login again.',
-      duration: const Duration(seconds: 3),
-      backgroundColor: AppColors.primaryColor,
-      colorText: Colors.white,
-    );
-    
-    // Go to login page
-    Get.offAllNamed('/login_view');
-  }
-
-  Future<void> _validateToken() async {
-    try {
-      _cleanToken = widget.token;
-      if (_cleanToken.contains('type=email') || _cleanToken.contains('type%3Demail')) {
-        _isEmailReset = true;
-        _cleanToken = _cleanToken
-            .replaceAll('&type=email', '')
-            .replaceAll('&type%3Demail', '')
-            .replaceAll('%26type%3Demail', '')
-            .replaceAll('%26type=email', '');
-      } else {
-        _isEmailReset = widget.isEmailReset;
-      }
-      
-      final authRepo = AuthRepository(api: ApiService());
-      final result = await authRepo.verifyResetToken(_cleanToken);
-      if (result != null && result['success'] == true) {
-        setState(() {
-          _isValid = true;
-          _email = result['email'] ?? '';
-          _validating = false;
-        });
-      } else {
-        setState(() {
-          _isValid = false;
-          _validating = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _isValid = false;
-        _validating = false;
-      });
-    }
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _errorMessage = '';
-    });
-
-    if (_isEmailReset) {
-      try {
-        final authRepo = AuthRepository(api: ApiService());
-        final result = await authRepo.resetEmail(
-          token: _cleanToken,
-          email: _emailController.text.trim(),
-        );
-        if (result.success) {
-          _navigateAfterSuccess();
-        } else {
-          setState(() {
-            _loading = false;
-            _errorMessage = result.message ?? 'Failed to reset email. Please try again.';
-          });
-        }
-      } catch (e) {
-        setState(() {
-          _loading = false;
-          _errorMessage = 'Something went wrong. Please try again.';
-        });
-      }
-    } else {
-      try {
-        final authRepo = AuthRepository(api: ApiService());
-        final result = await authRepo.resetPassword(
-          identifier: _cleanToken,
-          password: _passwordController.text,
-        );
-        if (result == true) {
-          _navigateAfterSuccess();
-          return;
-        }
-        setState(() {
-          _loading = false;
-          if (result == 'old_password') {
-            _errorMessage = 'You are using your old password. Please enter a new one.';
-          } else {
-            _errorMessage = 'Failed to reset password. Please try again.';
-          }
-        });
-      } catch (e) {
-        setState(() {
-          _loading = false;
-          _errorMessage = 'Something went wrong. Please try again.';
-        });
-      }
-    }
-  }
+class EditProfileView extends StatelessWidget {
+  const EditProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final c = Get.find<CustomerBasicInfoController>();
+    final basicCtrl = Get.find<CustomerBasicInfoController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isLoggedIn = LoginService().isLoggedIn();
-    
-    if (_validating) {
-      return Scaffold(
-        backgroundColor: isDark ? AppColors.darkBackgroundColor : Colors.white,
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
 
-    if (!_isValid) {
-      return Scaffold(
-        backgroundColor: isDark ? AppColors.darkBackgroundColor : Colors.white,
+    return SafeArea(
+      child: Scaffold(
         appBar: AppBar(
-          title: Text(_isEmailReset ? 'Reset Email' : 'Reset Password'),
-          centerTitle: true,
-          backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
-          elevation: 0,
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  _isEmailReset ? 'assets/icons/email_warning.png' : 'assets/icons/password_warning.png',
-                  height: 80,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Link Expired',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'This reset link has already been used or has expired.\nPlease request a new one.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 14),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (isLoggedIn) {
-                        Get.offAllNamed('/edit_profile_view');
-                      } else {
-                        Get.offAllNamed('/login_view');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Text(
-                      isLoggedIn ? 'Back to Profile' : 'Back to Login',
-                      style: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Need help?',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Visit our Help Center or contact us on',
-                  style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 13),
-                ),
-                Text(
-                  'Support@campconnectus.store',
-                  style: const TextStyle(color: AppColors.primaryColor, fontSize: 13),
-                ),
-              ],
-            ),
+          automaticallyImplyLeading: false,
+          leadingWidth: 44,
+          leading: const BackIconWidget(),
+          centerTitle: false,
+          titleSpacing: 0,
+          title: Text(
+            'Edit Profile'.tr,
+            style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
           ),
         ),
-      );
-    }
+        body: Obx(() {
+          final loading = c.isLoading.value;
+          final picked = c.pickedImagePath.value;
+          final avatar = c.avatarUrl.value;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackgroundColor : Colors.white,
-      appBar: AppBar(
-        title: Text(_isEmailReset ? 'Reset Email' : 'Reset Password'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              color: isDark ? AppColors.darkCardColor : Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 30),
-              child: Image.asset(
-                _isEmailReset ? 'assets/icons/email_reset.png' : 'assets/icons/password_reset.png',
-                height: 120,
-                fit: BoxFit.contain,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _isEmailReset ? 'Update your email' : 'Reset your password',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isEmailReset ? 'Enter your new email address' : 'Insert your new password',
-                      style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      enabled: false,
-                      initialValue: _email,
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.email_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (_isEmailReset)
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                        decoration: InputDecoration(
-                          labelText: 'New Email',
-                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.email_outlined),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return 'Email is required';
-                          if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email';
-                          return null;
-                        },
-                      )
-                    else ...[
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.lock_outlined),
-                          suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                          ),
-                        ),
-                        validator: (v) => v == null || v.length < 6 ? 'Min 6 characters' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _confirmController,
-                        obscureText: _obscureConfirm,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                        decoration: InputDecoration(
-                          labelText: 'Confirm Password',
-                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.lock_outlined),
-                          suffixIcon: IconButton(
-                            icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                            onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                          ),
-                        ),
-                        validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        child: _loading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(
-                                _isEmailReset ? 'Update Email' : 'Change password',
-                                style: const TextStyle(fontSize: 16, color: Colors.white),
-                              ),
-                      ),
-                    ),
-                    if (_errorMessage.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          _errorMessage,
-                          style: const TextStyle(color: Colors.red, fontSize: 14),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
+          ImageProvider avatarProvider;
+          if (picked.isNotEmpty && File(picked).existsSync()) {
+            avatarProvider = FileImage(File(picked));
+          } else if (avatar.isNotEmpty && avatar != '/') {
+            avatarProvider = CachedNetworkImageProvider(avatar);
+          } else {
+            avatarProvider = const AssetImage("assets/icons/profile.png");
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    'Need help?',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black),
+                  CircleAvatar(radius: 50, backgroundImage: avatarProvider),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryColor,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Iconsax.gallery_copy, size: 16, color: Colors.white),
+                          onPressed: loading ? null : c.pickFromGallery,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryColor,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Iconsax.camera_copy, size: 16, color: Colors.white),
+                          onPressed: loading ? null : c.pickFromCamera,
+                        ),
+                      ),
+                      Obx(() {
+                        final hasImage = (c.avatarUrl.value.isNotEmpty && c.avatarUrl.value != '/') || c.pickedImagePath.value.isNotEmpty;
+                        if (!hasImage) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: GestureDetector(
+                            onTap: loading ? null : c.removeProfilePicture,
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFF8C00),
+                              child: Icon(Iconsax.trash_copy, size: 16, color: Colors.white),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  CustomTextFormField(
+                    controller: c.nameController,
+                    hint: 'Full Name'.tr,
+                    icon: Iconsax.user_copy,
+                  ),
+                  const SizedBox(height: 10),
+                  CustomTextFormField(
+                    controller: TextEditingController(text: c.email.value),
+                    readOnly: true,
+                    icon: Iconsax.sms_copy,
+                    hint: 'Email'.tr,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Visit our Help Center or contact us on',
-                    style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 13),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => basicCtrl.sendResetEmailLink(),
+                      child: Text("${'Reset Email'.tr} ${'?'}", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                    ),
                   ),
-                  const Text(
-                    'Support@campconnectus.store',
-                    style: TextStyle(color: AppColors.primaryColor, fontSize: 13),
+                  const SizedBox(height: 4),
+                  CustomTextFormField(
+                    maxLines: 1, minLines: 1,
+                    hint: 'Password'.tr,
+                    icon: Iconsax.lock_1_copy,
+                    readOnly: true,
+                    controller: TextEditingController(text: '********'),
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => basicCtrl.sendForgotPasswordLink(),
+                      child: Text('Forgot Password${' ?'.tr}', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: PhoneFormField(
+                        initialValue: _getInitialPhone(c.phoneCode.value, c.phoneController.text),
+                        countrySelectorNavigator: const CountrySelectorNavigator.page(),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                          hintText: 'Phone number'.tr,
+                          contentPadding: EdgeInsets.zero,
+                          errorStyle: const TextStyle(height: 0, fontSize: 0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        style: const TextStyle(fontSize: 16, height: 1.2),
+                        onChanged: (p) {
+                          c.phoneCode.value = '+${p.countryCode}';
+                          c.phoneController.text = p.nsn;
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity, height: 44,
+                    child: ElevatedButton(
+                      onPressed: loading ? null : c.saveBasicInfo,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: loading
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
+                          : Text('Save Changes'.tr, style: const TextStyle(color: Colors.white)),
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        }),
       ),
     );
+  }
+}
+
+PhoneNumber _getInitialPhone(String code, String number) {
+  if (number.isEmpty) return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
+  try {
+    final cleanCode = code.replaceAll('+', '');
+    for (final iso in IsoCode.values) {
+      try {
+        if (PhoneNumber(isoCode: iso, nsn: '').countryCode == cleanCode) {
+          return PhoneNumber(isoCode: iso, nsn: number);
+        }
+      } catch (_) {}
+    }
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: number);
+  } catch (_) {
+    return PhoneNumber(isoCode: IsoCode.NG, nsn: number);
   }
 }
