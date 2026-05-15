@@ -70,7 +70,9 @@ class AuthRepository {
     required String email,
   }) async {
     final url = '${AppConfig.customerResetEmailUrl()}?identifier=$token&email=$email';
+    print('Reset Email URL: $url'); // ADD THIS TO DEBUG
     final json = await _api.getJson(url);
+    print('Reset Email Response: $json'); // ADD THIS TO DEBUG
     return ForgotPasswordResponse.fromJson(json);
   }
 
