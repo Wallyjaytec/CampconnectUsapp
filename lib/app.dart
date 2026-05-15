@@ -42,7 +42,8 @@ class MyApp extends StatelessWidget {
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
             final token = uri.queryParameters['u'] ?? '';
-            final isEmail = rawPath.contains('type=email');
+            final isEmail = rawPath.contains('type=email') || 
+                           (uri.queryParameters['type'] ?? '') == 'email';
             return GetPageRoute(
               page: () => PasswordResetView(token: token, isEmailReset: isEmail),
               routeName: '/password-reset',
