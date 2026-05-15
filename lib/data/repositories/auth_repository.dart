@@ -69,12 +69,8 @@ class AuthRepository {
     required String token,
     required String email,
   }) async {
-    final url = AppConfig.customerResetEmailUrl();
-    final fields = <String, String>{
-      'identifier': token,
-      'email': email,
-    };
-    final json = await _api.postMultipart(url, fields: fields);
+    final url = '${AppConfig.customerResetEmailUrl()}?identifier=$token&email=$email';
+    final json = await _api.getJson(url);
     return ForgotPasswordResponse.fromJson(json);
   }
 
