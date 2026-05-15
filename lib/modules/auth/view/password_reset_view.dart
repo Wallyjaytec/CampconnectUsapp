@@ -37,16 +37,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   }
 
   void _navigateAfterSuccess() {
-    final isLoggedIn = LoginService().isLoggedIn();
-    if (isLoggedIn) {
-      // Force reload EditProfileView
-      try {
-        Get.delete<CustomerBasicInfoController>();
-      } catch (_) {}
-      Get.offAllNamed('/edit_profile_view');
-    } else {
-      Get.offAllNamed('/login_view');
-    }
+    // Success: Always go to homepage (bottom navbar)
+    Get.offAllNamed('/bottom_navbar_view');
   }
 
   Future<void> _validateToken() async {
@@ -193,14 +185,20 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      if (isLoggedIn) {
-                        // Force reload EditProfileView
-                        try {
-                          Get.delete<CustomerBasicInfoController>();
-                        } catch (_) {}
-                        Get.offAllNamed('/edit_profile_view');
+                      if (_isEmailReset) {
+                        // Email reset expired: Always go to Edit Profile (to request new email reset)
+                        if (isLoggedIn) {
+                          Get.offAllNamed('/edit_profile_view');
+                        } else {
+                          Get.offAllNamed('/login_view');
+                        }
                       } else {
-                        Get.offAllNamed('/forgot_password_view');
+                        // Password reset expired: Go to Edit Profile if logged in, else Login
+                        if (isLoggedIn) {
+                          Get.offAllNamed('/edit_profile_view');
+                        } else {
+                          Get.offAllNamed('/login_view');
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -208,7 +206,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text(
-                      isLoggedIn ? 'Request New Link' : 'Back to Login',
+                      'Request New Link',
                       style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
