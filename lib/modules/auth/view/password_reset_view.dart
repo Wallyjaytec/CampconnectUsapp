@@ -36,8 +36,18 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     _validateToken();
   }
 
-  void _navigateAfterSuccess() {
-    // Success: Always go to homepage (bottom navbar)
+  void _navigateAfterSuccess({bool isEmailReset = false}) {
+    // Show success message
+    Get.snackbar(
+      'Success',
+      isEmailReset ? 'Your email has been updated successfully!' : 'Your password has been changed successfully!',
+      duration: const Duration(seconds: 3),
+      backgroundColor: AppColors.primaryColor,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    
+    // Go to homepage
     Get.offAllNamed('/bottom_navbar_view');
   }
 
@@ -92,7 +102,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           email: _emailController.text.trim(),
         );
         if (result.success) {
-          _navigateAfterSuccess();
+          _navigateAfterSuccess(isEmailReset: true);
         } else {
           setState(() {
             _loading = false;
@@ -113,7 +123,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           password: _passwordController.text,
         );
         if (result == true) {
-          _navigateAfterSuccess();
+          _navigateAfterSuccess(isEmailReset: false);
           return;
         }
         setState(() {
@@ -185,29 +195,16 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      if (_isEmailReset) {
-                        // Email reset expired: Always go to Edit Profile (to request new email reset)
-                        if (isLoggedIn) {
-                          Get.offAllNamed('/edit_profile_view');
-                        } else {
-                          Get.offAllNamed('/login_view');
-                        }
-                      } else {
-                        // Password reset expired: Go to Edit Profile if logged in, else Login
-                        if (isLoggedIn) {
-                          Get.offAllNamed('/edit_profile_view');
-                        } else {
-                          Get.offAllNamed('/login_view');
-                        }
-                      }
+                      // Go to homepage for all expired links
+                      Get.offAllNamed('/bottom_navbar_view');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: Text(
-                      'Request New Link',
-                      style: const TextStyle(fontSize: 16, color: Colors.white),
+                    child: const Text(
+                      'Go to Homepage',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ),
