@@ -69,7 +69,7 @@ class AuthRepository {
     required String token,
     required String email,
   }) async {
-    final url = AppConfig.customerEmailResetLinkUrl();
+    final url = AppConfig.customerResetEmailUrl();
     final fields = <String, String>{
       'identifier': token,
       'email': email,
