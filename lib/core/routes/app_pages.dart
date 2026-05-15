@@ -87,7 +87,7 @@ class AppPages {
     GetPage(name: AppRoutes.signupView, page: () => const SignupView()),
     GetPage(
       name: AppRoutes.editProfileView,
-      page: () => EditProfileView(),  // ← Removed 'const'
+      page: () => const EditProfileView(),
     ),
     GetPage(
       name: AppRoutes.newProductListView,
