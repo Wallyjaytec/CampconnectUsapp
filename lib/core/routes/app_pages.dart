@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/modules/account/view/edit_address_view.dart';
-import 'package:kartly_e_commerce/modules/account/view/edit_profile_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_address_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_order_details_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_order_list_view.dart';
@@ -22,6 +21,7 @@ import 'package:kartly_e_commerce/modules/splash/view/splash_view.dart';
 import '../../modules/account/model/my_order_model.dart';
 import '../../modules/account/view/add_address_view.dart';
 import '../../modules/account/view/contact_us_page.dart';
+import '../../modules/account/view/edit_profile_view.dart';
 import '../../modules/account/view/notifications_view.dart';
 import '../../modules/account/view/recharge_wallet_view.dart';
 import '../../modules/account/view/refund_request_details_view.dart';
@@ -87,7 +87,7 @@ class AppPages {
     GetPage(name: AppRoutes.signupView, page: () => const SignupView()),
     GetPage(
       name: AppRoutes.editProfileView,
-      page: () => const EditProfileView(),
+      page: () => EditProfileView(),  // ← Removed 'const'
     ),
     GetPage(
       name: AppRoutes.newProductListView,
