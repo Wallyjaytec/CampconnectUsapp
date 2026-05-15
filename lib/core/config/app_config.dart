@@ -134,6 +134,8 @@ static const String resetPasswordPath =
       '/api/v1/ecommerce-core/auth/customer-forgot-password';
   static const String customerEmailResetLinkPath =
       '/api/v1/ecommerce-core/customer/customer-email-reset-link';
+  static const String customerResetEmailPath =
+      '/api/v1/ecommerce-core/customer/customer-reset-email';
   static const String storeContactMessagePath = '/api/v1/store/contact/message';
   static const String customerCheckoutOrderPath =
       '/api/v1/ecommerce-core/customer/order/create';
@@ -240,6 +242,7 @@ static const String resetPasswordPath =
 static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   static String customerEmailResetLinkUrl() =>
       '$baseUrl$customerEmailResetLinkPath';
+  static String customerResetEmailUrl() => '$baseUrl$customerResetEmailPath';
   static String storeContactMessageUrl() => '$baseUrl$storeContactMessagePath';
   static String customerCheckoutOrderUrl() =>
       '$baseUrl$customerCheckoutOrderPath';
