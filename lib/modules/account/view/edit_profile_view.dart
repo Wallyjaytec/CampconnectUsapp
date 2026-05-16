@@ -17,8 +17,17 @@ class EditProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<CustomerBasicInfoController>();
-    final basicCtrl = Get.find<CustomerBasicInfoController>();
+    // Try to find controller, if not found, create it
+    CustomerBasicInfoController c;
+    try {
+      c = Get.find<CustomerBasicInfoController>();
+    } catch (e) {
+      // Controller not found, create it
+      Get.put(CustomerBasicInfoController());
+      c = Get.find<CustomerBasicInfoController>();
+    }
+    
+    final basicCtrl = c;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SafeArea(
