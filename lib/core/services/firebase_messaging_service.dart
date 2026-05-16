@@ -8,39 +8,22 @@ class FirebaseMessagingService {
 
   Future<void> init() async {
     try {
-      // Request notification permission manually (works on all Android versions)
+      // Show alert that init started
+      _showAlert('Firebase Init', 'Starting...');
+      
+      // Request notification permission manually
       PermissionStatus status = await Permission.notification.request();
-      print('Manual permission status: $status');
+      
+      _showAlert('Permission Status', status.toString());
       
       if (status.isGranted) {
         // Get FCM token
         String? token = await _fcm.getToken();
-        print('FCM Token: $token');
         
-        // Show token in app
-        if (token != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.snackbar(
-              'FCM Token',
-              token,
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 10),
-            );
-          });
-        }
+        _showAlert('FCM TOKEN', token ?? 'NO TOKEN');
+        
       } else {
-        print('Notification permission denied');
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Get.snackbar(
-            'Permission Needed',
-            'Please enable notifications in Settings',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-          );
-        });
+        _showAlert('Permission Denied', 'Please enable notifications');
       }
       
       // Handle foreground messages
@@ -52,8 +35,25 @@ class FirebaseMessagingService {
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
       
     } catch (e) {
-      print('Firebase init error: $e');
+      _showAlert('Error', e.toString());
     }
+  }
+  
+  void _showAlert(String title, String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.dialog(
+        AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    });
   }
   
   void _showNotification(RemoteMessage message) {
