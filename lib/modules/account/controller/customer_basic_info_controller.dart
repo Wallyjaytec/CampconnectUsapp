@@ -155,9 +155,7 @@ class CustomerBasicInfoController extends GetxController {
     phone.value = '${phoneCode.value}$phoneOnly';
 
     nameController.text = info.name;
-    if (phoneController.text.isEmpty) {
-      phoneController.text = phoneOnly;
-    }
+    phoneController.text = phoneOnly;
 
     _originalName = info.name;
     _originalPhoneDisplay = phone.value;
@@ -257,28 +255,24 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   Future<void> sendResetEmailLink() async {
-    final currentEmail = email.value.trim();
-    if (currentEmail.isEmpty) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('No email found'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
     try {
+      isLoading.value = true;
       final res = await _authRepo.sendEmailResetLink();
       if (res.success) {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text(res.message ?? 'Reset email link sent'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
-        );
+        Get.snackbar('Success', 'Reset email link sent to ${email.value}',
+          backgroundColor: AppColors.primaryColor, colorText: Colors.white,
+          snackPosition: SnackPosition.TOP);
       } else {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Could not send reset email'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-        );
+        Get.snackbar('Failed', 'Could not send reset email',
+          backgroundColor: Colors.red, colorText: Colors.white,
+          snackPosition: SnackPosition.TOP);
       }
     } catch (e) {
-      ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
+      Get.snackbar('Failed', 'Request failed',
+        backgroundColor: Colors.red, colorText: Colors.white,
+        snackPosition: SnackPosition.TOP);
+    } finally {
+      isLoading.value = false;
     }
   }
 
