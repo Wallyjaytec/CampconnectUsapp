@@ -32,7 +32,6 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   bool _isEmailReset = false;
   String _cleanToken = '';
   
-  // Email reset states
   bool _codeSent = false;
   bool _sendingCode = false;
   String _sentEmail = '';
@@ -52,7 +51,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     Get.snackbar(
       'Success',
       successMessage,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 3),
       backgroundColor: AppColors.primaryColor,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
@@ -66,9 +65,9 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         Get.put(CustomerBasicInfoController());
       }
-      Get.offAllNamed('/edit_profile_view', arguments: successMessage);
+      Get.offAllNamed('/edit_profile_view');
     } else {
-      Get.offAllNamed('/login_view', arguments: successMessage);
+      Get.offAllNamed('/login_view');
     }
   }
 
@@ -131,7 +130,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     
     try {
       final authRepo = AuthRepository();
-      final response = await authRepo.sendEmailVerificationCode(newEmail);
+      final response = await authRepo.sendEmailVerificationCode(newEmail, _cleanToken);
       if (response['success'] == true) {
         setState(() {
           _codeSent = true;
@@ -181,7 +180,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     
     try {
       final authRepo = AuthRepository();
-      final response = await authRepo.verifyEmailCode(_sentEmail, code);
+      final response = await authRepo.verifyEmailCode(_sentEmail, code, _cleanToken);
       if (response['success'] == true) {
         _navigateAfterSuccess(isEmailReset: true);
       } else {
@@ -206,7 +205,6 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     });
 
     if (!_isEmailReset) {
-      // Password reset
       try {
         final authRepo = AuthRepository(api: ApiService());
         final result = await authRepo.resetPassword(
