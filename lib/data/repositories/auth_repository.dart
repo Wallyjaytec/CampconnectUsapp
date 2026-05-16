@@ -103,4 +103,16 @@ class AuthRepository {
     if (json['message'] != null) return 'old_password';
     return false;
   }
+
+  Future<Map<String, dynamic>> sendEmailVerificationCode(String email) async {
+    final url = '/api/v1/ecommerce-core/customer/send-email-code';
+    final json = await _api.postJson(url, body: {'email': email});
+    return json;
+  }
+
+  Future<Map<String, dynamic>> verifyEmailCode(String email, String code) async {
+    final url = '/api/v1/ecommerce-core/customer/verify-email-code';
+    final json = await _api.postJson(url, body: {'email': email, 'code': code});
+    return json;
+  }
 }
