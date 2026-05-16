@@ -22,6 +22,7 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   late CustomerBasicInfoController c;
   bool _isLoading = true;
+  final _phoneFormKey = GlobalKey();
 
   @override
   void initState() {
@@ -64,13 +65,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final arguments = Get.arguments;
       if (arguments is String && arguments.isNotEmpty) {
-        Get.snackbar(
-          'Success',
-          arguments,
-          duration: const Duration(seconds: 3),
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(arguments), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
       }
     });
@@ -203,6 +199,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     ),
                     child: Center(
                       child: PhoneFormField(
+                        key: _phoneFormKey,
                         initialValue: _getInitialPhone(c.phoneCode.value, c.phoneController.text),
                         countrySelectorNavigator: const CountrySelectorNavigator.page(),
                         decoration: InputDecoration(
