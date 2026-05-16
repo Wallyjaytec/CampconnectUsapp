@@ -64,9 +64,9 @@ class _EditProfileViewState extends State<EditProfileView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Check for success message from navigation
-    final arguments = Get.arguments;
-    if (arguments is String && arguments.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final arguments = Get.arguments;
+      if (arguments is String && arguments.isNotEmpty) {
         Get.snackbar(
           'Success',
           arguments,
@@ -75,8 +75,10 @@ class _EditProfileViewState extends State<EditProfileView> {
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
         );
-      });
-    }
+        // Clear arguments to prevent showing again
+        Get.arguments = null;
+      }
+    });
 
     return SafeArea(
       child: Scaffold(
