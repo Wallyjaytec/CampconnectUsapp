@@ -37,6 +37,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   }
 
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
+    final isLoggedIn = LoginService().isLoggedIn();
+    
     // Show success message
     Get.snackbar(
       'Success',
@@ -47,11 +49,19 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       snackPosition: SnackPosition.BOTTOM,
     );
     
-    // Wait a moment so snackbar is visible
     await Future.delayed(const Duration(milliseconds: 500));
     
-    // Go through splash screen to reinitialize everything
-    Get.offAllNamed('/');
+    if (isLoggedIn) {
+      // Ensure controller exists before navigating
+      try {
+        Get.find<CustomerBasicInfoController>();
+      } catch (e) {
+        Get.put(CustomerBasicInfoController());
+      }
+      Get.offAllNamed('/edit_profile_view');
+    } else {
+      Get.offAllNamed('/login_view');
+    }
   }
 
   Future<void> _validateToken() async {
@@ -198,8 +208,17 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Go through splash screen to reinitialize
-                      Get.offAllNamed('/');
+                      if (isLoggedIn) {
+                        // Ensure controller exists before navigating
+                        try {
+                          Get.find<CustomerBasicInfoController>();
+                        } catch (e) {
+                          Get.put(CustomerBasicInfoController());
+                        }
+                        Get.offAllNamed('/edit_profile_view');
+                      } else {
+                        Get.offAllNamed('/login_view');
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
