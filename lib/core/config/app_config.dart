@@ -135,7 +135,7 @@ static const String resetPasswordPath =
   static const String customerEmailResetLinkPath =
       '/api/v1/ecommerce-core/customer/customer-email-reset-link';
   static const String customerResetEmailPath =
-      '/api/v1/ecommerce-core/auth/customer-reset-email';  // ← FIXED: Added /auth/
+      '/api/v1/ecommerce-core/auth/customer-reset-email';
   static const String storeContactMessagePath = '/api/v1/store/contact/message';
   static const String customerCheckoutOrderPath =
       '/api/v1/ecommerce-core/customer/order/create';
@@ -257,6 +257,10 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
       '$baseUrl$refundRequestDetailsPath';
   static String uploadOrderAttachmentUrl() =>
       '$baseUrl$uploadOrderAttachmentPath';
+  
+  // Email verification code endpoints
+  static String sendEmailCodeUrl() => '$baseUrl/customer/send-email-code';
+  static String verifyEmailCodeUrl() => '$baseUrl/customer/verify-email-code';
 
   //image path custom url
   static const String kLangCode = 'langCode';
