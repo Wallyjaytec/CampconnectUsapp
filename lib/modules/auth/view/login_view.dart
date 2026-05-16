@@ -42,6 +42,21 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
 
+    // Check for success message from navigation (password/email reset success)
+    final arguments = Get.arguments;
+    if (arguments is String && arguments.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.snackbar(
+          'Success',
+          arguments,
+          duration: const Duration(seconds: 3),
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      });
+    }
+
     // Show forgot password dialog if coming from expired reset link
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = Get.arguments;
