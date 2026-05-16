@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
+import 'package:kartly_e_commerce/core/services/firebase_messaging_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -30,6 +31,10 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initServices();
+  
+  // Initialize Firebase Messaging
+  await FirebaseMessagingService().init();
+  
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
   Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
