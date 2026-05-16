@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
 import '../../auth/view/verification_success_view.dart';
-import '../../../../core/services/login_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -43,14 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         }
         return;
       }
-      
-      // Check if user is logged in
-      final isLoggedIn = LoginService().isLoggedIn();
-      if (isLoggedIn) {
-        Get.offAllNamed(AppRoutes.editProfileView);
-      } else {
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
-      }
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
     });
   }
 
