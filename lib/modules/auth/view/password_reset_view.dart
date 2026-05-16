@@ -39,7 +39,6 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
     final isLoggedIn = LoginService().isLoggedIn();
     
-    // Show success message
     Get.snackbar(
       'Success',
       isEmailReset ? 'Your email has been updated successfully!' : 'Your password has been changed successfully!',
