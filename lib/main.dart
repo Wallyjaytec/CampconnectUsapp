@@ -2,6 +2,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
@@ -30,13 +31,22 @@ Future<void> initServices() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp();
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Firebase init failed: $e');
+  }
+  
   await initServices();
   
   // Initialize Firebase Messaging
   try {
     await FirebaseMessagingService().init();
   } catch (e) {
-    print('Firebase init failed: $e');
+    print('Firebase Messaging init failed: $e');
   }
   
   await GetStorage.init();
