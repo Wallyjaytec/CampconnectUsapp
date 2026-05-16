@@ -32,7 +32,6 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _initController() async {
     try {
       c = Get.find<CustomerBasicInfoController>();
-      // Ensure phoneController has the phone number
       if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
         final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
         c.phoneController.text = phoneOnly;
@@ -41,7 +40,6 @@ class _EditProfileViewState extends State<EditProfileView> {
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
       await c.fetchBasicInfo();
-      // Set phone controller after fetch
       if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
         final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
         c.phoneController.text = phoneOnly;
@@ -63,7 +61,6 @@ class _EditProfileViewState extends State<EditProfileView> {
     final basicCtrl = c;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Check for success message from navigation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final arguments = Get.arguments;
       if (arguments is String && arguments.isNotEmpty) {
@@ -166,13 +163,18 @@ class _EditProfileViewState extends State<EditProfileView> {
                     hint: 'Email'.tr,
                   ),
                   const SizedBox(height: 4),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () => basicCtrl.sendResetEmailLink(),
-                      child: Text("${'Reset Email'.tr} ${'?'}", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                  Obx(() => GestureDetector(
+                    onTap: basicCtrl.isSendingResetLink.value ? null : () => basicCtrl.sendResetEmailLink(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (basicCtrl.isSendingResetLink.value)
+                          const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        else
+                          Text("${'Reset Email'.tr} ${'?'}", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                      ],
                     ),
-                  ),
+                  )),
                   const SizedBox(height: 4),
                   CustomTextFormField(
                     maxLines: 1, minLines: 1,
