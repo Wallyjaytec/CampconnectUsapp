@@ -28,6 +28,7 @@ class CustomerBasicInfoController extends GetxController {
 
   final isLoading = false.obs;
   final isSendingResetLink = false.obs;
+  final isSendingForgotLink = false.obs;
 
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
@@ -238,10 +239,11 @@ class CustomerBasicInfoController extends GetxController {
       return;
     }
     try {
+      isSendingForgotLink.value = true;
       final res = await _authRepo.forgotPassword(email: currentEmail);
       if (res.success) {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text(res.message ?? 'Password reset link sent'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text('Password reset link sent to $currentEmail'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
         );
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
@@ -252,6 +254,8 @@ class CustomerBasicInfoController extends GetxController {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
       );
+    } finally {
+      isSendingForgotLink.value = false;
     }
   }
 
