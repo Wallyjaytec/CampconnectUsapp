@@ -467,60 +467,56 @@ class _RoundChoice extends StatelessWidget {
     final onlyLabel = !hasImg && !validHex;
 
     if (onlyLabel) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: _rectChipWidth,
-          height: _rectChipHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: selected
-                ? AppColors.primaryColor.withValues(alpha: 0.08)
-                : isDark
-                ? AppColors.darkBackgroundColor
-                : AppColors.primaryColor.withValues(alpha: 0.04),
-            border: Border.all(
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: selected
+            ? AppColors.primaryColor.withValues(alpha: 0.08)
+            : isDark
+            ? AppColors.darkBackgroundColor
+            : AppColors.primaryColor.withValues(alpha: 0.04),
+        border: Border.all(
+          color: selected
+              ? AppColors.primaryColor
+              : const Color(0xFFD1D5DB),
+          width: selected ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
               color: selected
                   ? AppColors.primaryColor
-                  : const Color(0xFFD1D5DB),
-              width: selected ? 2 : 1,
+                  : isDark
+                  ? AppColors.whiteColor
+                  : AppColors.blackColor,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: selected
-                        ? AppColors.primaryColor
-                        : isDark
-                        ? AppColors.whiteColor
-                        : AppColors.blackColor,
-                  ),
-                ),
-              ),
-              if (selected) ...[
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.check,
-                  size: 14,
-                  color: AppColors.primaryColor,
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
+          if (selected) ...[
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.check,
+              size: 14,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
     }
     return GestureDetector(
       onTap: onTap,
