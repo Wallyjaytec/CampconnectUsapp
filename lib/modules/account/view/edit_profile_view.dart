@@ -185,10 +185,18 @@ class _EditProfileViewState extends State<EditProfileView> {
                   const SizedBox(height: 4),
                   Align(
                     alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () => basicCtrl.sendForgotPasswordLink(),
-                      child: Text('Reset Password ?', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
-                    ),
+                    child: Obx(() => GestureDetector(
+                      onTap: basicCtrl.isSendingForgotLink.value ? null : () => basicCtrl.sendForgotPasswordLink(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (basicCtrl.isSendingForgotLink.value)
+                            const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                          else
+                            Text('Reset Password ?', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                        ],
+                      ),
+                    )),
                   ),
                   const SizedBox(height: 4),
                   Container(
