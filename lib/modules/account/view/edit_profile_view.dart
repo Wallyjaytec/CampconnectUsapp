@@ -163,18 +163,21 @@ class _EditProfileViewState extends State<EditProfileView> {
                     hint: 'Email'.tr,
                   ),
                   const SizedBox(height: 4),
-                  Obx(() => GestureDetector(
-                    onTap: basicCtrl.isSendingResetLink.value ? null : () => basicCtrl.sendResetEmailLink(),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (basicCtrl.isSendingResetLink.value)
-                          const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                        else
-                          Text("${'Reset Email'.tr} ${'?'}", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
-                      ],
-                    ),
-                  )),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Obx(() => GestureDetector(
+                      onTap: basicCtrl.isSendingResetLink.value ? null : () => basicCtrl.sendResetEmailLink(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (basicCtrl.isSendingResetLink.value)
+                            const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                          else
+                            Text("Reset Email ?", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                        ],
+                      ),
+                    )),
+                  ),
                   const SizedBox(height: 4),
                   CustomTextFormField(
                     maxLines: 1, minLines: 1,
@@ -188,7 +191,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
                       onTap: () => basicCtrl.sendForgotPasswordLink(),
-                      child: Text('Forgot Password${' ?'.tr}', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                      child: Text('Reset Password ?', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
                     ),
                   ),
                   const SizedBox(height: 4),
