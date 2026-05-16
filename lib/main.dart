@@ -33,7 +33,11 @@ Future<void> main() async {
   await initServices();
   
   // Initialize Firebase Messaging
-  await FirebaseMessagingService().init();
+  try {
+    await FirebaseMessagingService().init();
+  } catch (e) {
+    print('Firebase init failed: $e');
+  }
   
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
