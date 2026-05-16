@@ -28,10 +28,12 @@ class RecentlyViewedSection extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Iconsax.clock_copy, size: 48, color: Colors.grey.shade400),
+                // Changed icon color to AppColors.primaryColor
+                Icon(Iconsax.clock_copy, size: 48, color: AppColors.primaryColor),
                 const SizedBox(height: 12),
                 Text(
-                  'View a product to see your recent viewed products'.tr,
+                  // Changed text
+                  'Click product(s) to see your recent viewed product(s)'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
