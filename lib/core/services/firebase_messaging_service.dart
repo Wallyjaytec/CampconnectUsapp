@@ -23,6 +23,18 @@ class FirebaseMessagingService {
       String? token = await _fcm.getToken();
       print('FCM Token: $token');
       
+      // Show token in app (temporary for testing)
+      if (token != null) {
+        Get.snackbar(
+          'FCM Token',
+          token,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: Duration(seconds: 10),
+        );
+      }
+      
       // Handle foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         _showNotification(message);
@@ -33,6 +45,13 @@ class FirebaseMessagingService {
       
     } catch (e) {
       print('Firebase init error: $e');
+      Get.snackbar(
+        'Firebase Error',
+        e.toString(),
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
   
