@@ -17,7 +17,7 @@ class EditProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Try to find controller, if not found, create it
+    // Try to find controller, if not found, create it and fetch data
     CustomerBasicInfoController c;
     try {
       c = Get.find<CustomerBasicInfoController>();
@@ -25,10 +25,27 @@ class EditProfileView extends StatelessWidget {
       // Controller not found, create it
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
+      // Fetch user data immediately
+      c.fetchBasicInfo();
     }
     
     final basicCtrl = c;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Check for success message from navigation
+    final arguments = Get.arguments;
+    if (arguments is String && arguments.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.snackbar(
+          'Success',
+          arguments,
+          duration: const Duration(seconds: 3),
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      });
+    }
 
     return SafeArea(
       child: Scaffold(
