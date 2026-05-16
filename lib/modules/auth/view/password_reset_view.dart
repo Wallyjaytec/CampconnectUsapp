@@ -38,9 +38,18 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
     final isLoggedIn = LoginService().isLoggedIn();
-    final successMessage = isEmailReset 
-        ? 'Your email has been updated successfully!' 
-        : 'Your password has been changed successfully!';
+    
+    // Show success message
+    Get.snackbar(
+      'Success',
+      isEmailReset ? 'Your email has been updated successfully!' : 'Your password has been changed successfully!',
+      duration: const Duration(seconds: 4),
+      backgroundColor: AppColors.primaryColor,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    
+    await Future.delayed(const Duration(milliseconds: 1500));
     
     if (isLoggedIn) {
       try {
@@ -48,11 +57,9 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         Get.put(CustomerBasicInfoController());
       }
-      // Pass message to Edit Profile page
-      Get.offAllNamed('/edit_profile_view', arguments: successMessage);
+      Get.offAllNamed('/edit_profile_view');
     } else {
-      // Pass message to Login page
-      Get.offAllNamed('/login_view', arguments: successMessage);
+      Get.offAllNamed('/login_view');
     }
   }
 
@@ -106,8 +113,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           token: _cleanToken,
           email: _emailController.text.trim(),
         );
-        if (result.success) {
+        if (result.success == true) {
           _navigateAfterSuccess(isEmailReset: true);
+        } else if (result.message == 'same_email') {
+          setState(() {
+            _loading = false;
+            _errorMessage = 'This email is already your current email. Please enter a different email.';
+          });
         } else {
           setState(() {
             _loading = false;
@@ -130,15 +142,17 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         if (result == true) {
           _navigateAfterSuccess(isEmailReset: false);
           return;
-        }
-        setState(() {
-          _loading = false;
-          if (result == 'old_password') {
+        } else if (result == 'old_password') {
+          setState(() {
+            _loading = false;
             _errorMessage = 'You are using your old password. Please enter a new one.';
-          } else {
+          });
+        } else {
+          setState(() {
+            _loading = false;
             _errorMessage = 'Failed to reset password. Please try again.';
-          }
-        });
+          });
+        }
       } catch (e) {
         setState(() {
           _loading = false;
