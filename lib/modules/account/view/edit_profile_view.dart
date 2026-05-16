@@ -22,7 +22,6 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   late CustomerBasicInfoController c;
   bool _isLoading = true;
-  final _phoneFormKey = GlobalKey();
 
   @override
   void initState() {
@@ -207,7 +206,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     ),
                     child: Center(
                       child: PhoneFormField(
-                        key: _phoneFormKey,
+                        key: ValueKey(c.phoneController.text),
                         initialValue: _getInitialPhone(c.phoneCode.value, c.phoneController.text),
                         countrySelectorNavigator: const CountrySelectorNavigator.page(),
                         decoration: InputDecoration(
