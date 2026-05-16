@@ -27,6 +27,7 @@ class CustomerBasicInfoController extends GetxController {
   final phoneCode = '+234'.obs;
 
   final isLoading = false.obs;
+  final isSendingResetLink = false.obs;
 
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
@@ -256,7 +257,7 @@ class CustomerBasicInfoController extends GetxController {
 
   Future<void> sendResetEmailLink() async {
     try {
-      isLoading.value = true;
+      isSendingResetLink.value = true;
       final res = await _authRepo.sendEmailResetLink();
       if (res.success) {
         Get.snackbar('Success', 'Reset email link sent to ${email.value}',
@@ -272,7 +273,7 @@ class CustomerBasicInfoController extends GetxController {
         backgroundColor: Colors.red, colorText: Colors.white,
         snackPosition: SnackPosition.TOP);
     } finally {
-      isLoading.value = false;
+      isSendingResetLink.value = false;
     }
   }
 
