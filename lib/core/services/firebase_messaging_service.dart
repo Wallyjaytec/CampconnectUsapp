@@ -6,23 +6,34 @@ class FirebaseMessagingService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
 
   Future<void> init() async {
-    // Request permission
-    await _fcm.requestPermission();
-    
-    // Get FCM token
-    String? token = await _fcm.getToken();
-    print('FCM Token: $token');
-    
-    // Save token to your backend (you'll add this later)
-    // await saveTokenToServer(token);
-    
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      _showNotification(message);
-    });
-    
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    try {
+      // Request permission
+      NotificationSettings settings = await _fcm.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+        print('Permission not granted');
+        return;
+      }
+      
+      // Get FCM token
+      String? token = await _fcm.getToken();
+      print('FCM Token: $token');
+      
+      // Handle foreground messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        _showNotification(message);
+      });
+      
+      // Handle background messages
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      
+    } catch (e) {
+      print('Firebase init error: $e');
+    }
   }
   
   void _showNotification(RemoteMessage message) {
@@ -32,7 +43,7 @@ class FirebaseMessagingService {
       snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.black87,
       colorText: Colors.white,
-      duration: Duration(seconds: 4),
+      duration: const Duration(seconds: 4),
     );
   }
 }
