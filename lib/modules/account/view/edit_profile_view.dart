@@ -30,7 +30,6 @@ class _EditProfileViewState extends State<EditProfileView> {
   }
 
   Future<void> _initController() async {
-    // Always get or create controller
     try {
       c = Get.find<CustomerBasicInfoController>();
     } catch (e) {
@@ -38,13 +37,16 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    // ALWAYS fetch fresh data when page loads
+    // Always fetch fresh data
     await c.fetchBasicInfo();
     
     // Update phone controller after data is loaded
     if (c.phone.value.isNotEmpty) {
-      final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneOnly;
+      // Extract just the phone number without country code
+      String fullPhone = c.phone.value;
+      // Remove the country code prefix (e.g., +234, +1, +44, etc.)
+      String phoneNumber = fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneNumber;
     }
     
     setState(() {
