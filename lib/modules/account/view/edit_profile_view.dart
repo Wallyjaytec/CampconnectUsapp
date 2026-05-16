@@ -75,8 +75,6 @@ class _EditProfileViewState extends State<EditProfileView> {
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
         );
-        // Clear arguments to prevent showing again
-        Get.arguments = null;
       }
     });
 
