@@ -106,13 +106,20 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> sendEmailVerificationCode(String email, String identifier) async {
     final url = AppConfig.sendEmailCodeUrl();
-    final json = await _api.getJson('$url?email=$email&identifier=$identifier');
-    return json;
+    final response = await _api.postMultipart(url, fields: {
+      'email': email,
+      'identifier': identifier,
+    });
+    return response;
   }
 
   Future<Map<String, dynamic>> verifyEmailCode(String email, String code, String identifier) async {
     final url = AppConfig.verifyEmailCodeUrl();
-    final json = await _api.getJson('$url?email=$email&code=$code&identifier=$identifier');
-    return json;
+    final response = await _api.postMultipart(url, fields: {
+      'email': email,
+      'code': code,
+      'identifier': identifier,
+    });
+    return response;
   }
 }
