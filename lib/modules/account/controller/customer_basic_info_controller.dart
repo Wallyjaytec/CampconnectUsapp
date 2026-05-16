@@ -258,23 +258,20 @@ class CustomerBasicInfoController extends GetxController {
   Future<void> sendResetEmailLink() async {
     try {
       isSendingResetLink.value = true;
-      print('Sending reset email link to: ${email.value}');
       final res = await _authRepo.sendEmailResetLink();
-      print('Response success: ${res.success}, message: ${res.message}');
       if (res.success) {
-        Get.snackbar('Success', 'Reset email link sent to ${email.value}',
-          backgroundColor: AppColors.primaryColor, colorText: Colors.white,
-          snackPosition: SnackPosition.TOP);
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Reset email link sent to ${email.value}'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
+        );
       } else {
-        Get.snackbar('Failed', res.message ?? 'Could not send reset email',
-          backgroundColor: Colors.red, colorText: Colors.white,
-          snackPosition: SnackPosition.TOP);
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text(res.message ?? 'Could not send reset email'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+        );
       }
     } catch (e) {
-      print('Error: $e');
-      Get.snackbar('Failed', 'Request failed',
-        backgroundColor: Colors.red, colorText: Colors.white,
-        snackPosition: SnackPosition.TOP);
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
     } finally {
       isSendingResetLink.value = false;
     }
