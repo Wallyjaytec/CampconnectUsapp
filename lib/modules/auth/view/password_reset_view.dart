@@ -19,6 +19,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
   bool _validating = true;
@@ -29,6 +30,11 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   bool _obscureConfirm = true;
   bool _isEmailReset = false;
   String _cleanToken = '';
+  
+  // Email reset states
+  bool _codeSent = false;
+  bool _sendingCode = false;
+  String _sentEmail = '';
 
   @override
   void initState() {
@@ -98,6 +104,121 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     }
   }
 
+  Future<void> _sendVerificationCode() async {
+    final newEmail = _emailController.text.trim();
+    if (newEmail.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter a new email address';
+      });
+      return;
+    }
+    
+    if (newEmail == _email) {
+      setState(() {
+        _errorMessage = 'This email is already your current email. Please enter a different email.';
+      });
+      return;
+    }
+    
+    setState(() {
+      _sendingCode = true;
+      _errorMessage = '';
+    });
+    
+    try {
+      final response = await _callSendCodeApi(newEmail);
+      if (response['success'] == true) {
+        setState(() {
+          _codeSent = true;
+          _sentEmail = newEmail;
+          _sendingCode = false;
+          _errorMessage = '';
+        });
+        Get.snackbar(
+          'Code Sent',
+          'A verification code has been sent to $newEmail',
+          duration: const Duration(seconds: 3),
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.white,
+        );
+      } else if (response['message'] == 'same_email') {
+        setState(() {
+          _sendingCode = false;
+          _errorMessage = 'This email is already your current email. Please enter a different email.';
+        });
+      } else {
+        setState(() {
+          _sendingCode = false;
+          _errorMessage = response['message'] ?? 'Failed to send verification code';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _sendingCode = false;
+        _errorMessage = 'Something went wrong. Please try again.';
+      });
+    }
+  }
+  
+  Future<Map<String, dynamic>> _callSendCodeApi(String email) async {
+    // This will call your backend API
+    final apiService = ApiService();
+    try {
+      final response = await apiService.postJson(
+        '/api/v1/ecommerce-core/customer/send-email-code',
+        body: {'email': email},
+      );
+      return response;
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+  
+  Future<void> _verifyAndUpdateEmail() async {
+    final code = _codeController.text.trim();
+    if (code.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter the verification code';
+      });
+      return;
+    }
+    
+    setState(() {
+      _loading = true;
+      _errorMessage = '';
+    });
+    
+    try {
+      final response = await _callVerifyCodeApi(_sentEmail, code);
+      if (response['success'] == true) {
+        _navigateAfterSuccess(isEmailReset: true);
+      } else {
+        setState(() {
+          _loading = false;
+          _errorMessage = response['message'] ?? 'Invalid or expired code';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _loading = false;
+        _errorMessage = 'Something went wrong. Please try again.';
+      });
+    }
+  }
+  
+  Future<Map<String, dynamic>> _callVerifyCodeApi(String email, String code) async {
+    final apiService = ApiService();
+    try {
+      final response = await apiService.postJson(
+        '/api/v1/ecommerce-core/customer/verify-email-code',
+        body: {'email': email, 'code': code},
+      );
+      return response;
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -105,33 +226,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       _errorMessage = '';
     });
 
-    if (_isEmailReset) {
-      try {
-        final authRepo = AuthRepository(api: ApiService());
-        final result = await authRepo.resetEmail(
-          token: _cleanToken,
-          email: _emailController.text.trim(),
-        );
-        if (result.success == true) {
-          _navigateAfterSuccess(isEmailReset: true);
-        } else if (result.message == 'same_email') {
-          setState(() {
-            _loading = false;
-            _errorMessage = 'This email is already your current email. Please enter a different email.';
-          });
-        } else {
-          setState(() {
-            _loading = false;
-            _errorMessage = result.message ?? 'Failed to reset email. Please try again.';
-          });
-        }
-      } catch (e) {
-        setState(() {
-          _loading = false;
-          _errorMessage = 'Something went wrong. Please try again.';
-        });
-      }
-    } else {
+    if (!_isEmailReset) {
+      // Password reset
       try {
         final authRepo = AuthRepository(api: ApiService());
         final result = await authRepo.resetPassword(
@@ -302,31 +398,60 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       initialValue: _email,
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Current Email',
                         labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.email_outlined),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    if (_isEmailReset)
+                    if (_isEmailReset) ...[
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        enabled: !_codeSent,
                         decoration: InputDecoration(
                           labelText: 'New Email',
                           labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.email_outlined),
+                          suffixIcon: _codeSent
+                              ? null
+                              : IconButton(
+                                  icon: _sendingCode
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Iconsax.send_copy),
+                                  onPressed: _sendingCode ? null : _sendVerificationCode,
+                                ),
                         ),
                         validator: (v) {
-                          if (v == null || v.isEmpty) return 'Email is required';
-                          if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email';
+                          if (!_codeSent && (v == null || v.isEmpty)) return 'Email is required';
+                          if (!_codeSent && v != null && v.isNotEmpty && !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email';
                           return null;
                         },
-                      )
-                    else ...[
+                      ),
+                      if (_codeSent) ...[
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _codeController,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                          decoration: InputDecoration(
+                            labelText: 'Verification Code',
+                            hintText: 'Enter 6-digit code',
+                            labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Iconsax.security_copy),
+                          ),
+                          validator: (v) => v == null || v.isEmpty ? 'Code is required' : null,
+                        ),
+                      ],
+                    ] else ...[
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -366,15 +491,21 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _loading ? null : _submit,
+                        onPressed: _isEmailReset
+                            ? (_codeSent
+                                ? (_loading ? null : _verifyAndUpdateEmail)
+                                : (_sendingCode ? null : _sendVerificationCode))
+                            : (_loading ? null : _submit),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: _loading
+                        child: _loading || _sendingCode
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
-                                _isEmailReset ? 'Update Email' : 'Change password',
+                                _isEmailReset
+                                    ? (_codeSent ? 'Verify & Update' : 'Send Code')
+                                    : 'Change Password',
                                 style: const TextStyle(fontSize: 16, color: Colors.white),
                               ),
                       ),
