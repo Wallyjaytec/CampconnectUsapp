@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../modules/account/controller/customer_basic_info_controller.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/api_service.dart';
@@ -403,7 +404,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                                           height: 20,
                                           child: CircularProgressIndicator(strokeWidth: 2),
                                         )
-                                      : const Icon(Iconsax.send_copy),
+                                      : Icon(Iconsax.send_copy),
                                   onPressed: _sendingCode ? null : _sendVerificationCode,
                                 ),
                         ),
@@ -424,7 +425,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                             hintText: 'Enter 6-digit code',
                             labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                             border: const OutlineInputBorder(),
-                            prefixIcon: const Icon(Iconsax.security_copy),
+                            prefixIcon: Icon(Iconsax.security_copy),
                           ),
                           validator: (v) => v == null || v.isEmpty ? 'Code is required' : null,
                         ),
