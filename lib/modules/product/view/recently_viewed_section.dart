@@ -33,7 +33,7 @@ class RecentlyViewedSection extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   // Changed text
-                  'Click product(s) to see your recent viewed product(s)'.tr,
+                  'Click on product(s) to see your recent viewed product(s)'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
