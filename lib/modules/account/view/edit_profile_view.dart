@@ -30,21 +30,23 @@ class _EditProfileViewState extends State<EditProfileView> {
   }
 
   Future<void> _initController() async {
+    // Always get or create controller
     try {
       c = Get.find<CustomerBasicInfoController>();
-      if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
-        final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
-        c.phoneController.text = phoneOnly;
-      }
     } catch (e) {
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
-      await c.fetchBasicInfo();
-      if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
-        final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
-        c.phoneController.text = phoneOnly;
-      }
     }
+    
+    // ALWAYS fetch fresh data when page loads
+    await c.fetchBasicInfo();
+    
+    // Update phone controller after data is loaded
+    if (c.phone.value.isNotEmpty) {
+      final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneOnly;
+    }
+    
     setState(() {
       _isLoading = false;
     });
