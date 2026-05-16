@@ -104,15 +104,15 @@ class AuthRepository {
     return false;
   }
 
-  Future<Map<String, dynamic>> sendEmailVerificationCode(String email) async {
+  Future<Map<String, dynamic>> sendEmailVerificationCode(String email, String identifier) async {
     final url = '/api/v1/ecommerce-core/customer/send-email-code';
-    final json = await _api.postJson(url, body: {'email': email});
+    final json = await _api.postJson(url, body: {'email': email, 'identifier': identifier});
     return json;
   }
 
-  Future<Map<String, dynamic>> verifyEmailCode(String email, String code) async {
+  Future<Map<String, dynamic>> verifyEmailCode(String email, String code, String identifier) async {
     final url = '/api/v1/ecommerce-core/customer/verify-email-code';
-    final json = await _api.postJson(url, body: {'email': email, 'code': code});
+    final json = await _api.postJson(url, body: {'email': email, 'code': code, 'identifier': identifier});
     return json;
   }
 }
