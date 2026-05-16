@@ -12,23 +12,44 @@ import '../../../shared/widgets/back_icon_widget.dart';
 import '../controller/customer_basic_info_controller.dart';
 import '../widgets/custom_text_form_field.dart';
 
-class EditProfileView extends StatelessWidget {
+class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Try to find controller, if not found, create it and fetch data
-    CustomerBasicInfoController c;
+  State<EditProfileView> createState() => _EditProfileViewState();
+}
+
+class _EditProfileViewState extends State<EditProfileView> {
+  late CustomerBasicInfoController c;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initController();
+  }
+
+  Future<void> _initController() async {
     try {
       c = Get.find<CustomerBasicInfoController>();
     } catch (e) {
-      // Controller not found, create it
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
-      // Fetch user data immediately
-      c.fetchBasicInfo();
+      await c.fetchBasicInfo();
     }
-    
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final basicCtrl = c;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
