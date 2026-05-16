@@ -159,7 +159,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     } catch (e) {
       setState(() {
         _sendingCode = false;
-        _errorMessage = 'Something went wrong. Please try again.';
+        _errorMessage = 'Error: $e';
       });
     }
   }
@@ -192,7 +192,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     } catch (e) {
       setState(() {
         _loading = false;
-        _errorMessage = 'Something went wrong. Please try again.';
+        _errorMessage = 'Error: $e';
       });
     }
   }
@@ -228,7 +228,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         setState(() {
           _loading = false;
-          _errorMessage = 'Something went wrong. Please try again.';
+          _errorMessage = 'Error: $e';
         });
       }
     }
