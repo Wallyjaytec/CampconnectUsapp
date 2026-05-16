@@ -60,8 +60,9 @@ class AuthRepository {
   }
 
   Future<ForgotPasswordResponse> sendEmailResetLink() async {
-    final url = '${AppConfig.customerEmailResetLinkUrl()}?from=app';
-    final json = await _api.getJson(url);
+    final url = AppConfig.customerEmailResetLinkUrl();
+    final fields = <String, String>{};
+    final json = await _api.postMultipart(url, fields: fields);
     return ForgotPasswordResponse.fromJson(json);
   }
 
