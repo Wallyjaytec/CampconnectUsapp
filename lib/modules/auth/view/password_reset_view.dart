@@ -38,19 +38,9 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
     final isLoggedIn = LoginService().isLoggedIn();
-    
-    // Show success message with longer delay
-    Get.snackbar(
-      'Success',
-      isEmailReset ? 'Your email has been updated successfully!' : 'Your password has been changed successfully!',
-      duration: const Duration(seconds: 4),
-      backgroundColor: AppColors.primaryColor,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
-    
-    // Wait 1.5 seconds so user sees the message
-    await Future.delayed(const Duration(milliseconds: 1500));
+    final successMessage = isEmailReset 
+        ? 'Your email has been updated successfully!' 
+        : 'Your password has been changed successfully!';
     
     if (isLoggedIn) {
       try {
@@ -58,9 +48,11 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         Get.put(CustomerBasicInfoController());
       }
-      Get.offAllNamed('/edit_profile_view');
+      // Pass message to Edit Profile page
+      Get.offAllNamed('/edit_profile_view', arguments: successMessage);
     } else {
-      Get.offAllNamed('/login_view');
+      // Pass message to Login page
+      Get.offAllNamed('/login_view', arguments: successMessage);
     }
   }
 
