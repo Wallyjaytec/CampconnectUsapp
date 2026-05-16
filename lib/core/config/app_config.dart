@@ -258,9 +258,9 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   static String uploadOrderAttachmentUrl() =>
       '$baseUrl$uploadOrderAttachmentPath';
   
-  // Email verification code endpoints
-  static String sendEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/send-email-code';
-  static String verifyEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/verify-email-code';
+  // Email verification code endpoints - CORRECTED URLs
+  static String sendEmailCodeUrl() => '$baseUrl/customer/send-email-code';
+  static String verifyEmailCodeUrl() => '$baseUrl/customer/verify-email-code';
 
   //image path custom url
   static const String kLangCode = 'langCode';
