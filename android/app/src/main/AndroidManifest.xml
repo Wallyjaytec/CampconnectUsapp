@@ -1,74 +1,77 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-class FirebaseMessagingService {
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-
-  Future<void> init() async {
-    try {
-      // Request notification permission manually (works on all Android versions)
-      PermissionStatus status = await Permission.notification.request();
-      print('Manual permission status: $status');
-      
-      if (status.isGranted) {
-        // Get FCM token
-        String? token = await _fcm.getToken();
-        print('FCM Token: $token');
-        
-        // Show token in app
-        if (token != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.snackbar(
-              'FCM Token',
-              token,
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 10),
-            );
-          });
-        }
-      } else {
-        print('Notification permission denied');
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Get.snackbar(
-            'Permission Needed',
-            'Please enable notifications in Settings',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-          );
-        });
-      }
-      
-      // Handle foreground messages
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        _showNotification(message);
-      });
-      
-      // Handle background messages
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-      
-    } catch (e) {
-      print('Firebase init error: $e');
-    }
-  }
-  
-  void _showNotification(RemoteMessage message) {
-    Get.snackbar(
-      message.notification?.title ?? 'New Notification',
-      message.notification?.body ?? '',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.black87,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 4),
-    );
-  }
-}
-
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Handling a background message: ${message.messageId}");
-}
+    <application
+        android:label="CampConnectUs Marketplace"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            
+            <!-- Custom scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="campconnectus" android:host="*" />
+            </intent-filter>
+            
+            <!-- Email Verification -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/customer/email-verification" />
+            </intent-filter>
+            
+            <!-- Password Reset -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/password/reset" />
+            </intent-filter>
+            
+            <!-- Email Reset -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/email/reset" />
+            </intent-filter>
+            
+            <!-- Catch All -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="campconnectus.store" />
+            </intent-filter>
+        </activity>
+        <meta-data android:name="flutterEmbedding" android:value="2" />
+    </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>
