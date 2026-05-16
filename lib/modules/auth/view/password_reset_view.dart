@@ -45,19 +45,19 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
     final isLoggedIn = LoginService().isLoggedIn();
     final successMessage = isEmailReset 
-        ? 'Your email has been updated successfully!' 
+        ? 'Your email has been updated successfully!'
         : 'Your password has been changed successfully!';
     
-    Get.snackbar(
-      'Success',
-      successMessage,
-      duration: const Duration(seconds: 3),
-      backgroundColor: AppColors.primaryColor,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+    ScaffoldMessenger.of(Get.context!).showSnackBar(
+      SnackBar(
+        content: Text(successMessage),
+        backgroundColor: AppColors.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
     );
     
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 2000));
     
     if (isLoggedIn) {
       try {
@@ -138,12 +138,12 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           _sendingCode = false;
           _errorMessage = '';
         });
-        Get.snackbar(
-          'Code Sent',
-          'A verification code has been sent to $newEmail',
-          duration: const Duration(seconds: 3),
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.white,
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(
+            content: Text('Verification code sent to $newEmail'),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } else if (response['message'] == 'same_email') {
         setState(() {
@@ -478,7 +478,11 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         child: _loading || _sendingCode
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
                             : Text(
                                 _isEmailReset
                                     ? (_codeSent ? 'Verify & Update' : 'Send Code')
