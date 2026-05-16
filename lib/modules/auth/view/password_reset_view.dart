@@ -44,17 +44,20 @@ class _PasswordResetViewState extends State<PasswordResetView> {
 
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
     final isLoggedIn = LoginService().isLoggedIn();
+    final successMessage = isEmailReset 
+        ? 'Your email has been updated successfully!' 
+        : 'Your password has been changed successfully!';
     
     Get.snackbar(
       'Success',
-      isEmailReset ? 'Your email has been updated successfully!' : 'Your password has been changed successfully!',
-      duration: const Duration(seconds: 4),
+      successMessage,
+      duration: const Duration(seconds: 2),
       backgroundColor: AppColors.primaryColor,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
     
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 500));
     
     if (isLoggedIn) {
       try {
@@ -62,9 +65,9 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         Get.put(CustomerBasicInfoController());
       }
-      Get.offAllNamed('/edit_profile_view');
+      Get.offAllNamed('/edit_profile_view', arguments: successMessage);
     } else {
-      Get.offAllNamed('/login_view');
+      Get.offAllNamed('/login_view', arguments: successMessage);
     }
   }
 
@@ -126,7 +129,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     });
     
     try {
-      final response = await _callSendCodeApi(newEmail);
+      final authRepo = AuthRepository();
+      final response = await authRepo.sendEmailVerificationCode(newEmail);
       if (response['success'] == true) {
         setState(() {
           _codeSent = true;
@@ -160,20 +164,6 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     }
   }
   
-  Future<Map<String, dynamic>> _callSendCodeApi(String email) async {
-    // This will call your backend API
-    final apiService = ApiService();
-    try {
-      final response = await apiService.postJson(
-        '/api/v1/ecommerce-core/customer/send-email-code',
-        body: {'email': email},
-      );
-      return response;
-    } catch (e) {
-      return {'success': false, 'message': e.toString()};
-    }
-  }
-  
   Future<void> _verifyAndUpdateEmail() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
@@ -189,7 +179,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     });
     
     try {
-      final response = await _callVerifyCodeApi(_sentEmail, code);
+      final authRepo = AuthRepository();
+      final response = await authRepo.verifyEmailCode(_sentEmail, code);
       if (response['success'] == true) {
         _navigateAfterSuccess(isEmailReset: true);
       } else {
@@ -203,19 +194,6 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         _loading = false;
         _errorMessage = 'Something went wrong. Please try again.';
       });
-    }
-  }
-  
-  Future<Map<String, dynamic>> _callVerifyCodeApi(String email, String code) async {
-    final apiService = ApiService();
-    try {
-      final response = await apiService.postJson(
-        '/api/v1/ecommerce-core/customer/verify-email-code',
-        body: {'email': email, 'code': code},
-      );
-      return response;
-    } catch (e) {
-      return {'success': false, 'message': e.toString()};
     }
   }
 
