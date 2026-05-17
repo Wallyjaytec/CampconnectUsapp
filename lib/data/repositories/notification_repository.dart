@@ -1,6 +1,5 @@
 import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
-
 import '../../modules/account/model/notification_model.dart';
 
 class NotificationRepository {
@@ -25,8 +24,7 @@ class NotificationRepository {
   Future<bool> markAllAsRead() async {
     final url = AppConfig.markAllNotificationsReadUrl();
     final json = await _api.getJson(url);
-    final success =
-        json['success'] == true || json['success']?.toString() == 'true';
+    final success = json['success'] == true || json['success']?.toString() == 'true';
     return success;
   }
 }
