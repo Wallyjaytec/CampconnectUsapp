@@ -75,7 +75,12 @@ class NotificationController extends GetxController {
   Future<void> markAllAsRead() async {
     final ok = await _repo.markAllAsRead();
     if (ok) {
-      await refreshList();
+      // Only update local state, don't refresh from server
+      for (var item in items) {
+        item.isRead = true;
+      }
+      items.refresh();
+      notificationCount.value = 0;
       Get.snackbar(
         'Success'.tr,
         'All notifications marked as read'.tr,
@@ -95,17 +100,13 @@ class NotificationController extends GetxController {
   }
 
   Future<void> onTapNotification(NotificationItem item) async {
-    try {
-      final res = await _repo.markSingleAsRead(notificationId: item.id);
-
-      if (res.unreadNotifications.isNotEmpty) {
-        items.assignAll(res.unreadNotifications);
-      } else {
-        items.removeWhere((e) => e.id == item.id);
-      }
-      notificationCount.value = items.length;
-    } catch (_) {}
-
+    // Mark as read without removing from list
+    final ok = await _repo.markSingleAsRead(notificationId: item.id);
+    if (ok) {
+      item.isRead = true;
+      items.refresh();
+      notificationCount.value = items.where((e) => !e.isRead).length;
+    }
     Get.to(() => NotificationDetailView(item: item));
   }
 
@@ -113,7 +114,14 @@ class NotificationController extends GetxController {
     final success = await _repo.deleteNotification(id);
     if (success) {
       items.removeWhere((e) => e.id == id);
-      notificationCount.value = items.length;
+      notificationCount.value = items.where((e) => !e.isRead).length;
+      Get.snackbar(
+        'Deleted'.tr,
+        'Notification deleted'.tr,
+        backgroundColor: AppColors.primaryColor,
+        snackPosition: SnackPosition.TOP,
+        colorText: AppColors.whiteColor,
+      );
     }
     return success;
   }
