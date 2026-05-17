@@ -32,7 +32,6 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh when returning to page (after login)
     if (!_isLoading && c.name.value.isEmpty) {
       _refreshData();
     }
@@ -41,8 +40,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _refreshData() async {
     await c.fetchBasicInfo();
     if (c.phone.value.isNotEmpty) {
-      final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneOnly;
+      String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneNumber;
     }
     setState(() {});
   }
@@ -51,16 +50,16 @@ class _EditProfileViewState extends State<EditProfileView> {
     try {
       c = Get.find<CustomerBasicInfoController>();
       if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
-        final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
-        c.phoneController.text = phoneOnly;
+        String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
+        c.phoneController.text = phoneNumber;
       }
     } catch (e) {
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
       await c.fetchBasicInfo();
       if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
-        final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
-        c.phoneController.text = phoneOnly;
+        String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
+        c.phoneController.text = phoneNumber;
       }
     }
     setState(() {
