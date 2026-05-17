@@ -32,23 +32,19 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _initController() async {
     try {
       c = Get.find<CustomerBasicInfoController>();
+      if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
+        final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
+        c.phoneController.text = phoneOnly;
+      }
     } catch (e) {
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
+      await c.fetchBasicInfo();
+      if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
+        final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
+        c.phoneController.text = phoneOnly;
+      }
     }
-    
-    // Always fetch fresh data when page loads
-    await c.fetchBasicInfo();
-    
-    // Update phone controller after data is loaded
-    if (c.phone.value.isNotEmpty) {
-      // Extract just the phone number without country code
-      String fullPhone = c.phone.value;
-      // Remove the country code prefix (e.g., +234, +1, +44, etc.)
-      String phoneNumber = fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneNumber;
-    }
-    
     setState(() {
       _isLoading = false;
     });
