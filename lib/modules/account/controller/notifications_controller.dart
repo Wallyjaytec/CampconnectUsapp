@@ -75,8 +75,7 @@ class NotificationController extends GetxController {
   Future<void> markAllAsRead() async {
     final ok = await _repo.markAllAsRead();
     if (ok) {
-      items.clear();
-      notificationCount.value = 0;
+      await refreshList();
       Get.snackbar(
         'Success'.tr,
         'All notifications marked as read'.tr,
@@ -108,5 +107,14 @@ class NotificationController extends GetxController {
     } catch (_) {}
 
     Get.to(() => NotificationDetailView(item: item));
+  }
+
+  Future<bool> deleteNotification(String id) async {
+    final success = await _repo.deleteNotification(id);
+    if (success) {
+      items.removeWhere((e) => e.id == id);
+      notificationCount.value = items.length;
+    }
+    return success;
   }
 }
