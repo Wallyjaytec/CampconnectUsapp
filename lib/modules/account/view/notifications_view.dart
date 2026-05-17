@@ -108,7 +108,10 @@ class _NotificationTile extends StatelessWidget {
         plainText,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: item.isRead ? FontWeight.normal : FontWeight.bold,
+        ),
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
