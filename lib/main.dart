@@ -41,7 +41,6 @@ Future<void> main() async {
       Get.find<NotificationController>().refreshList();
       Get.find<NotificationController>().load();
     }
-    return true;
   });
   
   // Handle notification click
