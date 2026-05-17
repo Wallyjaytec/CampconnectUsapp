@@ -12,7 +12,7 @@
         android:icon="@mipmap/ic_launcher">
         
         <!-- OneSignal Notification Icon -->
-        <meta-data android:name="com.onesignal.NotificationIcon" android:value="push_icon" />
+        <meta-data android:name="com.onesignal.NotificationIcon" android:value="ic_stat_onesignal_default" />
         
         <activity
             android:name=".MainActivity"
