@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +10,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../controller/customer_basic_info_controller.dart';
 import '../widgets/custom_text_form_field.dart';
+import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -27,6 +27,35 @@ class _EditProfileViewState extends State<EditProfileView> {
   void initState() {
     super.initState();
     _initController();
+    
+    // Listen for when user comes back from login
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<AuthController>()) {
+        Get.find<AuthController>().addListener(_onAuthChanged);
+      }
+    });
+  }
+
+  void _onAuthChanged() {
+    // Refresh data when login state changes
+    _refreshData();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await c.fetchBasicInfo();
+    
+    if (c.phone.value.isNotEmpty) {
+      String fullPhone = c.phone.value;
+      String phoneNumber = fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneNumber;
+    }
+    
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _initController() async {
@@ -37,21 +66,15 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    // Always fetch fresh data
-    await c.fetchBasicInfo();
-    
-    // Update phone controller after data is loaded
-    if (c.phone.value.isNotEmpty) {
-      // Extract just the phone number without country code
-      String fullPhone = c.phone.value;
-      // Remove the country code prefix (e.g., +234, +1, +44, etc.)
-      String phoneNumber = fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneNumber;
+    await _refreshData();
+  }
+
+  @override
+  void dispose() {
+    if (Get.isRegistered<AuthController>()) {
+      Get.find<AuthController>().removeListener(_onAuthChanged);
     }
-    
-    setState(() {
-      _isLoading = false;
-    });
+    super.dispose();
   }
 
   @override
