@@ -7,7 +7,7 @@ import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../model/notification_model.dart';
+import '../../../data/repositories/notification_repository.dart';
 
 class NotificationsView extends StatelessWidget {
   const NotificationsView({super.key});
