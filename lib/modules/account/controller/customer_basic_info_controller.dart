@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -57,6 +58,9 @@ class CustomerBasicInfoController extends GetxController {
       imageQuality: 85,
     );
     if (x != null) pickedImagePath.value = x.path;
+    
+    // After granting gallery permission, request notification permission
+    _requestNotificationPermission();
   }
 
   Future<void> pickFromCamera() async {
@@ -67,6 +71,14 @@ class CustomerBasicInfoController extends GetxController {
       imageQuality: 85,
     );
     if (x != null) pickedImagePath.value = x.path;
+    
+    // After granting camera permission, request notification permission
+    _requestNotificationPermission();
+  }
+
+  void _requestNotificationPermission() {
+    // Only request once
+    OneSignal.Notifications.requestPermission(true);
   }
 
   void clearPickedImage() => pickedImagePath.value = '';
