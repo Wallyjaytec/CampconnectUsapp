@@ -22,40 +22,47 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   late CustomerBasicInfoController c;
   bool _isLoading = true;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _initController();
     
-    // Listen for when user comes back from login
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.isRegistered<AuthController>()) {
         Get.find<AuthController>().addListener(_onAuthChanged);
       }
-      // Force refresh after coming back from login
-      _refreshData();
     });
   }
 
   void _onAuthChanged() {
-    // Refresh data when login state changes
     _refreshData();
   }
 
   Future<void> _refreshData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+    
     await c.fetchBasicInfo();
     
-    if (c.phone.value.isNotEmpty) {
+    if (c.phone.value.isNotEmpty && mounted) {
       c.phoneController.text = c.getPhoneNumberWithoutCode();
     }
     
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+    
+    _isRefreshing = false;
   }
 
   Future<void> _initController() async {
