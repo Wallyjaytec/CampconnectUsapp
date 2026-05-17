@@ -25,13 +25,40 @@ class NotificationsView extends StatelessWidget {
         leading: const BackIconWidget(),
         centerTitle: false,
         titleSpacing: 0,
-        title: Text(
-          'Notification'.tr,
-          style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
-        ),
-        actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+        title: Obx(() {
+          if (controller.isSelectionMode.value) {
+            return Text('Selected: ${controller.selectedCount.value}'.tr);
+          }
+          return Text('Notification'.tr);
+        }),
         actions: [
           Obx(() {
+            if (controller.isSelectionMode.value) {
+              return Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.select_all),
+                    onPressed: controller.selectAll,
+                    tooltip: 'Select all',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.done_all, color: Colors.green),
+                    onPressed: controller.markSelectedAsRead,
+                    tooltip: 'Mark as read',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.mark_chat_unread, color: Colors.orange),
+                    onPressed: controller.markSelectedAsUnread,
+                    tooltip: 'Mark as unread',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: controller.deleteSelected,
+                    tooltip: 'Delete selected',
+                  ),
+                ],
+              );
+            }
             return controller.items.isEmpty
                 ? const SizedBox.shrink()
                 : TextButton(
@@ -71,6 +98,8 @@ class NotificationsView extends StatelessWidget {
               return _NotificationTile(
                 item: item,
                 onTap: () => controller.onTapNotification(item),
+                onLongPress: () => controller.toggleSelection(item),
+                isSelectionMode: controller.isSelectionMode.value,
               );
             },
           ),
@@ -81,9 +110,16 @@ class NotificationsView extends StatelessWidget {
 }
 
 class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({required this.item, required this.onTap});
+  const _NotificationTile({
+    required this.item,
+    required this.onTap,
+    required this.onLongPress,
+    required this.isSelectionMode,
+  });
   final NotificationItem item;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final bool isSelectionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -92,18 +128,25 @@ class _NotificationTile extends StatelessWidget {
 
     return ListTile(
       onTap: onTap,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: const BoxDecoration(
-          color: AppColors.primaryColor,
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Iconsax.notification_bing_copy,
-          size: 18,
-          color: AppColors.whiteColor,
-        ),
-      ),
+      onLongPress: onLongPress,
+      leading: isSelectionMode
+          ? Checkbox(
+              value: item.isSelected,
+              onChanged: (_) => onLongPress(),
+              activeColor: AppColors.primaryColor,
+            )
+          : Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Iconsax.notification_bing_copy,
+                size: 18,
+                color: AppColors.whiteColor,
+              ),
+            ),
       title: Text(
         plainText,
         maxLines: 2,
@@ -120,7 +163,7 @@ class _NotificationTile extends StatelessWidget {
           style: const TextStyle(color: AppColors.greyColor, fontSize: 12),
         ),
       ),
-      trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
+      trailing: isSelectionMode ? null : const Icon(Iconsax.arrow_right_3_copy, size: 18),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
