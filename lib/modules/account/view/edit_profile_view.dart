@@ -39,10 +39,30 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _refreshData() async {
     await c.fetchBasicInfo();
+    
     if (c.phone.value.isNotEmpty) {
       String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
       c.phoneController.text = phoneNumber;
+      
+      // Debug snackbar - shows phone value from API
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Phone from API: ${c.phone.value}'),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      // Debug snackbar - shows phone is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Phone value is EMPTY from API'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
+    
     setState(() {});
   }
 
