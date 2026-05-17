@@ -48,9 +48,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     await c.fetchBasicInfo();
     
     if (c.phone.value.isNotEmpty) {
-      String fullPhone = c.phone.value;
-      String phoneNumber = fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneNumber;
+      c.phoneController.text = c.getPhoneNumberWithoutCode();
     }
     
     setState(() {
