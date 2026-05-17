@@ -39,7 +39,6 @@ Future<void> main() async {
     print('Notification received in foreground');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
-      Get.find<NotificationController>().load();
     }
   });
   
@@ -48,7 +47,6 @@ Future<void> main() async {
     print('Notification clicked');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
-      Get.find<NotificationController>().load();
     }
   });
   
