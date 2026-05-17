@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:html/parser.dart' as html_parser;
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
-import '../../../data/repositories/notification_repository.dart';
+import '../../modules/account/model/notification_model.dart';
 
 class NotificationDetailView extends StatelessWidget {
   final NotificationItem item;
