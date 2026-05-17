@@ -5,7 +5,7 @@ import '../../../core/services/login_service.dart';
 import '../../../core/utils/link_mapper.dart';
 import '../../../data/repositories/notification_repository.dart';
 import '../model/notification_model.dart';
-import 'notification_detail_view.dart';
+import '../view/notification_detail_view.dart';
 
 class NotificationController extends GetxController {
   NotificationController({NotificationRepository? repo})
