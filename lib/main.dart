@@ -28,12 +28,17 @@ Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
+// Function to request notification permission (call this after camera/gallery permissions)
+void requestNotificationPermission() {
+  OneSignal.Notifications.requestPermission(true);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize OneSignal
+  // Initialize OneSignal (without requesting permission immediately)
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
-  OneSignal.Notifications.requestPermission(true);
+  // Do NOT call requestPermission here - it will be called after camera/gallery permissions
   
   await initServices();
   await GetStorage.init();
