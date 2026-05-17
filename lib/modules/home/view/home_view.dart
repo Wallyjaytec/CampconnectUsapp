@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
@@ -113,6 +114,11 @@ class _HomeViewState extends State<HomeView> {
         await Get.putAsync<PermissionService>(() => PermissionService().init());
       }
       await PermissionService.I.requestOnceOnHome();
+      
+      // Request notification permission after homepage is ready
+      Future.delayed(Duration(milliseconds: 500), () {
+        OneSignal.Notifications.requestPermission(true);
+      });
     });
   }
 
