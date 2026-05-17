@@ -7,6 +7,7 @@ class NotificationItem {
   final String time;
   final String? image;
   final String? title;
+  final bool isRead;
 
   NotificationItem({
     required this.id,
@@ -17,6 +18,7 @@ class NotificationItem {
     this.param,
     this.image,
     this.title,
+    required this.isRead,
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class NotificationItem {
       time: json['time']?.toString() ?? '',
       image: json['image']?.toString(),
       title: json['title']?.toString(),
+      isRead: json['is_read'] == true || json['is_read']?.toString() == '1',
     );
   }
 }
