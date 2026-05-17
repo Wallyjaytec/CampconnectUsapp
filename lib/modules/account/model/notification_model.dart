@@ -5,7 +5,7 @@ class NotificationItem {
   final String? type;
   final int? param;
   final String time;
-  final String? image;  // Add this line
+  final String? image;
 
   NotificationItem({
     required this.id,
@@ -14,7 +14,7 @@ class NotificationItem {
     required this.time,
     this.type,
     this.param,
-    this.image,  // Add this line
+    this.image,
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
@@ -26,7 +26,35 @@ class NotificationItem {
       type: json['type']?.toString(),
       param: toInt(json['param']),
       time: json['time']?.toString() ?? '',
-      image: json['image']?.toString(),  // Add this line
+      image: json['image']?.toString(),
     );
+  }
+}
+
+class UnreadListResponse {
+  final bool success;
+  final List<NotificationItem> notifications;
+
+  UnreadListResponse({required this.success, required this.notifications});
+
+  factory UnreadListResponse.fromJson(Map<String, dynamic> json) {
+    final success = json['success'] == true || json['success']?.toString() == 'true';
+    final list = (json['notifications']?['data'] as List?) ?? const [];
+    final items = list.map((e) => NotificationItem.fromJson(e as Map<String, dynamic>)).toList();
+    return UnreadListResponse(success: success, notifications: items);
+  }
+}
+
+class SingleMarkResponse {
+  final bool success;
+  final List<NotificationItem> unreadNotifications;
+
+  SingleMarkResponse({required this.success, required this.unreadNotifications});
+
+  factory SingleMarkResponse.fromJson(Map<String, dynamic> json) {
+    final success = json['success'] == true || json['success']?.toString() == 'true';
+    final list = (json['unread_notification']?['data'] as List?) ?? const [];
+    final items = list.map((e) => NotificationItem.fromJson(e as Map<String, dynamic>)).toList();
+    return SingleMarkResponse(success: success, unreadNotifications: items);
   }
 }
