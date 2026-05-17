@@ -103,8 +103,8 @@ class NotificationController extends GetxController {
   }
 
   Future<void> onTapNotification(NotificationItem item) async {
-    final ok = await _repo.markSingleAsRead(notificationId: item.id);
-    if (ok) {
+    final res = await _repo.markSingleAsRead(notificationId: item.id);
+    if (res.success) {
       item.isRead = true;
       items.refresh();
       notificationCount.value = items.where((e) => !e.isRead).length;
