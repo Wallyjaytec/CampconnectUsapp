@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,7 +11,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../controller/customer_basic_info_controller.dart';
 import '../widgets/custom_text_form_field.dart';
-import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -22,55 +22,11 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   late CustomerBasicInfoController c;
   bool _isLoading = true;
-  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _initController();
-    
-    // Force refresh phone number after login
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(milliseconds: 500), () {
-        if (c.phone.value.isNotEmpty) {
-          c.phoneController.text = c.getPhoneNumberWithoutCode();
-          setState(() {});
-        }
-      });
-      
-      if (Get.isRegistered<AuthController>()) {
-        Get.find<AuthController>().addListener(_onAuthChanged);
-      }
-    });
-  }
-
-  void _onAuthChanged() {
-    _refreshData();
-  }
-
-  Future<void> _refreshData() async {
-    if (_isRefreshing) return;
-    _isRefreshing = true;
-    
-    if (mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
-    
-    await c.fetchBasicInfo();
-    
-    if (c.phone.value.isNotEmpty && mounted) {
-      c.phoneController.text = c.getPhoneNumberWithoutCode();
-    }
-    
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-    
-    _isRefreshing = false;
   }
 
   Future<void> _initController() async {
@@ -81,15 +37,21 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    await _refreshData();
-  }
-
-  @override
-  void dispose() {
-    if (Get.isRegistered<AuthController>()) {
-      Get.find<AuthController>().removeListener(_onAuthChanged);
+    // Always fetch fresh data when page loads
+    await c.fetchBasicInfo();
+    
+    // Update phone controller after data is loaded
+    if (c.phone.value.isNotEmpty) {
+      // Extract just the phone number without country code
+      String fullPhone = c.phone.value;
+      // Remove the country code prefix (e.g., +234, +1, +44, etc.)
+      String phoneNumber = fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneNumber;
     }
-    super.dispose();
+    
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
