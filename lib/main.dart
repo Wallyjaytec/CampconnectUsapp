@@ -34,9 +34,9 @@ Future<void> main() async {
   // Initialize OneSignal
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
-  // Listen for notifications while app is in foreground
-  OneSignal.Notifications.addOnWillDisplayNotificationListener((event) {
-    print('Notification received while app open');
+  // Listen for notifications received while app is in foreground
+  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    print('Notification received in foreground');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
       Get.find<NotificationController>().load();
