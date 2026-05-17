@@ -5,11 +5,38 @@ import 'package:html/parser.dart' as html_parser;
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../model/notification_model.dart';
+import '../controller/notifications_controller.dart';
 
 class NotificationDetailView extends StatelessWidget {
   final NotificationItem item;
 
   const NotificationDetailView({super.key, required this.item});
+
+  Future<void> _deleteNotification() async {
+    final confirmed = await Get.dialog(
+      AlertDialog(
+        title: Text('Delete Notification'),
+        content: Text('Are you sure you want to delete this notification?'),
+        actions: [
+          TextButton(onPressed: () => Get.back(result: false), child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await Get.find<NotificationController>().deleteNotification(item.id);
+      if (success) {
+        Get.back(); // Go back to list
+        Get.snackbar('Deleted', 'Notification deleted', backgroundColor: Colors.green, colorText: Colors.white);
+      } else {
+        Get.snackbar('Error', 'Could not delete notification', backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +52,12 @@ class NotificationDetailView extends StatelessWidget {
           'Notification Details'.tr,
           style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: _deleteNotification,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
