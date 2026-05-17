@@ -119,6 +119,11 @@ class _HomeViewState extends State<HomeView> {
       Future.delayed(Duration(milliseconds: 500), () {
         OneSignal.Notifications.requestPermission(true);
       });
+      
+      // Refresh notifications when homepage loads
+      if (Get.isRegistered<NotificationController>()) {
+        await Get.find<NotificationController>().refreshList();
+      }
     });
   }
 
