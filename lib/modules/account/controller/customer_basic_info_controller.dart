@@ -114,7 +114,7 @@ class CustomerBasicInfoController extends GetxController {
     }
   }
 
-  Future<void> fetchBasicInfo() async {
+  Future<void> fetchBasicInfo({int retryCount = 0}) async {
     if (!LoginService().isLoggedIn()) {
       _bindGuest();
       return;
@@ -127,10 +127,20 @@ class CustomerBasicInfoController extends GetxController {
       if (res.info != null) {
         _bindInfo(res.info!);
       } else if (!res.success) {
+        if (retryCount < 3) {
+          await Future.delayed(Duration(milliseconds: 500));
+          await fetchBasicInfo(retryCount: retryCount + 1);
+          return;
+        }
         _bindGuest();
       }
     } catch (e) {
       if (e is ApiHttpException && e.statusCode == 401) {
+        if (retryCount < 3) {
+          await Future.delayed(Duration(milliseconds: 500));
+          await fetchBasicInfo(retryCount: retryCount + 1);
+          return;
+        }
         _bindGuest();
       }
     } finally {
