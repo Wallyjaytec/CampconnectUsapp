@@ -153,6 +153,8 @@ static const String resetPasswordPath =
       '/api/refund/v1/refund-request-details';
   static const String uploadOrderAttachmentPath =
       '/api/v1/ecommerce-core/upload-attachment-in-order';
+  static const String deleteNotificationPath =
+      '/api/v1/ecommerce-core/customer/delete-notification';
 
   //base url + api endpoint
   static String sitePropertiesUrl() => '$baseUrl$sitePropertiesPath';
@@ -257,6 +259,7 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
       '$baseUrl$refundRequestDetailsPath';
   static String uploadOrderAttachmentUrl() =>
       '$baseUrl$uploadOrderAttachmentPath';
+  static String deleteNotificationUrl() => '$baseUrl$deleteNotificationPath';
   
   // Email verification code endpoints - UPDATED URLs
   static String sendEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/send-email-verification-code';
