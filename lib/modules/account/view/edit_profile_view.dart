@@ -33,6 +33,8 @@ class _EditProfileViewState extends State<EditProfileView> {
       if (Get.isRegistered<AuthController>()) {
         Get.find<AuthController>().addListener(_onAuthChanged);
       }
+      // Force refresh after coming back from login
+      _refreshData();
     });
   }
 
