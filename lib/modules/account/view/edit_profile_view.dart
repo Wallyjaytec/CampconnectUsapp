@@ -29,7 +29,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     super.initState();
     _initController();
     
+    // Force refresh phone number after login
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        if (c.phone.value.isNotEmpty) {
+          c.phoneController.text = c.getPhoneNumberWithoutCode();
+          setState(() {});
+        }
+      });
+      
       if (Get.isRegistered<AuthController>()) {
         Get.find<AuthController>().addListener(_onAuthChanged);
       }
