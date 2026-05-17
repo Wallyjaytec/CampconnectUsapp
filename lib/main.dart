@@ -2,12 +2,11 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
-import 'package:kartly_e_commerce/core/services/firebase_messaging_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -32,23 +31,11 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  try {
-    await Firebase.initializeApp();
-    print('Firebase initialized successfully');
-  } catch (e) {
-    print('Firebase init failed: $e');
-  }
+  // Initialize OneSignal
+  OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
+  OneSignal.Notifications.requestPermission(true);
   
   await initServices();
-  
-  // Initialize Firebase Messaging
-  try {
-    await FirebaseMessagingService().init();
-  } catch (e) {
-    print('Firebase Messaging init failed: $e');
-  }
-  
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
   Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
