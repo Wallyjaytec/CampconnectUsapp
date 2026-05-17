@@ -75,7 +75,6 @@ class NotificationController extends GetxController {
   Future<void> markAllAsRead() async {
     final ok = await _repo.markAllAsRead();
     if (ok) {
-      // Only update local state, don't refresh from server
       for (var item in items) {
         item.isRead = true;
       }
@@ -100,7 +99,6 @@ class NotificationController extends GetxController {
   }
 
   Future<void> onTapNotification(NotificationItem item) async {
-    // Mark as read without removing from list
     final ok = await _repo.markSingleAsRead(notificationId: item.id);
     if (ok) {
       item.isRead = true;
