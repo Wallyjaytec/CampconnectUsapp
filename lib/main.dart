@@ -31,8 +31,26 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize OneSignal (without requesting permission immediately)
+  // Initialize OneSignal
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
+  
+  // Listen for notifications while app is in foreground
+  OneSignal.Notifications.addOnReceivedListener((event) {
+    print('Notification received while app open: ${event.notification?.title}');
+    // Refresh notification list when new notification arrives
+    if (Get.isRegistered<NotificationController>()) {
+      Get.find<NotificationController>().refreshList();
+      Get.find<NotificationController>().load();
+    }
+  });
+  
+  // Handle notification click
+  OneSignal.Notifications.addClickListener((event) {
+    print('Notification clicked: ${event.notification?.title}');
+    if (Get.isRegistered<NotificationController>()) {
+      Get.find<NotificationController>().refreshList();
+    }
+  });
   
   await initServices();
   await GetStorage.init();
