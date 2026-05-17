@@ -35,20 +35,21 @@ Future<void> main() async {
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
   // Listen for notifications while app is in foreground
-  OneSignal.Notifications.addOnReceivedListener((event) {
-    print('Notification received while app open: ${event.notification?.title}');
-    // Refresh notification list when new notification arrives
+  OneSignal.Notifications.addOnWillDisplayNotificationListener((event) {
+    print('Notification received while app open');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
       Get.find<NotificationController>().load();
     }
+    return true;
   });
   
   // Handle notification click
   OneSignal.Notifications.addClickListener((event) {
-    print('Notification clicked: ${event.notification?.title}');
+    print('Notification clicked');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
+      Get.find<NotificationController>().load();
     }
   });
   
