@@ -135,7 +135,7 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.notifications_off_outlined,
             size: 64,
-            color: Colors.grey.shade400,
+            color: AppColors.primaryColor,
           ),
           const SizedBox(height: 16),
           Text(
