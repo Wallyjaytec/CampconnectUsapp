@@ -31,6 +31,17 @@ class NotificationDetailView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (item.title != null && item.title!.isNotEmpty)
+              Text(
+                item.title!,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            if (item.title != null && item.title!.isNotEmpty)
+              const SizedBox(height: 10),
             if (item.image != null && item.image!.isNotEmpty)
               Container(
                 width: double.infinity,
