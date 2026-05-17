@@ -106,7 +106,6 @@ class NotificationController extends GetxController {
       notificationCount.value = items.length;
     } catch (_) {}
 
-    // Navigate to detail view
     Get.to(() => NotificationDetailView(item: item));
   }
 }
