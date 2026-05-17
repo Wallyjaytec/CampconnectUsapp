@@ -6,6 +6,7 @@ class NotificationItem {
   final int? param;
   final String time;
   final String? image;
+  final String? title;
 
   NotificationItem({
     required this.id,
@@ -15,6 +16,7 @@ class NotificationItem {
     this.type,
     this.param,
     this.image,
+    this.title,
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,7 @@ class NotificationItem {
       param: toInt(json['param']),
       time: json['time']?.toString() ?? '',
       image: json['image']?.toString(),
+      title: json['title']?.toString(),
     );
   }
 }
