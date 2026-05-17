@@ -27,4 +27,10 @@ class NotificationRepository {
     final success = json['success'] == true || json['success']?.toString() == 'true';
     return success;
   }
+
+  Future<bool> deleteNotification(String id) async {
+    final url = AppConfig.deleteNotificationUrl();
+    final json = await _api.postJson(url, body: {'id': id});
+    return json['success'] == true;
+  }
 }
