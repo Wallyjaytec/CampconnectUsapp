@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/login_service.dart';
 import '../../../core/utils/link_mapper.dart';
 import '../../../data/repositories/notification_repository.dart';
+import '../../modules/account/model/notification_model.dart';
 import '../view/notification_detail_view.dart';
 
 class NotificationController extends GetxController {
