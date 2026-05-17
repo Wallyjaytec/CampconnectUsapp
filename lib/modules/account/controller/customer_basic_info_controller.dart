@@ -173,6 +173,7 @@ class CustomerBasicInfoController extends GetxController {
     phone.value = '${phoneCode.value}$phoneOnly';
 
     nameController.text = info.name;
+    // Store the raw phone number without country code in the controller
     phoneController.text = phoneOnly;
 
     _originalName = info.name;
