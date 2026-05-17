@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/login_service.dart';
-import '../../../core/utils/link_mapper.dart';
 import '../../../data/repositories/notification_repository.dart';
 import '../model/notification_model.dart';
 import '../view/notification_detail_view.dart';
@@ -21,7 +20,6 @@ class NotificationController extends GetxController {
   final items = <NotificationItem>[].obs;
   final notificationCount = 0.obs;
   
-  // Selection mode
   final isSelectionMode = false.obs;
   final selectedCount = 0.obs;
 
@@ -82,8 +80,8 @@ class NotificationController extends GetxController {
       for (var item in items) {
         item.isRead = true;
       }
-      items.refresh();
       notificationCount.value = 0;
+      // Don't call items.refresh() - let UI update naturally
       Get.snackbar(
         'Success'.tr,
         'All notifications marked as read'.tr,
@@ -106,7 +104,6 @@ class NotificationController extends GetxController {
     final res = await _repo.markSingleAsRead(notificationId: item.id);
     if (res.success) {
       item.isRead = true;
-      items.refresh();
       notificationCount.value = items.where((e) => !e.isRead).length;
     }
     Get.to(() => NotificationDetailView(item: item));
@@ -128,10 +125,8 @@ class NotificationController extends GetxController {
     return success;
   }
 
-  // Selection mode methods
   void toggleSelection(NotificationItem item) {
     item.isSelected = !item.isSelected;
-    items.refresh();
     selectedCount.value = items.where((e) => e.isSelected).length;
     isSelectionMode.value = selectedCount.value > 0;
   }
@@ -140,7 +135,6 @@ class NotificationController extends GetxController {
     for (var item in items) {
       item.isSelected = true;
     }
-    items.refresh();
     selectedCount.value = items.length;
     isSelectionMode.value = true;
   }
@@ -149,7 +143,6 @@ class NotificationController extends GetxController {
     for (var item in items) {
       item.isSelected = false;
     }
-    items.refresh();
     selectedCount.value = 0;
     isSelectionMode.value = false;
   }
@@ -181,7 +174,6 @@ class NotificationController extends GetxController {
         item.isRead = true;
       }
     }
-    items.refresh();
     clearSelection();
     notificationCount.value = items.where((e) => !e.isRead).length;
     Get.snackbar(
@@ -200,7 +192,6 @@ class NotificationController extends GetxController {
         item.isRead = false;
       }
     }
-    items.refresh();
     clearSelection();
     notificationCount.value = items.where((e) => !e.isRead).length;
     Get.snackbar(
