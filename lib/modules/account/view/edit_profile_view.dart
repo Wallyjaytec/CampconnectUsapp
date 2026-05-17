@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,6 +28,24 @@ class _EditProfileViewState extends State<EditProfileView> {
   void initState() {
     super.initState();
     _initController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh when returning to page (after login)
+    if (!_isLoading && c.name.value.isEmpty && Get.find<AuthController>().isLoggedIn.value) {
+      _refreshData();
+    }
+  }
+
+  Future<void> _refreshData() async {
+    await c.fetchBasicInfo();
+    if (c.phone.value.isNotEmpty) {
+      final phoneOnly = c.phone.value.replaceAll(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneOnly;
+    }
+    setState(() {});
   }
 
   Future<void> _initController() async {
