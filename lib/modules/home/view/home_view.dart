@@ -87,7 +87,8 @@ class _HomeViewState extends State<HomeView> {
     final catTags = ['cat_section_55', 'cat_section_44', 'cat_section_45', 'cat_section_43'];
     for (final tag in catTags) {
       if (Get.isRegistered<NewProductListController>(tag: tag)) {
-        futures.add(Get.find<NewProductListController>(tag: tag).refresh());
+        final ctrl = Get.find<NewProductListController>(tag: tag);
+        ctrl.refresh();
       }
     }
     
