@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:kartly_e_commerce/modules/product/controller/following_products_controller.dart';
 import 'package:kartly_e_commerce/modules/product/view/following_section.dart';
@@ -117,10 +118,14 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
     _scrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Force network check after homepage fully loaded (with delay)
-      Future.delayed(const Duration(milliseconds: 800), () {
+      // Force actual connectivity check after homepage fully loaded
+      Future.delayed(const Duration(milliseconds: 800), () async {
         if (Get.isRegistered<NetworkService>()) {
-          Get.find<NetworkService>().isConnected.refresh();
+          final ns = Get.find<NetworkService>();
+          final connectivity = Connectivity();
+          final results = await connectivity.checkConnectivity();
+          final connected = results.any((r) => r != ConnectivityResult.none);
+          ns.isConnected.value = connected;
         }
       });
       
