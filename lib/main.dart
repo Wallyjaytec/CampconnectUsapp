@@ -25,12 +25,14 @@ import 'modules/product/controller/new_product_list_controller.dart';
 final _appLinks = AppLinks();
 
 Future<void> initServices() async {
-  // Don't await - let it run in background
   Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // FIX B: Record start time for consistent native splash
+  final startTime = DateTime.now();
   
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
@@ -46,7 +48,6 @@ Future<void> main() async {
     }
   });
   
-  // Don't await - let NetworkService initialize in background
   initServices();
   
   await GetStorage.init();
@@ -103,6 +104,12 @@ Future<void> main() async {
       box.write('deep_link_type', type);
     }
   });
+
+  // FIX B: Ensure native splash shows for at least 2 seconds
+  final elapsed = DateTime.now().difference(startTime);
+  if (elapsed < const Duration(seconds: 2)) {
+    await Future.delayed(const Duration(seconds: 2) - elapsed);
+  }
 
   runApp(MyApp(initialLocaleCode: savedApiCode));
 }
