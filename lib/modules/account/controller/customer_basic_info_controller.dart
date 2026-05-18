@@ -156,23 +156,15 @@ class CustomerBasicInfoController extends GetxController {
     email.value = info.email;
 
     // Get phone from API
-    final fullPhone = info.phone ?? '';
+    final phoneOnly = info.phone ?? '';
+    final code = info.phoneCode ?? '+234';
     
-    if (fullPhone.isNotEmpty) {
-      phone.value = fullPhone;
-      
-      // Extract country code from the phone number
-      final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
-      if (match != null) {
-        phoneCode.value = '+' + match.group(1)!;
-        // Set phone number without country code
-        phoneController.text = fullPhone.substring(phoneCode.value.length);
-      } else {
-        phoneController.text = fullPhone;
-      }
-    } else {
-      phoneController.text = '';
-    }
+    // Store full number with country code for display
+    phone.value = '$code$phoneOnly';
+    
+    // Store just the number without code for editing
+    phoneController.text = phoneOnly;
+    phoneCode.value = code;
 
     nameController.text = info.name;
     _originalName = info.name;
