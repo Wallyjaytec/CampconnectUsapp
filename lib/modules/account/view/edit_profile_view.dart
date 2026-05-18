@@ -29,6 +29,30 @@ class _EditProfileViewState extends State<EditProfileView> {
     _initController();
   }
 
+  Future<void> _refreshData() async {
+    await c.fetchBasicInfo();
+    
+    if (c.phone.value.isNotEmpty) {
+      String fullPhone = c.phone.value;
+      
+      // Extract country code (starts with + followed by digits)
+      String code = '';
+      String number = fullPhone;
+      
+      // Use regex to find country code
+      final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
+      if (match != null) {
+        code = '+' + match.group(1)!;
+        number = fullPhone.substring(code.length);
+        c.phoneCode.value = code;
+      }
+      
+      c.phoneController.text = number;
+    }
+    
+    setState(() {});
+  }
+
   Future<void> _initController() async {
     try {
       c = Get.find<CustomerBasicInfoController>();
@@ -37,31 +61,12 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    // Wait for auth token to be ready after login
     await Future.delayed(Duration(milliseconds: 500));
-    
-    // Fetch with retry
-    await _fetchWithRetry();
+    await _refreshData();
     
     setState(() {
       _isLoading = false;
     });
-  }
-
-  Future<void> _fetchWithRetry({int retryCount = 0}) async {
-    await c.fetchBasicInfo();
-    
-    // If phone is still empty and we haven't retried too many times
-    if (c.phone.value.isEmpty && retryCount < 3) {
-      await Future.delayed(Duration(milliseconds: 500));
-      await _fetchWithRetry(retryCount: retryCount + 1);
-    }
-    
-    // Set phone number in controller
-    if (c.phone.value.isNotEmpty) {
-      String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneNumber;
-    }
   }
 
   @override
