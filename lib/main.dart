@@ -31,18 +31,15 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize OneSignal
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    print('Notification received in foreground');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
     }
   });
   
   OneSignal.Notifications.addClickListener((event) {
-    print('Notification clicked');
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
     }
@@ -67,7 +64,6 @@ Future<void> main() async {
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
   await LanguageService.load(savedApiCode);
 
-  // Get initial deep link
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
