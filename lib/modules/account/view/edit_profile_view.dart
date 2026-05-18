@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -36,18 +37,18 @@ class _EditProfileViewState extends State<EditProfileView> {
       String fullPhone = c.phone.value;
       
       // Extract country code (starts with + followed by digits)
-      String code = '';
-      String number = fullPhone;
-      
-      // Use regex to find country code
       final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
       if (match != null) {
-        code = '+' + match.group(1)!;
-        number = fullPhone.substring(code.length);
+        String code = '+' + match.group(1)!;
+        String number = fullPhone.substring(code.length);
+        
+        // Update both controller values
         c.phoneCode.value = code;
+        c.phoneController.text = number;
+      } else {
+        // If no country code found, just show the number
+        c.phoneController.text = fullPhone;
       }
-      
-      c.phoneController.text = number;
     }
     
     setState(() {});
