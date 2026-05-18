@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
@@ -96,47 +95,5 @@ Future<void> main() async {
     }
   });
 
-  // Run the app first
   runApp(MyApp(initialLocaleCode: savedApiCode));
-  
-  // Then check internet and show dialog after app is running
-  Future.delayed(Duration(seconds: 1), () async {
-    final results = await Connectivity().checkConnectivity();
-    final hasInternet = results.any((r) => r != ConnectivityResult.none);
-    
-    if (!hasInternet) {
-      Get.dialog(
-        PopScope(
-          canPop: false,
-          child: AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.wifi_off, color: Colors.red),
-                SizedBox(width: 10),
-                Text('No Internet Connection'),
-              ],
-            ),
-            content: const Text('Please check your Wi-Fi or mobile data.'),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  final newResults = await Connectivity().checkConnectivity();
-                  final newHas = newResults.any((r) => r != ConnectivityResult.none);
-                  if (newHas) {
-                    if (Get.isDialogOpen == true) Get.back();
-                    Get.forceAppUpdate();
-                  } else {
-                    Get.snackbar('No Internet', 'Still no connection',
-                        backgroundColor: Colors.red, colorText: Colors.white);
-                  }
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-        barrierDismissible: false,
-      );
-    }
-  });
 }
