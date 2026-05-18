@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:get_storage/get_storage.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -18,8 +17,8 @@ import '../model/customer_basic_info.dart';
 class CustomerBasicInfoController extends GetxController {
   final _repo = CustomerRepository();
   final _picker = ImagePicker();
+
   final _authRepo = AuthRepository();
-  final _storage = GetStorage();
 
   final avatarUrl = ''.obs;
   final name = ''.obs;
@@ -36,7 +35,6 @@ class CustomerBasicInfoController extends GetxController {
 
   String _originalName = '';
   String _originalPhoneDisplay = '';
-  String _cachedAvatar = '';
 
   final pickedImagePath = ''.obs;
 
@@ -46,11 +44,6 @@ class CustomerBasicInfoController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Load cached avatar if exists
-    _cachedAvatar = _storage.read('cached_avatar') ?? '';
-    if (_cachedAvatar.isNotEmpty) {
-      avatarUrl.value = _cachedAvatar;
-    }
     fetchBasicInfo();
   }
 
@@ -103,10 +96,6 @@ class CustomerBasicInfoController extends GetxController {
 
       if (res.success) {
         pickedImagePath.value = '';
-        // Clear cached avatar
-        _storage.remove('cached_avatar');
-        _cachedAvatar = '';
-        avatarUrl.value = '';
         await fetchBasicInfo();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(content: Text('Profile picture removed'), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
@@ -160,7 +149,7 @@ class CustomerBasicInfoController extends GetxController {
   }
 
   void _bindGuest() {
-    avatarUrl.value = _cachedAvatar.isNotEmpty ? _cachedAvatar : '';
+    avatarUrl.value = '';
     name.value = '';
     email.value = '';
     phone.value = '';
@@ -175,29 +164,17 @@ class CustomerBasicInfoController extends GetxController {
 
   void _bindInfo(CustomerBasicInfo info) {
     final rawImage = info.image ?? '';
-    final newAvatar = (rawImage.isEmpty || rawImage == '/') ? '' : AppConfig.assetUrl(rawImage);
-    
-    // Update cached avatar if changed
-    if (newAvatar.isNotEmpty && _cachedAvatar != newAvatar) {
-      _cachedAvatar = newAvatar;
-      _storage.write('cached_avatar', newAvatar);
-    }
-    
-    // Use cached avatar if available, otherwise use new one
-    if (_cachedAvatar.isNotEmpty) {
-      avatarUrl.value = _cachedAvatar;
-    } else {
-      avatarUrl.value = newAvatar;
-    }
-    
+    avatarUrl.value = (rawImage.isEmpty || rawImage == '/') ? '' : AppConfig.assetUrl(rawImage);
     name.value = info.name;
     email.value = info.email;
 
+    // Use phone code from API, not hardcoded
     phoneCode.value = info.phoneCode ?? '+234';
     final phoneOnly = info.phone ?? '';
     phone.value = '${phoneCode.value}$phoneOnly';
 
     nameController.text = info.name;
+    // Store just the number without country code
     phoneController.text = phoneOnly;
 
     _originalName = info.name;
