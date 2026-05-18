@@ -30,6 +30,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     _initController();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh when returning to page (after login)
+    if (!_isLoading) {
+      _refreshData();
+    }
+  }
+
   Future<void> _refreshData() async {
     await c.fetchBasicInfo();
     
@@ -42,10 +51,10 @@ class _EditProfileViewState extends State<EditProfileView> {
         String code = '+' + match.group(1)!;
         String number = fullPhone.substring(code.length);
         
-        c.phoneCode.value = code;           // Updates country code
-        c.phoneController.text = number;    // Updates phone number field
+        c.phoneCode.value = code;
+        c.phoneController.text = number;
       } else {
-        c.phoneController.text = fullPhone; // Fallback
+        c.phoneController.text = fullPhone;
       }
     }
     
@@ -60,7 +69,6 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    await Future.delayed(const Duration(milliseconds: 500));
     await _refreshData();
     
     setState(() {
