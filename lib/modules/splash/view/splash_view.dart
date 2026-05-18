@@ -18,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Always navigate after 2.5 seconds - NO INTERNET CHECK
-    Timer(const Duration(milliseconds: 2500), () {
+    // ALWAYS navigate after 2 seconds - NO MATTER WHAT
+    Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
       
       final box = GetStorage();
@@ -37,8 +37,15 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
       
-      // ALWAYS go to homepage - internet dialog will show there
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      // FORCE NAVIGATION - ignore any errors
+      try {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+      } catch (e) {
+        // If error, try again
+        Future.delayed(Duration(milliseconds: 500), () {
+          Get.offAllNamed(AppRoutes.bottomNavbarView);
+        });
+      }
     });
   }
 
