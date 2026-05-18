@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
@@ -63,9 +64,38 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
             height: 200,
             child: Obx(() {
               if (_ctrl.isLoading.value && _ctrl.products.isEmpty) {
-                return ListView.separated(scrollDirection: Axis.horizontal, itemCount: 3, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, __) => const _ShimmerCard());
+                return ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 3,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, __) => const _ShimmerCard(),
+                );
               }
-              if (_ctrl.products.isEmpty) return const SizedBox.shrink();
+              
+              // FIX: Show error state when no products (offline)
+              if (_ctrl.products.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Iconsax.warning_2_copy, size: 32, color: AppColors.greyColor),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Something went wrong'.tr,
+                        style: const TextStyle(color: AppColors.greyColor, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () {
+                          _ctrl.openForCategory(categoryId: widget.categoryId, categoryName: widget.title);
+                        },
+                        child: Text('Retry'.tr),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              
               final items = _ctrl.products.take(5).toList();
               return ListView.separated(
                 scrollDirection: Axis.horizontal,
