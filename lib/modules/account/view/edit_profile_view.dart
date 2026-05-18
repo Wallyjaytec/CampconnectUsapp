@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,19 +37,10 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    // Wait for data to load
     await c.fetchBasicInfo();
     
-    // Set phone number after data is loaded
     if (c.phone.value.isNotEmpty) {
-      String fullPhone = c.phone.value;
-      final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
-      if (match != null) {
-        c.phoneCode.value = '+' + match.group(1)!;
-        c.phoneController.text = fullPhone.substring(c.phoneCode.value.length);
-      } else {
-        c.phoneController.text = fullPhone;
-      }
+      c.phoneController.text = c.getPhoneNumberWithoutCode();
     }
     
     setState(() {
