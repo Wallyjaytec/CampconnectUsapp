@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
@@ -72,38 +71,17 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
                 );
               }
               
-              // Show error if controller has error message
+              // Show error text (same as other sections)
               if (_ctrl.error.isNotEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Iconsax.warning_2_copy, size: 32, color: AppColors.greyColor),
-                      const SizedBox(height: 8),
-                      Text(
-                        _ctrl.error.value,
-                        style: const TextStyle(color: AppColors.greyColor, fontSize: 13),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () {
-                          _ctrl.isLoading.value = true;
-                          _ctrl.error.value = '';
-                          _ctrl.openForCategory(categoryId: widget.categoryId, categoryName: widget.title);
-                        },
-                        child: Text('Retry'.tr),
-                      ),
-                    ],
-                  ),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: Text(_ctrl.error.value)),
                 );
               }
               
-              // Show empty message if no products and no error
+              // Show empty if no products
               if (_ctrl.products.isEmpty) {
-                return Center(
-                  child: Text('No products found'.tr, style: const TextStyle(color: AppColors.greyColor)),
-                );
+                return const SizedBox.shrink();
               }
               
               final items = _ctrl.products.take(5).toList();
