@@ -23,8 +23,8 @@ import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/controllers/currency_controller.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../core/services/permission_service.dart';
 import '../../../core/services/network_service.dart';
+import '../../../core/services/permission_service.dart';
 import '../../account/controller/notifications_controller.dart';
 import '../../category/controller/category_controller.dart';
 import '../../product/controller/cart_controller.dart';
@@ -81,6 +81,15 @@ class _HomeViewState extends State<HomeView> {
     }
     futures.add(NewProductSection.refreshSection());
     futures.add(ForYouSection.refreshSection());
+    
+    // Refresh category product sections (Gaming, Shoes, Health & Beauty, Jewelry)
+    final catTags = ['cat_section_55', 'cat_section_44', 'cat_section_45', 'cat_section_43'];
+    for (final tag in catTags) {
+      if (Get.isRegistered<NewProductListController>(tag: tag)) {
+        futures.add(Get.find<NewProductListController>(tag: tag).refresh());
+      }
+    }
+    
     final cartCtl = Get.isRegistered<CartController>() ? Get.find<CartController>() : Get.put(CartController(Get.find()));
     futures.add(cartCtl.loadCart());
     final notifCtl = Get.isRegistered<NotificationController>() ? Get.find<NotificationController>() : Get.put(NotificationController());
@@ -108,11 +117,12 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
     _scrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // FIX A: Force check internet when home loads
-      if (Get.isRegistered<NetworkService>()) {
-        final networkService = Get.find<NetworkService>();
-        networkService.isConnected.refresh();
-      }
+      // Force network check after homepage fully loaded (with delay)
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (Get.isRegistered<NetworkService>()) {
+          Get.find<NetworkService>().isConnected.refresh();
+        }
+      });
       
       if (Get.isRegistered<CurrencyController>()) {
         await Get.find<CurrencyController>().fetchCurrencies(force: true);
