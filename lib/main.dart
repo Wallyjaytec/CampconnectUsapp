@@ -25,7 +25,8 @@ import 'modules/product/controller/new_product_list_controller.dart';
 final _appLinks = AppLinks();
 
 Future<void> initServices() async {
-  await Get.putAsync<NetworkService>(() async => NetworkService().init());
+  // Don't await - let it run in background
+  Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
 Future<void> main() async {
@@ -45,11 +46,12 @@ Future<void> main() async {
     }
   });
   
-  await initServices();
+  // Don't await - let NetworkService initialize in background
+  initServices();
+  
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
   
-  // Wrap these in try-catch so they don't block if no internet
   try {
     Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
   } catch (_) {}
@@ -71,7 +73,6 @@ Future<void> main() async {
   final box = GetStorage();
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
   
-  // Wrap language loading in try-catch
   try {
     await LanguageService.load(savedApiCode);
   } catch (_) {}
