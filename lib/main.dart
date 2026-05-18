@@ -48,11 +48,19 @@ Future<void> main() async {
   await initServices();
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
-  Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
-  final siteRepo = SiteSettingsPropertiesRepository(ApiService());
-  final currencyService = CurrencyService(siteRepo);
-  Get.put<CurrencyService>(currencyService, permanent: true);
-  Get.put<CurrencyController>(CurrencyController(siteRepo, currencyService), permanent: true);
+  
+  // Wrap these in try-catch so they don't block if no internet
+  try {
+    Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
+  } catch (_) {}
+  
+  try {
+    final siteRepo = SiteSettingsPropertiesRepository(ApiService());
+    final currencyService = CurrencyService(siteRepo);
+    Get.put<CurrencyService>(currencyService, permanent: true);
+    Get.put<CurrencyController>(CurrencyController(siteRepo, currencyService), permanent: true);
+  } catch (_) {}
+  
   Get.put<NotificationController>(NotificationController(), permanent: true);
   Get.put(CategoryController(CategoryRepository(ApiService())));
   Get.put<NewProductListController>(NewProductListController(ProductRepository(ApiService())), permanent: true);
@@ -62,7 +70,11 @@ Future<void> main() async {
 
   final box = GetStorage();
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
-  await LanguageService.load(savedApiCode);
+  
+  // Wrap language loading in try-catch
+  try {
+    await LanguageService.load(savedApiCode);
+  } catch (_) {}
 
   try {
     final uri = await _appLinks.getInitialLink();
