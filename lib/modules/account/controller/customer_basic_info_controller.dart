@@ -23,7 +23,7 @@ class CustomerBasicInfoController extends GetxController {
   final name = ''.obs;
   final email = ''.obs;
   final phone = ''.obs;
-  final phoneCode = '+234'.obs;
+  final phoneCode = ''.obs;  // No default value
 
   final isLoading = false.obs;
   final isSendingResetLink = false.obs;
@@ -50,7 +50,8 @@ class CustomerBasicInfoController extends GetxController {
 
   String getPhoneNumberWithoutCode() {
     if (phone.value.isEmpty) return '';
-    return phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
+    String fullPhone = phone.value;
+    return fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
   }
 
   Future<void> pickFromGallery() async {
@@ -142,7 +143,7 @@ class CustomerBasicInfoController extends GetxController {
     name.value = '';
     email.value = '';
     phone.value = '';
-    phoneCode.value = '+234';
+    phoneCode.value = '';
     nameController.text = '';
     phoneController.text = '';
     _originalName = '';
@@ -155,16 +156,27 @@ class CustomerBasicInfoController extends GetxController {
     name.value = info.name;
     email.value = info.email;
 
-    // Get phone from API
-    final phoneOnly = info.phone ?? '';
-    final code = info.phoneCode ?? '+234';
+    // Get phone number from API
+    final fullPhone = info.phone ?? '';
     
-    // Store full number with country code for display
-    phone.value = '$code$phoneOnly';
-    
-    // Store just the number without code for editing
-    phoneController.text = phoneOnly;
-    phoneCode.value = code;
+    if (fullPhone.isNotEmpty) {
+      // Try to extract country code from the phone number
+      final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
+      if (match != null) {
+        // Country code found in the phone number
+        phoneCode.value = '+' + match.group(1)!;
+        phoneController.text = fullPhone.substring(phoneCode.value.length);
+        phone.value = fullPhone;
+      } else {
+        // No country code in phone number, use API's phoneCode
+        phoneCode.value = info.phoneCode ?? '';
+        phoneController.text = fullPhone;
+        phone.value = phoneCode.value.isNotEmpty ? '$phoneCode$fullPhone' : fullPhone;
+      }
+    } else {
+      phoneController.text = '';
+      phone.value = '';
+    }
 
     nameController.text = info.name;
     _originalName = info.name;
