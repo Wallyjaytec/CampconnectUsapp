@@ -36,6 +36,8 @@ class NetworkService extends GetxService {
       _showNoInternetDialog();
     } else {
       _hideNoInternetDialog();
+      // Force refresh UI when connection is restored
+      Get.forceAppUpdate();
     }
   }
 
