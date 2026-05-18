@@ -95,9 +95,13 @@ class NetworkService extends GetxService {
                   height: 44,
                   child: ElevatedButton.icon(
                     onPressed: () async {
+                      // Always check connectivity when button is pressed
                       final List<ConnectivityResult> results =
                           await _connectivity.checkConnectivity();
                       _updateConnectionStatus(results);
+                      
+                      // If still no internet, dialog will stay open
+                      // If internet is back, dialog will close and page will refresh
                     },
                     icon: const Icon(Iconsax.refresh_copy, size: 18),
                     label: const Text('Retry'),
@@ -121,6 +125,11 @@ class NetworkService extends GetxService {
     if (Get.isDialogOpen == true) {
       Get.back();
     }
+  }
+
+  // Public method to show dialog from splash screen
+  void showNoInternetDialog() {
+    _showNoInternetDialog();
   }
 
   @override
