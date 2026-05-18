@@ -72,8 +72,8 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
                 );
               }
               
-              // FIX: Show error state when no products (offline)
-              if (_ctrl.products.isEmpty) {
+              // Show error if controller has error message
+              if (_ctrl.error.isNotEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -81,18 +81,28 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
                       const Icon(Iconsax.warning_2_copy, size: 32, color: AppColors.greyColor),
                       const SizedBox(height: 8),
                       Text(
-                        'Something went wrong'.tr,
+                        _ctrl.error.value,
                         style: const TextStyle(color: AppColors.greyColor, fontSize: 13),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () {
+                          _ctrl.isLoading.value = true;
+                          _ctrl.error.value = '';
                           _ctrl.openForCategory(categoryId: widget.categoryId, categoryName: widget.title);
                         },
                         child: Text('Retry'.tr),
                       ),
                     ],
                   ),
+                );
+              }
+              
+              // Show empty message if no products and no error
+              if (_ctrl.products.isEmpty) {
+                return Center(
+                  child: Text('No products found'.tr, style: const TextStyle(color: AppColors.greyColor)),
                 );
               }
               
