@@ -28,40 +28,22 @@ Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Show error on screen
-  FlutterError.onError = (details) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.snackbar(
-        'ERROR',
-        details.exception.toString(),
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: Duration(seconds: 10),
-        snackPosition: SnackPosition.TOP,
-      );
-    });
-  };
+  OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
-  try {
-    OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
-    
-    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      if (Get.isRegistered<NotificationController>()) {
-        Get.find<NotificationController>().refreshList();
-      }
-    });
-    
-    OneSignal.Notifications.addClickListener((event) {
-      if (Get.isRegistered<NotificationController>()) {
-        Get.find<NotificationController>().refreshList();
-      }
-    });
-  } catch (e) {
-    Get.snackbar('OneSignal Error', e.toString(), backgroundColor: Colors.red, colorText: Colors.white);
-  }
+  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    if (Get.isRegistered<NotificationController>()) {
+      Get.find<NotificationController>().refreshList();
+    }
+  });
+  
+  OneSignal.Notifications.addClickListener((event) {
+    if (Get.isRegistered<NotificationController>()) {
+      Get.find<NotificationController>().refreshList();
+    }
+  });
   
   await initServices();
   await GetStorage.init();
@@ -95,9 +77,7 @@ void main() async {
         box.write('deep_link_type', type);
       }
     }
-  } catch (e) {
-    Get.snackbar('Deep Link Error', e.toString(), backgroundColor: Colors.red, colorText: Colors.white);
-  }
+  } catch (_) {}
 
   _appLinks.uriLinkStream.listen((uri) {
     final token = uri.queryParameters['u'] ?? '';
