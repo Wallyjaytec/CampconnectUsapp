@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
 import '../../auth/view/verification_success_view.dart';
+import '../../core/services/network_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,23 +28,52 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
     _controller.forward();
 
-    Timer(const Duration(seconds: 3), () {
-      if (!mounted) return;
-      final box = GetStorage();
-      final token = box.read<String>('deep_link_token') ?? '';
-      final type = box.read<String>('deep_link_type') ?? '';
-      if (token.isNotEmpty) {
-        box.remove('deep_link_token');
-        box.remove('deep_link_type');
-        if (type == 'email_verify') {
-          Get.offAll(() => VerificationSuccessView(code: token));
-        } else {
-          Get.offAll(() => PasswordResetView(token: token));
+    // Check internet before navigating
+    _checkInternetAndNavigate();
+  }
+
+  Future<void> _checkInternetAndNavigate() async {
+    // Wait for animations to finish
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (!mounted) return;
+    
+    final networkService = Get.isRegistered<NetworkService>() 
+        ? Get.find<NetworkService>() 
+        : await Get.putAsync<NetworkService>(() => NetworkService().init());
+    
+    // Check internet connection
+    if (!networkService.isConnected.value) {
+      // Show internet dialog and stay on splash
+      networkService.showNoInternetDialog();
+      // Listen for when internet comes back
+      ever(networkService.isConnected, (connected) {
+        if (connected && mounted) {
+          _navigateToNext();
         }
-        return;
+      });
+      return;
+    }
+    
+    _navigateToNext();
+  }
+
+  void _navigateToNext() {
+    if (!mounted) return;
+    final box = GetStorage();
+    final token = box.read<String>('deep_link_token') ?? '';
+    final type = box.read<String>('deep_link_type') ?? '';
+    if (token.isNotEmpty) {
+      box.remove('deep_link_token');
+      box.remove('deep_link_type');
+      if (type == 'email_verify') {
+        Get.offAll(() => VerificationSuccessView(code: token));
+      } else {
+        Get.offAll(() => PasswordResetView(token: token));
       }
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-    });
+      return;
+    }
+    Get.offAllNamed(AppRoutes.bottomNavbarView);
   }
 
   @override
