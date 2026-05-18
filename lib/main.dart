@@ -31,6 +31,9 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // FIX: Show app immediately so splash screen doesn't get stuck when no internet
+  runApp(MyApp(initialLocaleCode: 'en'));
+  
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
@@ -91,5 +94,5 @@ Future<void> main() async {
     }
   });
 
-  runApp(MyApp(initialLocaleCode: savedApiCode));
+  // FIX: runApp removed from here - already called at the top
 }
