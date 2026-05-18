@@ -33,20 +33,24 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _refreshData() async {
     await c.fetchBasicInfo();
     
+    // DEBUG - show phone value from API
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Phone from API: ${c.phone.value}'),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+    
     if (c.phone.value.isNotEmpty) {
       String fullPhone = c.phone.value;
-      
-      // Extract country code (starts with + followed by digits)
       final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
       if (match != null) {
         String code = '+' + match.group(1)!;
         String number = fullPhone.substring(code.length);
-        
-        // Update both controller values
         c.phoneCode.value = code;
         c.phoneController.text = number;
       } else {
-        // If no country code found, just show the number
         c.phoneController.text = fullPhone;
       }
     }
@@ -62,7 +66,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
     await _refreshData();
     
     setState(() {
