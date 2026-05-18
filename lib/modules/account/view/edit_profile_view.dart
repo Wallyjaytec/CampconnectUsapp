@@ -29,62 +29,39 @@ class _EditProfileViewState extends State<EditProfileView> {
     _initController();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isLoading && c.name.value.isEmpty) {
-      _refreshData();
-    }
-  }
-
-  Future<void> _refreshData() async {
-    await c.fetchBasicInfo();
-    
-    if (c.phone.value.isNotEmpty) {
-      String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
-      c.phoneController.text = phoneNumber;
-      
-      // Debug snackbar - shows phone value from API
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Phone from API: ${c.phone.value}'),
-          backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } else {
-      // Debug snackbar - shows phone is empty
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Phone value is EMPTY from API'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
-    
-    setState(() {});
-  }
-
   Future<void> _initController() async {
     try {
       c = Get.find<CustomerBasicInfoController>();
-      if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
-        String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
-        c.phoneController.text = phoneNumber;
-      }
     } catch (e) {
       Get.put(CustomerBasicInfoController());
       c = Get.find<CustomerBasicInfoController>();
-      await c.fetchBasicInfo();
-      if (c.phoneController.text.isEmpty && c.phone.value.isNotEmpty) {
-        String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
-        c.phoneController.text = phoneNumber;
-      }
     }
+    
+    // Wait for auth token to be ready after login
+    await Future.delayed(Duration(milliseconds: 500));
+    
+    // Fetch with retry
+    await _fetchWithRetry();
+    
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> _fetchWithRetry({int retryCount = 0}) async {
+    await c.fetchBasicInfo();
+    
+    // If phone is still empty and we haven't retried too many times
+    if (c.phone.value.isEmpty && retryCount < 3) {
+      await Future.delayed(Duration(milliseconds: 500));
+      await _fetchWithRetry(retryCount: retryCount + 1);
+    }
+    
+    // Set phone number in controller
+    if (c.phone.value.isNotEmpty) {
+      String phoneNumber = c.phone.value.replaceFirst(RegExp(r'^\+?\d+'), '');
+      c.phoneController.text = phoneNumber;
+    }
   }
 
   @override
