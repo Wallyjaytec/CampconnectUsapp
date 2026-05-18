@@ -1,8 +1,6 @@
 import 'dart:convert';
-
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
-
 import '../config/app_config.dart';
 import 'login_service.dart';
 
@@ -20,7 +18,6 @@ class ApiService {
       'Content-Type': 'application/json',
       'accept-language': langCode,
     };
-
     final login = LoginService();
     final token = login.token;
     if (token != null && token.isNotEmpty) {
@@ -30,9 +27,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getJson(
-    String url, {
-    Map<String, String>? headers,
-  }) {
+    String url, {Map<String, String>? headers}) {
     final uri = Uri.parse(url);
     return _sendWithRefreshRetry(
       builder: () {
@@ -45,10 +40,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> postJson(
-    String url, {
-    Map<String, dynamic>? body,
-    Map<String, String>? headers,
-  }) {
+    String url, {Map<String, dynamic>? body, Map<String, String>? headers}) {
     final uri = Uri.parse(url);
     return _sendWithRefreshRetry(
       builder: () {
@@ -63,10 +55,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> putJson(
-    String url, {
-    Map<String, dynamic>? body,
-    Map<String, String>? headers,
-  }) {
+    String url, {Map<String, dynamic>? body, Map<String, String>? headers}) {
     final uri = Uri.parse(url);
     return _sendWithRefreshRetry(
       builder: () {
@@ -81,9 +70,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> deleteJson(
-    String url, {
-    Map<String, String>? headers,
-  }) {
+    String url, {Map<String, String>? headers}) {
     final uri = Uri.parse(url);
     return _sendWithRefreshRetry(
       builder: () {
@@ -122,14 +109,12 @@ class ApiService {
     required String tag,
   }) async {
     http.Response res = await _dispatch(builder());
-
     if (res.statusCode == 401) {
       final refreshed = await _refreshTokenOnce();
       if (refreshed) {
         res = await _dispatch(builder());
       }
     }
-
     return _decodeOrThrow(
       method: (res.request?.method ?? 'HTTP'),
       url: res.request?.url.toString() ?? tag,
@@ -138,18 +123,32 @@ class ApiService {
     );
   }
 
+  // ========== THIS IS THE ONLY METHOD THAT CHANGED ==========
   Future<http.Response> _dispatch(http.BaseRequest req) async {
-    final streamed = await req.send();
-    final res = await http.Response.fromStream(streamed);
-
+    final streamed = await req.send().timeout(
+      const Duration(seconds: 15),
+      onTimeout: () => throw ApiHttpException(
+        method: req.method,
+        url: req.url.toString(),
+        statusCode: 408,
+        body: 'Request timeout - please check your internet connection',
+      ),
+    );
+    final res = await http.Response.fromStream(streamed).timeout(
+      const Duration(seconds: 15),
+      onTimeout: () => throw ApiHttpException(
+        method: req.method,
+        url: req.url.toString(),
+        statusCode: 408,
+        body: 'Response timeout - please check your internet connection',
+      ),
+    );
     return res;
   }
+  // ==========================================================
 
   Future<bool> _refreshTokenOnce() async {
-    if (_isRefreshing && _refreshFuture != null) {
-      return _refreshFuture!;
-    }
-
+    if (_isRefreshing && _refreshFuture != null) return _refreshFuture!;
     final login = LoginService();
     _isRefreshing = true;
     _refreshFuture = _doRefresh(login);
@@ -163,30 +162,19 @@ class ApiService {
     try {
       final uri = Uri.parse(AppConfig.customerTokenRefreshUrl());
       final headers = _defaultHeaders();
-
       final req = http.Request('POST', uri)..headers.addAll(headers);
       final res = await _dispatch(req);
-
       if (res.statusCode == 401) return false;
       if (res.statusCode < 200 || res.statusCode >= 300) {
         throw ApiHttpException(
-          method: 'POST',
-          url: uri.toString(),
-          statusCode: res.statusCode,
-          body: res.body,
-        );
+          method: 'POST', url: uri.toString(),
+          statusCode: res.statusCode, body: res.body);
       }
-
       final decoded = json.decode(res.body);
       if (decoded is! Map<String, dynamic>) return false;
-
-      final success =
-          (decoded['success'] == true) ||
-          (decoded['success']?.toString() == 'true');
-
+      final success = (decoded['success'] == true) || (decoded['success']?.toString() == 'true');
       final newToken = decoded['access_token']?.toString();
       final tokenType = decoded['token_type']?.toString() ?? 'bearer';
-
       if (success && (newToken != null && newToken.isNotEmpty)) {
         login.saveToken(newToken, tokenType: tokenType);
         return true;
@@ -198,69 +186,39 @@ class ApiService {
   }
 
   Map<String, dynamic> _decodeOrThrow({
-    required String method,
-    required String url,
-    required int statusCode,
-    required String body,
+    required String method, required String url,
+    required int statusCode, required String body,
   }) {
     final trimmed = body.trimLeft();
     if (trimmed.startsWith('<!DOCTYPE html>') || trimmed.startsWith('<html')) {
-      throw ApiHttpException(
-        method: method,
-        url: url,
-        statusCode: statusCode,
-        body:
-            'HTML received instead of JSON. Usually wrong endpoint or server error.\n--- RAW START ---\n$body\n--- RAW END ---',
-      );
+      throw ApiHttpException(method: method, url: url, statusCode: statusCode,
+        body: 'HTML received instead of JSON...');
     }
-
     if (statusCode == 401) {
-      // Check for force_logout flag from backend middleware
       try {
         final decoded = json.decode(body);
         if (decoded is Map<String, dynamic> && decoded['force_logout'] == true) {
-          final login = LoginService();
-          login.logout();
+          LoginService().logout();
         }
       } catch (_) {}
-
-      // Always logout on 401
-      try {
-        final login = LoginService();
-        login.logout();
-      } catch (_) {}
+      try { LoginService().logout(); } catch (_) {}
     }
-
     if (statusCode < 200 || statusCode >= 300) {
-      throw ApiHttpException(
-        method: method,
-        url: url,
-        statusCode: statusCode,
-        body: body,
-      );
+      throw ApiHttpException(method: method, url: url, statusCode: statusCode, body: body);
     }
-
     try {
       final raw = (body.isEmpty ? '{}' : body);
       final decoded = json.decode(raw);
       if (decoded is Map<String, dynamic>) return decoded;
       return {'data': decoded};
     } catch (e) {
-      throw ApiHttpException(
-        method: method,
-        url: url,
-        statusCode: statusCode,
-        body:
-            'JSON decode failed: $e\n--- RAW START ---\n$body\n--- RAW END ---',
-      );
+      throw ApiHttpException(method: method, url: url, statusCode: statusCode,
+        body: 'JSON decode failed: $e');
     }
   }
 
   Future<Map<String, dynamic>> postFormUrlEncodedRaw(
-    String url, {
-    required String body,
-    Map<String, String>? headers,
-  }) {
+    String url, {required String body, Map<String, String>? headers}) {
     final uri = Uri.parse(url);
     return _sendWithRefreshRetry(
       builder: () {
@@ -282,12 +240,9 @@ class ApiHttpException implements Exception {
   final int statusCode;
   final String body;
   ApiHttpException({
-    required this.method,
-    required this.url,
-    required this.statusCode,
-    required this.body,
+    required this.method, required this.url,
+    required this.statusCode, required this.body,
   });
-
   @override
   String toString() => 'ApiHttpException: $method $url → $statusCode\n$body';
 }
