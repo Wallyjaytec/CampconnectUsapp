@@ -19,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  bool _navigated = false;
 
   @override
   void initState() {
@@ -34,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _checkInternetAndNavigate() async {
     await Future.delayed(const Duration(seconds: 3));
     
-    if (!mounted) return;
+    if (!mounted || _navigated) return;
     
     final networkService = Get.isRegistered<NetworkService>() 
         ? Get.find<NetworkService>() 
@@ -44,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       networkService.showNoInternetDialog();
       // Listen for when internet comes back
       ever(networkService.isConnected, (connected) {
-        if (connected == true && mounted) {
+        if (connected == true && mounted && !_navigated) {
           _navigateToNext();
         }
       });
@@ -55,6 +56,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _navigateToNext() {
+    if (_navigated) return;
+    _navigated = true;
     if (!mounted) return;
     final box = GetStorage();
     final token = box.read<String>('deep_link_token') ?? '';
