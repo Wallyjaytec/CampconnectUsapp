@@ -196,7 +196,6 @@ class _AvatarCircle extends StatelessWidget {
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
                 errorWidget: (_, __, ___) => Image.asset("assets/icons/profile.png", width: 80, height: 80, fit: BoxFit.cover),
               ),
             )
