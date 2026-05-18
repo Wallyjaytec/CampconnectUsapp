@@ -30,37 +30,6 @@ class _EditProfileViewState extends State<EditProfileView> {
     _initController();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh when returning to page (after login)
-    if (!_isLoading) {
-      _refreshData();
-    }
-  }
-
-  Future<void> _refreshData() async {
-    await c.fetchBasicInfo();
-    
-    if (c.phone.value.isNotEmpty) {
-      String fullPhone = c.phone.value;
-      
-      // Extract country code and number
-      final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
-      if (match != null) {
-        String code = '+' + match.group(1)!;
-        String number = fullPhone.substring(code.length);
-        
-        c.phoneCode.value = code;
-        c.phoneController.text = number;
-      } else {
-        c.phoneController.text = fullPhone;
-      }
-    }
-    
-    setState(() {});
-  }
-
   Future<void> _initController() async {
     try {
       c = Get.find<CustomerBasicInfoController>();
@@ -69,7 +38,20 @@ class _EditProfileViewState extends State<EditProfileView> {
       c = Get.find<CustomerBasicInfoController>();
     }
     
-    await _refreshData();
+    // Wait for data to load
+    await c.fetchBasicInfo();
+    
+    // Set phone number after data is loaded
+    if (c.phone.value.isNotEmpty) {
+      String fullPhone = c.phone.value;
+      final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
+      if (match != null) {
+        c.phoneCode.value = '+' + match.group(1)!;
+        c.phoneController.text = fullPhone.substring(c.phoneCode.value.length);
+      } else {
+        c.phoneController.text = fullPhone;
+      }
+    }
     
     setState(() {
       _isLoading = false;
