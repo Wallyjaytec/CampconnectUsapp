@@ -14,24 +14,14 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
-    _controller.forward();
-
-    // Always navigate after 3 seconds, no internet check
-    Timer(const Duration(seconds: 3), () {
+    // Always navigate after 2.5 seconds - NO INTERNET CHECK
+    Timer(const Duration(milliseconds: 2500), () {
       if (!mounted) return;
       
-      // Check for deep link first
       final box = GetStorage();
       final token = box.read<String>('deep_link_token') ?? '';
       final type = box.read<String>('deep_link_type') ?? '';
@@ -47,24 +37,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         return;
       }
       
-      // Always go to homepage - internet dialog will show there if needed
+      // ALWAYS go to homepage - internet dialog will show there
       Get.offAllNamed(AppRoutes.bottomNavbarView);
     });
   }
-
-  @override
-  void dispose() { _controller.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) => Transform.translate(offset: Offset(_slideAnimation.value, 0), child: Opacity(opacity: _fadeAnimation.value, child: child)),
-          child: SizedBox(width: 160, height: 160, child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain))),
-        ),
+        child: Image.asset(AppAssets.appLogo, width: 160, height: 160),
       ),
     );
   }
