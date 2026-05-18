@@ -33,25 +33,19 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _refreshData() async {
     await c.fetchBasicInfo();
     
-    // DEBUG - show phone value from API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Phone from API: ${c.phone.value}'),
-        backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 5),
-      ),
-    );
-    
     if (c.phone.value.isNotEmpty) {
       String fullPhone = c.phone.value;
+      
+      // Extract country code and number
       final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
       if (match != null) {
         String code = '+' + match.group(1)!;
         String number = fullPhone.substring(code.length);
-        c.phoneCode.value = code;
-        c.phoneController.text = number;
+        
+        c.phoneCode.value = code;           // Updates country code
+        c.phoneController.text = number;    // Updates phone number field
       } else {
-        c.phoneController.text = fullPhone;
+        c.phoneController.text = fullPhone; // Fallback
       }
     }
     
