@@ -32,14 +32,9 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Check internet first
-  final results = await Connectivity().checkConnectivity();
-  final hasInternet = results.any((r) => r != ConnectivityResult.none);
-  
   // Initialize OneSignal
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
-  // Listen for notifications
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
     print('Notification received in foreground');
     if (Get.isRegistered<NotificationController>()) {
@@ -89,7 +84,6 @@ Future<void> main() async {
     }
   } catch (_) {}
 
-  // Listen for links while app is running
   _appLinks.uriLinkStream.listen((uri) {
     final token = uri.queryParameters['u'] ?? '';
     if (token.isNotEmpty) {
@@ -102,45 +96,47 @@ Future<void> main() async {
     }
   });
 
-  // Show internet dialog if no connection
-  if (!hasInternet) {
-    Get.dialog(
-      PopScope(
-        canPop: false,
-        child: AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.wifi_off, color: Colors.red),
-              SizedBox(width: 10),
-              Text('No Internet Connection'),
+  // Run the app first
+  runApp(MyApp(initialLocaleCode: savedApiCode));
+  
+  // Then check internet and show dialog after app is running
+  Future.delayed(Duration(seconds: 1), () async {
+    final results = await Connectivity().checkConnectivity();
+    final hasInternet = results.any((r) => r != ConnectivityResult.none);
+    
+    if (!hasInternet) {
+      Get.dialog(
+        PopScope(
+          canPop: false,
+          child: AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.wifi_off, color: Colors.red),
+                SizedBox(width: 10),
+                Text('No Internet Connection'),
+              ],
+            ),
+            content: const Text('Please check your Wi-Fi or mobile data.'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  final newResults = await Connectivity().checkConnectivity();
+                  final newHas = newResults.any((r) => r != ConnectivityResult.none);
+                  if (newHas) {
+                    if (Get.isDialogOpen == true) Get.back();
+                    Get.forceAppUpdate();
+                  } else {
+                    Get.snackbar('No Internet', 'Still no connection',
+                        backgroundColor: Colors.red, colorText: Colors.white);
+                  }
+                },
+                child: const Text('Retry'),
+              ),
             ],
           ),
-          content: const Text('Please check your Wi-Fi or mobile data.'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                final newResults = await Connectivity().checkConnectivity();
-                final newHas = newResults.any((r) => r != ConnectivityResult.none);
-                if (newHas) {
-                  if (Get.isDialogOpen == true) Get.back();
-                  runApp(MyApp(initialLocaleCode: savedApiCode));
-                } else {
-                  Get.snackbar(
-                    'No Internet',
-                    'Still no connection',
-                    backgroundColor: Colors.red,
-                    colorText: Colors.white,
-                  );
-                }
-              },
-              child: const Text('Retry'),
-            ),
-          ],
         ),
-      ),
-      barrierDismissible: false,
-    );
-  } else {
-    runApp(MyApp(initialLocaleCode: savedApiCode));
-  }
+        barrierDismissible: false,
+      );
+    }
+  });
 }
