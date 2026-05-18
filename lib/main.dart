@@ -113,5 +113,10 @@ Future<void> main() async {
     await Future.delayed(const Duration(seconds: 2) - elapsed);
   }
 
+  // Force network check after everything is ready
+  if (Get.isRegistered<NetworkService>()) {
+    Get.find<NetworkService>().isConnected.refresh();
+  }
+
   runApp(MyApp(initialLocaleCode: savedApiCode));
 }
