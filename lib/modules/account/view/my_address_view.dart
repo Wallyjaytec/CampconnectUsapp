@@ -25,6 +25,7 @@ class MyAddressView extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
@@ -104,7 +105,7 @@ class MyAddressView extends StatelessWidget {
 
                 return Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
+                    color: Get.theme.brightness == Brightness.dark
                         ? AppColors.darkCardColor
                         : AppColors.lightCardColor,
                     borderRadius: BorderRadius.circular(12),
@@ -145,7 +146,7 @@ class MyAddressView extends StatelessWidget {
                           ),
                           const SizedBox(width: 10),
                           GestureDetector(
-                            onTap: () => _confirmDelete(context, c, a),
+                            onTap: () => _confirmDelete(c, a),
                             child: const Icon(Iconsax.trash_copy, size: 16, color: Colors.red),
                           ),
                         ],
@@ -191,20 +192,19 @@ class MyAddressView extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, AddressController c, CustomerAddress a) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
+  void _confirmDelete(AddressController c, CustomerAddress a) {
+    Get.dialog(
+      AlertDialog(
         title: Text('Delete Address'.tr),
         content: Text('Are you sure you want to delete this address?'.tr),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () => Get.back(),
             child: Text('Cancel'.tr),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(ctx).pop();
+              Get.back();
               c.deleteAddress(a.id);
             },
             child: Text('Delete'.tr, style: const TextStyle(color: Colors.red)),
