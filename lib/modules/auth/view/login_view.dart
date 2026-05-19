@@ -42,6 +42,7 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
 
+    // Show success message from arguments (e.g., password/email reset success)
     final arguments = Get.arguments;
     if (arguments is String && arguments.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,6 +57,7 @@ class LoginView extends StatelessWidget {
       });
     }
 
+    // Show forgot password dialog if coming from expired reset link
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = Get.arguments;
       if (args is Map && args['show_forgot'] == true) {
