@@ -54,7 +54,7 @@ class WishlistView extends GetView<WishlistController> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Image.asset('assets/icons/wishlist_user.png', width: 80, height: 80),
+                              Image.asset('assets/icons/empty_wishlist.png', width: 120, height: 120),
                               const SizedBox(height: 16),
                               Text("You haven't saved an item yet!".tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                               const SizedBox(height: 8),
