@@ -58,6 +58,7 @@ class _SearchResultsListViewState extends State<SearchResultsListView> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 0,
