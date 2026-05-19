@@ -34,6 +34,12 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightFor(initialLocale),
       darkTheme: AppTheme.darkFor(initialLocale),
       themeMode: ThemeMode.system,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: child!,
+        );
+      },
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
       getPages: AppPages.pages,
