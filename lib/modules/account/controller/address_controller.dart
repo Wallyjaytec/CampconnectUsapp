@@ -408,20 +408,23 @@ class AddressController extends GetxController {
     try {
       await _addressRepo.deleteCustomerAddress(addressId);
       addresses.removeWhere((a) => a.id == addressId);
+      addresses.refresh();
       Get.snackbar(
         'Deleted'.tr,
         'Address deleted successfully'.tr,
         backgroundColor: AppColors.primaryColor,
         snackPosition: SnackPosition.TOP,
         colorText: AppColors.whiteColor,
+        duration: const Duration(seconds: 2),
       );
-    } catch (_) {
+    } catch (e) {
       Get.snackbar(
         'Error'.tr,
-        'Failed to delete address'.tr,
+        'Failed to delete address: ${e.toString()}'.tr,
         backgroundColor: AppColors.redColor,
         snackPosition: SnackPosition.TOP,
         colorText: AppColors.whiteColor,
+        duration: const Duration(seconds: 3),
       );
     }
   }
