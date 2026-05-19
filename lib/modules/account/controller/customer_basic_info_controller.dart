@@ -92,16 +92,37 @@ class CustomerBasicInfoController extends GetxController {
         pickedImagePath.value = '';
         await fetchBasicInfo();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Profile picture removed'), backgroundColor: AppColors.primaryColor),
+          SnackBar(
+            content: Text('Profile picture removed'),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Could not remove profile picture'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Could not remove profile picture'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Something went wrong'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Something went wrong'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 3),
+        ),
       );
     } finally {
       isLoading.value = false;
@@ -191,7 +212,14 @@ class CustomerBasicInfoController extends GetxController {
 
     if (newName.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Name is required'), backgroundColor: AppColors.primaryColor),
+        SnackBar(
+          content: Text('Name is required'),
+          backgroundColor: AppColors.primaryColor,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -210,11 +238,25 @@ class CustomerBasicInfoController extends GetxController {
         pickedImagePath.value = '';
         _originalName = nameController.text.trim();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.primaryColor),
+          SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Update failed'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Update failed'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
@@ -231,7 +273,14 @@ class CustomerBasicInfoController extends GetxController {
         } catch (_) {}
       }
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 3),
+        ),
       );
     } finally {
       isLoading.value = false;
@@ -242,7 +291,14 @@ class CustomerBasicInfoController extends GetxController {
     final currentEmail = email.value.trim();
     if (currentEmail.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('No email found'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('No email found'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -251,16 +307,37 @@ class CustomerBasicInfoController extends GetxController {
       final res = await _authRepo.forgotPassword(email: currentEmail);
       if (res.success) {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Password reset link sent to $currentEmail'), backgroundColor: AppColors.primaryColor),
+          SnackBar(
+            content: Text('Password reset link sent to $currentEmail'),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Could not send password reset link'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Could not send password reset link'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Request failed'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 3),
+        ),
       );
     } finally {
       isSendingForgotLink.value = false;
@@ -273,16 +350,37 @@ class CustomerBasicInfoController extends GetxController {
       final res = await _authRepo.sendEmailResetLink();
       if (res.success) {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text('Reset email link sent to ${email.value}'), backgroundColor: AppColors.primaryColor),
+          SnackBar(
+            content: Text('Reset email link sent to ${email.value}'),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(content: Text(res.message ?? 'Could not send reset email'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(res.message ?? 'Could not send reset email'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
-        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Request failed'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 3),
+        ),
       );
     } finally {
       isSendingResetLink.value = false;
