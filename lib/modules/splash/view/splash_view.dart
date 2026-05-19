@@ -25,24 +25,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
-    _controller.forward();
+    
+    // Start animation after first frame to ensure it always shows
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.forward();
 
-    Timer(const Duration(seconds: 3), () {
-      if (!mounted) return;
-      final box = GetStorage();
-      final token = box.read<String>('deep_link_token') ?? '';
-      final type = box.read<String>('deep_link_type') ?? '';
-      if (token.isNotEmpty) {
-        box.remove('deep_link_token');
-        box.remove('deep_link_type');
-        if (type == 'email_verify') {
-          Get.offAll(() => VerificationSuccessView(code: token));
-        } else {
-          Get.offAll(() => PasswordResetView(token: token));
+      Timer(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        final box = GetStorage();
+        final token = box.read<String>('deep_link_token') ?? '';
+        final type = box.read<String>('deep_link_type') ?? '';
+        if (token.isNotEmpty) {
+          box.remove('deep_link_token');
+          box.remove('deep_link_type');
+          if (type == 'email_verify') {
+            Get.offAll(() => VerificationSuccessView(code: token));
+          } else {
+            Get.offAll(() => PasswordResetView(token: token));
+          }
+          return;
         }
-        return;
-      }
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+      });
     });
   }
 
