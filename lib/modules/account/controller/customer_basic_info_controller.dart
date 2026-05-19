@@ -23,7 +23,7 @@ class CustomerBasicInfoController extends GetxController {
   final name = ''.obs;
   final email = ''.obs;
   final phone = ''.obs;
-  final phoneCode = ''.obs;  // No default value
+  final phoneCode = ''.obs;
 
   final isLoading = false.obs;
   final isSendingResetLink = false.obs;
@@ -51,7 +51,13 @@ class CustomerBasicInfoController extends GetxController {
   String getPhoneNumberWithoutCode() {
     if (phone.value.isEmpty) return '';
     String fullPhone = phone.value;
-    return fullPhone.replaceFirst(RegExp(r'^\+?\d+'), '');
+    // Extract country code: starts with + followed by digits
+    final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
+    if (match != null) {
+      // Return everything after the country code
+      return fullPhone.substring(match.end);
+    }
+    return fullPhone;
   }
 
   Future<void> pickFromGallery() async {
@@ -163,15 +169,20 @@ class CustomerBasicInfoController extends GetxController {
       // Try to extract country code from the phone number
       final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
       if (match != null) {
-        // Country code found in the phone number
+        // Country code found in the phone number (e.g., +4915140144170)
         phoneCode.value = '+' + match.group(1)!;
-        phoneController.text = fullPhone.substring(phoneCode.value.length);
         phone.value = fullPhone;
+        // Extract just the national number (everything after country code)
+        phoneController.text = fullPhone.substring(match.end);
       } else {
         // No country code in phone number, use API's phoneCode
         phoneCode.value = info.phoneCode ?? '';
+        if (phoneCode.value.isNotEmpty) {
+          phone.value = '$phoneCode$fullPhone';
+        } else {
+          phone.value = fullPhone;
+        }
         phoneController.text = fullPhone;
-        phone.value = phoneCode.value.isNotEmpty ? '$phoneCode$fullPhone' : fullPhone;
       }
     } else {
       phoneController.text = '';
