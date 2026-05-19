@@ -156,8 +156,9 @@ class _NewProductListViewState extends State<NewProductListView> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
+  child: Scaffold(
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    appBar: AppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 0,
           leadingWidth: 44,
