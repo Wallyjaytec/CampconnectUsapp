@@ -91,32 +91,17 @@ class CustomerBasicInfoController extends GetxController {
       if (res.success) {
         pickedImagePath.value = '';
         await fetchBasicInfo();
-        Get.snackbar(
-          'Success',
-          'Profile picture removed',
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Profile picture removed'), backgroundColor: AppColors.primaryColor),
         );
       } else {
-        Get.snackbar(
-          'Error',
-          'Could not remove profile picture',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Could not remove profile picture'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Something went wrong',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Something went wrong'), backgroundColor: Colors.red),
       );
     } finally {
       isLoading.value = false;
@@ -198,17 +183,6 @@ class CustomerBasicInfoController extends GetxController {
     _originalPhoneDisplay = phone.value;
   }
 
-  void _clearFieldErrors() {
-    nameError.value = '';
-    phoneError.value = '';
-  }
-
-  void _applyFieldErrors(Map<String, dynamic> errors) {
-    String firstMsg(dynamic v) => (v is List && v.isNotEmpty) ? v.first.toString() : '';
-    nameError.value = firstMsg(errors['name']);
-    phoneError.value = firstMsg(errors['phone']);
-  }
-
   Future<void> saveBasicInfo() async {
     if (!LoginService().isLoggedIn()) return;
 
@@ -216,13 +190,8 @@ class CustomerBasicInfoController extends GetxController {
     final phoneRaw = phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
 
     if (newName.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Name is required',
-        backgroundColor: AppColors.primaryColor,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Name is required'), backgroundColor: AppColors.primaryColor),
       );
       return;
     }
@@ -240,22 +209,12 @@ class CustomerBasicInfoController extends GetxController {
         await fetchBasicInfo();
         pickedImagePath.value = '';
         _originalName = nameController.text.trim();
-        Get.snackbar(
-          'Success',
-          'Profile updated successfully',
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.primaryColor),
         );
       } else {
-        Get.snackbar(
-          'Error',
-          'Update failed',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Update failed'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
@@ -271,13 +230,8 @@ class CustomerBasicInfoController extends GetxController {
           }
         } catch (_) {}
       }
-      Get.snackbar(
-        'Error',
-        msg,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text(msg), backgroundColor: Colors.red),
       );
     } finally {
       isLoading.value = false;
@@ -287,13 +241,8 @@ class CustomerBasicInfoController extends GetxController {
   Future<void> sendForgotPasswordLink() async {
     final currentEmail = email.value.trim();
     if (currentEmail.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'No email found',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('No email found'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -301,32 +250,17 @@ class CustomerBasicInfoController extends GetxController {
       isSendingForgotLink.value = true;
       final res = await _authRepo.forgotPassword(email: currentEmail);
       if (res.success) {
-        Get.snackbar(
-          'Success',
-          'Password reset link sent to $currentEmail',
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Password reset link sent to $currentEmail'), backgroundColor: AppColors.primaryColor),
         );
       } else {
-        Get.snackbar(
-          'Error',
-          'Could not send password reset link',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Could not send password reset link'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Request failed',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red),
       );
     } finally {
       isSendingForgotLink.value = false;
@@ -338,32 +272,17 @@ class CustomerBasicInfoController extends GetxController {
       isSendingResetLink.value = true;
       final res = await _authRepo.sendEmailResetLink();
       if (res.success) {
-        Get.snackbar(
-          'Success',
-          'Reset email link sent to ${email.value}',
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text('Reset email link sent to ${email.value}'), backgroundColor: AppColors.primaryColor),
         );
       } else {
-        Get.snackbar(
-          'Error',
-          res.message ?? 'Could not send reset email',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(content: Text(res.message ?? 'Could not send reset email'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Request failed',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        SnackBar(content: Text('Request failed'), backgroundColor: Colors.red),
       );
     } finally {
       isSendingResetLink.value = false;
