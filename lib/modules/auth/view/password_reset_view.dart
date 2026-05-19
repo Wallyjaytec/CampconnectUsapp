@@ -65,9 +65,9 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         Get.put(CustomerBasicInfoController());
       }
-      Get.offAllNamed('/edit_profile_view');
+      Get.offNamed('/edit_profile_view');
     } else {
-      Get.offAllNamed('/login_view');
+      Get.offNamed('/login_view');
     }
   }
 
@@ -292,9 +292,9 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                         } catch (e) {
                           Get.put(CustomerBasicInfoController());
                         }
-                        Get.offAllNamed('/edit_profile_view');
+                        Get.offNamed('/edit_profile_view');
                       } else {
-                        Get.offAllNamed('/login_view');
+                        Get.offNamed('/login_view');
                       }
                     },
                     style: ElevatedButton.styleFrom(
