@@ -65,10 +65,9 @@ class CartView extends StatelessWidget {
 
 
     return SafeArea(
-
-      child: Scaffold(
-
-        key: _scaffoldKey,
+  child: Scaffold(
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    key: _scaffoldKey,
 
         appBar: AppBar(
 
