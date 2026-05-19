@@ -13,7 +13,6 @@ class ThemeSwitch extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: 100,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
@@ -21,60 +20,77 @@ class ThemeSwitch extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'Theme Mode'.tr,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          
+          // System Default toggle
           Obx(() {
-            final mode = controller.themeMode.value;
-            String label;
-            IconData icon;
-            
-            switch (mode) {
-              case ThemeMode.light:
-                label = '${'Light'.tr}';
-                icon = Icons.light_mode;
-                break;
-              case ThemeMode.dark:
-                label = '${'Dark'.tr}';
-                icon = Icons.dark_mode;
-                break;
-              case ThemeMode.system:
-              default:
-                label = '${'System'.tr}';
-                icon = Icons.settings_brightness;
-                break;
-            }
+            final isSystem = controller.themeMode.value == ThemeMode.system;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'System Default'.tr,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    value: isSystem,
+                    onChanged: (v) {
+                      if (v) {
+                        controller.setMode(ThemeMode.system);
+                      } else {
+                        // Default to light when turning off system
+                        controller.setMode(ThemeMode.light);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          }),
+          
+          const SizedBox(height: 4),
+          
+          // Light / Dark switch
+          Obx(() {
+            final isSystem = controller.themeMode.value == ThemeMode.system;
+            final isDarkOn = isSystem
+                ? MediaQuery.of(context).platformBrightness == Brightness.dark
+                : controller.themeMode.value == ThemeMode.dark;
 
-            return GestureDetector(
-              onTap: () {
-                // Cycle: system → light → dark → system
-                switch (mode) {
-                  case ThemeMode.system:
-                    controller.setMode(ThemeMode.light);
-                    break;
-                  case ThemeMode.light:
-                    controller.setMode(ThemeMode.dark);
-                    break;
-                  case ThemeMode.dark:
-                    controller.setMode(ThemeMode.system);
-                    break;
-                }
-              },
+            return Opacity(
+              opacity: isSystem ? 0.4 : 1.0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Text(
+                    '${'Light'.tr} / ${'Dark'.tr}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(icon, size: 20),
-                      const SizedBox(width: 8),
-                      Text(label, style: const TextStyle(fontSize: 14)),
+                      Icon(Icons.light_mode, size: 18, color: isSystem ? Colors.grey : null),
+                      Transform.scale(
+                        scale: 0.7,
+                        child: Switch(
+                          value: isDarkOn,
+                          onChanged: isSystem
+                              ? null
+                              : (v) {
+                                  controller.setMode(v ? ThemeMode.dark : ThemeMode.light);
+                                },
+                        ),
+                      ),
+                      Icon(Icons.dark_mode, size: 18, color: isSystem ? Colors.grey : null),
                     ],
                   ),
-                  const Icon(Icons.chevron_right, size: 20),
                 ],
               ),
             );
