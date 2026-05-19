@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import 'core/bindings/initial_bindings.dart';
 import 'core/config/app_scroll_behavior.dart';
+import 'core/constants/app_colors.dart';
 import 'core/routes/app_pages.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
@@ -19,6 +21,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initialLocale = LocaleMapper.fromApiCode(initialLocaleCode);
+    
+    // Set system UI overlay style
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: AppColors.lightBackgroundColor,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
 
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
@@ -44,12 +56,10 @@ class MyApp extends StatelessWidget {
             var token = uri.queryParameters['u'] ?? '';
             var isEmail = false;
             
-            // Check if type=email is embedded in the u parameter
             if (token.contains('type=email')) {
               isEmail = true;
               token = token.replaceAll('&type=email', '').replaceAll('%26type%3Demail', '');
             }
-            // Also check separate type parameter
             if ((uri.queryParameters['type'] ?? '') == 'email') {
               isEmail = true;
             }
