@@ -39,12 +39,28 @@ class _EditProfileViewState extends State<EditProfileView> {
     
     await c.fetchBasicInfo();
     
-    // Wait for UI to settle
     await Future.delayed(const Duration(milliseconds: 300));
     
-    // Set phone number text from the stored phone value
     if (c.phone.value.isNotEmpty) {
       c.phoneController.text = c.getPhoneNumberWithoutCode();
+    }
+    
+    // Show debug info on screen
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'phone: ${c.phone.value}\n'
+              'phoneCode: ${c.phoneCode.value}\n'
+              'controller.text: ${c.phoneController.text}',
+              style: const TextStyle(fontSize: 12),
+            ),
+            backgroundColor: AppColors.primaryColor,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      });
     }
     
     if (mounted) {
