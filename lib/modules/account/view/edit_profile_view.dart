@@ -66,8 +66,12 @@ class _EditProfileViewState extends State<EditProfileView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final arguments = Get.arguments;
       if (arguments is String && arguments.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(arguments), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating),
+        Get.snackbar(
+          'Success',
+          arguments,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
         );
       }
     });
