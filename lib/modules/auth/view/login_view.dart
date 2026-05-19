@@ -72,11 +72,10 @@ class LoginView extends StatelessWidget {
       }
     });
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SingleChildScrollView(
-          child: Padding(
+    return Scaffold(
+  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+  body: SafeArea(
+    child: SingleChildScrollView(
             padding: const EdgeInsets.all(12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
