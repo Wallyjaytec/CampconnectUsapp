@@ -51,10 +51,8 @@ class CustomerBasicInfoController extends GetxController {
   String getPhoneNumberWithoutCode() {
     if (phone.value.isEmpty) return '';
     String fullPhone = phone.value;
-    // Extract country code: starts with + followed by digits
     final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
     if (match != null) {
-      // Return everything after the country code
       return fullPhone.substring(match.end);
     }
     return fullPhone;
@@ -162,31 +160,26 @@ class CustomerBasicInfoController extends GetxController {
     name.value = info.name;
     email.value = info.email;
 
-    // Get phone number from API
     final fullPhone = info.phone ?? '';
     
     if (fullPhone.isNotEmpty) {
-      // Try to extract country code from the phone number
       final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
       if (match != null) {
-        // Country code found in the phone number (e.g., +4915140144170)
         phoneCode.value = '+' + match.group(1)!;
         phone.value = fullPhone;
-        // Extract just the national number (everything after country code)
-        phoneController.text = fullPhone.substring(match.end);
+        // Don't set phoneController.text here - will be set from edit_profile_view
       } else {
-        // No country code in phone number, use API's phoneCode
         phoneCode.value = info.phoneCode ?? '';
         if (phoneCode.value.isNotEmpty) {
           phone.value = '$phoneCode$fullPhone';
         } else {
           phone.value = fullPhone;
         }
-        phoneController.text = fullPhone;
+        // Don't set phoneController.text here
       }
     } else {
-      phoneController.text = '';
       phone.value = '';
+      phoneCode.value = '';
     }
 
     nameController.text = info.name;
