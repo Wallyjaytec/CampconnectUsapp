@@ -50,12 +50,10 @@ class CustomerBasicInfoController extends GetxController {
 
   String getPhoneNumberWithoutCode() {
     if (phone.value.isEmpty) return '';
-    String fullPhone = phone.value;
-    final match = RegExp(r'^\+(\d+)').firstMatch(fullPhone);
-    if (match != null) {
-      return fullPhone.substring(match.end);
+    if (phoneCode.value.isNotEmpty && phone.value.startsWith(phoneCode.value)) {
+      return phone.value.substring(phoneCode.value.length);
     }
-    return fullPhone;
+    return phone.value;
   }
 
   Future<void> pickFromGallery() async {
@@ -167,7 +165,6 @@ class CustomerBasicInfoController extends GetxController {
       if (match != null) {
         phoneCode.value = '+' + match.group(1)!;
         phone.value = fullPhone;
-        // Don't set phoneController.text here - will be set from edit_profile_view
       } else {
         phoneCode.value = info.phoneCode ?? '';
         if (phoneCode.value.isNotEmpty) {
@@ -175,7 +172,6 @@ class CustomerBasicInfoController extends GetxController {
         } else {
           phone.value = fullPhone;
         }
-        // Don't set phoneController.text here
       }
     } else {
       phone.value = '';
