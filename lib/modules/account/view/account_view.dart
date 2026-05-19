@@ -91,17 +91,21 @@ class AccountView extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(children: [
                     const SizedBox(height: 20),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Obx(() => Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                      _statCard("${"Total".tr}\n${"Orders".tr}", '${dashCtrl.totalOrder.value}', context),
-                      _statCard("${"Pending".tr}\n${"Orders".tr}", '${dashCtrl.totalPendingOrder.value}', context),
-                      _statCard("${"Success".tr}\n${"Orders".tr}", '${dashCtrl.totalSuccessOrder.value}', context),
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Obx(() => Row(children: [
+                      Expanded(child: _statCard("${"Total".tr}\n${"Orders".tr}", '${dashCtrl.totalOrder.value}', context)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statCard("${"Pending".tr}\n${"Orders".tr}", '${dashCtrl.totalPendingOrder.value}', context)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statCard("${"Success".tr}\n${"Orders".tr}", '${dashCtrl.totalSuccessOrder.value}', context)),
                     ]))),
                     const SizedBox(height: 10),
                     Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Obx(() { String money(num v) => currencyCtrl.format(v, applyConversion: true);
-                      return Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                        _statCard("${"Total".tr}\n${"Purchase".tr}", money(dashCtrl.totalPurchaseAmount.value), context),
-                        _statCard("${"Purchase".tr} ${"in".tr}\n${dashCtrl.currentMonth.value.isEmpty ? '—' : dashCtrl.currentMonth.value}", money(dashCtrl.currentMonthPurchase.value), context),
-                        _statCard("${'Last'.tr} ${'Month'.tr}\n${'Purchase'.tr}", money(dashCtrl.lastMonthPurchase.value), context),
+                      return Row(children: [
+                        Expanded(child: _statCard("${"Total".tr}\n${"Purchase".tr}", money(dashCtrl.totalPurchaseAmount.value), context)),
+                        const SizedBox(width: 8),
+                        Expanded(child: _statCard("${"Purchase".tr} ${"in".tr}\n${dashCtrl.currentMonth.value.isEmpty ? '—' : dashCtrl.currentMonth.value}", money(dashCtrl.currentMonthPurchase.value), context)),
+                        const SizedBox(width: 8),
+                        Expanded(child: _statCard("${'Last'.tr} ${'Month'.tr}\n${'Purchase'.tr}", money(dashCtrl.lastMonthPurchase.value), context)),
                       ]);
                     })),
                     const SizedBox(height: 30),
@@ -125,16 +129,20 @@ class AccountView extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(children: [
                     const SizedBox(height: 20),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                      _statCard("${"Total".tr}\n${"Orders".tr}", '0', context),
-                      _statCard("${"Pending".tr}\n${"Orders".tr}", '0', context),
-                      _statCard("${"Success".tr}\n${"Orders".tr}", '0', context),
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [
+                      Expanded(child: _statCard("${"Total".tr}\n${"Orders".tr}", '0', context)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statCard("${"Pending".tr}\n${"Orders".tr}", '0', context)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statCard("${"Success".tr}\n${"Orders".tr}", '0', context)),
                     ])),
                     const SizedBox(height: 10),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                      _statCard("${"Total".tr}\n${"Purchase".tr}", '₦0.00', context),
-                      _statCard("${"Purchase".tr}\n—", '₦0.00', context),
-                      _statCard("${'Last'.tr}\n${'Purchase'.tr}", '₦0.00', context),
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [
+                      Expanded(child: _statCard("${"Total".tr}\n${"Purchase".tr}", '₦0.00', context)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statCard("${"Purchase".tr}\n—", '₦0.00', context)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statCard("${'Last'.tr}\n${'Purchase'.tr}", '₦0.00', context)),
                     ])),
                     const SizedBox(height: 30),
                     _menuItem(Iconsax.shopping_bag_copy, "My Orders".tr, _showLoginPrompt),
@@ -157,15 +165,14 @@ class AccountView extends StatelessWidget {
 
   Widget _statCard(String title, String valueText, BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Expanded(
-      child: Container(
-        height: 90, padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(10)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(valueText, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
-          Text(title, maxLines: 2, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, overflow: TextOverflow.ellipsis)),
-        ]),
-      ),
+    return Container(
+      height: 90, padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(10)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.center, children: [
+        Text(valueText, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+        const SizedBox(height: 4),
+        Text(title, maxLines: 2, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, overflow: TextOverflow.ellipsis)),
+      ]),
     );
   }
 
