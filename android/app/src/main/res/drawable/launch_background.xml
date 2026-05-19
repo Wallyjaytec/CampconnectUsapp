@@ -2,9 +2,13 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background" />
 
-    <item>
+    <item
+        android:width="200dp"
+        android:height="200dp"
+        android:gravity="center">
         <bitmap
+            android:src="@mipmap/ic_launcher"
             android:gravity="center"
-            android:src="@mipmap/ic_launcher" />
+            android:filter="true" />
     </item>
 </layer-list>
