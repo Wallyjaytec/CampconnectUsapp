@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/services/login_service.dart';
 import '../../../../data/repositories/auth_repository.dart';
+import '../../../core/routes/app_routes.dart';
 
 class PasswordResetView extends StatefulWidget {
   final String token;
@@ -65,9 +66,12 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } catch (e) {
         Get.put(CustomerBasicInfoController());
       }
-      Get.offNamed('/edit_profile_view');
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Get.toNamed('/edit_profile_view');
+      });
     } else {
-      Get.offNamed('/login_view');
+      Get.offAllNamed(AppRoutes.loginView);
     }
   }
 
@@ -292,9 +296,12 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                         } catch (e) {
                           Get.put(CustomerBasicInfoController());
                         }
-                        Get.offNamed('/edit_profile_view');
+                        Get.offAllNamed(AppRoutes.bottomNavbarView);
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          Get.toNamed('/edit_profile_view');
+                        });
                       } else {
-                        Get.offNamed('/login_view');
+                        Get.offAllNamed(AppRoutes.loginView);
                       }
                     },
                     style: ElevatedButton.styleFrom(
