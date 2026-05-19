@@ -39,9 +39,10 @@ class _EditProfileViewState extends State<EditProfileView> {
     
     await c.fetchBasicInfo();
     
-    // Small delay to ensure data is bound
-    await Future.delayed(const Duration(milliseconds: 100));
+    // Wait for UI to settle
+    await Future.delayed(const Duration(milliseconds: 300));
     
+    // Set phone number text from the stored phone value
     if (c.phone.value.isNotEmpty) {
       c.phoneController.text = c.getPhoneNumberWithoutCode();
     }
@@ -75,6 +76,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
