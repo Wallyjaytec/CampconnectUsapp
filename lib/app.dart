@@ -21,16 +21,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initialLocale = LocaleMapper.fromApiCode(initialLocaleCode);
-    
-    // Set system UI overlay style
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: AppColors.lightBackgroundColor,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
 
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
@@ -44,6 +34,12 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightFor(initialLocale),
       darkTheme: AppTheme.darkFor(initialLocale),
       themeMode: ThemeMode.system,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: child!,
+        );
+      },
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
       getPages: AppPages.pages,
