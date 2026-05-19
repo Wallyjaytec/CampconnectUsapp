@@ -73,7 +73,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     } else {
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       Future.delayed(const Duration(milliseconds: 100), () {
-        Get.toNamed(AppRoutes.loginView);
+        Get.toNamed(AppRoutes.loginView, arguments: successMessage);
       });
     }
   }
@@ -151,6 +151,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           backgroundColor: AppColors.primaryColor,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
         );
       } else if (response['message'] == 'same_email') {
         setState(() {
@@ -306,7 +307,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       } else {
                         Get.offAllNamed(AppRoutes.bottomNavbarView);
                         Future.delayed(const Duration(milliseconds: 100), () {
-                          Get.toNamed(AppRoutes.loginView);
+                          Get.toNamed(AppRoutes.loginView, arguments: 'Please request a new reset link.');
                         });
                       }
                     },
