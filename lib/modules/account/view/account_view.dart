@@ -19,7 +19,7 @@ class AccountView extends StatelessWidget {
   final bool showBackButton;
   const AccountView({super.key, this.showBackButton = true});
 
-  void _showLoginPrompt() {
+  void _showLoginPrompt({String? redirectTo}) {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -33,7 +33,10 @@ class AccountView extends StatelessWidget {
             SizedBox(
               width: double.infinity, height: 44,
               child: ElevatedButton(
-                onPressed: () { Get.back(); Get.toNamed(AppRoutes.loginView); },
+                onPressed: () {
+                  Get.back();
+                  Get.toNamed(AppRoutes.loginView, arguments: {'redirect': redirectTo ?? AppRoutes.bottomNavbarView});
+                },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                 child: Text('Login'.tr, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ),
@@ -145,11 +148,11 @@ class AccountView extends StatelessWidget {
                       Expanded(child: _statCard("${'Last'.tr}\n${'Purchase'.tr}", '₦0.00', context)),
                     ])),
                     const SizedBox(height: 30),
-                    _menuItem(Iconsax.shopping_bag_copy, "My Orders".tr, _showLoginPrompt),
-                    _menuItem(Iconsax.location_copy, "My Addresses".tr, _showLoginPrompt),
-                    _menuItem(Iconsax.card_copy, "My Wallet".tr, _showLoginPrompt),
-                    _menuItem(Iconsax.undo_copy, "Refund Requests".tr, _showLoginPrompt),
-                    _menuItem(Iconsax.settings_copy, "Settings".tr, _showLoginPrompt),
+                    _menuItem(Iconsax.shopping_bag_copy, "My Orders".tr, () => _showLoginPrompt(redirectTo: AppRoutes.myOrderListView)),
+                    _menuItem(Iconsax.location_copy, "My Addresses".tr, () => _showLoginPrompt(redirectTo: AppRoutes.myAddressView)),
+                    _menuItem(Iconsax.card_copy, "My Wallet".tr, () => _showLoginPrompt(redirectTo: AppRoutes.myWalletView)),
+                    _menuItem(Iconsax.undo_copy, "Refund Requests".tr, () => _showLoginPrompt(redirectTo: AppRoutes.refundRequestListView)),
+                    _menuItem(Iconsax.settings_copy, "Settings".tr, () => _showLoginPrompt(redirectTo: AppRoutes.editProfileView)),
                     _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.message_question_copy, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
                     _menuItem(Iconsax.information_copy, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
