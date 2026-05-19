@@ -95,7 +95,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 controller: _searchCtrl,
                 textInputAction: TextInputAction.search,
                 onChanged: (value) {
-                  controller.searchKey.value = value;
+                  controller.searchOrders(value.trim());
                 },
                 onSubmitted: (value) {
                   controller.searchOrders(value.trim());
@@ -120,7 +120,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                     radius: 10,
                     onTap: () {
                       _searchCtrl.clear();
-                      controller.searchKey.value = '';
                       controller.searchOrders('');
                     },
                     child: const Icon(Iconsax.close_circle_copy, size: 18),
@@ -330,13 +329,13 @@ class _MyOrderListViewState extends State<MyOrderListView> {
             Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
             const SizedBox(height: 24),
             Text(
-              'No orders found'.tr,
+              'No order ID found'.tr,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
-              'No results found for "$query"'.tr,
+              'No order ID found for "$query"'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
@@ -418,7 +417,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           child: Builder(
             builder: (_) {
               // Loading shimmer
-              if (isLoading && items.isEmpty && query.isEmpty) {
+              if (isLoading && items.isEmpty) {
                 return ListView.builder(
                   padding: EdgeInsets.zero,
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -458,28 +457,36 @@ class _MyOrderListViewState extends State<MyOrderListView> {
               }
 
               // Has orders - show list
-              return ListView.builder(
-                controller: _scroll,
+              if (items.isNotEmpty) {
+                return ListView.builder(
+                  controller: _scroll,
+                  padding: EdgeInsets.zero,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount:
+                      items.length +
+                      1 +
+                      (isLoadingMore ? _loadMoreShimmerCount : 0),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _searchField();
+                    }
+
+                    final listIndex = index - 1;
+
+                    if (listIndex >= items.length) {
+                      return _orderShimmerCard(context);
+                    }
+
+                    final o = items[listIndex];
+                    return _orderTile(o);
+                  },
+                );
+              }
+
+              // Fallback
+              return ListView(
                 padding: EdgeInsets.zero,
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount:
-                    items.length +
-                    1 +
-                    (isLoadingMore ? _loadMoreShimmerCount : 0),
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _searchField();
-                  }
-
-                  final listIndex = index - 1;
-
-                  if (listIndex >= items.length) {
-                    return _orderShimmerCard(context);
-                  }
-
-                  final o = items[listIndex];
-                  return _orderTile(o);
-                },
+                children: [_searchField()],
               );
             },
           ),
