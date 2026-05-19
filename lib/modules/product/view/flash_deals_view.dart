@@ -64,6 +64,7 @@ class _FlashDealsViewState extends State<FlashDealsView> {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
