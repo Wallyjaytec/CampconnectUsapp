@@ -49,13 +49,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         ? 'Your email has been updated successfully!'
         : 'Your password has been changed successfully!';
     
-    ScaffoldMessenger.of(Get.context!).showSnackBar(
-      SnackBar(
-        content: Text(successMessage),
-        backgroundColor: AppColors.primaryColor,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
+    Get.snackbar(
+      isEmailReset ? 'Email Updated' : 'Password Changed',
+      successMessage,
+      backgroundColor: AppColors.primaryColor,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 3),
     );
     
     await Future.delayed(const Duration(milliseconds: 2000));
@@ -71,7 +71,10 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         Get.toNamed('/edit_profile_view');
       });
     } else {
-      Get.offAllNamed(AppRoutes.loginView);
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Get.toNamed(AppRoutes.loginView);
+      });
     }
   }
 
@@ -142,12 +145,12 @@ class _PasswordResetViewState extends State<PasswordResetView> {
           _sendingCode = false;
           _errorMessage = '';
         });
-        ScaffoldMessenger.of(Get.context!).showSnackBar(
-          SnackBar(
-            content: Text('Verification code sent to $newEmail'),
-            backgroundColor: AppColors.primaryColor,
-            behavior: SnackBarBehavior.floating,
-          ),
+        Get.snackbar(
+          'Code Sent',
+          'Verification code sent to $newEmail',
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
         );
       } else if (response['message'] == 'same_email') {
         setState(() {
@@ -301,7 +304,10 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                           Get.toNamed('/edit_profile_view');
                         });
                       } else {
-                        Get.offAllNamed(AppRoutes.loginView);
+                        Get.offAllNamed(AppRoutes.bottomNavbarView);
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          Get.toNamed(AppRoutes.loginView);
+                        });
                       }
                     },
                     style: ElevatedButton.styleFrom(
