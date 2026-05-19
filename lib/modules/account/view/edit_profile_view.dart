@@ -39,13 +39,18 @@ class _EditProfileViewState extends State<EditProfileView> {
     
     await c.fetchBasicInfo();
     
+    // Small delay to ensure data is bound
+    await Future.delayed(const Duration(milliseconds: 100));
+    
     if (c.phone.value.isNotEmpty) {
       c.phoneController.text = c.getPhoneNumberWithoutCode();
     }
     
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -204,7 +209,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     ),
                     child: Center(
                       child: PhoneFormField(
-                        key: ValueKey(c.phoneController.text),
+                        key: ValueKey('${c.phoneCode.value}${c.phoneController.text}'),
                         initialValue: _getInitialPhone(c.phoneCode.value, c.phoneController.text),
                         countrySelectorNavigator: const CountrySelectorNavigator.page(),
                         decoration: InputDecoration(
