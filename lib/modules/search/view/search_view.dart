@@ -27,6 +27,7 @@ class SearchView extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 0,
