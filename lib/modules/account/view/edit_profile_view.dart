@@ -45,24 +45,6 @@ class _EditProfileViewState extends State<EditProfileView> {
       c.phoneController.text = c.getPhoneNumberWithoutCode();
     }
     
-    // Show debug info on screen
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'phone: ${c.phone.value}\n'
-              'phoneCode: ${c.phoneCode.value}\n'
-              'controller.text: ${c.phoneController.text}',
-              style: const TextStyle(fontSize: 12),
-            ),
-            backgroundColor: AppColors.primaryColor,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      });
-    }
-    
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -276,7 +258,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 }
 
 PhoneNumber _getInitialPhone(String code, String number) {
-  // If we have a country code, find matching IsoCode
   if (code.isNotEmpty) {
     try {
       final cleanCode = code.replaceAll('+', '');
@@ -290,7 +271,6 @@ PhoneNumber _getInitialPhone(String code, String number) {
     } catch (_) {}
   }
   
-  // Try to parse the full number if available
   if (number.isNotEmpty) {
     try {
       final fullNumber = '$code$number';
@@ -299,6 +279,5 @@ PhoneNumber _getInitialPhone(String code, String number) {
     } catch (_) {}
   }
   
-  // Final fallback
   return PhoneNumber(isoCode: IsoCode.DE, nsn: number.isNotEmpty ? number : '');
 }
