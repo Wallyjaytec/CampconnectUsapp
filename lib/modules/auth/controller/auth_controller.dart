@@ -219,7 +219,10 @@ class AuthController extends GetxController {
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final redirect = Get.arguments is Map ? (Get.arguments['redirect'] as String?) : null;
       if (redirect != null && redirect.isNotEmpty) {
-        Get.offAllNamed(redirect);
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          Get.toNamed(redirect);
+        });
       } else {
         Get.offAllNamed(AppRoutes.bottomNavbarView);
       }
