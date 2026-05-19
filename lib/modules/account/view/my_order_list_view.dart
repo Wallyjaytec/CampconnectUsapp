@@ -49,14 +49,15 @@ class _MyOrderListViewState extends State<MyOrderListView> {
 
   Future<void> _copy(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
-    Get.snackbar(
-      'Copied'.tr,
-      'Order ID copied'.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(12),
-      duration: const Duration(seconds: 2),
-      colorText: AppColors.whiteColor,
-      backgroundColor: AppColors.primaryColor,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Order ID copied'.tr),
+        backgroundColor: AppColors.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -279,27 +280,104 @@ class _MyOrderListViewState extends State<MyOrderListView> {
     );
   }
 
+  Widget _emptyOrdersView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
+            const SizedBox(height: 24),
+            Text(
+              'You have no orders yet!'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Why not place your first order now?".tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emptySearchView(String query) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
+            const SizedBox(height: 24),
+            Text(
+              'No orders found'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No results found for "$query"'.tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _errorView(String message) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        const SizedBox(height: 120),
-        Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
-        const SizedBox(height: 12),
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(message, textAlign: TextAlign.center),
-          ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: controller.initLoad,
+              child: Text('Retry'.tr),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        Center(
-          child: ElevatedButton(
-            onPressed: controller.initLoad,
-            child: Text('Retry'.tr),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -309,6 +387,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leadingWidth: 44,
@@ -332,12 +411,14 @@ class _MyOrderListViewState extends State<MyOrderListView> {
         final isLoadingMore = controller.isLoadingMore.value;
         final items = controller.orders;
         final err = controller.error.value;
+        final query = controller.searchKey.value.trim();
 
         return RefreshIndicator(
           onRefresh: controller.refreshList,
           child: Builder(
             builder: (_) {
-              if (isLoading && items.isEmpty) {
+              // Loading shimmer
+              if (isLoading && items.isEmpty && query.isEmpty) {
                 return ListView.builder(
                   padding: EdgeInsets.zero,
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -351,10 +432,32 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 );
               }
 
-              if (err != null && items.isEmpty) {
+              // Error state
+              if (err != null && items.isEmpty && query.isEmpty) {
                 return _errorView(err);
               }
 
+              // Empty state - no orders at all
+              if (!isLoading && items.isEmpty && query.isEmpty) {
+                return Column(
+                  children: [
+                    _searchField(),
+                    Expanded(child: _emptyOrdersView()),
+                  ],
+                );
+              }
+
+              // Search results empty
+              if (!isLoading && items.isEmpty && query.isNotEmpty) {
+                return Column(
+                  children: [
+                    _searchField(),
+                    Expanded(child: _emptySearchView(query)),
+                  ],
+                );
+              }
+
+              // Has orders - show list
               return ListView.builder(
                 controller: _scroll,
                 padding: EdgeInsets.zero,
