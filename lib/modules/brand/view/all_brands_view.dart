@@ -36,108 +36,111 @@ class _AllBrandsViewState extends State<AllBrandsView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('All Brands'.tr),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _query = v),
-              decoration: InputDecoration(
-                hintText: 'Search brands...'.tr,
-                prefixIcon: const Icon(Iconsax.search_normal_1_copy, size: 18),
-                suffixIcon: _query.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Iconsax.close_circle_copy, size: 18),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text('All Brands'.tr),
+          centerTitle: true,
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _query = v),
+                decoration: InputDecoration(
+                  hintText: 'Search brands...'.tr,
+                  prefixIcon: const Icon(Iconsax.search_normal_1_copy, size: 18),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Iconsax.close_circle_copy, size: 18),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Obx(() {
-              if (_controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (_controller.error.isNotEmpty) {
-                return Center(child: Text(_controller.error.value));
-              }
-              if (_filtered.isEmpty) {
-                return Center(child: Text('No brands found'.tr));
-              }
+            Expanded(
+              child: Obx(() {
+                if (_controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (_controller.error.isNotEmpty) {
+                  return Center(child: Text(_controller.error.value));
+                }
+                if (_filtered.isEmpty) {
+                  return Center(child: Text('No brands found'.tr));
+                }
 
-              return GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.85,
-                ),
-                itemCount: _filtered.length,
-                itemBuilder: (context, index) {
-                  final brand = _filtered[index];
-                  return InkWell(
-                    onTap: () => widget.onTapBrand?.call(brand),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(40),
-                            child: SizedBox(
-                              width: 70,
-                              height: 70,
-                              child: brand.logo.isEmpty
-                                  ? const Icon(Icons.store, size: 40, color: AppColors.primaryColor)
-                                  : CachedNetworkImage(
-                                      imageUrl: brand.logoUrl,
-                                      fit: BoxFit.cover,
-                                      errorWidget: (_, __, ___) => const Icon(Icons.store, size: 40, color: AppColors.primaryColor),
-                                    ),
+                return GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: _filtered.length,
+                  itemBuilder: (context, index) {
+                    final brand = _filtered[index];
+                    return InkWell(
+                      onTap: () => widget.onTapBrand?.call(brand),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(40),
+                              child: SizedBox(
+                                width: 70,
+                                height: 70,
+                                child: brand.logo.isEmpty
+                                    ? const Icon(Icons.store, size: 40, color: AppColors.primaryColor)
+                                    : CachedNetworkImage(
+                                        imageUrl: brand.logoUrl,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (_, __, ___) => const Icon(Icons.store, size: 40, color: AppColors.primaryColor),
+                                      ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(
-                              brand.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            const SizedBox(height: 10),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                brand.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            }),
-          ),
-        ],
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
