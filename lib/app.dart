@@ -37,9 +37,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: ScaffoldMessenger(
-            child: child!,
-          ),
+          body: child!,
         );
       },
       initialBinding: InitialBindings(),
