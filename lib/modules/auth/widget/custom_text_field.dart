@@ -7,7 +7,6 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final IconData icon;
   final bool obscure;
-
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
@@ -16,6 +15,7 @@ class CustomTextField extends StatelessWidget {
   final bool readOnly;
   final int? maxLines;
   final int? minLines;
+  final String? errorText; // ADD THIS
 
   const CustomTextField({
     super.key,
@@ -31,6 +31,7 @@ class CustomTextField extends StatelessWidget {
     this.readOnly = false,
     this.maxLines,
     this.minLines,
+    this.errorText, // ADD THIS
   });
 
   @override
@@ -42,6 +43,9 @@ class CustomTextField extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
         borderRadius: BorderRadius.circular(10),
+        border: errorText != null
+            ? Border.all(color: Colors.red, width: 1.5)
+            : null,
       ),
       child: Center(
         child: TextField(
@@ -80,7 +84,6 @@ class CustomTextField extends StatelessWidget {
               minHeight: 50,
             ),
             errorStyle: const TextStyle(height: 0, fontSize: 0),
-
             contentPadding: const EdgeInsets.symmetric(vertical: 0),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
