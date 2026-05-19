@@ -253,18 +253,29 @@ class _EditProfileViewState extends State<EditProfileView> {
 }
 
 PhoneNumber _getInitialPhone(String code, String number) {
-  if (number.isEmpty) return PhoneNumber(isoCode: IsoCode.NG, nsn: '');
-  try {
-    final cleanCode = code.replaceAll('+', '');
-    for (final iso in IsoCode.values) {
-      try {
-        if (PhoneNumber(isoCode: iso, nsn: '').countryCode == cleanCode) {
-          return PhoneNumber(isoCode: iso, nsn: number);
-        }
-      } catch (_) {}
-    }
-    return PhoneNumber(isoCode: IsoCode.NG, nsn: number);
-  } catch (_) {
-    return PhoneNumber(isoCode: IsoCode.NG, nsn: number);
+  // If we have a country code, find matching IsoCode
+  if (code.isNotEmpty) {
+    try {
+      final cleanCode = code.replaceAll('+', '');
+      for (final iso in IsoCode.values) {
+        try {
+          if (PhoneNumber(isoCode: iso, nsn: '').countryCode == cleanCode) {
+            return PhoneNumber(isoCode: iso, nsn: number);
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
   }
+  
+  // Try to parse the full number if available
+  if (number.isNotEmpty) {
+    try {
+      final fullNumber = '$code$number';
+      final parsed = PhoneNumber.parse(fullNumber);
+      return parsed;
+    } catch (_) {}
+  }
+  
+  // Final fallback
+  return PhoneNumber(isoCode: IsoCode.DE, nsn: number.isNotEmpty ? number : '');
 }
