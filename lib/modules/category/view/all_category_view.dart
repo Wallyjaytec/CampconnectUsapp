@@ -85,8 +85,9 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
     final leftPaneWidth = MediaQuery.of(context).size.width >= 600 ? 140.0 : 100.0;
 
     return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
+  child: Scaffold(
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
           titleSpacing: widget.showBackButton ? 0 : 10,
