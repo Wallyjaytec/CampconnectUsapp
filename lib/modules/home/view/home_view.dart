@@ -88,7 +88,7 @@ class _HomeViewState extends State<HomeView> {
     for (final tag in catTags) {
       if (Get.isRegistered<NewProductListController>(tag: tag)) {
         final ctrl = Get.find<NewProductListController>(tag: tag);
-        ctrl.refresh();
+        ctrl.loadInitial();
       }
     }
     
@@ -126,6 +126,11 @@ class _HomeViewState extends State<HomeView> {
           final connectivity = Connectivity();
           final results = await connectivity.checkConnectivity();
           final connected = results.any((r) => r != ConnectivityResult.none);
+          
+          if (!connected) {
+            // Force show popup if offline
+            ns.showNoInternetDialog();
+          }
           ns.isConnected.value = connected;
         }
       });
