@@ -54,7 +54,10 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
 
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
-      Get.offNamed(AppRoutes.loginView);
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Get.toNamed(AppRoutes.loginView);
+      });
       Get.snackbar(
         _success ? 'Success' : 'Notice',
         _success 
@@ -62,6 +65,7 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
           : 'Email already verified or link expired.',
         backgroundColor: _success ? Colors.green : Colors.orange,
         colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
       );
     });
   }
