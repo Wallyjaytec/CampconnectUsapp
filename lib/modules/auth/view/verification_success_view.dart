@@ -54,7 +54,7 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
 
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
-      Get.offAllNamed(AppRoutes.loginView);
+      Get.offNamed(AppRoutes.loginView);
       Get.snackbar(
         _success ? 'Success' : 'Notice',
         _success 
