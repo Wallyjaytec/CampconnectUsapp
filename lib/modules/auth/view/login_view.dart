@@ -42,7 +42,6 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
 
-    // Check for success message from navigation (password/email reset success)
     final arguments = Get.arguments;
     if (arguments is String && arguments.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,7 +56,6 @@ class LoginView extends StatelessWidget {
       });
     }
 
-    // Show forgot password dialog if coming from expired reset link
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = Get.arguments;
       if (args is Map && args['show_forgot'] == true) {
@@ -73,9 +71,10 @@ class LoginView extends StatelessWidget {
     });
 
     return Scaffold(
-  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-  body: SafeArea(
-    child: SingleChildScrollView(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
