@@ -42,6 +42,15 @@ class AddressController extends GetxController {
 
   final isSubmitting = false.obs;
 
+  // Error states for each field
+  final nameError = ''.obs;
+  final phoneError = ''.obs;
+  final countryError = ''.obs;
+  final stateError = ''.obs;
+  final cityError = ''.obs;
+  final postalError = ''.obs;
+  final addressError = ''.obs;
+
   late final AddressRepository _addressRepo;
   late final SiteSettingsPropertiesRepository _settingsRepo;
 
@@ -53,6 +62,16 @@ class AddressController extends GetxController {
     _settingsRepo = SiteSettingsPropertiesRepository(api);
 
     _initForm();
+  }
+
+  void _clearErrors() {
+    nameError.value = '';
+    phoneError.value = '';
+    countryError.value = '';
+    stateError.value = '';
+    cityError.value = '';
+    postalError.value = '';
+    addressError.value = '';
   }
 
   Future<void> _initForm() async {
@@ -87,6 +106,7 @@ class AddressController extends GetxController {
       countryC.clear();
       stateC.clear();
       cityC.clear();
+      _clearErrors();
 
       await fetchCountries();
     } finally {
@@ -105,13 +125,7 @@ class AddressController extends GetxController {
       final list = await _addressRepo.getCountries();
       countries.assignAll(list);
     } catch (_) {
-      Get.snackbar(
-        'Error'.tr,
-        'Failed to load countries'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Error'.tr, 'Failed to load countries'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
     } finally {
       isCountriesLoading.value = false;
     }
@@ -130,13 +144,7 @@ class AddressController extends GetxController {
       final list = await _addressRepo.getStates(countryId: countryId);
       states.assignAll(list);
     } catch (_) {
-      Get.snackbar(
-        'Error'.tr,
-        'Failed to load states'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Error'.tr, 'Failed to load states'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
     } finally {
       isStatesLoading.value = false;
     }
@@ -155,13 +163,7 @@ class AddressController extends GetxController {
       final list = await _addressRepo.getCities(stateId: stateId);
       cities.assignAll(list);
     } catch (_) {
-      Get.snackbar(
-        'Error'.tr,
-        'Failed to load cities'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Error'.tr, 'Failed to load cities'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
     } finally {
       isCitiesLoading.value = false;
     }
@@ -170,6 +172,7 @@ class AddressController extends GetxController {
   Future<void> onSelectCountry(CountryModel c) async {
     selectedCountry.value = c;
     countryC.text = c.name;
+    countryError.value = '';
 
     phoneCode = _guessPhoneCode(c.code);
 
@@ -187,6 +190,7 @@ class AddressController extends GetxController {
   Future<void> onSelectState(StateModel s) async {
     selectedState.value = s;
     stateC.text = s.name;
+    stateError.value = '';
 
     selectedCity.value = null;
     cityC.clear();
@@ -198,113 +202,58 @@ class AddressController extends GetxController {
   Future<void> onSelectCity(CityModel c) async {
     selectedCity.value = c;
     cityC.text = c.name;
+    cityError.value = '';
   }
 
   Future<void> submitNewAddress() async {
+    _clearErrors();
     final v = fieldVisibility.value;
+    bool hasError = false;
 
-    if (v.showName) {
-      if (nameC.text.trim().isEmpty) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please enter your full name'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
+    if (v.showName && nameC.text.trim().isEmpty) {
+      nameError.value = 'Required'.tr;
+      hasError = true;
+    }
+
+    if (v.showPhone && phoneC.text.trim().isEmpty) {
+      phoneError.value = 'Required'.tr;
+      hasError = true;
+    }
+
+    if (v.showLocation) {
+      if (selectedCountry.value == null) {
+        countryError.value = 'Required'.tr;
+        hasError = true;
+      }
+      if (selectedState.value == null) {
+        stateError.value = 'Required'.tr;
+        hasError = true;
+      }
+      if (selectedCity.value == null) {
+        cityError.value = 'Required'.tr;
+        hasError = true;
       }
     }
 
-    if (v.showPhone) {
-      if (phoneC.text.trim().isEmpty) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please enter your phone number'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
+    if (v.showPostalCode && postalC.text.trim().isEmpty) {
+      postalError.value = 'Required'.tr;
+      hasError = true;
     }
+
+    if (v.showAddress && addressC.text.trim().isEmpty) {
+      addressError.value = 'Required'.tr;
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     final co = selectedCountry.value;
     final st = selectedState.value;
     final ci = selectedCity.value;
 
-    int countryId = 0;
-    int stateId = 0;
-    int cityId = 0;
-
-    if (v.showLocation) {
-      if (co == null) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please select your country'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-      if (st == null) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please select your state'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-      if (ci == null) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please select your city'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-      countryId = co.id;
-      stateId = st.id;
-      cityId = ci.id;
-    }
-
-    if (v.showPostalCode) {
-      if (postalC.text.trim().isEmpty) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please enter your postal code'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-    }
-
-    if (v.showAddress) {
-      if (addressC.text.trim().isEmpty) {
-        Get.snackbar(
-          'Required'.tr,
-          'Please enter your address'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-    }
+    int countryId = co?.id ?? 0;
+    int stateId = st?.id ?? 0;
+    int cityId = ci?.id ?? 0;
 
     try {
       isSubmitting.value = true;
@@ -320,28 +269,17 @@ class AddressController extends GetxController {
         cityId: cityId,
       );
 
-      final success =
-          (res['success'] == true) || (res['success']?.toString() == 'true');
+      final success = (res['success'] == true) || (res['success']?.toString() == 'true');
 
       if (success) {
+        Get.snackbar('Success'.tr, 'Address saved successfully'.tr, backgroundColor: Colors.green, snackPosition: SnackPosition.TOP, colorText: Colors.white, duration: const Duration(seconds: 2));
+        await Future.delayed(const Duration(milliseconds: 500));
         safeBack(result: true);
       } else {
-        Get.snackbar(
-          'Error'.tr,
-          'Failed to save address. Please try again.'.tr,
-          backgroundColor: AppColors.redColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
+        Get.snackbar('Error'.tr, 'Failed to save address'.tr, backgroundColor: Colors.red, snackPosition: SnackPosition.TOP, colorText: Colors.white);
       }
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Error'.tr, 'Something went wrong'.tr, backgroundColor: Colors.red, snackPosition: SnackPosition.TOP, colorText: Colors.white);
     } finally {
       isSubmitting.value = false;
     }
@@ -349,16 +287,11 @@ class AddressController extends GetxController {
 
   String? _guessPhoneCode(String code) {
     switch (code.toUpperCase()) {
-      case 'BD':
-        return '880';
-      case 'IN':
-        return '91';
-      case 'US':
-        return '1';
-      case 'GB':
-        return '44';
-      default:
-        return null;
+      case 'BD': return '880';
+      case 'IN': return '91';
+      case 'US': return '1';
+      case 'GB': return '44';
+      default: return null;
     }
   }
 
@@ -374,13 +307,7 @@ class AddressController extends GetxController {
       final list = await _addressRepo.getAllCustomerAddresses();
       addresses.assignAll(list);
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Failed to load addresses'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Error'.tr, 'Failed to load addresses'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
     } finally {
       isLoading.value = false;
     }
@@ -392,13 +319,7 @@ class AddressController extends GetxController {
       final list = await _addressRepo.getAllCustomerAddresses();
       addresses.assignAll(list);
     } catch (_) {
-      Get.snackbar(
-        'Error'.tr,
-        'Refresh failed'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      Get.snackbar('Error'.tr, 'Refresh failed'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
     } finally {
       isRefreshing.value = false;
     }
@@ -409,23 +330,9 @@ class AddressController extends GetxController {
       await _addressRepo.deleteCustomerAddress(addressId);
       addresses.removeWhere((a) => a.id == addressId);
       addresses.refresh();
-      Get.snackbar(
-        'Deleted'.tr,
-        'Address deleted successfully'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-        duration: const Duration(seconds: 2),
-      );
+      Get.snackbar('Deleted'.tr, 'Address deleted successfully'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor, duration: const Duration(seconds: 2));
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Failed to delete address: ${e.toString()}'.tr,
-        backgroundColor: AppColors.redColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-        duration: const Duration(seconds: 3),
-      );
+      Get.snackbar('Error'.tr, 'Failed to delete address: ${e.toString()}'.tr, backgroundColor: AppColors.redColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor, duration: const Duration(seconds: 3));
     }
   }
 
