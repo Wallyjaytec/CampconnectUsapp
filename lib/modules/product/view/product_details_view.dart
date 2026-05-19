@@ -49,8 +49,9 @@ class ProductDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
+  child: Scaffold(
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
           leading: const BackIconWidget(),
