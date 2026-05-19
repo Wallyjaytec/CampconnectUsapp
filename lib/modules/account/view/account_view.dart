@@ -33,7 +33,7 @@ class AccountView extends StatelessWidget {
             SizedBox(
               width: double.infinity, height: 44,
               child: ElevatedButton(
-                onPressed: () { Get.back(); Get.offAllNamed(AppRoutes.loginView); },
+                onPressed: () { Get.back(); Get.toNamed(AppRoutes.loginView); },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                 child: Text('Login'.tr, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ),
@@ -145,8 +145,8 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.message_question_copy, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
                     _menuItem(Iconsax.information_copy, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
-                    _menuItem(Iconsax.user_add_copy, "Register".tr, () => Get.offAllNamed(AppRoutes.signupView)),
-                    _menuItem(Iconsax.login_1_copy, "Login".tr, () => Get.offAllNamed(AppRoutes.loginView)),
+                    _menuItem(Iconsax.user_add_copy, "Register".tr, () => Get.toNamed(AppRoutes.signupView)),
+                    _menuItem(Iconsax.login_1_copy, "Login".tr, () => Get.toNamed(AppRoutes.loginView)),
                     const SizedBox(height: 20),
                   ]),
                 ),
