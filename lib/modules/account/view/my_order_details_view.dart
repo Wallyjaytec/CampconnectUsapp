@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
@@ -850,84 +851,75 @@ class MyOrderDetailsView extends StatelessWidget {
   }
 
   Widget _trackingPanel({
-    required BuildContext context,
-    required int pkgIndex,
-    required List<TrackingItem> tracking,
-    required OrderDetailsController c,
-  }) {
-    if (tracking.isEmpty) return const SizedBox.shrink();
+  required BuildContext context,
+  required int pkgIndex,
+  required List<TrackingItem> tracking,
+  required OrderDetailsController c,
+}) {
+  if (tracking.isEmpty) return const SizedBox.shrink();
 
-    final sortedDesc = List<TrackingItem>.from(tracking)
-      ..sort((a, b) {
-        final da = DateTime.tryParse(a.date);
-        final db = DateTime.tryParse(b.date);
-        if (da == null || db == null) return b.date.compareTo(a.date);
-        return db.compareTo(da);
-      });
+  final sortedDesc = List<TrackingItem>.from(tracking)
+    ..sort((a, b) {
+      final da = DateTime.tryParse(a.date);
+      final db = DateTime.tryParse(b.date);
+      if (da == null || db == null) return b.date.compareTo(a.date);
+      return db.compareTo(da);
+    });
 
-    return Obx(() {
-      final expanded = c.isExpanded(pkgIndex);
-      final itemsToShow = expanded ? sortedDesc : [sortedDesc.first];
-      final canToggle = sortedDesc.length > 1;
+  return Obx(() {
+    final expanded = c.isExpanded(pkgIndex);
+    final itemsToShow = expanded ? sortedDesc : [sortedDesc.first];
+    final canToggle = sortedDesc.length > 1;
 
-      return Stack(
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white10
+            : Colors.black12,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            margin: const EdgeInsets.only(top: 10),
-            width: double.infinity,
-            padding: const EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: 12,
-              bottom: 2,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white10
-                  : Colors.black12,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: itemsToShow.map((t) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            children: [
+              const Icon(Iconsax.truck_fast_copy, size: 14, color: AppColors.primaryColor),
+              const SizedBox(width: 6),
+              Text('Tracking History'.tr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const Spacer(),
+              if (canToggle)
+                GestureDetector(
+                  onTap: () => c.toggleExpanded(pkgIndex),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        t.date,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(t.message, style: const TextStyle(fontSize: 13)),
+                      Text(expanded ? 'Show less'.tr : 'Show all'.tr, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)),
+                      const SizedBox(width: 4),
+                      Icon(expanded ? Iconsax.arrow_up_2_copy : Iconsax.arrow_down_2_copy, size: 14, color: AppColors.primaryColor),
                     ],
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-          if (canToggle)
-            PositionedDirectional(
-              end: 0,
-              top: 10,
-              child: IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () => c.toggleExpanded(pkgIndex),
-                icon: Icon(
-                  expanded ? Iconsax.minus_copy : Iconsax.add_copy,
-                  size: 18,
                 ),
-                tooltip: expanded ? 'Collapse' : 'Expand',
-              ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...List.generate(itemsToShow.length, (i) {
+            final t = itemsToShow[i];
+            final isLast = i == itemsToShow.length - 1;
+            final isFirst = i == 0;
+            return _TimelineItem(
+              date: t.date,
+              message: t.message,
+              isFirst: isFirst,
+              isLast: isLast,
+            );
+          }),
         ],
-      );
-    });
-  }
+      ),
+    );
+  });
+}
 
   String _assetOrAbsolute(String path) {
     if (path.startsWith('http')) return path;
@@ -1246,57 +1238,6 @@ class MyOrderDetailsView extends StatelessWidget {
       },
     );
   }
-
-  String? _attachmentLabelFromRaw(dynamic raw) {
-    if (raw == null) return null;
-
-    if (raw is Map) {
-      final name =
-          (raw['original_name'] ??
-                  raw['file_original_name'] ??
-                  raw['file_name'])
-              ?.toString();
-
-      if (name != null && name.trim().isNotEmpty) {
-        return name.trim();
-      }
-
-      final path = raw['path']?.toString();
-      if (path != null && path.isNotEmpty) {
-        final last = path.split('/').last;
-        if (last.isNotEmpty) return last;
-      }
-
-      final id = raw['file_id']?.toString();
-      if (id != null && id.isNotEmpty) return 'Attachment #$id';
-
-      return 'Attachment';
-    }
-
-    if (raw is String) {
-      final s = raw.trim();
-      if (s.isEmpty || s == 'null') return null;
-
-      try {
-        final decoded = jsonDecode(s);
-        final lbl = _attachmentLabelFromRaw(decoded);
-        if (lbl != null && lbl.isNotEmpty) return lbl;
-      } catch (_) {}
-
-      final lastSlash = s.lastIndexOf('/');
-      if (lastSlash >= 0 && lastSlash < s.length - 1) {
-        final base = s.substring(lastSlash + 1);
-        if (base.isNotEmpty) return base;
-      }
-
-      return s;
-    }
-
-    if (raw is int) return 'Attachment #$raw';
-
-    return raw.toString();
-  }
-
   String? _attachmentPathFromRaw(dynamic raw) {
     if (raw == null) return null;
 
@@ -1331,5 +1272,80 @@ class MyOrderDetailsView extends StatelessWidget {
     }
 
     return null;
+  }
+}
+
+class _TimelineItem extends StatelessWidget {
+  final String date;
+  final String message;
+  final bool isFirst;
+  final bool isLast;
+
+  const _TimelineItem({
+    required this.date,
+    required this.message,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: isFirst ? AppColors.primaryColor : Colors.grey.shade400,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isFirst ? AppColors.primaryColor : Colors.grey.shade400,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    date,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isFirst ? AppColors.primaryColor : Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  HtmlWidget(
+                    message,
+                    textStyle: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
