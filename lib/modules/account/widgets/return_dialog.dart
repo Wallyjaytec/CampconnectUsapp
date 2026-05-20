@@ -30,9 +30,17 @@ class ReturnDialog extends StatelessWidget {
   final double unitPrice;
   final int quantity;
 
+  ReturnController _getController(String tag) {
+    if (Get.isRegistered<ReturnController>(tag: tag)) {
+      return Get.find<ReturnController>(tag: tag);
+    }
+    return Get.put(ReturnController(orderId: orderId, packageId: packageId), tag: tag);
+  }
+
   @override
   Widget build(BuildContext context) {
     final tag = 'return-$orderId-$packageId';
+    final rc = _getController(tag);
 
     Widget productHeader() {
       final total = unitPrice * quantity;
@@ -84,7 +92,6 @@ class ReturnDialog extends StatelessWidget {
     }
 
     Widget reasonDropdown() {
-      final rc = Get.find<ReturnController>(tag: tag);
       rc.ensureReasonsLoaded();
       return Obx(() {
         final loading = rc.reasonsLoading.value;
@@ -100,7 +107,7 @@ class ReturnDialog extends StatelessWidget {
           ]),
           const SizedBox(height: 6),
           DropdownButtonFormField<int>(
-            initialValue: loading ? null : rc.selectedReasonId.value,
+            value: loading ? null : rc.selectedReasonId.value,
             items: loading ? const [] : dropdownItems,
             onChanged: loading ? null : (v) => rc.selectedReasonId.value = v,
             isExpanded: true,
@@ -120,7 +127,6 @@ class ReturnDialog extends StatelessWidget {
     }
 
     Widget commentField() {
-      final rc = Get.find<ReturnController>(tag: tag);
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Write a comment'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
@@ -138,58 +144,52 @@ class ReturnDialog extends StatelessWidget {
     }
 
     Widget imagesPicker() {
-      return GetX<ReturnController>(
-        tag: tag,
-        builder: (rc) {
-          final files = rc.images;
-          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const SizedBox(height: 10),
-            Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
-              ...List.generate(files.length, (i) {
-                return Stack(clipBehavior: Clip.none, children: [
-                  ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
-                  Positioned(right: -8, top: -8, child: IconButton(onPressed: () => rc.removeImageAt(i), icon: const Icon(Iconsax.close_circle_copy, size: 18), padding: EdgeInsets.zero, constraints: const BoxConstraints())),
-                ]);
-              }),
-            ]),
-            const SizedBox(height: 10),
-            Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
-              GestureDetector(onTap: rc.pickFromGallery, child: const CircleAvatar(radius: 24, backgroundColor: AppColors.primaryColor, child: Icon(Iconsax.gallery_copy, size: 24, color: Colors.white))),
-              GestureDetector(onTap: rc.pickFromCamera, child: const CircleAvatar(radius: 24, backgroundColor: AppColors.primaryColor, child: Icon(Iconsax.camera_copy, size: 24, color: Colors.white))),
-            ]),
-          ]);
-        },
-      );
+      return Obx(() {
+        final files = rc.images;
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SizedBox(height: 10),
+          Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
+            ...List.generate(files.length, (i) {
+              return Stack(clipBehavior: Clip.none, children: [
+                ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
+                Positioned(right: -8, top: -8, child: IconButton(onPressed: () => rc.removeImageAt(i), icon: const Icon(Iconsax.close_circle_copy, size: 18), padding: EdgeInsets.zero, constraints: const BoxConstraints())),
+              ]);
+            }),
+          ]),
+          const SizedBox(height: 10),
+          Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
+            GestureDetector(onTap: rc.pickFromGallery, child: const CircleAvatar(radius: 24, backgroundColor: AppColors.primaryColor, child: Icon(Iconsax.gallery_copy, size: 24, color: Colors.white))),
+            GestureDetector(onTap: rc.pickFromCamera, child: const CircleAvatar(radius: 24, backgroundColor: AppColors.primaryColor, child: Icon(Iconsax.camera_copy, size: 24, color: Colors.white))),
+          ]),
+        ]);
+      });
     }
 
     Widget submitBar() {
-      return GetX<ReturnController>(
-        tag: tag,
-        builder: (rc) => SizedBox(
-          width: double.infinity, height: 44,
-          child: ElevatedButton(
-            onPressed: rc.submitting.value ? null : () async {
-              final ok = await rc.submit();
-              if (ok) {
-                safeBack();
-                ScaffoldMessenger.of(Get.context!).showSnackBar(
-                  SnackBar(content: Text('Return product submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-                );
-                try {
-                  final odc = Get.find<OrderDetailsController>();
-                  await odc.refreshNow(orderId);
-                } catch (_) {}
-              } else {
-                ScaffoldMessenger.of(Get.context!).showSnackBar(
-                  SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            child: rc.submitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator()) : Text('Submit'.tr),
-          ),
+      return Obx(() => SizedBox(
+        width: double.infinity, height: 44,
+        child: ElevatedButton(
+          onPressed: rc.submitting.value ? null : () async {
+            final ok = await rc.submit();
+            if (ok) {
+              safeBack();
+              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                SnackBar(content: Text('Return product submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+              );
+              try {
+                final odc = Get.find<OrderDetailsController>();
+                await odc.refreshNow(orderId);
+              } catch (_) {}
+            } else {
+              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          child: rc.submitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator()) : Text('Submit'.tr),
         ),
-      );
+      ));
     }
 
     return Dialog(
