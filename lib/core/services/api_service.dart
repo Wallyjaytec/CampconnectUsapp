@@ -123,29 +123,11 @@ class ApiService {
     );
   }
 
-  // ========== THIS IS THE ONLY METHOD THAT CHANGED ==========
   Future<http.Response> _dispatch(http.BaseRequest req) async {
-    final streamed = await req.send().timeout(
-      const Duration(seconds: 15),
-      onTimeout: () => throw ApiHttpException(
-        method: req.method,
-        url: req.url.toString(),
-        statusCode: 408,
-        body: 'Request timeout - please check your internet connection',
-      ),
-    );
-    final res = await http.Response.fromStream(streamed).timeout(
-      const Duration(seconds: 15),
-      onTimeout: () => throw ApiHttpException(
-        method: req.method,
-        url: req.url.toString(),
-        statusCode: 408,
-        body: 'Response timeout - please check your internet connection',
-      ),
-    );
+    final streamed = await req.send();
+    final res = await http.Response.fromStream(streamed);
     return res;
   }
-  // ==========================================================
 
   Future<bool> _refreshTokenOnce() async {
     if (_isRefreshing && _refreshFuture != null) return _refreshFuture!;
