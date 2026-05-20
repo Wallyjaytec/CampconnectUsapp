@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -55,40 +56,28 @@ class RechargeWalletView extends StatelessWidget {
     return DefaultTabController(
       length: tabs.length,
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
           leading: const BackIconWidget(),
           centerTitle: false,
           titleSpacing: 0,
-          title: Text(
-            'Wallet Recharge'.tr,
-            style: const TextStyle(fontSize: 18),
-          ),
+          title: Text('Wallet Recharge'.tr, style: const TextStyle(fontSize: 18)),
           bottom: TabBar(
             padding: EdgeInsets.zero,
             indicatorColor: AppColors.whiteColor,
             labelColor: AppColors.whiteColor,
-            labelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             unselectedLabelColor: AppColors.greyColor,
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             tabs: tabs,
             onTap: c.setTab,
           ),
         ),
         body: Obx(() {
-          if (c.isLoadingMethods.value && c.methods.value == null) {
-            return const _RechargeShimmer();
-          }
-          if (c.methodsError.isNotEmpty) {
-            return _Err(msg: c.methodsError.value, onRetry: c.loadMethods);
-          }
+          if (c.isLoadingMethods.value && c.methods.value == null) return const _RechargeShimmer();
+          if (c.methodsError.isNotEmpty) return _Err(msg: c.methodsError.value, onRetry: c.loadMethods);
           final methods = c.methods.value!;
           return TabBarView(
             physics: const NeverScrollableScrollPhysics(),
@@ -110,16 +99,9 @@ class _OnlineTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final validMethods = methods
-        .where((e) => e.id > 0 && e.name.trim().isNotEmpty)
-        .toList();
-
+    final validMethods = methods.where((e) => e.id > 0 && e.name.trim().isNotEmpty).toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (validMethods.isEmpty) {
-      return Center(child: Text('No online methods available'.tr));
-    }
-
+    if (validMethods.isEmpty) return Center(child: Text('No online methods available'.tr));
     return ListView.separated(
       padding: const EdgeInsets.all(10),
       itemCount: validMethods.length,
@@ -127,28 +109,12 @@ class _OnlineTab extends StatelessWidget {
       itemBuilder: (_, i) {
         final m = validMethods[i];
         return Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            hoverColor: AppColors.transparentColor,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            hoverColor: AppColors.transparentColor, contentPadding: const EdgeInsets.symmetric(horizontal: 10),
             leading: _LogoBox(url: m.logo),
-            title: m.logo == null
-                ? Text(
-                    m.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            trailing: const Icon(
-              Iconsax.arrow_right_3_copy,
-              color: AppColors.greyColor,
-              size: 18,
-            ),
+            title: m.logo == null ? Text(m.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)) : const SizedBox.shrink(),
+            trailing: const Icon(Iconsax.arrow_right_3_copy, color: AppColors.greyColor, size: 18),
             onTap: () => _openOnlineAmountSheet(m, currencyCode),
           ),
         );
@@ -160,22 +126,10 @@ class _OnlineTab extends StatelessWidget {
     final ctrl = Get.find<WalletRechargeController>();
     ctrl.pickOnlineMethod(method.id);
     ctrl.setOnlineAmount('');
-
     Get.bottomSheet(
-      Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(Get.context!).viewInsets.bottom,
-        ),
-        child: SafeArea(
-          top: false,
-          child: _OnlineAmountSheet(method: method, currencyCode: currencyCode),
-        ),
-      ),
-      isScrollControlled: true,
-      backgroundColor: Get.theme.scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(Get.context!).viewInsets.bottom), child: SafeArea(top: false, child: _OnlineAmountSheet(method: method, currencyCode: currencyCode))),
+      isScrollControlled: true, backgroundColor: Get.theme.scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     );
   }
 }
@@ -184,161 +138,38 @@ class _OnlineAmountSheet extends StatelessWidget {
   const _OnlineAmountSheet({required this.method, required this.currencyCode});
   final WalletOnlineMethod method;
   final String currencyCode;
-
   String _pretty(num v) => formatCurrency(v, applyConversion: false);
 
   @override
   Widget build(BuildContext context) {
     final c = Get.find<WalletRechargeController>();
-
     return Obx(() {
-      final min = c.minAmount.value;
-      final max = c.maxAmount.value;
-      final isLoaded = c.isLimitsLoaded.value;
-
+      final min = c.minAmount.value; final max = c.maxAmount.value; final isLoaded = c.isLimitsLoaded.value;
       String helper = '';
-      if (isLoaded) {
-        final parts = <String>[];
-        if (min != null) parts.add('min ${_pretty(min)}');
-        if (max != null) parts.add('max ${_pretty(max)}');
-        if (parts.isNotEmpty) {
-          helper = 'Limits: ${parts.join(', ')} ($currencyCode)';
-        }
-      } else {
-        helper = 'Fetching limits...';
-      }
+      if (isLoaded) { final parts = <String>[]; if (min != null) parts.add('min ${_pretty(min)}'); if (max != null) parts.add('max ${_pretty(max)}'); if (parts.isNotEmpty) helper = 'Limits: ${parts.join(', ')} ($currencyCode)'; } else { helper = 'Fetching limits...'; }
       final err = c.onlineFieldErrors['recharge_amount'];
-
-      return Wrap(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    _LogoBox(url: method.logo),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Pay with'.tr,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => safeBack(),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  hint: '${'Enter amount'.tr} ($currencyCode)',
-                  icon: Iconsax.coin_1_copy,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  onChanged: c.setOnlineAmount,
-                ),
-                if (err != null) ...[
-                  const SizedBox(height: 4),
-                  const Text('', style: TextStyle(fontSize: 0)),
-                  Text(
-                    err,
-                    style: const TextStyle(color: Colors.red, fontSize: 12),
-                  ),
-                ] else if (helper.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    helper,
-                    style: const TextStyle(color: Colors.black54, fontSize: 12),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: ElevatedButton.icon(
-                    onPressed: c.isGeneratingLink.value
-                        ? null
-                        : () async {
-                            final url = await c.generateOnlineLink();
-                            if (url == null) return;
-                            if (kIsWeb) {
-                              final ok = await launchUrlString(
-                                url,
-                                mode: LaunchMode.externalApplication,
-                              );
-                              if (ok) {
-                                Get.snackbar(
-                                  'Opened'.tr,
-                                  'Payment page opened in a new tab'.tr,
-                                  snackPosition: SnackPosition.TOP,
-                                  backgroundColor: AppColors.primaryColor,
-                                  colorText: AppColors.whiteColor,
-                                );
-                              } else {
-                                Get.snackbar(
-                                  'Error'.tr,
-                                  'Failed to open payment page'.tr,
-                                  snackPosition: SnackPosition.TOP,
-                                  backgroundColor: AppColors.primaryColor,
-                                  colorText: AppColors.whiteColor,
-                                );
-                              }
-                              return;
-                            }
-                            final login = LoginService();
-                            final headers = <String, String>{};
-                            final token = login.token;
-                            if (token != null && token.isNotEmpty) {
-                              headers['Authorization'] =
-                                  '${login.tokenType} $token';
-                            }
-                            final result = await Get.to<bool>(
-                              () =>
-                                  WebPayView(initialUrl: url, headers: headers),
-                            );
-                            if (result == true) {
-                              if (Get.isBottomSheetOpen == true) safeBack();
-                              Get.snackbar(
-                                'Success'.tr,
-                                'Recharge completed'.tr,
-                                snackPosition: SnackPosition.TOP,
-                                backgroundColor: AppColors.primaryColor,
-                                colorText: AppColors.whiteColor,
-                              );
-                            } else if (result == false) {
-                              Get.snackbar(
-                                'Cancelled'.tr,
-                                'Payment cancelled'.tr,
-                                snackPosition: SnackPosition.TOP,
-                                backgroundColor: AppColors.primaryColor,
-                                colorText: AppColors.whiteColor,
-                              );
-                            }
-                          },
-                    icon: c.isGeneratingLink.value
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Iconsax.send_2_copy),
-                    label: Text('Generate and Pay'.tr),
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          ),
-        ],
-      );
+      return Wrap(children: [
+        Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('Pay with'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
+          const SizedBox(height: 12),
+          CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: c.setOnlineAmount),
+          if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: const TextStyle(color: Colors.black54, fontSize: 12))],
+          const SizedBox(height: 16),
+          SizedBox(width: double.infinity, height: 46, child: ElevatedButton.icon(
+            onPressed: c.isGeneratingLink.value ? null : () async {
+              final url = await c.generateOnlineLink(); if (url == null) return;
+              if (kIsWeb) { final ok = await launchUrlString(url, mode: LaunchMode.externalApplication); return; }
+              final login = LoginService(); final headers = <String, String>{}; final token = login.token;
+              if (token != null && token.isNotEmpty) headers['Authorization'] = '${login.tokenType} $token';
+              final result = await Get.to<bool>(() => WebPayView(initialUrl: url, headers: headers));
+              if (result == true) { if (Get.isBottomSheetOpen == true) safeBack(); }
+            },
+            icon: c.isGeneratingLink.value ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Iconsax.send_2_copy),
+            label: Text('Generate and Pay'.tr),
+          )),
+          const SizedBox(height: 10),
+        ])),
+      ]);
     });
   }
 }
@@ -351,108 +182,19 @@ class _OfflineTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<WalletRechargeController>();
-
-    return ListView(
-      padding: const EdgeInsets.all(12),
-      children: [
-        _OfflineMethodPicker(methods: methods),
-        const SizedBox(height: 10),
-        _OfflineMethodDetails(methods: methods),
-        const SizedBox(height: 10),
-        _LabeledField(
-          child: CustomTextField(
-            hint: '${'Enter amount'.tr} ($currencyCode)',
-            icon: Iconsax.coin_1_copy,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: ctrl.setAmount,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Obx(() {
-          final err = ctrl.fieldErrors['transaction_id'];
-          return _LabeledField(
-            errorText: err,
-            child: CustomTextField(
-              hint: 'Transaction ID'.tr,
-              icon: Iconsax.hashtag_1_copy,
-              onChanged: ctrl.setTxnId,
-            ),
-          );
-        }),
-        const SizedBox(height: 10),
-        Obx(() {
-          final file = ctrl.transactionProof.value;
-          return _LabeledField(
-            child: Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final allowed = await PermissionService.I
-                        .canUseMediaOrExplain();
-                    if (!allowed) return;
-
-                    final picker = ImagePicker();
-                    final x = await picker.pickImage(
-                      source: ImageSource.gallery,
-                      imageQuality: 85,
-                    );
-                    if (x != null) ctrl.setProof(File(x.path));
-                  },
-                  icon: const Icon(Iconsax.image_copy),
-                  label: Text('Choose Image'.tr),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    file == null
-                        ? 'No file chosen'.tr
-                        : file.path.split('/').last,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-        const SizedBox(height: 20),
-        Obx(() {
-          final raw = ctrl.rechargeAmount.value.trim();
-          final parsed = double.tryParse(raw);
-          final hasValidNumber = parsed != null;
-          final hasTxn = ctrl.transactionId.value.trim().isNotEmpty;
-          final hasMethod = ctrl.selectedOfflineMethodId.value > 0;
-
-          final canSubmit =
-              hasValidNumber && hasTxn && hasMethod && !ctrl.isSubmitting.value;
-
-          return SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton.icon(
-              onPressed: canSubmit
-                  ? () async {
-                      final ok = await ctrl.submitOffline();
-                      if (ok) {
-                        ctrl.setAmount('');
-                        ctrl.setTxnId('');
-                        ctrl.setProof(null);
-                      }
-                    }
-                  : null,
-              icon: ctrl.isSubmitting.value
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const SizedBox(),
-              label: Text('Submit'.tr),
-            ),
-          );
-        }),
-      ],
-    );
+    return ListView(padding: const EdgeInsets.all(12), children: [
+      _OfflineMethodPicker(methods: methods), const SizedBox(height: 10),
+      _OfflineMethodDetails(methods: methods), const SizedBox(height: 10),
+      _LabeledField(child: CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: ctrl.setAmount)), const SizedBox(height: 10),
+      Obx(() { final err = ctrl.fieldErrors['transaction_id']; return _LabeledField(errorText: err, child: CustomTextField(hint: 'Transaction ID'.tr, icon: Iconsax.hashtag_1_copy, onChanged: ctrl.setTxnId)); }), const SizedBox(height: 10),
+      Obx(() { final file = ctrl.transactionProof.value; return _LabeledField(child: Row(children: [ElevatedButton.icon(onPressed: () async { final allowed = await PermissionService.I.canUseMediaOrExplain(); if (!allowed) return; final picker = ImagePicker(); final x = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85); if (x != null) ctrl.setProof(File(x.path)); }, icon: const Icon(Iconsax.image_copy), label: Text('Choose Image'.tr)), const SizedBox(width: 10), Expanded(child: Text(file == null ? 'No file chosen'.tr : file.path.split('/').last, maxLines: 1, overflow: TextOverflow.ellipsis))])); }), const SizedBox(height: 20),
+      Obx(() {
+        final raw = ctrl.rechargeAmount.value.trim(); final parsed = double.tryParse(raw); final hasValidNumber = parsed != null;
+        final hasTxn = ctrl.transactionId.value.trim().isNotEmpty; final hasMethod = ctrl.selectedOfflineMethodId.value > 0;
+        final canSubmit = hasValidNumber && hasTxn && hasMethod && !ctrl.isSubmitting.value;
+        return SizedBox(width: double.infinity, height: 48, child: ElevatedButton.icon(onPressed: canSubmit ? () async { final ok = await ctrl.submitOffline(); if (ok) { ctrl.setAmount(''); ctrl.setTxnId(''); ctrl.setProof(null); } } : null, icon: ctrl.isSubmitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const SizedBox(), label: Text('Submit'.tr)));
+      }),
+    ]);
   }
 }
 
@@ -464,68 +206,21 @@ class _OfflineMethodPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final c = Get.find<WalletRechargeController>();
-
-    if (methods.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text('No offline methods available'.tr),
-        ),
-      );
-    }
-
+    if (methods.isEmpty) return Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('No offline methods available'.tr)));
     return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: Obx(() {
         final selected = c.selectedOfflineMethodId.value;
-
-        return RadioGroup<int>(
-          groupValue: selected,
-          onChanged: (v) {
-            if (v != null) c.pickOfflineMethod(v);
-          },
-          child: Column(
-            children: methods.map((m) {
-              final active = (m.id == selected);
-              return GestureDetector(
-                onTap: () => c.pickOfflineMethod(m.id),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    children: [
-                      Transform.scale(
-                        scale: 0.80,
-                        child: Radio<int>(value: m.id),
-                      ),
-                      const SizedBox(width: 6),
-                      _LogoBox(url: m.logo),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          m.name,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      if (active)
-                        const Icon(
-                          Icons.check_circle,
-                          size: 18,
-                          color: AppColors.primaryColor,
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        );
+        return RadioGroup<int>(groupValue: selected, onChanged: (v) { if (v != null) c.pickOfflineMethod(v); }, child: Column(children: methods.map((m) {
+          final active = (m.id == selected);
+          return GestureDetector(onTap: () => c.pickOfflineMethod(m.id), child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(children: [
+            Transform.scale(scale: 0.80, child: Radio<int>(value: m.id)), const SizedBox(width: 6),
+            _LogoBox(url: m.logo), const SizedBox(width: 10),
+            Expanded(child: Text(m.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+            if (active) const Icon(Icons.check_circle, size: 18, color: AppColors.primaryColor),
+          ])));
+        }).toList()));
       }),
     );
   }
@@ -549,48 +244,33 @@ class _OfflineMethodDetails extends StatelessWidget {
       final hasAccName = (m.accountName ?? '').trim().isNotEmpty;
       final hasAccNo = (m.accountNumber ?? '').trim().isNotEmpty;
       final hasRouting = (m.routingNumber ?? '').trim().isNotEmpty;
-
-      final any =
-          hasInstruction || hasBankName || hasAccName || hasAccNo || hasRouting;
+      final any = hasInstruction || hasBankName || hasAccName || hasAccNo || hasRouting;
       if (!any) return const SizedBox.shrink();
 
       return Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (hasInstruction) ...[
-              Text(
-                'Instruction'.tr,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                _cleanHtml(m.instructionHtml),
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
+        decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.all(12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (hasInstruction) ...[
+            Text('Instruction'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(_cleanHtml(m.instructionHtml), style: const TextStyle(fontSize: 14, height: 1.5)),
+          ],
+          if (hasBankName || hasAccName || hasAccNo || hasRouting) ...[
+            const SizedBox(height: 8), const Divider(), const SizedBox(height: 4),
+            Text('Bank Details'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
             if (hasBankName) _KV('Bank Name'.tr, m.bankName!),
             if (hasAccName) _KV('Account Name'.tr, m.accountName!),
             if (hasAccNo) _KV('Account Number'.tr, m.accountNumber!),
             if (hasRouting) _KV('Routing Number'.tr, m.routingNumber!),
           ],
-        ),
+        ]),
       );
     });
   }
 
   String _cleanHtml(String? html) {
-    final s = (html ?? '').replaceAll(
-      RegExp(r'<br\s*/?>', caseSensitive: false),
-      '\n',
-    );
+    final s = (html ?? '').replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
     return s.replaceAll(RegExp(r'<[^>]*>'), '').trim();
   }
 }
@@ -602,26 +282,19 @@ class _KV extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$k: ',
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.greyColor,
-            fontWeight: FontWeight.normal,
-          ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Text('$k: ', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Expanded(child: Text(v, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+        GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: v));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$k copied'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 1)));
+          },
+          child: const Icon(Iconsax.copy_copy, size: 16, color: AppColors.primaryColor),
         ),
-        Expanded(
-          child: Text(
-            v,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+      ]),
     );
   }
 }
@@ -634,50 +307,17 @@ class _LogoBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final resolved = AppConfig.assetUrl(url);
     final hasImage = resolved.isNotEmpty;
-
-    return Container(
-      width: 100,
-      height: 36,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.black12,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.all(10),
-      child: hasImage
-          ? CachedNetworkImage(
-              imageUrl: resolved,
-              fit: BoxFit.contain,
-              placeholder: (_, __) =>
-                  const Center(child: Icon(Iconsax.card_pos_copy, size: 18)),
-            )
-          : const Center(child: Icon(Iconsax.card_pos_copy, size: 18)),
-    );
+    return Container(width: 100, height: 36, clipBehavior: Clip.antiAlias, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8)), padding: const EdgeInsets.all(10), child: hasImage ? CachedNetworkImage(imageUrl: resolved, fit: BoxFit.contain, placeholder: (_, __) => const Center(child: Icon(Iconsax.card_pos_copy, size: 18))) : const Center(child: Icon(Iconsax.card_pos_copy, size: 18)));
   }
 }
 
 class _LabeledField extends StatelessWidget {
   const _LabeledField({required this.child, this.errorText});
-
   final Widget child;
   final String? errorText;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        child,
-        if (errorText != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            errorText!,
-            style: const TextStyle(color: Colors.red, fontSize: 12),
-          ),
-        ],
-      ],
-    );
-  }
+  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [child, if (errorText != null) ...[const SizedBox(height: 4), Text(errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))]]);
 }
 
 class _Err extends StatelessWidget {
@@ -686,34 +326,7 @@ class _Err extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Iconsax.info_circle, size: 38),
-            const SizedBox(height: 10),
-            Text(
-              'Failed to load methods'.tr,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            Text(msg, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text('Retry'.tr),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.info_circle, size: 38), const SizedBox(height: 10), Text('Failed to load methods'.tr, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)), const SizedBox(height: 6), Text(msg, textAlign: TextAlign.center), const SizedBox(height: 12), ElevatedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: Text('Retry'.tr))])));
 }
 
 class _RechargeShimmer extends StatelessWidget {
@@ -721,28 +334,8 @@ class _RechargeShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white12
-        : Colors.black12;
-    final highlight = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white24
-        : Colors.black26;
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
-      itemBuilder: (_, __) => Shimmer.fromColors(
-        baseColor: base,
-        highlightColor: highlight,
-        child: Container(
-          height: 88,
-          decoration: BoxDecoration(
-            color: base,
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemCount: 6,
-    );
+    final base = Theme.of(context).brightness == Brightness.dark ? Colors.white12 : Colors.black12;
+    final highlight = Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black26;
+    return ListView.separated(padding: const EdgeInsets.all(12), itemBuilder: (_, __) => Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: Container(height: 88, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(12)))), separatorBuilder: (_, __) => const SizedBox(height: 10), itemCount: 6);
   }
 }
