@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'core/bindings/initial_bindings.dart';
 import 'core/config/app_scroll_behavior.dart';
 import 'core/constants/app_colors.dart';
+import 'core/controllers/theme_controller.dart';
 import 'core/routes/app_pages.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
@@ -14,13 +15,45 @@ import 'core/utils/locale_mapper.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final String initialLocaleCode;
   const MyApp({super.key, required this.initialLocaleCode});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  Brightness? _lastBrightness;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    final newBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    if (_lastBrightness != newBrightness) {
+      _lastBrightness = newBrightness;
+      // Auto-reset theme to system when phone brightness changes
+      if (Get.isRegistered<ThemeController>()) {
+        Get.find<ThemeController>().setMode(ThemeMode.system);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final initialLocale = LocaleMapper.fromApiCode(initialLocaleCode);
+    final initialLocale = LocaleMapper.fromApiCode(widget.initialLocaleCode);
 
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
