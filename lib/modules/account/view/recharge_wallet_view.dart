@@ -58,21 +58,14 @@ class RechargeWalletView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leadingWidth: 44,
-          leading: const BackIconWidget(),
-          centerTitle: false,
-          titleSpacing: 0,
+          automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(),
+          centerTitle: false, titleSpacing: 0,
           title: Text('Wallet Recharge'.tr, style: const TextStyle(fontSize: 18)),
           bottom: TabBar(
-            padding: EdgeInsets.zero,
-            indicatorColor: AppColors.whiteColor,
-            labelColor: AppColors.whiteColor,
-            labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            unselectedLabelColor: AppColors.greyColor,
-            unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            tabs: tabs,
-            onTap: c.setTab,
+            padding: EdgeInsets.zero, indicatorColor: AppColors.whiteColor,
+            labelColor: AppColors.whiteColor, labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            unselectedLabelColor: AppColors.greyColor, unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            tabs: tabs, onTap: c.setTab,
           ),
         ),
         body: Obx(() {
@@ -103,9 +96,7 @@ class _OnlineTab extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (validMethods.isEmpty) return Center(child: Text('No online methods available'.tr));
     return ListView.separated(
-      padding: const EdgeInsets.all(10),
-      itemCount: validMethods.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      padding: const EdgeInsets.all(10), itemCount: validMethods.length, separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final m = validMethods[i];
         return Container(
@@ -113,7 +104,7 @@ class _OnlineTab extends StatelessWidget {
           child: ListTile(
             hoverColor: AppColors.transparentColor, contentPadding: const EdgeInsets.symmetric(horizontal: 10),
             leading: _LogoBox(url: m.logo),
-            title: m.logo == null ? Text(m.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)) : const SizedBox.shrink(),
+            title: Text(m.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
             trailing: const Icon(Iconsax.arrow_right_3_copy, color: AppColors.greyColor, size: 18),
             onTap: () => _openOnlineAmountSheet(m, currencyCode),
           ),
@@ -124,8 +115,7 @@ class _OnlineTab extends StatelessWidget {
 
   void _openOnlineAmountSheet(WalletOnlineMethod method, String currencyCode) {
     final ctrl = Get.find<WalletRechargeController>();
-    ctrl.pickOnlineMethod(method.id);
-    ctrl.setOnlineAmount('');
+    ctrl.pickOnlineMethod(method.id); ctrl.setOnlineAmount('');
     Get.bottomSheet(
       Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(Get.context!).viewInsets.bottom), child: SafeArea(top: false, child: _OnlineAmountSheet(method: method, currencyCode: currencyCode))),
       isScrollControlled: true, backgroundColor: Get.theme.scaffoldBackgroundColor,
@@ -150,7 +140,7 @@ class _OnlineAmountSheet extends StatelessWidget {
       final err = c.onlineFieldErrors['recharge_amount'];
       return Wrap(children: [
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('Pay with'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
+          Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text(method.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
           const SizedBox(height: 12),
           CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: c.setOnlineAmount),
           if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: const TextStyle(color: Colors.black54, fontSize: 12))],
@@ -252,13 +242,26 @@ class _OfflineMethodDetails extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (hasInstruction) ...[
-            Text('Instruction'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            const SizedBox(height: 4),
-            Text(_cleanHtml(m.instructionHtml), style: const TextStyle(fontSize: 14, height: 1.5)),
+            Row(children: [
+              const Icon(Iconsax.info_circle, size: 16, color: AppColors.primaryColor),
+              const SizedBox(width: 6),
+              Text('Instruction'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            ]),
+            const SizedBox(height: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: SingleChildScrollView(
+                child: Text(_cleanHtml(m.instructionHtml), style: const TextStyle(fontSize: 14, height: 1.8)),
+              ),
+            ),
           ],
           if (hasBankName || hasAccName || hasAccNo || hasRouting) ...[
-            const SizedBox(height: 8), const Divider(), const SizedBox(height: 4),
-            Text('Bank Details'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            const SizedBox(height: 10), const Divider(), const SizedBox(height: 6),
+            Row(children: [
+              const Icon(Iconsax.bank, size: 16, color: AppColors.primaryColor),
+              const SizedBox(width: 6),
+              Text('Bank Details'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            ]),
             if (hasBankName) _KV('Bank Name'.tr, m.bankName!),
             if (hasAccName) _KV('Account Name'.tr, m.accountName!),
             if (hasAccNo) _KV('Account Number'.tr, m.accountNumber!),
@@ -270,7 +273,10 @@ class _OfflineMethodDetails extends StatelessWidget {
   }
 
   String _cleanHtml(String? html) {
-    final s = (html ?? '').replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    final s = (html ?? '')
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n')
+        .replaceAll(RegExp(r'<li>', caseSensitive: false), '• ');
     return s.replaceAll(RegExp(r'<[^>]*>'), '').trim();
   }
 }
