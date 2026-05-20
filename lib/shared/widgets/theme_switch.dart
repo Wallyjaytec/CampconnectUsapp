@@ -45,7 +45,6 @@ class ThemeSwitch extends StatelessWidget {
                       if (v) {
                         controller.setMode(ThemeMode.system);
                       } else {
-                        // Default to light when turning off system
                         controller.setMode(ThemeMode.light);
                       }
                     },
