@@ -18,8 +18,11 @@ class WalletController extends GetxController {
 
   final Rxn<WalletSummary> summary = Rxn<WalletSummary>();
   final RxBool isSummaryLoading = false.obs;
-
   final Rxn<WalletPageMeta> meta = Rxn<WalletPageMeta>();
+
+  // Filter options
+  final RxString filterType = 'all'.obs; // all, credit, debit
+  final RxString filterMethod = 'all'.obs; // all, online, offline
 
   bool get hasMore {
     final m = meta.value;
@@ -27,16 +30,33 @@ class WalletController extends GetxController {
     return m.currentPage < m.lastPage;
   }
 
-  int get serialOffset {
-    final m = meta.value;
-    if (m == null) return (page.value - 1) * perPage;
-    return (m.from > 0 ? m.from - 1 : (page.value - 1) * perPage);
-  }
-
   @override
   void onInit() {
     super.onInit();
     fetchInitial();
+  }
+
+  List<WalletTransaction> get filteredItems {
+    var list = items.toList();
+    if (filterType.value == 'credit') {
+      list = list.where((t) => t.type.toLowerCase() == 'credited').toList();
+    } else if (filterType.value == 'debit') {
+      list = list.where((t) => t.type.toLowerCase() == 'debited').toList();
+    }
+    if (filterMethod.value == 'online') {
+      list = list.where((t) => t.paymentMethod.toLowerCase() == 'online').toList();
+    } else if (filterMethod.value == 'offline') {
+      list = list.where((t) => t.paymentMethod.toLowerCase() == 'offline').toList();
+    }
+    return list;
+  }
+
+  void setFilterType(String type) {
+    filterType.value = type;
+  }
+
+  void setFilterMethod(String method) {
+    filterMethod.value = method;
   }
 
   Future<void> fetchInitial() async {
@@ -52,10 +72,8 @@ class WalletController extends GetxController {
         repo.fetchTransactions(page: page.value, perPage: perPage),
         repo.fetchWalletSummary(),
       ]);
-
       final txResp = results[0] as WalletTransactionPage;
       final sumResp = results[1] as WalletSummary;
-
       meta.value = txResp.meta;
       items.addAll(txResp.data);
       summary.value = sumResp;
@@ -72,16 +90,13 @@ class WalletController extends GetxController {
     isRefreshing.value = true;
     error.value = '';
     page.value = 1;
-
     try {
       final results = await Future.wait([
         repo.fetchTransactions(page: page.value, perPage: perPage),
         repo.fetchWalletSummary(),
       ]);
-
       final txResp = results[0] as WalletTransactionPage;
       final sumResp = results[1] as WalletSummary;
-
       meta.value = txResp.meta;
       items.assignAll(txResp.data);
       summary.value = sumResp;
@@ -98,10 +113,7 @@ class WalletController extends GetxController {
     error.value = '';
     try {
       page.value = page.value + 1;
-      final resp = await repo.fetchTransactions(
-        page: page.value,
-        perPage: perPage,
-      );
+      final resp = await repo.fetchTransactions(page: page.value, perPage: perPage);
       meta.value = resp.meta;
       items.addAll(resp.data);
     } catch (e) {
