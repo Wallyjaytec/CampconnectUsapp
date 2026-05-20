@@ -52,7 +52,6 @@ class MyAddressView extends StatelessWidget {
           mini: true,
           onPressed: () async {
             final changed = await Get.toNamed(AppRoutes.addAddressView);
-
             if (changed == true) {
               await c.refreshAddresses();
             }
@@ -77,7 +76,29 @@ class MyAddressView extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
                 children: [
                   const SizedBox(height: 40),
-                  Center(child: Text('No address found'.tr)),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset('assets/icons/empty_address.png', width: 120, height: 120),
+                          const SizedBox(height: 24),
+                          Text(
+                            'You have no address'.tr,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Click the plus sign button at the bottom right corner to add address(es)'.tr,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );
