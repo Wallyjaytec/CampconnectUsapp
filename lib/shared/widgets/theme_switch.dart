@@ -11,6 +11,14 @@ class ThemeSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ThemeController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final platformBrightness = MediaQuery.of(context).platformBrightness;
+
+    // Auto-reset to system when phone brightness changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.themeMode.value != ThemeMode.system) {
+        controller.setMode(ThemeMode.system);
+      }
+    });
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -27,7 +35,6 @@ class ThemeSwitch extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           
-          // System Default toggle
           Obx(() {
             final isSystem = controller.themeMode.value == ThemeMode.system;
             return Row(
@@ -56,11 +63,10 @@ class ThemeSwitch extends StatelessWidget {
           
           const SizedBox(height: 4),
           
-          // Light / Dark switch
           Obx(() {
             final isSystem = controller.themeMode.value == ThemeMode.system;
             final isDarkOn = isSystem
-                ? MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? platformBrightness == Brightness.dark
                 : controller.themeMode.value == ThemeMode.dark;
 
             return Opacity(
