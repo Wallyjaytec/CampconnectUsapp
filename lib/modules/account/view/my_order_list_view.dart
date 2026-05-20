@@ -95,7 +95,13 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 controller: _searchCtrl,
                 textInputAction: TextInputAction.search,
                 onChanged: (value) {
-                  controller.searchOrders(value.trim());
+                  controller.searchKey.value = value;
+                  // Delay search so user can type freely
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (controller.searchKey.value == value) {
+                      controller.searchOrders(value.trim());
+                    }
+                  });
                 },
                 onSubmitted: (value) {
                   controller.searchOrders(value.trim());
@@ -416,7 +422,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           onRefresh: controller.refreshList,
           child: Builder(
             builder: (_) {
-              // Loading shimmer
               if (isLoading && items.isEmpty) {
                 return ListView.builder(
                   padding: EdgeInsets.zero,
@@ -431,12 +436,10 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 );
               }
 
-              // Error state
               if (err != null && items.isEmpty && query.isEmpty) {
                 return _errorView(err);
               }
 
-              // Empty state - no orders at all
               if (!isLoading && items.isEmpty && query.isEmpty) {
                 return Column(
                   children: [
@@ -446,7 +449,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 );
               }
 
-              // Search results empty
               if (!isLoading && items.isEmpty && query.isNotEmpty) {
                 return Column(
                   children: [
@@ -456,7 +458,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 );
               }
 
-              // Has orders - show list
               if (items.isNotEmpty) {
                 return ListView.builder(
                   controller: _scroll,
@@ -483,7 +484,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 );
               }
 
-              // Fallback
               return ListView(
                 padding: EdgeInsets.zero,
                 children: [_searchField()],
