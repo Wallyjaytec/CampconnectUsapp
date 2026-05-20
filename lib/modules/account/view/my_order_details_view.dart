@@ -685,9 +685,9 @@ class MyOrderDetailsView extends StatelessWidget {
                 ),
               ),
               Text(
-                '${'Shipping'.tr}: N/A',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
+  '${'Tracking ID'.tr}: ${p.trackingId ?? 'N/A'}',
+  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+),
             ],
           ),
           const SizedBox(height: 10),
