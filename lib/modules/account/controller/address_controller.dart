@@ -23,7 +23,6 @@ class AddressController extends GetxController {
   final addresses = <CustomerAddress>[].obs;
   final isLoading = false.obs;
   final isRefreshing = false.obs;
-  bool _loadedOnce = false;
 
   final isFormLoading = true.obs;
 
@@ -295,8 +294,6 @@ class AddressController extends GetxController {
   }
 
   Future<void> initLoad() async {
-    if (_loadedOnce) return;
-    _loadedOnce = true;
     await fetchAddresses();
   }
 
@@ -331,21 +328,12 @@ class AddressController extends GetxController {
       addresses.refresh();
       Get.snackbar('Deleted'.tr, 'Address deleted successfully'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor, duration: const Duration(seconds: 2));
     } catch (e) {
-      // If it's an HTML response error, the delete likely succeeded (status 200)
       if (e.toString().contains('HTML received')) {
         addresses.removeWhere((a) => a.id == addressId);
         addresses.refresh();
         Get.snackbar('Deleted'.tr, 'Address deleted successfully'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor, duration: const Duration(seconds: 2));
       } else {
-        Get.dialog(
-          AlertDialog(
-            title: const Text('Delete Error'),
-            content: Text('Error: ${e.toString()}'),
-            actions: [
-              TextButton(onPressed: () => Get.back(), child: const Text('OK')),
-            ],
-          ),
-        );
+        Get.snackbar('Error'.tr, 'Failed to delete address'.tr, backgroundColor: AppColors.redColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
       }
     }
   }
