@@ -193,24 +193,19 @@ class MyAddressView extends StatelessWidget {
   }
 
   void _confirmDelete(AddressController c, CustomerAddress a) {
-    Get.dialog(
-      AlertDialog(
-        title: Text('Delete Address'.tr),
-        content: Text('Are you sure you want to delete this address?'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'.tr),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              c.deleteAddress(a.id);
-            },
-            child: Text('Delete'.tr, style: const TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+    Get.defaultDialog(
+      title: 'Delete Address'.tr,
+      middleText: 'Are you sure you want to delete this address?'.tr,
+      textCancel: 'Cancel'.tr,
+      textConfirm: 'Delete'.tr,
+      confirmTextColor: Colors.white,
+      onConfirm: () {
+        Get.back();
+        c.deleteAddress(a.id);
+      },
+      onCancel: () {},
+      buttonColor: Colors.red,
+      cancelTextColor: AppColors.primaryColor,
     );
   }
 
