@@ -107,7 +107,7 @@ class AddAddressView extends StatelessWidget {
             })),
           ]),
         ),
-      )))),
+      ))),
     ).whenComplete(() => isProcessing.value = false);
 
     Future.microtask(() async { await ensureLoad(); if (searchC.text.isEmpty) filtered.assignAll(itemsRx); else filtered.assignAll(onSearch(searchC.text, itemsRx)); });
