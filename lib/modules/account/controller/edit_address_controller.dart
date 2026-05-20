@@ -164,7 +164,7 @@ class EditAddressController extends GetxController {
       isSubmitting.value = true;
       final res = await addressRepo.updateCustomerAddress(id: initial.id, name: nameC.text.trim(), phoneCode: phoneCode, phone: phoneC.text.trim(), postalCode: postalC.text.trim(), address: addressC.text.trim(), status: status.value, defaultShipping: defaultShipping.value, defaultBilling: defaultBilling.value, countryId: countryId, stateId: stateId, cityId: cityId);
       if ((res['success'] == true) || (res['success']?.toString() == 'true')) {
-        _showSnack('Address updated successfully'.tr, color: Colors.green);
+        _showSnack('Address updated successfully'.tr);
         await Future.delayed(const Duration(milliseconds: 500));
         safeBack(result: true);
       } else { _showSnack('Could not update address'.tr, color: Colors.red); }
