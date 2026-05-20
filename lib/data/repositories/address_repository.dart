@@ -98,11 +98,10 @@ class AddressRepository {
     return res;
   }
 
+  // FIXED: Changed from POST to GET
   Future<void> deleteCustomerAddress(int addressId) async {
-    await _api.postJson(
-      AppConfig.deleteCustomerAddressUrl(),
-      body: {'id': addressId},
+    await _api.getJson(
+      '${AppConfig.deleteCustomerAddressUrl()}?id=$addressId',
     );
   }
 }
-
