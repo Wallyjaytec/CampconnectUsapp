@@ -189,7 +189,8 @@ class _OfflineTab extends StatelessWidget {
       Obx(() {
         final raw = ctrl.rechargeAmount.value.trim(); final parsed = double.tryParse(raw); final hasValidNumber = parsed != null;
         final hasTxn = ctrl.transactionId.value.trim().isNotEmpty; final hasMethod = ctrl.selectedOfflineMethodId.value > 0;
-        final canSubmit = hasValidNumber && hasTxn && hasMethod && !ctrl.isSubmitting.value;
+        final hasFile = ctrl.transactionProof.value != null;
+        final canSubmit = hasValidNumber && hasTxn && hasMethod && hasFile && !ctrl.isSubmitting.value;
         return SizedBox(width: double.infinity, height: 48, child: ElevatedButton.icon(onPressed: canSubmit ? () async { final ok = await ctrl.submitOffline(); if (ok) { ctrl.setAmount(''); ctrl.setTxnId(''); ctrl.setProof(null); } } : null, icon: ctrl.isSubmitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const SizedBox(), label: Text('Submit'.tr)));
       }),
     ]);
@@ -242,7 +243,12 @@ class _OfflineMethodDetails extends StatelessWidget {
       final hasAccName = (m.accountName ?? '').trim().isNotEmpty;
       final hasAccNo = (m.accountNumber ?? '').trim().isNotEmpty;
       final hasRouting = (m.routingNumber ?? '').trim().isNotEmpty;
-      final any = hasInstruction || hasBankName || hasAccName || hasAccNo || hasRouting;
+      final hasSwift = (m.swiftCode ?? '').trim().isNotEmpty;
+      final hasBankAddr = (m.bankAddress ?? '').trim().isNotEmpty;
+      final hasPhone = (m.phoneNumber ?? '').trim().isNotEmpty;
+      final hasEmail = (m.email ?? '').trim().isNotEmpty;
+      final hasSort = (m.sortCode ?? '').trim().isNotEmpty;
+      final any = hasInstruction || hasBankName || hasAccName || hasAccNo || hasRouting || hasSwift || hasBankAddr || hasPhone || hasEmail || hasSort;
       if (!any) return const SizedBox.shrink();
 
       return Container(
@@ -259,8 +265,7 @@ class _OfflineMethodDetails extends StatelessWidget {
             Container(
               constraints: const BoxConstraints(maxHeight: 200),
               child: Scrollbar(
-                thumbVisibility: true,
-                trackVisibility: true,
+                thumbVisibility: true, trackVisibility: true,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.only(right: 8),
                   child: HtmlWidget(
@@ -271,7 +276,7 @@ class _OfflineMethodDetails extends StatelessWidget {
               ),
             ),
           ],
-          if (hasBankName || hasAccName || hasAccNo || hasRouting) ...[
+          if (hasBankName || hasAccName || hasAccNo || hasRouting || hasSwift || hasBankAddr || hasPhone || hasEmail || hasSort) ...[
             const SizedBox(height: 10), const Divider(), const SizedBox(height: 6),
             Row(children: [
               const Icon(Iconsax.bank, size: 16, color: AppColors.primaryColor),
@@ -282,6 +287,11 @@ class _OfflineMethodDetails extends StatelessWidget {
             if (hasAccName) _KV('Account Name'.tr, m.accountName!),
             if (hasAccNo) _KV('Account Number'.tr, m.accountNumber!),
             if (hasRouting) _KV('Routing Number'.tr, m.routingNumber!),
+            if (hasSwift) _KV('SWIFT/BIC Code'.tr, m.swiftCode!),
+            if (hasBankAddr) _KV('Bank Address'.tr, m.bankAddress!),
+            if (hasPhone) _KV('Phone'.tr, m.phoneNumber!),
+            if (hasEmail) _KV('Email'.tr, m.email!),
+            if (hasSort) _KV('Sort Code'.tr, m.sortCode!),
           ],
         ]),
       );
@@ -321,7 +331,21 @@ class _LogoBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final resolved = AppConfig.assetUrl(url);
     final hasImage = resolved.isNotEmpty;
-    return Container(width: 100, height: 36, clipBehavior: Clip.antiAlias, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8)), padding: const EdgeInsets.all(10), child: hasImage ? CachedNetworkImage(imageUrl: resolved, fit: BoxFit.contain, placeholder: (_, __) => const Center(child: Icon(Iconsax.card_pos_copy, size: 18))) : const Center(child: Icon(Iconsax.card_pos_copy, size: 18)));
+    return Container(
+      width: 100, height: 36, clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8)),
+      padding: const EdgeInsets.all(10),
+      child: hasImage
+          ? CachedNetworkImage(
+              imageUrl: resolved, fit: BoxFit.contain,
+              fadeInDuration: const Duration(milliseconds: 300),
+              fadeOutDuration: const Duration(milliseconds: 300),
+              placeholderFadeInDuration: const Duration(milliseconds: 0),
+              placeholder: (_, __) => const SizedBox.shrink(),
+              errorWidget: (_, __, ___) => const Center(child: Icon(Iconsax.card_pos_copy, size: 18)),
+            )
+          : const Center(child: Icon(Iconsax.card_pos_copy, size: 18)),
+    );
   }
 }
 
