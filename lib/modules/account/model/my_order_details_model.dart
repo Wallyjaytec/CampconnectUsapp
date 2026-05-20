@@ -109,6 +109,7 @@ class OrderProductItem {
   final List<TrackingItem> trackingList;
   final ShopInfo shop;
   final dynamic attachment;
+  final String? trackingId;
 
   OrderProductItem({
     required this.id,
@@ -129,6 +130,7 @@ class OrderProductItem {
     required this.trackingList,
     required this.shop,
     this.attachment,
+    this.trackingId,
   });
 
   static double _numToDouble(dynamic v) {
@@ -181,6 +183,7 @@ class OrderProductItem {
           .toList(),
       shop: ShopInfo.fromJson(j['shop'] as Map<String, dynamic>?),
       attachment: attachmentRaw,
+      trackingId: j['tracking_id']?.toString(),
     );
   }
 
