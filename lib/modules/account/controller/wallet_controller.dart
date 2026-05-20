@@ -50,6 +50,9 @@ class WalletController extends GetxController {
   }
 
   void setFilterType(String type) {
+    filterMethod.value = 'all';
+    dateFrom.value = '';
+    dateTo.value = '';
     if (filterType.value == type) {
       filterType.value = 'all';
     } else {
@@ -59,6 +62,9 @@ class WalletController extends GetxController {
   }
 
   void setFilterMethod(String method) {
+    filterType.value = 'all';
+    dateFrom.value = '';
+    dateTo.value = '';
     if (filterMethod.value == method) {
       filterMethod.value = 'all';
     } else {
@@ -68,6 +74,8 @@ class WalletController extends GetxController {
   }
 
   void setDateRange(String from, String to) {
+    filterType.value = 'all';
+    filterMethod.value = 'all';
     if (dateFrom.value == from && dateTo.value == to) {
       dateFrom.value = '';
       dateTo.value = '';
