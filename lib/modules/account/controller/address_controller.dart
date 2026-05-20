@@ -151,7 +151,7 @@ class AddressController extends GetxController {
       isSubmitting.value = true;
       final res = await _addressRepo.addCustomerAddress(name: nameC.text.trim(), phoneCode: phoneCode, phone: phoneC.text.trim(), postalCode: postalC.text.trim(), address: addressC.text.trim(), countryId: countryId, stateId: stateId, cityId: cityId);
       if ((res['success'] == true) || (res['success']?.toString() == 'true')) {
-        _showSnack('Address saved successfully'.tr, color: Colors.green);
+        _showSnack('Address saved successfully'.tr);
         await Future.delayed(const Duration(milliseconds: 500));
         safeBack(result: true);
       } else { _showSnack('Failed to save address'.tr, color: Colors.red); }
