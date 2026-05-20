@@ -13,13 +13,6 @@ class ThemeSwitch extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final platformBrightness = MediaQuery.of(context).platformBrightness;
 
-    // Auto-reset to system when phone brightness changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (controller.themeMode.value != ThemeMode.system) {
-        controller.setMode(ThemeMode.system);
-      }
-    });
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
@@ -52,7 +45,11 @@ class ThemeSwitch extends StatelessWidget {
                       if (v) {
                         controller.setMode(ThemeMode.system);
                       } else {
-                        controller.setMode(ThemeMode.light);
+                        controller.setMode(
+                          platformBrightness == Brightness.dark 
+                            ? ThemeMode.dark 
+                            : ThemeMode.light
+                        );
                       }
                     },
                   ),
