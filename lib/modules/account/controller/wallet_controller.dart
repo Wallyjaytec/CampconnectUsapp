@@ -23,11 +23,25 @@ class WalletController extends GetxController {
   // Filter options
   final RxString filterType = 'all'.obs; // all, credit, debit
   final RxString filterMethod = 'all'.obs; // all, online, offline
+  final RxString dateFrom = ''.obs;
+  final RxString dateTo = ''.obs;
 
   bool get hasMore {
     final m = meta.value;
     if (m == null) return false;
     return m.currentPage < m.lastPage;
+  }
+
+  String? get _entryTypeParam {
+    if (filterType.value == 'credit') return 'credit';
+    if (filterType.value == 'debit') return 'debit';
+    return null;
+  }
+
+  String? get _rechargeTypeParam {
+    if (filterMethod.value == 'online') return 'online';
+    if (filterMethod.value == 'offline') return 'offline';
+    return null;
   }
 
   @override
@@ -36,27 +50,30 @@ class WalletController extends GetxController {
     fetchInitial();
   }
 
-  List<WalletTransaction> get filteredItems {
-    var list = items.toList();
-    if (filterType.value == 'credit') {
-      list = list.where((t) => t.type.toLowerCase() == 'credited').toList();
-    } else if (filterType.value == 'debit') {
-      list = list.where((t) => t.type.toLowerCase() == 'debited').toList();
-    }
-    if (filterMethod.value == 'online') {
-      list = list.where((t) => t.paymentMethod.toLowerCase() == 'online').toList();
-    } else if (filterMethod.value == 'offline') {
-      list = list.where((t) => t.paymentMethod.toLowerCase() == 'offline').toList();
-    }
-    return list;
-  }
-
   void setFilterType(String type) {
     filterType.value = type;
+    filterMethod.value = 'all';
+    refreshList();
   }
 
   void setFilterMethod(String method) {
     filterMethod.value = method;
+    filterType.value = 'all';
+    refreshList();
+  }
+
+  void setDateRange(String from, String to) {
+    dateFrom.value = from;
+    dateTo.value = to;
+    refreshList();
+  }
+
+  void clearFilters() {
+    filterType.value = 'all';
+    filterMethod.value = 'all';
+    dateFrom.value = '';
+    dateTo.value = '';
+    refreshList();
   }
 
   Future<void> fetchInitial() async {
@@ -69,7 +86,14 @@ class WalletController extends GetxController {
 
     try {
       final results = await Future.wait([
-        repo.fetchTransactions(page: page.value, perPage: perPage),
+        repo.fetchTransactions(
+          page: page.value,
+          perPage: perPage,
+          entryType: _entryTypeParam,
+          rechargeType: _rechargeTypeParam,
+          dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
+          dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
+        ),
         repo.fetchWalletSummary(),
       ]);
       final txResp = results[0] as WalletTransactionPage;
@@ -90,9 +114,17 @@ class WalletController extends GetxController {
     isRefreshing.value = true;
     error.value = '';
     page.value = 1;
+
     try {
       final results = await Future.wait([
-        repo.fetchTransactions(page: page.value, perPage: perPage),
+        repo.fetchTransactions(
+          page: page.value,
+          perPage: perPage,
+          entryType: _entryTypeParam,
+          rechargeType: _rechargeTypeParam,
+          dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
+          dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
+        ),
         repo.fetchWalletSummary(),
       ]);
       final txResp = results[0] as WalletTransactionPage;
@@ -113,7 +145,14 @@ class WalletController extends GetxController {
     error.value = '';
     try {
       page.value = page.value + 1;
-      final resp = await repo.fetchTransactions(page: page.value, perPage: perPage);
+      final resp = await repo.fetchTransactions(
+        page: page.value,
+        perPage: perPage,
+        entryType: _entryTypeParam,
+        rechargeType: _rechargeTypeParam,
+        dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
+        dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
+      );
       meta.value = resp.meta;
       items.addAll(resp.data);
     } catch (e) {
