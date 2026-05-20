@@ -81,14 +81,38 @@ class EditAddressView extends StatelessWidget {
   Widget _radioPair() => Row(children: [SizedBox(width: 100, child: _radioTile(label: 'Active'.tr, value: 1)), SizedBox(width: 200, child: _radioTile(label: 'Inactive'.tr, value: 2))]);
   Widget _radioTile({required String label, required int value}) => RadioListTile<int>(value: value, title: Text(label), dense: true, radioScaleFactor: 0.8, contentPadding: EdgeInsets.zero, controlAffinity: ListTileControlAffinity.leading, visualDensity: const VisualDensity(horizontal: -4, vertical: -4));
 
-  void _openCountrySheet(BuildContext context, EditAddressController c) { _openSelectSheet<CountryModel>(title: 'Select Country'.tr, itemsRx: c.countries, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectCountry(x), isLoadingRx: c.isCountriesLoading, ensureLoad: () async { if (c.countries.isNotEmpty) return; c.isCountriesLoading.value = true; final list = await c.addressRepo.getCountries(); c.countries.assignAll(list); c.isCountriesLoading.value = false; }, onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); }); }
-  void _openStateSheet(BuildContext context, EditAddressController c) { _openSelectSheet<StateModel>(title: 'Select State'.tr, itemsRx: c.states, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectState(x), isLoadingRx: c.isStatesLoading, ensureLoad: () async { if (c.selectedCountry.value == null) return; if (c.states.isNotEmpty) return; c.isStatesLoading.value = true; final list = await c.addressRepo.getStates(countryId: c.selectedCountry.value!.id); c.states.assignAll(list); c.isStatesLoading.value = false; }, onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); }); }
-  void _openCitySheet(BuildContext context, EditAddressController c) { _openSelectSheet<CityModel>(title: 'Select City'.tr, itemsRx: c.cities, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectCity(x), isLoadingRx: c.isCitiesLoading, ensureLoad: () async { if (c.selectedState.value == null) return; if (c.cities.isNotEmpty) return; c.isCitiesLoading.value = true; final list = await c.addressRepo.getCities(stateId: c.selectedState.value!.id); c.cities.assignAll(list); c.isCitiesLoading.value = false; }, onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); }); }
+  void _openCountrySheet(BuildContext context, EditAddressController c) { 
+    _openSelectSheet<CountryModel>(
+      title: 'Select Country'.tr, itemsRx: c.countries, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectCountry(x), isLoadingRx: c.isCountriesLoading, 
+      ensureLoad: () async { if (c.countries.isNotEmpty) return; c.isCountriesLoading.value = true; final list = await c.addressRepo.getCountries(); c.countries.assignAll(list); c.isCountriesLoading.value = false; }, 
+      onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); },
+      emptyMessage: 'No country found for your query'.tr,
+    ); 
+  }
+  
+  void _openStateSheet(BuildContext context, EditAddressController c) { 
+    _openSelectSheet<StateModel>(
+      title: 'Select State'.tr, itemsRx: c.states, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectState(x), isLoadingRx: c.isStatesLoading, 
+      ensureLoad: () async { if (c.selectedCountry.value == null) return; if (c.states.isNotEmpty) return; c.isStatesLoading.value = true; final list = await c.addressRepo.getStates(countryId: c.selectedCountry.value!.id); c.states.assignAll(list); c.isStatesLoading.value = false; }, 
+      onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); },
+      emptyMessage: 'No state found for your query'.tr,
+    ); 
+  }
+  
+  void _openCitySheet(BuildContext context, EditAddressController c) { 
+    _openSelectSheet<CityModel>(
+      title: 'Select City'.tr, itemsRx: c.cities, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectCity(x), isLoadingRx: c.isCitiesLoading, 
+      ensureLoad: () async { if (c.selectedState.value == null) return; if (c.cities.isNotEmpty) return; c.isCitiesLoading.value = true; final list = await c.addressRepo.getCities(stateId: c.selectedState.value!.id); c.cities.assignAll(list); c.isCitiesLoading.value = false; }, 
+      onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); },
+      emptyMessage: 'No city found for your query'.tr,
+    ); 
+  }
 
   void _openSelectSheet<T>({
     required String title, required RxList<T> itemsRx, required String Function(T) itemLabel,
     required void Function(T) onSelected, required RxBool isLoadingRx,
     required Future<void> Function() ensureLoad, required List<T> Function(String query, List<T> current) onSearch,
+    required String emptyMessage,
   }) {
     final searchC = TextEditingController();
     final filtered = RxList<T>([]);
@@ -107,7 +131,16 @@ class EditAddressView extends StatelessWidget {
           Expanded(child: Obx(() {
             if (filtered.isEmpty && searchC.text.isEmpty) filtered.assignAll(itemsRx);
             if (isLoadingRx.value) return const Center(child: CircularProgressIndicator());
-            if (filtered.isEmpty) return Center(child: Text('No data found'.tr));
+            if (filtered.isEmpty) return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Iconsax.location_cross_copy, size: 48, color: AppColors.greyColor),
+                  const SizedBox(height: 12),
+                  Text(emptyMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.greyColor, fontSize: 14)),
+                ],
+              ),
+            );
             return ListView.separated(itemCount: filtered.length, separatorBuilder: (_, __) => const Divider(height: 1), itemBuilder: (_, i) { final item = filtered[i]; return ListTile(dense: true, title: Text(itemLabel(item)), onTap: () { onSelected(item); Get.back(); }); });
           })),
         ]),
