@@ -25,15 +25,16 @@ class WalletRepository {
       'page': page,
       'perPage': perPage,
     };
-    if (entryType != null && entryType.isNotEmpty) body['entry_type'] = entryType;
-    if (rechargeType != null && rechargeType.isNotEmpty) body['recharge_type'] = rechargeType;
-    if (dateFrom != null && dateFrom.isNotEmpty) body['date_from'] = dateFrom;
-    if (dateTo != null && dateTo.isNotEmpty) body['date_to'] = dateTo;
+    
+    var url = AppConfig.customerWalletTransactionUrl();
+    final params = <String>[];
+    if (entryType != null && entryType.isNotEmpty) params.add('entry_type=$entryType');
+    if (rechargeType != null && rechargeType.isNotEmpty) params.add('recharge_type=$rechargeType');
+    if (dateFrom != null && dateFrom.isNotEmpty) params.add('date_from=$dateFrom');
+    if (dateTo != null && dateTo.isNotEmpty) params.add('date_to=$dateTo');
+    if (params.isNotEmpty) url = '$url?${params.join('&')}';
 
-    final res = await _api.postJson(
-      AppConfig.customerWalletTransactionUrl(),
-      body: body,
-    );
+    final res = await _api.postJson(url, body: body);
     return WalletTransactionPage.fromJson(res);
   }
 
