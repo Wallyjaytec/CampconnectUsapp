@@ -88,23 +88,26 @@ class AddAddressView extends StatelessWidget {
     showModalBottomSheet(
       context: Get.context!, isScrollControlled: true, backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (sheetContext) => Obx(() => AbsorbPointer(absorbing: isProcessing.value, child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        decoration: BoxDecoration(color: isDark ? AppColors.darkBackgroundColor : AppColors.lightBackgroundColor, borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
-        height: Get.height * 0.7,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600))), GestureDetector(onTap: () => Navigator.of(sheetContext).pop(), child: const Icon(Iconsax.close_circle_copy, size: 18))]),
-          const SizedBox(height: 8),
-          Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 3))]), child: CustomTextField(controller: searchC, onChanged: (q) { filtered.assignAll(onSearch(q, itemsRx)); }, hint: 'Search'.tr, icon: Iconsax.search_normal_1_copy)),
-          const SizedBox(height: 8),
-          Expanded(child: Obx(() {
-            if (filtered.isEmpty && searchC.text.isEmpty) filtered.assignAll(itemsRx);
-            if (isLoadingRx.value) return const Center(child: CircularProgressIndicator());
-            if (filtered.isEmpty) return Center(child: Text('No data found'.tr));
-            return ListView.separated(itemCount: filtered.length, separatorBuilder: (_, __) => const Divider(height: 1), itemBuilder: (ctx, i) { final item = filtered[i]; return ListTile(dense: true, title: Text(itemLabel(item)), onTap: () async { if (isProcessing.value) return; isProcessing.value = true; await onSelected(item); if (sheetContext.mounted) Navigator.of(sheetContext).pop(); }); });
-          })),
-        ]),
-      ))),
+      builder: (sheetContext) => Obx(() => AbsorbPointer(absorbing: isProcessing.value, child: SafeArea(
+        top: true,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          decoration: BoxDecoration(color: isDark ? AppColors.darkBackgroundColor : AppColors.lightBackgroundColor, borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+          height: Get.height * 0.7,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600))), GestureDetector(onTap: () => Navigator.of(sheetContext).pop(), child: const Icon(Iconsax.close_circle_copy, size: 18))]),
+            const SizedBox(height: 8),
+            Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 3))]), child: CustomTextField(controller: searchC, onChanged: (q) { filtered.assignAll(onSearch(q, itemsRx)); }, hint: 'Search'.tr, icon: Iconsax.search_normal_1_copy)),
+            const SizedBox(height: 8),
+            Expanded(child: Obx(() {
+              if (filtered.isEmpty && searchC.text.isEmpty) filtered.assignAll(itemsRx);
+              if (isLoadingRx.value) return const Center(child: CircularProgressIndicator());
+              if (filtered.isEmpty) return Center(child: Text('No data found'.tr));
+              return ListView.separated(itemCount: filtered.length, separatorBuilder: (_, __) => const Divider(height: 1), itemBuilder: (ctx, i) { final item = filtered[i]; return ListTile(dense: true, title: Text(itemLabel(item)), onTap: () async { if (isProcessing.value) return; isProcessing.value = true; await onSelected(item); if (sheetContext.mounted) Navigator.of(sheetContext).pop(); }); });
+            })),
+          ]),
+        ),
+      )))),
     ).whenComplete(() => isProcessing.value = false);
 
     Future.microtask(() async { await ensureLoad(); if (searchC.text.isEmpty) filtered.assignAll(itemsRx); else filtered.assignAll(onSearch(searchC.text, itemsRx)); });
