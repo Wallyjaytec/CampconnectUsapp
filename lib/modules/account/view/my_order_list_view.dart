@@ -84,9 +84,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
             child: TextField(
               controller: _searchCtrl,
               textInputAction: TextInputAction.search,
-              onChanged: (value) {
-                controller.searchOrders(value.trim());
-              },
               onSubmitted: (value) {
                 controller.searchOrders(value.trim());
               },
@@ -119,6 +116,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 radius: 10,
                 onTap: () {
                   final q = _searchCtrl.text.trim();
+                  FocusScope.of(context).unfocus();
                   controller.searchOrders(q);
                 },
                 child: const Icon(Iconsax.search_normal_1_copy, size: 18),
@@ -132,7 +130,6 @@ class _MyOrderListViewState extends State<MyOrderListView> {
 
   Widget _orderShimmerCard(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final base = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
     final highlight = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
 
@@ -151,53 +148,17 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Container(
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: base,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
+                Expanded(child: Container(height: 16, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4)))),
                 const SizedBox(width: 8),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: base,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
+                Container(width: 24, height: 24, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(6))),
               ],
             ),
             const SizedBox(height: 8),
-            Container(
-              width: 160,
-              height: 14,
-              decoration: BoxDecoration(
-                color: base,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
+            Container(width: 160, height: 14, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
             const SizedBox(height: 6),
-            Container(
-              width: 140,
-              height: 14,
-              decoration: BoxDecoration(
-                color: base,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
+            Container(width: 140, height: 14, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
             const SizedBox(height: 6),
-            Container(
-              width: 180,
-              height: 14,
-              decoration: BoxDecoration(
-                color: base,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
+            Container(width: 180, height: 14, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
           ],
         ),
       ),
@@ -206,14 +167,10 @@ class _MyOrderListViewState extends State<MyOrderListView> {
 
   Widget _orderTile(OrderItem o) {
     return GestureDetector(
-      onTap: () {
-        Get.toNamed(AppRoutes.myOrderDetailsView, arguments: o);
-      },
+      onTap: () => Get.toNamed(AppRoutes.myOrderDetailsView, arguments: o),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.darkCardColor
-              : AppColors.lightCardColor,
+          color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor,
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -223,45 +180,15 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    o.orderCode.isEmpty
-                        ? '${'Order ID'.tr}: ${o.id}'
-                        : '${'Order ID'.tr}: ${o.orderCode}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'Copy Order ID'.tr,
-                  icon: const Icon(Iconsax.copy_copy, size: 18),
-                  onPressed: () => _copy(o.orderCode.toString()),
-                ),
+                Expanded(child: Text(o.orderCode.isEmpty ? '${'Order ID'.tr}: ${o.id}' : '${'Order ID'.tr}: ${o.orderCode}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+                IconButton(visualDensity: VisualDensity.compact, tooltip: 'Copy Order ID'.tr, icon: const Icon(Iconsax.copy_copy, size: 18), onPressed: () => _copy(o.orderCode.toString())),
               ],
             ),
-            Text(
-              '${'Order Date'.tr}: ${o.orderDate}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13),
-            ),
+            Text('${'Order Date'.tr}: ${o.orderDate}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
             const SizedBox(height: 2),
-            Text(
-              '${'Num of Products'.tr}: ${o.totalProducts}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13),
-            ),
+            Text('${'Num of Products'.tr}: ${o.totalProducts}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
             const SizedBox(height: 2),
-            Text(
-              '${'Amount'.tr}: ${formatCurrency(o.totalPayableAmount, applyConversion: true)}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13),
-            ),
+            Text('${'Amount'.tr}: ${formatCurrency(o.totalPayableAmount, applyConversion: true)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
           ],
         ),
       ),
@@ -277,31 +204,11 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           children: [
             Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
             const SizedBox(height: 24),
-            Text(
-              'You have no orders yet!'.tr,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
+            Text('You have no orders yet!'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Text(
-              "Why not place your first order now?".tr,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
+            Text("Why not place your first order now?".tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
-              ),
-            ),
+            SizedBox(width: double.infinity, height: 44, child: ElevatedButton(onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)))),
           ],
         ),
       ),
@@ -317,31 +224,11 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           children: [
             Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
             const SizedBox(height: 24),
-            Text(
-              'No order ID found'.tr,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
+            Text('No order ID found'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Text(
-              'No order ID found for "$query"'.tr,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
+            Text('No order ID found for "$query"'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
-              ),
-            ),
+            SizedBox(width: double.infinity, height: 44, child: ElevatedButton(onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)))),
           ],
         ),
       ),
@@ -359,10 +246,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: controller.initLoad,
-              child: Text('Retry'.tr),
-            ),
+            ElevatedButton(onPressed: controller.initLoad, child: Text('Retry'.tr)),
           ],
         ),
       ),
@@ -377,21 +261,11 @@ class _MyOrderListViewState extends State<MyOrderListView> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leadingWidth: 44,
-        leading: const BackIconWidget(),
-        centerTitle: false,
-        titleSpacing: 0,
-        title: Text(
-          'My Orders'.tr,
-          style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
-        ),
+        automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(),
+        centerTitle: false, titleSpacing: 0,
+        title: Text('My Orders'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
         actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-        actions: const [
-          SearchIconWidget(),
-          CartIconWidget(),
-          NotificationIconWidget(),
-        ],
+        actions: const [SearchIconWidget(), CartIconWidget(), NotificationIconWidget()],
         elevation: 0,
       ),
       body: Obx(() {
@@ -406,71 +280,24 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           child: Builder(
             builder: (_) {
               if (isLoading && items.isEmpty) {
-                return ListView.builder(
-                  padding: EdgeInsets.zero,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: _initialShimmerCount + 1,
-                  itemBuilder: (_, index) {
-                    if (index == 0) {
-                      return _searchField();
-                    }
-                    return _orderShimmerCard(context);
-                  },
-                );
+                return ListView.builder(padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), itemCount: _initialShimmerCount + 1, itemBuilder: (_, i) => i == 0 ? _searchField() : _orderShimmerCard(context));
               }
-
-              if (err != null && items.isEmpty && query.isEmpty) {
-                return _errorView(err);
-              }
-
-              if (!isLoading && items.isEmpty && query.isEmpty) {
-                return Column(
-                  children: [
-                    _searchField(),
-                    Expanded(child: _emptyOrdersView()),
-                  ],
-                );
-              }
-
-              if (!isLoading && items.isEmpty && query.isNotEmpty) {
-                return Column(
-                  children: [
-                    _searchField(),
-                    Expanded(child: _emptySearchView(query)),
-                  ],
-                );
-              }
-
+              if (err != null && items.isEmpty && query.isEmpty) return _errorView(err);
+              if (!isLoading && items.isEmpty && query.isEmpty) return Column(children: [_searchField(), Expanded(child: _emptyOrdersView())]);
+              if (!isLoading && items.isEmpty && query.isNotEmpty) return Column(children: [_searchField(), Expanded(child: _emptySearchView(query))]);
               if (items.isNotEmpty) {
                 return ListView.builder(
-                  controller: _scroll,
-                  padding: EdgeInsets.zero,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount:
-                      items.length +
-                      1 +
-                      (isLoadingMore ? _loadMoreShimmerCount : 0),
+                  controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: items.length + 1 + (isLoadingMore ? _loadMoreShimmerCount : 0),
                   itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return _searchField();
-                    }
-
+                    if (index == 0) return _searchField();
                     final listIndex = index - 1;
-
-                    if (listIndex >= items.length) {
-                      return _orderShimmerCard(context);
-                    }
-
-                    final o = items[listIndex];
-                    return _orderTile(o);
+                    if (listIndex >= items.length) return _orderShimmerCard(context);
+                    return _orderTile(items[listIndex]);
                   },
                 );
               }
-
-              return ListView(
-                padding: EdgeInsets.zero,
-                children: [_searchField()],
-              );
+              return ListView(padding: EdgeInsets.zero, children: [_searchField()]);
             },
           ),
         );
