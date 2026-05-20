@@ -20,9 +20,8 @@ class WalletController extends GetxController {
   final RxBool isSummaryLoading = false.obs;
   final Rxn<WalletPageMeta> meta = Rxn<WalletPageMeta>();
 
-  // Filter options
-  final RxString filterType = 'all'.obs; // all, credit, debit
-  final RxString filterMethod = 'all'.obs; // all, online, offline
+  final RxString filterType = 'all'.obs;
+  final RxString filterMethod = 'all'.obs;
   final RxString dateFrom = ''.obs;
   final RxString dateTo = ''.obs;
 
@@ -51,20 +50,31 @@ class WalletController extends GetxController {
   }
 
   void setFilterType(String type) {
-    filterType.value = type;
-    filterMethod.value = 'all';
+    if (filterType.value == type) {
+      filterType.value = 'all';
+    } else {
+      filterType.value = type;
+    }
     refreshList();
   }
 
   void setFilterMethod(String method) {
-    filterMethod.value = method;
-    filterType.value = 'all';
+    if (filterMethod.value == method) {
+      filterMethod.value = 'all';
+    } else {
+      filterMethod.value = method;
+    }
     refreshList();
   }
 
   void setDateRange(String from, String to) {
-    dateFrom.value = from;
-    dateTo.value = to;
+    if (dateFrom.value == from && dateTo.value == to) {
+      dateFrom.value = '';
+      dateTo.value = '';
+    } else {
+      dateFrom.value = from;
+      dateTo.value = to;
+    }
     refreshList();
   }
 
@@ -87,10 +97,8 @@ class WalletController extends GetxController {
     try {
       final results = await Future.wait([
         repo.fetchTransactions(
-          page: page.value,
-          perPage: perPage,
-          entryType: _entryTypeParam,
-          rechargeType: _rechargeTypeParam,
+          page: page.value, perPage: perPage,
+          entryType: _entryTypeParam, rechargeType: _rechargeTypeParam,
           dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
           dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
         ),
@@ -118,10 +126,8 @@ class WalletController extends GetxController {
     try {
       final results = await Future.wait([
         repo.fetchTransactions(
-          page: page.value,
-          perPage: perPage,
-          entryType: _entryTypeParam,
-          rechargeType: _rechargeTypeParam,
+          page: page.value, perPage: perPage,
+          entryType: _entryTypeParam, rechargeType: _rechargeTypeParam,
           dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
           dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
         ),
@@ -146,10 +152,8 @@ class WalletController extends GetxController {
     try {
       page.value = page.value + 1;
       final resp = await repo.fetchTransactions(
-        page: page.value,
-        perPage: perPage,
-        entryType: _entryTypeParam,
-        rechargeType: _rechargeTypeParam,
+        page: page.value, perPage: perPage,
+        entryType: _entryTypeParam, rechargeType: _rechargeTypeParam,
         dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
         dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
       );
