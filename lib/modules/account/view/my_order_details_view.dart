@@ -1275,34 +1275,36 @@ String? _attachmentPathFromRaw(dynamic raw) {
   return null;
 }
 
-String? _attachmentLabelFromRaw(dynamic raw) {
-  if (raw == null) return null;
-  
-  if (raw is Map) {
-    String? label = raw['label']?.toString();
-    label ??= raw['file_name']?.toString();
-    label ??= raw['name']?.toString();
-    if (label != null && label.isNotEmpty) return label;
-  }
-  
-  if (raw is String) {
-    final s = raw.trim();
-    if (s.isEmpty || s == 'null') return null;
+  String? _attachmentLabelFromRaw(dynamic raw) {
+    if (raw == null) return null;
     
-    try {
-      final decoded = jsonDecode(s);
-      final fromJson = _attachmentLabelFromRaw(decoded);
-      if (fromJson != null && fromJson.isNotEmpty) return fromJson;
-    } catch (_) {}
+    if (raw is Map) {
+      String? label = raw['label']?.toString();
+      label ??= raw['file_name']?.toString();
+      label ??= raw['name']?.toString();
+      if (label != null && label.isNotEmpty) return label;
+    }
     
-    // Extract filename from path
-    final parts = s.split('/');
-    return parts.last;
+    if (raw is String) {
+      final s = raw.trim();
+      if (s.isEmpty || s == 'null') return null;
+      
+      try {
+        final decoded = jsonDecode(s);
+        final fromJson = _attachmentLabelFromRaw(decoded);
+        if (fromJson != null && fromJson.isNotEmpty) return fromJson;
+      } catch (_) {}
+      
+      // Extract filename from path
+      final parts = s.split('/');
+      return parts.last;
+    }
+    
+    return null;
   }
-  
-  return null;
 }
 
+// This class must be OUTSIDE MyOrderDetailsView
 class _TimelineItem extends StatelessWidget {
   final String date;
   final String message;
