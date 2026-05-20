@@ -72,11 +72,8 @@ class _MyWalletViewState extends State<MyWalletView> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leadingWidth: 44,
-        leading: const BackIconWidget(),
-        centerTitle: false,
-        titleSpacing: 0,
+        automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(),
+        centerTitle: false, titleSpacing: 0,
         title: Text('My Wallet'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
         actionsPadding: const EdgeInsetsDirectional.only(end: 10),
         actions: const [SearchIconWidget(), CartIconWidget(), NotificationIconWidget()],
@@ -100,36 +97,32 @@ class _MyWalletViewState extends State<MyWalletView> {
               else
                 _SummaryCard(summary: c.summary.value),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Icon(Iconsax.receipt_2_1_copy, size: 18, color: AppColors.primaryColor),
-                  const SizedBox(width: 8),
-                  Text('Recent Transactions'.tr, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                ],
-              ),
+              Row(children: [
+                const Icon(Iconsax.receipt_2_1_copy, size: 18, color: AppColors.primaryColor),
+                const SizedBox(width: 8),
+                Text('Transaction History'.tr, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+              ]),
               const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _FilterChip(label: 'All'.tr, selected: c.filterType.value == 'all' && c.filterMethod.value == 'all' && c.dateFrom.value.isEmpty, onTap: c.clearFilters),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'Credit'.tr, selected: c.filterType.value == 'credit', onTap: () => c.setFilterType('credit')),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'Debit'.tr, selected: c.filterType.value == 'debit', onTap: () => c.setFilterType('debit')),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'Online'.tr, selected: c.filterMethod.value == 'online', onTap: () => c.setFilterMethod('online')),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'Offline'.tr, selected: c.filterMethod.value == 'offline', onTap: () => c.setFilterMethod('offline')),
-                    const SizedBox(width: 8),
-                    _FilterChip(
-                      label: c.dateFrom.value.isEmpty ? 'Date'.tr : '${c.dateFrom.value} - ${c.dateTo.value}',
-                      selected: c.dateFrom.value.isNotEmpty,
-                      onTap: _pickDateRange,
-                      icon: Iconsax.calendar_1_copy,
-                    ),
-                  ],
-                ),
+                child: Row(children: [
+                  _FilterChip(label: 'All'.tr, selected: c.filterType.value == 'all' && c.filterMethod.value == 'all' && c.dateFrom.value.isEmpty, onTap: c.clearFilters),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Credit'.tr, selected: c.filterType.value == 'credit', onTap: () => c.setFilterType('credit')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Debit'.tr, selected: c.filterType.value == 'debit', onTap: () => c.setFilterType('debit')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Online'.tr, selected: c.filterMethod.value == 'online', onTap: () => c.setFilterMethod('online')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Offline'.tr, selected: c.filterMethod.value == 'offline', onTap: () => c.setFilterMethod('offline')),
+                  const SizedBox(width: 8),
+                  _FilterChip(
+                    label: c.dateFrom.value.isEmpty ? 'Date'.tr : '${c.dateFrom.value} - ${c.dateTo.value}',
+                    selected: c.dateFrom.value.isNotEmpty,
+                    onTap: _pickDateRange,
+                    icon: Iconsax.calendar_1_copy,
+                  ),
+                ]),
               ),
               const SizedBox(height: 12),
               if (c.items.isEmpty && !c.isLoading.value)
@@ -140,19 +133,13 @@ class _MyWalletViewState extends State<MyWalletView> {
                   child: _TransactionCard(tx: tx),
                 )),
               if (c.hasMore && c.items.isNotEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                ),
+                const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
             ],
           ),
         );
       }),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryColor,
-        elevation: 10,
-        shape: const CircleBorder(),
-        mini: true,
+        backgroundColor: AppColors.primaryColor, elevation: 10, shape: const CircleBorder(), mini: true,
         onPressed: () => Get.toNamed(AppRoutes.rechargeWalletView),
         child: const Icon(Iconsax.add_copy, color: AppColors.whiteColor, size: 18),
       ),
@@ -162,64 +149,40 @@ class _MyWalletViewState extends State<MyWalletView> {
 
 class _EmptyTransactionsView extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/icons/empty_transactions.png', width: 120, height: 120),
-            const SizedBox(height: 24),
-            Text('No recent transactions'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text('Make your first deposit now by clicking the plus icon at the bottom right corner'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    Image.asset('assets/icons/empty_transactions.png', width: 120, height: 120),
+    const SizedBox(height: 24),
+    Text('No recent transactions'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+    const SizedBox(height: 8),
+    Text('Make your first deposit now by clicking the plus icon at the bottom right corner'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+  ])));
 }
 
 class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  final IconData? icon;
+  final String label; final bool selected; final VoidCallback onTap; final IconData? icon;
   const _FilterChip({required this.label, required this.selected, required this.onTap, this.icon});
-
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primaryColor : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? AppColors.primaryColor : Colors.grey.shade300),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[Icon(icon, size: 14, color: selected ? Colors.white : null), const SizedBox(width: 4)],
-            Text(label, style: TextStyle(color: selected ? Colors.white : null, fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(onTap: onTap, child: Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    decoration: BoxDecoration(
+      color: selected ? AppColors.primaryColor : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: selected ? AppColors.primaryColor : Colors.grey.shade300),
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      if (icon != null) ...[Icon(icon, size: 14, color: selected ? Colors.white : null), const SizedBox(width: 4)],
+      Text(label, style: TextStyle(color: selected ? Colors.white : null, fontSize: 13, fontWeight: FontWeight.w600)),
+    ]),
+  ));
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.summary});
-  final WalletSummary? summary;
+  const _SummaryCard({required this.summary}); final WalletSummary? summary;
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? AppColors.darkCardColor : AppColors.lightCardColor;
-    final available = summary?.totalAvailable ?? 0;
-    final pending = summary?.totalPending ?? 0;
+    final available = summary?.totalAvailable ?? 0; final pending = summary?.totalPending ?? 0;
     return Row(children: [
       Expanded(child: Container(height: 98, padding: const EdgeInsets.only(left: 10, right: 10), margin: const EdgeInsets.only(bottom: 8), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)), child: _SummaryCell(title: 'Available Balance'.tr, value: formatCurrency(available, applyConversion: true), icon: Iconsax.wallet_3_copy, iconColor: AppColors.greenColor))),
       const SizedBox(width: 10),
