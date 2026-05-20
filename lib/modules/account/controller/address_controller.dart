@@ -50,6 +50,12 @@ class AddressController extends GetxController {
   late final AddressRepository _addressRepo;
   late final SiteSettingsPropertiesRepository _settingsRepo;
 
+  void _showSnack(String message, {Color color = AppColors.primaryColor}) {
+    ScaffoldMessenger.of(Get.context!).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+    );
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -89,21 +95,21 @@ class AddressController extends GetxController {
   Future<void> ensureCountriesLoaded() async { if (countries.isNotEmpty) return; await fetchCountries(); }
   Future<void> fetchCountries() async {
     try { isCountriesLoading.value = true; final list = await _addressRepo.getCountries(); countries.assignAll(list); } 
-    catch (_) { Get.snackbar('Error'.tr, 'Failed to load countries'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); } 
+    catch (_) { _showSnack('Failed to load countries'.tr); } 
     finally { isCountriesLoading.value = false; }
   }
 
   Future<void> ensureStatesLoaded() async { final co = selectedCountry.value; if (co == null) return; if (states.isNotEmpty) return; await fetchStates(co.id); }
   Future<void> fetchStates(int countryId) async {
     try { isStatesLoading.value = true; final list = await _addressRepo.getStates(countryId: countryId); states.assignAll(list); } 
-    catch (_) { Get.snackbar('Error'.tr, 'Failed to load states'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); } 
+    catch (_) { _showSnack('Failed to load states'.tr); } 
     finally { isStatesLoading.value = false; }
   }
 
   Future<void> ensureCitiesLoaded() async { final st = selectedState.value; if (st == null) return; if (cities.isNotEmpty) return; await fetchCities(st.id); }
   Future<void> fetchCities(int stateId) async {
     try { isCitiesLoading.value = true; final list = await _addressRepo.getCities(stateId: stateId); cities.assignAll(list); } 
-    catch (_) { Get.snackbar('Error'.tr, 'Failed to load cities'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); } 
+    catch (_) { _showSnack('Failed to load cities'.tr); } 
     finally { isCitiesLoading.value = false; }
   }
 
@@ -145,11 +151,11 @@ class AddressController extends GetxController {
       isSubmitting.value = true;
       final res = await _addressRepo.addCustomerAddress(name: nameC.text.trim(), phoneCode: phoneCode, phone: phoneC.text.trim(), postalCode: postalC.text.trim(), address: addressC.text.trim(), countryId: countryId, stateId: stateId, cityId: cityId);
       if ((res['success'] == true) || (res['success']?.toString() == 'true')) {
-        Get.snackbar('Success'.tr, 'Address saved successfully'.tr, backgroundColor: Colors.green, snackPosition: SnackPosition.TOP, colorText: Colors.white, duration: const Duration(seconds: 2));
+        _showSnack('Address saved successfully'.tr, color: Colors.green);
         await Future.delayed(const Duration(milliseconds: 500));
         safeBack(result: true);
-      } else { Get.snackbar('Error'.tr, 'Failed to save address'.tr, backgroundColor: Colors.red, snackPosition: SnackPosition.TOP, colorText: Colors.white); }
-    } catch (e) { Get.snackbar('Error'.tr, 'Something went wrong'.tr, backgroundColor: Colors.red, snackPosition: SnackPosition.TOP, colorText: Colors.white); } 
+      } else { _showSnack('Failed to save address'.tr, color: Colors.red); }
+    } catch (e) { _showSnack('Something went wrong'.tr, color: Colors.red); } 
     finally { isSubmitting.value = false; }
   }
 
@@ -161,13 +167,13 @@ class AddressController extends GetxController {
 
   Future<void> fetchAddresses() async {
     try { isLoading.value = true; final list = await _addressRepo.getAllCustomerAddresses(); addresses.assignAll(list); } 
-    catch (e) { Get.snackbar('Error'.tr, 'Failed to load addresses'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); } 
+    catch (e) { _showSnack('Failed to load addresses'.tr); } 
     finally { isLoading.value = false; }
   }
 
   Future<void> refreshAddresses() async {
     try { isRefreshing.value = true; final list = await _addressRepo.getAllCustomerAddresses(); addresses.assignAll(list); } 
-    catch (_) { Get.snackbar('Error'.tr, 'Refresh failed'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); } 
+    catch (_) { _showSnack('Refresh failed'.tr); } 
     finally { isRefreshing.value = false; }
   }
 
@@ -175,9 +181,7 @@ class AddressController extends GetxController {
     addresses.removeWhere((a) => a.id == addressId);
     addresses.refresh();
     _addressRepo.deleteCustomerAddress(addressId).catchError((_) {});
-    ScaffoldMessenger.of(Get.context!).showSnackBar(
-      SnackBar(content: Text('Address deleted successfully'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-    );
+    _showSnack('Address deleted successfully'.tr);
   }
 
   @override
