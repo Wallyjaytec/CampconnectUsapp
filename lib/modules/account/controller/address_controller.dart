@@ -42,7 +42,6 @@ class AddressController extends GetxController {
 
   final isSubmitting = false.obs;
 
-  // Error states for each field
   final nameError = ''.obs;
   final phoneError = ''.obs;
   final countryError = ''.obs;
@@ -332,7 +331,18 @@ class AddressController extends GetxController {
       addresses.refresh();
       Get.snackbar('Deleted'.tr, 'Address deleted successfully'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor, duration: const Duration(seconds: 2));
     } catch (e) {
-      Get.snackbar('Error'.tr, 'Failed to delete address: ${e.toString()}'.tr, backgroundColor: AppColors.redColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor, duration: const Duration(seconds: 3));
+      Get.dialog(
+        AlertDialog(
+          title: const Text('Delete Error'),
+          content: Text('Error: ${e.toString()}'),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
