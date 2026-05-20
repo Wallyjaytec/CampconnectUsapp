@@ -16,10 +16,23 @@ class WalletRepository {
   Future<WalletTransactionPage> fetchTransactions({
     required int page,
     required int perPage,
+    String? entryType,
+    String? rechargeType,
+    String? dateFrom,
+    String? dateTo,
   }) async {
+    final body = <String, dynamic>{
+      'page': page,
+      'perPage': perPage,
+    };
+    if (entryType != null && entryType.isNotEmpty) body['entry_type'] = entryType;
+    if (rechargeType != null && rechargeType.isNotEmpty) body['recharge_type'] = rechargeType;
+    if (dateFrom != null && dateFrom.isNotEmpty) body['date_from'] = dateFrom;
+    if (dateTo != null && dateTo.isNotEmpty) body['date_to'] = dateTo;
+
     final res = await _api.postJson(
       AppConfig.customerWalletTransactionUrl(),
-      body: {'page': page, 'perPage': perPage},
+      body: body,
     );
     return WalletTransactionPage.fromJson(res);
   }
@@ -53,28 +66,18 @@ class WalletRepository {
       'payment_method': paymentMethodId.toString(),
       'currency': currencyId.toString(),
     };
-
     final files = <http.MultipartFile>[];
     if (transactionImageFile != null && await transactionImageFile.exists()) {
-      final mp = await http.MultipartFile.fromPath(
-        'transaction_image',
-        transactionImageFile.path,
-      );
+      final mp = await http.MultipartFile.fromPath('transaction_image', transactionImageFile.path);
       files.add(mp);
     }
-
     try {
-      final res = await _api.postMultipart(
-        AppConfig.walletOfflineRechargeUrl(),
-        fields: fields,
-        files: files,
-      );
+      final res = await _api.postMultipart(AppConfig.walletOfflineRechargeUrl(), fields: fields, files: files);
       return res;
     } on ApiHttpException catch (e) {
       try {
         final decoded = json.decode(e.body);
-        if (decoded is Map<String, dynamic> &&
-            (decoded.containsKey('errors') || decoded.containsKey('message'))) {
+        if (decoded is Map<String, dynamic> && (decoded.containsKey('errors') || decoded.containsKey('message'))) {
           throw ApiValidationError.fromJson(decoded);
         }
       } catch (_) {}
@@ -95,33 +98,18 @@ class WalletRepository {
       'payment_method': paymentMethodId.toString(),
       'origin': 'app',
     };
-
     try {
-      final res = await _api.postMultipart(
-        AppConfig.walletOnlineRechargeLinkUrl(),
-        fields: fields,
-        files: const [],
-      );
-
-      final ok =
-          res['success'] == true ||
-          (res['success']?.toString().toLowerCase() == 'true');
+      final res = await _api.postMultipart(AppConfig.walletOnlineRechargeLinkUrl(), fields: fields, files: const []);
+      final ok = res['success'] == true || (res['success']?.toString().toLowerCase() == 'true');
       final url = res['url']?.toString();
-
       if (!ok || url == null || url.isEmpty) {
-        throw ApiHttpException(
-          method: 'POST',
-          url: AppConfig.walletOnlineRechargeLinkUrl(),
-          statusCode: 200,
-          body: 'Missing url in response',
-        );
+        throw ApiHttpException(method: 'POST', url: AppConfig.walletOnlineRechargeLinkUrl(), statusCode: 200, body: 'Missing url in response');
       }
       return url;
     } on ApiHttpException catch (e) {
       try {
         final decoded = json.decode(e.body);
-        if (decoded is Map<String, dynamic> &&
-            (decoded.containsKey('errors') || decoded.containsKey('message'))) {
+        if (decoded is Map<String, dynamic> && (decoded.containsKey('errors') || decoded.containsKey('message'))) {
           throw ApiValidationError.fromJson(decoded);
         }
       } catch (_) {}
