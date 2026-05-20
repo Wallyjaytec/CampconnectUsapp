@@ -24,6 +24,11 @@ class WalletOfflineMethod {
   final String? accountName;
   final String? accountNumber;
   final String? routingNumber;
+  final String? swiftCode;
+  final String? bankAddress;
+  final String? phoneNumber;
+  final String? email;
+  final String? sortCode;
 
   WalletOfflineMethod({
     required this.id,
@@ -35,6 +40,11 @@ class WalletOfflineMethod {
     this.accountName,
     this.accountNumber,
     this.routingNumber,
+    this.swiftCode,
+    this.bankAddress,
+    this.phoneNumber,
+    this.email,
+    this.sortCode,
   });
 
   factory WalletOfflineMethod.fromJson(Map<String, dynamic> j) {
@@ -48,6 +58,11 @@ class WalletOfflineMethod {
       accountName: j['account_name']?.toString(),
       accountNumber: j['account_number']?.toString(),
       routingNumber: j['routing_number']?.toString(),
+      swiftCode: j['swift_code']?.toString(),
+      bankAddress: j['bank_address']?.toString(),
+      phoneNumber: j['phone_number']?.toString(),
+      email: j['email']?.toString(),
+      sortCode: j['sort_code']?.toString(),
     );
   }
 }
@@ -65,12 +80,10 @@ class WalletPaymentMethods {
     final online = (j['online_methods'] as List<dynamic>? ?? [])
         .map((e) => WalletOnlineMethod.fromJson(e as Map<String, dynamic>))
         .toList();
-
     final offlineData = (j['offline_methods']?['data'] as List<dynamic>? ?? []);
     final offline = offlineData
         .map((e) => WalletOfflineMethod.fromJson(e as Map<String, dynamic>))
         .toList();
-
     return WalletPaymentMethods(onlineMethods: online, offlineMethods: offline);
   }
 }
@@ -78,28 +91,17 @@ class WalletPaymentMethods {
 class ApiValidationError {
   final String message;
   final Map<String, List<String>> fieldErrors;
-
   ApiValidationError({required this.message, required this.fieldErrors});
 
   factory ApiValidationError.fromJson(Map<String, dynamic> j) {
     final raw = j['errors'] as Map<String, dynamic>? ?? {};
     final fe = <String, List<String>>{};
     raw.forEach((k, v) {
-      if (v is List) {
-        fe[k] = v.map((e) => e.toString()).toList();
-      } else if (v != null) {
-        fe[k] = [v.toString()];
-      }
+      if (v is List) { fe[k] = v.map((e) => e.toString()).toList(); } 
+      else if (v != null) { fe[k] = [v.toString()]; }
     });
-    return ApiValidationError(
-      message: j['message']?.toString() ?? 'Validation error',
-      fieldErrors: fe,
-    );
+    return ApiValidationError(message: j['message']?.toString() ?? 'Validation error', fieldErrors: fe);
   }
 
-  String? first(String key) {
-    final list = fieldErrors[key];
-    if (list == null || list.isEmpty) return null;
-    return list.first;
-  }
+  String? first(String key) { final list = fieldErrors[key]; if (list == null || list.isEmpty) return null; return list.first; }
 }
