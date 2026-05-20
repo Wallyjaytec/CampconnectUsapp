@@ -1,349 +1,480 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
+import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../shared/widgets/back_icon_widget.dart';
 import '../../../shared/widgets/cart_icon_widget.dart';
-import '../controller/address_controller.dart';
-import '../model/address_model.dart';
+import '../../../shared/widgets/notification_icon_widget.dart';
+import '../../../shared/widgets/search_icon_widget.dart';
+import '../controller/my_order_controller.dart';
+import '../model/my_order_model.dart';
 
-class MyAddressView extends StatelessWidget {
-  const MyAddressView({super.key});
+class MyOrderListView extends StatefulWidget {
+  const MyOrderListView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final c = Get.isRegistered<AddressController>()
-        ? Get.find<AddressController>()
-        : Get.put(AddressController());
+  State<MyOrderListView> createState() => _MyOrderListViewState();
+}
 
-    Future.microtask(() => c.initLoad());
+class _MyOrderListViewState extends State<MyOrderListView> {
+  late final OrderController controller;
+  final ScrollController _scroll = ScrollController();
+  final TextEditingController _searchCtrl = TextEditingController();
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leadingWidth: 44,
-          leading: const BackIconWidget(),
-          centerTitle: false,
-          titleSpacing: 0,
-          title: Text(
-            'My Addresses'.tr,
-            style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
-          ),
-          actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-          actions: const [
-            SearchIconWidget(),
-            CartIconWidget(),
-            NotificationIconWidget(),
-          ],
-          elevation: 0,
-        ),
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(OrderController(), permanent: false);
 
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AppColors.primaryColor,
-          elevation: 10,
-          shape: const CircleBorder(),
-          mini: true,
-          onPressed: () async {
-            final changed = await Get.toNamed(AppRoutes.addAddressView);
+    _scroll.addListener(() {
+      const threshold = 200.0;
+      if (_scroll.position.pixels >=
+          _scroll.position.maxScrollExtent - threshold) {
+        controller.loadMore();
+      }
+    });
+  }
 
-            if (changed == true) {
-              await c.refreshAddresses();
-            }
-          },
-          child: const Icon(
-            Iconsax.add_copy,
-            color: AppColors.whiteColor,
-            size: 18,
-          ),
-        ),
+  @override
+  void dispose() {
+    _scroll.dispose();
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
-        body: Obx(() {
-          if (c.isLoading.value) {
-            return _ShimmerList();
-          }
-
-          if (c.addresses.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: c.refreshAddresses,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-                children: [
-                  const SizedBox(height: 40),
-                  Center(child: Text('No address found'.tr)),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: c.refreshAddresses,
-            child: ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-              itemCount: c.addresses.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final a = c.addresses[i];
-                final lineTop = a.name.isNotEmpty ? a.name : 'Unnamed';
-                final phone =
-                    (a.phoneCode.isNotEmpty ? '+${a.phoneCode} ' : '') +
-                    a.phone;
-                final locationParts = [
-                  if (a.country?.name.isNotEmpty == true) a.country!.name,
-                  if (a.state?.name.isNotEmpty == true) a.state!.name,
-                  if (a.city?.name.isNotEmpty == true) a.city!.name,
-                  if (a.postalCode.isNotEmpty) a.postalCode,
-                ].join(', ');
-
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Get.theme.brightness == Brightness.dark
-                        ? AppColors.darkCardColor
-                        : AppColors.lightCardColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.only(
-                    left: 12,
-                    right: 12,
-                    top: 12,
-                    bottom: 12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              lineTop,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () async {
-                              final changed = await Get.toNamed(
-                                AppRoutes.editAddressView,
-                                arguments: a,
-                              );
-                              if (changed == true) {
-                                await c.refreshAddresses();
-                              }
-                            },
-                            child: const Icon(Iconsax.edit_copy, size: 16),
-                          ),
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: () => _confirmDelete(c, a),
-                            child: const Icon(Iconsax.trash_copy, size: 16, color: Colors.red),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 4),
-                      if (locationParts.isNotEmpty)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.only(top: 4),
-                              child: Icon(Iconsax.location_copy, size: 14),
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                '${a.address}, $locationParts',
-                                style: const TextStyle(fontSize: 13),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      Row(
-                        children: [
-                          const Icon(Iconsax.call_copy, size: 14),
-                          const SizedBox(width: 6),
-                          Text(phone, style: const TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      _statusBlock(a),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        }),
+  Future<void> _copy(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Order ID copied'.tr),
+        backgroundColor: AppColors.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  void _confirmDelete(AddressController c, CustomerAddress a) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Delete Address'.tr),
-        content: Text('Are you sure you want to delete this address?'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'.tr),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              c.deleteAddress(a.id);
-            },
-            child: Text('Delete'.tr, style: const TextStyle(color: Colors.red)),
+  Widget _searchField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      barrierDismissible: false,
-    );
-  }
-
-  Widget _statusBlock(CustomerAddress a) {
-    final statusActive = _isActive(a.status);
-    final shipActive = a.defaultShipping == 1;
-    final billActive = a.defaultBilling == 1;
-
-    if (!statusActive) {
-      return _pillRow([_pill('Status', false, showActiveWordWhenActive: true)]);
-    }
-
-    final items = <_PillItem>[
-      _pill('Status'.tr, true, showActiveWordWhenActive: true),
-      if (shipActive)
-        _pill('Default Shipping'.tr, true, showActiveWordWhenActive: false),
-      if (billActive)
-        _pill('Default Billing'.tr, true, showActiveWordWhenActive: false),
-    ];
-
-    return _pillRow(items);
-  }
-
-  bool _isActive(String status) {
-    final s = status.trim().toLowerCase();
-    if (s == 'active' || s == '1') return true;
-    if (s == 'inactive' || s == '2') return false;
-    return false;
-  }
-
-  Widget _pillRow(List<_PillItem> items) {
-    return Wrap(
-      runSpacing: 5,
-      spacing: 5,
-      children: [
-        for (var i = 0; i < items.length; i++) ...[_miniPill(items[i])],
-      ],
-    );
-  }
-
-  Widget _miniPill(_PillItem item) {
-    final suppressValue = item.active && !item.showActiveWordWhenActive;
-
-    if (suppressValue) {
-      final color = item.active ? AppColors.primaryColor : AppColors.redColor;
-      final bg = color.withValues(alpha: 0.10);
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          item.label,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.normal,
-            color: AppColors.primaryColor,
-          ),
-        ),
-      );
-    }
-
-    final color = item.active ? Colors.green : AppColors.redColor;
-    final bg = color.withValues(alpha: 0.10);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Text(
-            item.active ? 'Active'.tr : 'Inactive'.tr,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.normal,
-              color: color,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ShimmerList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final base = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white12
-        : Colors.black12;
-    final highlight = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white24
-        : Colors.black26;
-
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-      itemCount: 6,
-      itemBuilder: (_, __) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Shimmer.fromColors(
-            baseColor: base,
-            highlightColor: highlight,
-            child: Container(
-              height: 110,
-              decoration: BoxDecoration(
-                color: base,
-                borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchCtrl,
+              textInputAction: TextInputAction.search,
+              onChanged: (value) {
+                controller.searchOrders(value.trim());
+              },
+              onSubmitted: (value) {
+                controller.searchOrders(value.trim());
+              },
+              decoration: InputDecoration(
+                hintText: 'Search by Order ID'.tr,
+                hintStyle: const TextStyle(
+                  color: AppColors.greyColor,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                isDense: true,
               ),
             ),
           ),
-        );
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_searchCtrl.text.isNotEmpty)
+                InkWell(
+                  radius: 10,
+                  onTap: () {
+                    _searchCtrl.clear();
+                    controller.searchOrders('');
+                  },
+                  child: const Icon(Iconsax.close_circle_copy, size: 18),
+                ),
+              const SizedBox(width: 10),
+              InkWell(
+                radius: 10,
+                onTap: () {
+                  final q = _searchCtrl.text.trim();
+                  controller.searchOrders(q);
+                },
+                child: const Icon(Iconsax.search_normal_1_copy, size: 18),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _orderShimmerCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final base = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final highlight = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      margin: const EdgeInsets.only(top: 10, left: 12, right: 12),
+      child: Shimmer.fromColors(
+        baseColor: base,
+        highlightColor: highlight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: base,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: base,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 160,
+              height: 14,
+              decoration: BoxDecoration(
+                color: base,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              width: 140,
+              height: 14,
+              decoration: BoxDecoration(
+                color: base,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              width: 180,
+              height: 14,
+              decoration: BoxDecoration(
+                color: base,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _orderTile(OrderItem o) {
+    return GestureDetector(
+      onTap: () {
+        Get.toNamed(AppRoutes.myOrderDetailsView, arguments: o);
       },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkCardColor
+              : AppColors.lightCardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        margin: const EdgeInsets.only(top: 10, left: 12, right: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    o.orderCode.isEmpty
+                        ? '${'Order ID'.tr}: ${o.id}'
+                        : '${'Order ID'.tr}: ${o.orderCode}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Copy Order ID'.tr,
+                  icon: const Icon(Iconsax.copy_copy, size: 18),
+                  onPressed: () => _copy(o.orderCode.toString()),
+                ),
+              ],
+            ),
+            Text(
+              '${'Order Date'.tr}: ${o.orderDate}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${'Num of Products'.tr}: ${o.totalProducts}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${'Amount'.tr}: ${formatCurrency(o.totalPayableAmount, applyConversion: true)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyOrdersView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
+            const SizedBox(height: 24),
+            Text(
+              'You have no orders yet!'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Why not place your first order now?".tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emptySearchView(String query) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
+            const SizedBox(height: 24),
+            Text(
+              'No order ID found'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No order ID found for "$query"'.tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _errorView(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: controller.initLoad,
+              child: Text('Retry'.tr),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  int get _initialShimmerCount => 6;
+  int get _loadMoreShimmerCount => 2;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leadingWidth: 44,
+        leading: const BackIconWidget(),
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Text(
+          'My Orders'.tr,
+          style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+        ),
+        actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+        actions: const [
+          SearchIconWidget(),
+          CartIconWidget(),
+          NotificationIconWidget(),
+        ],
+        elevation: 0,
+      ),
+      body: Obx(() {
+        final isLoading = controller.isLoading.value;
+        final isLoadingMore = controller.isLoadingMore.value;
+        final items = controller.orders;
+        final err = controller.error.value;
+        final query = controller.searchKey.value.trim();
+
+        return RefreshIndicator(
+          onRefresh: controller.refreshList,
+          child: Builder(
+            builder: (_) {
+              if (isLoading && items.isEmpty) {
+                return ListView.builder(
+                  padding: EdgeInsets.zero,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: _initialShimmerCount + 1,
+                  itemBuilder: (_, index) {
+                    if (index == 0) {
+                      return _searchField();
+                    }
+                    return _orderShimmerCard(context);
+                  },
+                );
+              }
+
+              if (err != null && items.isEmpty && query.isEmpty) {
+                return _errorView(err);
+              }
+
+              if (!isLoading && items.isEmpty && query.isEmpty) {
+                return Column(
+                  children: [
+                    _searchField(),
+                    Expanded(child: _emptyOrdersView()),
+                  ],
+                );
+              }
+
+              if (!isLoading && items.isEmpty && query.isNotEmpty) {
+                return Column(
+                  children: [
+                    _searchField(),
+                    Expanded(child: _emptySearchView(query)),
+                  ],
+                );
+              }
+
+              if (items.isNotEmpty) {
+                return ListView.builder(
+                  controller: _scroll,
+                  padding: EdgeInsets.zero,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount:
+                      items.length +
+                      1 +
+                      (isLoadingMore ? _loadMoreShimmerCount : 0),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _searchField();
+                    }
+
+                    final listIndex = index - 1;
+
+                    if (listIndex >= items.length) {
+                      return _orderShimmerCard(context);
+                    }
+
+                    final o = items[listIndex];
+                    return _orderTile(o);
+                  },
+                );
+              }
+
+              return ListView(
+                padding: EdgeInsets.zero,
+                children: [_searchField()],
+              );
+            },
+          ),
+        );
+      }),
     );
   }
 }
-
-class _PillItem {
-  final String label;
-  final bool active;
-  final bool showActiveWordWhenActive;
-  const _PillItem(this.label, this.active, this.showActiveWordWhenActive);
-}
-
-_PillItem _pill(
-  String label,
-  bool active, {
-  required bool showActiveWordWhenActive,
-}) => _PillItem(label, active, showActiveWordWhenActive);
