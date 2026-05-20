@@ -64,87 +64,70 @@ class _MyOrderListViewState extends State<MyOrderListView> {
   Widget _searchField() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Obx(() {
-      final query = controller.searchKey.value;
-
-      if (_searchCtrl.text != query) {
-        _searchCtrl.text = query;
-        _searchCtrl.selection = TextSelection.fromPosition(
-          TextPosition(offset: _searchCtrl.text.length),
-        );
-      }
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _searchCtrl,
-                textInputAction: TextInputAction.search,
-                onChanged: (value) {
-                  controller.searchKey.value = value;
-                  // Delay search so user can type freely
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    if (controller.searchKey.value == value) {
-                      controller.searchOrders(value.trim());
-                    }
-                  });
-                },
-                onSubmitted: (value) {
-                  controller.searchOrders(value.trim());
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search by Order ID'.tr,
-                  hintStyle: const TextStyle(
-                    color: AppColors.greyColor,
-                    fontWeight: FontWeight.normal,
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchCtrl,
+              textInputAction: TextInputAction.search,
+              onChanged: (value) {
+                controller.searchOrders(value.trim());
+              },
+              onSubmitted: (value) {
+                controller.searchOrders(value.trim());
+              },
+              decoration: InputDecoration(
+                hintText: 'Search by Order ID'.tr,
+                hintStyle: const TextStyle(
+                  color: AppColors.greyColor,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14,
                 ),
+                border: InputBorder.none,
+                isDense: true,
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (query.isNotEmpty)
-                  InkWell(
-                    radius: 10,
-                    onTap: () {
-                      _searchCtrl.clear();
-                      controller.searchOrders('');
-                    },
-                    child: const Icon(Iconsax.close_circle_copy, size: 18),
-                  ),
-                const SizedBox(width: 10),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_searchCtrl.text.isNotEmpty)
                 InkWell(
                   radius: 10,
                   onTap: () {
-                    final q = controller.searchKey.value.trim();
-                    controller.searchOrders(q);
+                    _searchCtrl.clear();
+                    controller.searchOrders('');
                   },
-                  child: const Icon(Iconsax.search_normal_1_copy, size: 18),
+                  child: const Icon(Iconsax.close_circle_copy, size: 18),
                 ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
+              const SizedBox(width: 10),
+              InkWell(
+                radius: 10,
+                onTap: () {
+                  final q = _searchCtrl.text.trim();
+                  controller.searchOrders(q);
+                },
+                child: const Icon(Iconsax.search_normal_1_copy, size: 18),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _orderShimmerCard(BuildContext context) {
