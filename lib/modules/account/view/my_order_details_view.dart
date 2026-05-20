@@ -1225,54 +1225,82 @@ class MyOrderDetailsView extends StatelessWidget {
     );
   }
 
-  void _openAttachment(BuildContext context, String path) {
-    if (path.isEmpty) return;
+void _openAttachment(BuildContext context, String path) {
+  if (path.isEmpty) return;
 
-    Get.toNamed(
-      AppRoutes.fullScreenImageView,
-      arguments: {
-        'images': [path],
-        'index': 0,
-        'id': null,
-        'heroPrefix': 'orderAttachment',
-      },
-    );
-  }
-  String? _attachmentPathFromRaw(dynamic raw) {
-    if (raw == null) return null;
+  Get.toNamed(
+    AppRoutes.fullScreenImageView,
+    arguments: {
+      'images': [path],
+      'index': 0,
+      'id': null,
+      'heroPrefix': 'orderAttachment',
+    },
+  );
+}
 
-    if (raw is Map) {
-      String? p = raw['path']?.toString();
-      p ??= raw['file_path']?.toString();
-      p ??= raw['url']?.toString();
+String? _attachmentPathFromRaw(dynamic raw) {
+  if (raw == null) return null;
 
-      if (p == null || p.isEmpty) return null;
+  if (raw is Map) {
+    String? p = raw['path']?.toString();
+    p ??= raw['file_path']?.toString();
+    p ??= raw['url']?.toString();
 
-      final s = p.trim();
-      if (s.startsWith('http://') || s.startsWith('https://')) {
-        return s;
-      }
-      return AppConfig.assetUrl(s);
+    if (p == null || p.isEmpty) return null;
+
+    final s = p.trim();
+    if (s.startsWith('http://') || s.startsWith('https://')) {
+      return s;
     }
-
-    if (raw is String) {
-      final s = raw.trim();
-      if (s.isEmpty || s == 'null') return null;
-
-      try {
-        final decoded = jsonDecode(s);
-        final fromJson = _attachmentPathFromRaw(decoded);
-        if (fromJson != null && fromJson.isNotEmpty) return fromJson;
-      } catch (_) {}
-
-      if (s.startsWith('http://') || s.startsWith('https://')) {
-        return s;
-      }
-      return AppConfig.assetUrl(s);
-    }
-
-    return null;
+    return AppConfig.assetUrl(s);
   }
+
+  if (raw is String) {
+    final s = raw.trim();
+    if (s.isEmpty || s == 'null') return null;
+
+    try {
+      final decoded = jsonDecode(s);
+      final fromJson = _attachmentPathFromRaw(decoded);
+      if (fromJson != null && fromJson.isNotEmpty) return fromJson;
+    } catch (_) {}
+
+    if (s.startsWith('http://') || s.startsWith('https://')) {
+      return s;
+    }
+    return AppConfig.assetUrl(s);
+  }
+
+  return null;
+}
+
+String? _attachmentLabelFromRaw(dynamic raw) {
+  if (raw == null) return null;
+  
+  if (raw is Map) {
+    String? label = raw['label']?.toString();
+    label ??= raw['file_name']?.toString();
+    label ??= raw['name']?.toString();
+    if (label != null && label.isNotEmpty) return label;
+  }
+  
+  if (raw is String) {
+    final s = raw.trim();
+    if (s.isEmpty || s == 'null') return null;
+    
+    try {
+      final decoded = jsonDecode(s);
+      final fromJson = _attachmentLabelFromRaw(decoded);
+      if (fromJson != null && fromJson.isNotEmpty) return fromJson;
+    } catch (_) {}
+    
+    // Extract filename from path
+    final parts = s.split('/');
+    return parts.last;
+  }
+  
+  return null;
 }
 
 class _TimelineItem extends StatelessWidget {
