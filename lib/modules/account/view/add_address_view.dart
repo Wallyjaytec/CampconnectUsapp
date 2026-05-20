@@ -163,7 +163,7 @@ class AddAddressView extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Iconsax.location_cross_copy, size: 48, color: AppColors.greyColor),
+                        const Icon(Iconsax.location_cross_copy, size: 48, color: AppColors.primaryColor),
                         const SizedBox(height: 12),
                         Text(emptyMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.greyColor, fontSize: 14)),
                       ],
