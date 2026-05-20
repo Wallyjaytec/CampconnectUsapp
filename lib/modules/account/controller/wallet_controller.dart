@@ -32,14 +32,14 @@ class WalletController extends GetxController {
   }
 
   String? get _entryTypeParam {
-    if (filterType.value == 'credit') return 'credit';
-    if (filterType.value == 'debit') return 'debit';
+    if (filterType.value == 'credit') return '1';
+    if (filterType.value == 'debit') return '2';
     return null;
   }
 
   String? get _rechargeTypeParam {
-    if (filterMethod.value == 'online') return 'online';
-    if (filterMethod.value == 'offline') return 'offline';
+    if (filterMethod.value == 'online') return '1';
+    if (filterMethod.value == 'offline') return '2';
     return null;
   }
 
