@@ -32,16 +32,17 @@ class MyOrderDetailsView extends StatelessWidget {
 
   Future<void> _copy(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
-    Get.snackbar(
-      'Copied',
-      'Order ID copied',
-      snackPosition: SnackPosition.TOP,
-      margin: const EdgeInsets.all(12),
-      duration: const Duration(seconds: 2),
-      colorText: AppColors.whiteColor,
-      backgroundColor: AppColors.primaryColor,
+    ScaffoldMessenger.of(Get.context!).showSnackBar(
+      SnackBar(
+        content: Text('Order ID copied'.tr),
+        backgroundColor: AppColors.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
     );
-  }
+}
 
   int _stepFromDeliveryCode(String code) {
     switch (code) {
