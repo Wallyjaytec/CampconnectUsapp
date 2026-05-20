@@ -32,8 +32,8 @@ class WalletController extends GetxController {
   }
 
   String? get _entryTypeParam {
-    if (filterType.value == 'credit') return '1';
-    if (filterType.value == 'debit') return '2';
+    if (filterType.value == 'credit') return '2';
+    if (filterType.value == 'debit') return '1';
     return null;
   }
 
