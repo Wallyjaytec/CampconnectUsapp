@@ -71,14 +71,50 @@ class AddAddressView extends StatelessWidget {
     return Shimmer.fromColors(baseColor: isDark ? AppColors.darkCardColor : Colors.grey[300]!, highlightColor: isDark ? Theme.of(context).dividerColor : Colors.grey[100]!, child: Container(height: 50, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12))));
   }
 
-  void _openCountrySheet(BuildContext context, AddressController c) { _openSelectSheet<CountryModel>(title: 'Select Country', itemsRx: c.countries, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectCountry(x), isLoadingRx: c.isCountriesLoading, ensureLoad: () => c.ensureCountriesLoaded(), onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); }); }
-  void _openStateSheet(BuildContext context, AddressController c) { _openSelectSheet<StateModel>(title: 'Select State'.tr, itemsRx: c.states, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectState(x), isLoadingRx: c.isStatesLoading, ensureLoad: () => c.ensureStatesLoaded(), onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); }); }
-  void _openCitySheet(BuildContext context, AddressController c) { _openSelectSheet<CityModel>(title: 'Select City'.tr, itemsRx: c.cities, itemLabel: (x) => x.name, onSelected: (x) => c.onSelectCity(x), isLoadingRx: c.isCitiesLoading, ensureLoad: () => c.ensureCitiesLoaded(), onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); }); }
+  void _openCountrySheet(BuildContext context, AddressController c) { 
+    _openSelectSheet<CountryModel>(
+      title: 'Select Country', 
+      itemsRx: c.countries, 
+      itemLabel: (x) => x.name, 
+      onSelected: (x) => c.onSelectCountry(x), 
+      isLoadingRx: c.isCountriesLoading, 
+      ensureLoad: () => c.ensureCountriesLoaded(), 
+      onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); },
+      emptyMessage: 'No country found for your query'.tr,
+    ); 
+  }
+  
+  void _openStateSheet(BuildContext context, AddressController c) { 
+    _openSelectSheet<StateModel>(
+      title: 'Select State'.tr, 
+      itemsRx: c.states, 
+      itemLabel: (x) => x.name, 
+      onSelected: (x) => c.onSelectState(x), 
+      isLoadingRx: c.isStatesLoading, 
+      ensureLoad: () => c.ensureStatesLoaded(), 
+      onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); },
+      emptyMessage: 'No state found for your query'.tr,
+    ); 
+  }
+  
+  void _openCitySheet(BuildContext context, AddressController c) { 
+    _openSelectSheet<CityModel>(
+      title: 'Select City'.tr, 
+      itemsRx: c.cities, 
+      itemLabel: (x) => x.name, 
+      onSelected: (x) => c.onSelectCity(x), 
+      isLoadingRx: c.isCitiesLoading, 
+      ensureLoad: () => c.ensureCitiesLoaded(), 
+      onSearch: (q, list) { final ql = q.toLowerCase(); return list.where((e) => e.name.toLowerCase().contains(ql)).toList(); },
+      emptyMessage: 'No city found for your query'.tr,
+    ); 
+  }
 
   void _openSelectSheet<T>({
     required String title, required RxList<T> itemsRx, required String Function(T) itemLabel,
     required Future<void> Function(T) onSelected, required RxBool isLoadingRx,
     required Future<void> Function() ensureLoad, required List<T> Function(String query, List<T> current) onSearch,
+    required String emptyMessage,
   }) {
     final searchC = TextEditingController();
     final filtered = RxList<T>([]);
@@ -123,7 +159,16 @@ class AddAddressView extends StatelessWidget {
                 child: Obx(() {
                   if (filtered.isEmpty && searchC.text.isEmpty) filtered.assignAll(itemsRx);
                   if (isLoadingRx.value) return const Center(child: CircularProgressIndicator());
-                  if (filtered.isEmpty) return Center(child: Text('No data found'.tr));
+                  if (filtered.isEmpty) return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Iconsax.location_cross_copy, size: 48, color: AppColors.greyColor),
+                        const SizedBox(height: 12),
+                        Text(emptyMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.greyColor, fontSize: 14)),
+                      ],
+                    ),
+                  );
                   return ListView.separated(
                     itemCount: filtered.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
