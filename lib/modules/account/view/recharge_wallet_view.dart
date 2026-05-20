@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -104,8 +105,15 @@ class _OnlineTab extends StatelessWidget {
           child: ListTile(
             hoverColor: AppColors.transparentColor, contentPadding: const EdgeInsets.symmetric(horizontal: 10),
             leading: _LogoBox(url: m.logo),
-            title: Text(m.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-            trailing: const Icon(Iconsax.arrow_right_3_copy, color: AppColors.greyColor, size: 18),
+            title: const SizedBox.shrink(),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(m.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                const SizedBox(width: 8),
+                const Icon(Iconsax.arrow_right_3_copy, color: AppColors.greyColor, size: 18),
+              ],
+            ),
             onTap: () => _openOnlineAmountSheet(m, currencyCode),
           ),
         );
@@ -140,7 +148,7 @@ class _OnlineAmountSheet extends StatelessWidget {
       final err = c.onlineFieldErrors['recharge_amount'];
       return Wrap(children: [
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text(method.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
+          Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('${'Pay with'.tr} ${method.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
           const SizedBox(height: 12),
           CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: c.setOnlineAmount),
           if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: const TextStyle(color: Colors.black54, fontSize: 12))],
@@ -248,10 +256,18 @@ class _OfflineMethodDetails extends StatelessWidget {
               Text('Instruction'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
             ]),
             const SizedBox(height: 6),
-            ConstrainedBox(
+            Container(
               constraints: const BoxConstraints(maxHeight: 200),
-              child: SingleChildScrollView(
-                child: Text(_cleanHtml(m.instructionHtml), style: const TextStyle(fontSize: 14, height: 1.8)),
+              child: Scrollbar(
+                thumbVisibility: true,
+                trackVisibility: true,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: HtmlWidget(
+                    (m.instructionHtml ?? '').replaceAll('&nbsp;', ' ').replaceAll('&amp;', '&'),
+                    textStyle: const TextStyle(fontSize: 14, height: 1.8),
+                  ),
+                ),
               ),
             ),
           ],
@@ -270,14 +286,6 @@ class _OfflineMethodDetails extends StatelessWidget {
         ]),
       );
     });
-  }
-
-  String _cleanHtml(String? html) {
-    final s = (html ?? '')
-        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n')
-        .replaceAll(RegExp(r'<li>', caseSensitive: false), '• ');
-    return s.replaceAll(RegExp(r'<[^>]*>'), '').trim();
   }
 }
 
