@@ -151,25 +151,28 @@ class ReturnDialog extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
               ...List.generate(files.length, (i) {
-                return Stack(clipBehavior: Clip.none, children: [
-                  ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
-                  Positioned(
-                    right: -4,
-                    top: -4,
-                    child: GestureDetector(
-                      onTap: () => rc.removeImageAt(i),
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryColor,
-                          shape: BoxShape.circle,
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
+                    Positioned(
+                      right: -6,
+                      top: -6,
+                      child: GestureDetector(
+                        onTap: () => rc.removeImageAt(i),
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, size: 14, color: Colors.white),
                         ),
-                        child: const Icon(Icons.close, size: 14, color: Colors.white),
                       ),
                     ),
-                  ),
-                ]);
+                  ],
+                );
               }),
             ]),
           ),
@@ -190,15 +193,17 @@ class ReturnDialog extends StatelessWidget {
             final ok = await rc.submit();
             if (ok) {
               Navigator.of(context).pop();
-              Get.snackbar(
-                'Success'.tr,
-                'Return product submitted'.tr,
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: AppColors.primaryColor,
-                colorText: AppColors.whiteColor,
-                margin: const EdgeInsets.all(16),
-                duration: const Duration(seconds: 2),
-              );
+              Future.delayed(const Duration(milliseconds: 150), () {
+                Get.snackbar(
+                  'Success'.tr,
+                  'Return request submitted'.tr,
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: AppColors.primaryColor,
+                  colorText: AppColors.whiteColor,
+                  margin: const EdgeInsets.all(16),
+                  duration: const Duration(seconds: 2),
+                );
+              });
               try {
                 final odc = Get.find<OrderDetailsController>();
                 await odc.refreshNow(orderId);
