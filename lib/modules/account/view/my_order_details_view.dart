@@ -286,8 +286,10 @@ class MyOrderDetailsView extends StatelessWidget {
             );
             return;
           }
-          Get.dialog(
-            ReturnDialog(
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => ReturnDialog(
               orderId: orderIdFromState,
               packageId: p.id,
               productName: p.name,
@@ -299,7 +301,6 @@ class MyOrderDetailsView extends StatelessWidget {
               unitPrice: p.unitPrice,
               quantity: p.quantity,
             ),
-            barrierDismissible: false,
           );
         },
         style: OutlinedButton.styleFrom(
@@ -313,8 +314,7 @@ class MyOrderDetailsView extends StatelessWidget {
 
     return const SizedBox.shrink();
   }
-
-  Widget _productActions(OrderProductItem p, bool delivered) {
+Widget _productActions(OrderProductItem p, bool delivered) {
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Row(
@@ -337,14 +337,15 @@ class MyOrderDetailsView extends StatelessWidget {
                   );
                   return;
                 }
-                Get.dialog(
-                  ReviewDialog(
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (ctx) => ReviewDialog(
                     orderId: orderIdFromState,
                     productId: p.productId,
                     productName: '',
                     productImage: '',
                   ),
-                  barrierDismissible: false,
                 );
               },
               style: OutlinedButton.styleFrom(
@@ -361,6 +362,7 @@ class MyOrderDetailsView extends StatelessWidget {
       ),
     );
   }
+  
 
   Widget _stepperWithShimmer(
     BuildContext context,
