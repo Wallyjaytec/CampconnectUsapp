@@ -93,15 +93,9 @@ class AddToCartSheet extends GetView<AddToCartController> {
                           height: 36,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0B1220)
-                                : Colors.white,
+                            color: isDark ? const Color(0xFF0B1220) : Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.10)
-                                  : const Color(0xFFE5E7EB),
-                            ),
+                            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.10) : const Color(0xFFE5E7EB)),
                           ),
                           child: Obx(() => Text('${c.qty.value}')),
                         ),
@@ -110,48 +104,26 @@ class AddToCartSheet extends GetView<AddToCartController> {
                       ],
                     ),
                   ),
-
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: Row(
                       children: [
-                        Text(
-                          'Total Price'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                        Text('Total Price'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
                         const Spacer(),
-                        Obx(
-                          () => Text(
-                            formatCurrency(
-                              c.totalEffective,
-                              applyConversion: true,
-                            ),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
+                        Obx(() => Text(formatCurrency(c.totalEffective, applyConversion: true), style: const TextStyle(fontSize: 18, color: AppColors.primaryColor, fontWeight: FontWeight.w800))),
                       ],
                     ),
                   ),
-
                   if ((p.attachmentTitle ?? '').isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    _AttachmentPickerSection(
-                      title: p.attachmentTitle!,
-                      controllerTag: controllerTag,
-                    ),
+                    _AttachmentPickerSection(title: p.attachmentTitle!, controllerTag: controllerTag),
                   ],
-
                   const SizedBox(height: 14),
                 ],
               ),
             ),
           ),
-
-          // BOTTOM BUTTONS: Each shows its own spinner
+          // BOTTOM BUTTONS
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: SizedBox(
@@ -162,25 +134,21 @@ class AddToCartSheet extends GetView<AddToCartController> {
                   Expanded(
                     child: SizedBox(
                       height: 44,
-                      child: Obx(() => ElevatedButton(
-                        onPressed: (c.isAddingToCart.value || c.isBuyingNow.value) ? null : c.buyNow,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.lightBlueColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      child: Obx(() {
+                        final outOfStock = c.stockToShow <= 0 && !c.isUnlimitedStock;
+                        return ElevatedButton(
+                          onPressed: (outOfStock || c.isAddingToCart.value || c.isBuyingNow.value) ? null : c.buyNow,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: outOfStock ? Colors.grey : AppColors.lightBlueColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
-                        ),
-                        child: c.isBuyingNow.value
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text('Buy Now'.tr),
-                      )),
+                          child: outOfStock
+                              ? Text('Out of Stock'.tr, style: const TextStyle(color: Colors.white))
+                              : c.isBuyingNow.value
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : Text('Buy Now'.tr),
+                        );
+                      }),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -188,33 +156,28 @@ class AddToCartSheet extends GetView<AddToCartController> {
                   Expanded(
                     child: SizedBox(
                       height: 44,
-                      child: Obx(() => ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      child: Obx(() {
+                        final outOfStock = c.stockToShow <= 0 && !c.isUnlimitedStock;
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: outOfStock ? Colors.grey : AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
-                        ),
-                        onPressed: (c.isAddingToCart.value || c.isBuyingNow.value) ? null : c.addToCartAndClose,
-                        child: c.isAddingToCart.value
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text('Add To Cart'.tr),
-                      )),
+                          onPressed: (outOfStock || c.isAddingToCart.value || c.isBuyingNow.value) ? null : c.addToCartAndClose,
+                          child: outOfStock
+                              ? Text('Out of Stock'.tr, style: const TextStyle(color: Colors.white))
+                              : c.isAddingToCart.value
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : Text('Add To Cart'.tr),
+                        );
+                      }),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
       ),
@@ -244,65 +207,29 @@ class _HeaderBlock extends StatelessWidget {
               width: 64,
               height: 64,
               fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => const SizedBox(
-                width: 64,
-                height: 64,
-                child: Icon(Iconsax.gallery_remove_copy),
-              ),
+              errorWidget: (_, __, ___) => const SizedBox(width: 64, height: 64, child: Icon(Iconsax.gallery_remove_copy)),
             );
           }),
         ),
         const SizedBox(width: 12),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      rating.toStringAsFixed(1),
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ),
-                ],
-              ),
+              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                const SizedBox(width: 4),
+                Padding(padding: const EdgeInsets.only(top: 2), child: Text(rating.toStringAsFixed(1), style: Theme.of(context).textTheme.labelMedium)),
+              ]),
               const SizedBox(height: 8),
               Obx(() {
-                final double? minPrice = (p.priceRangeMin is num)
-                    ? (p.priceRangeMin as num).toDouble()
-                    : null;
-                final double? maxPrice = (p.priceRangeMax is num)
-                    ? (p.priceRangeMax as num).toDouble()
-                    : null;
-                final double? minOld = (p.priceRangeMinOld is num)
-                    ? (p.priceRangeMinOld as num).toDouble()
-                    : null;
-                final double? maxOld = (p.priceRangeMaxOld is num)
-                    ? (p.priceRangeMaxOld as num).toDouble()
-                    : null;
-                final bool showRange =
-                    c.shouldShowRange &&
-                    minPrice != null &&
-                    maxPrice != null &&
-                    maxPrice > minPrice;
-
+                final double? minPrice = (p.priceRangeMin is num) ? (p.priceRangeMin as num).toDouble() : null;
+                final double? maxPrice = (p.priceRangeMax is num) ? (p.priceRangeMax as num).toDouble() : null;
+                final double? minOld = (p.priceRangeMinOld is num) ? (p.priceRangeMinOld as num).toDouble() : null;
+                final double? maxOld = (p.priceRangeMaxOld is num) ? (p.priceRangeMaxOld as num).toDouble() : null;
+                final bool showRange = c.shouldShowRange && minPrice != null && maxPrice != null && maxPrice > minPrice;
                 final price = c.effectivePrice;
                 final old = c.effectiveOldPrice;
 
@@ -311,50 +238,15 @@ class _HeaderBlock extends StatelessWidget {
                   children: [
                     if (showRange) ...[
                       if (minOld != null && maxOld != null)
-                        Text(
-                          '${formatCurrency(minPrice, applyConversion: true)} – ${formatCurrency(maxPrice, applyConversion: true)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryColor,
-                            height: 1.2,
-                          ),
-                        ),
-                      Text(
-                        '${formatCurrency(minOld, applyConversion: true)} – ${formatCurrency(maxOld, applyConversion: true)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF9CA3AF),
-                          decoration: TextDecoration.lineThrough,
-                          height: 1.2,
-                        ),
-                      ),
+                        Text('${formatCurrency(minPrice, applyConversion: true)} – ${formatCurrency(maxPrice, applyConversion: true)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primaryColor, height: 1.2)),
+                      Text('${formatCurrency(minOld, applyConversion: true)} – ${formatCurrency(maxOld, applyConversion: true)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF9CA3AF), decoration: TextDecoration.lineThrough, height: 1.2)),
                       const SizedBox(height: 4),
                     ],
-                    Row(
-                      children: [
-                        Text(
-                          formatCurrency(price, applyConversion: true),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        if (old != null)
-                          Text(
-                            formatCurrency(old, applyConversion: true),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF9CA3AF),
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                      ],
-                    ),
+                    Row(children: [
+                      Text(formatCurrency(price, applyConversion: true), style: const TextStyle(fontSize: 18, color: AppColors.primaryColor, fontWeight: FontWeight.w800)),
+                      const SizedBox(width: 6),
+                      if (old != null) Text(formatCurrency(old, applyConversion: true), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF9CA3AF), decoration: TextDecoration.lineThrough)),
+                    ]),
                   ],
                 );
               }),
@@ -375,19 +267,11 @@ class _QtyBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
-      width: 36,
-      height: 36,
+      width: 36, height: 36,
       child: Material(
         color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: AppColors.primaryColor),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: onTap,
-          child: Icon(icon, size: 18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppColors.primaryColor)),
+        child: InkWell(borderRadius: BorderRadius.circular(8), onTap: onTap, child: Icon(icon, size: 18)),
       ),
     );
   }
@@ -405,118 +289,55 @@ class _VariationGroupView extends GetView<AddToCartController> {
   Widget build(BuildContext context) {
     final title = group.name;
     final opts = group.options;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-            if (group.required)
-              const Text(' *', style: TextStyle(color: Colors.red)),
-          ],
-        ),
+        Row(children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w700)), if (group.required) const Text(' *', style: TextStyle(color: Colors.red))]),
         const SizedBox(height: 8),
-        Obx(
-          () => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: opts.map((o) {
-              final selected = controller.isSelected(group.name, o.id);
-              return _RoundChoice(
-                label: o.label,
-                imageUrl: o.imageUrl,
-                hex: o.hex,
-                selected: selected,
-                onTap: () => controller.selectVariation(group.name, o.id),
-              );
-            }).toList(),
-          ),
-        ),
+        Obx(() => Wrap(
+          spacing: 8, runSpacing: 8,
+          children: opts.map((o) {
+            final selected = controller.isSelected(group.name, o.id);
+            return _RoundChoice(label: o.label, imageUrl: o.imageUrl, hex: o.hex, selected: selected, onTap: () => controller.selectVariation(group.name, o.id));
+          }).toList(),
+        )),
       ],
     );
   }
 }
 
 class _RoundChoice extends StatelessWidget {
-  const _RoundChoice({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.imageUrl,
-    this.hex,
-  });
-
+  const _RoundChoice({required this.label, required this.selected, required this.onTap, this.imageUrl, this.hex});
   final String label;
   final bool selected;
   final VoidCallback onTap;
   final String? imageUrl;
   final String? hex;
 
-  static const double _rectChipWidth = 70;
-  static const double _rectChipHeight = 36;
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasImg = (imageUrl ?? '').trim().isNotEmpty;
-    final validHex =
-        hex != null &&
-        RegExp(r'^[#]?[0-9a-fA-F]{6}$').hasMatch(hex!.replaceAll('#', ''));
-
+    final validHex = hex != null && RegExp(r'^[#]?[0-9a-fA-F]{6}$').hasMatch(hex!.replaceAll('#', ''));
     final onlyLabel = !hasImg && !validHex;
 
     if (onlyLabel) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: selected
-            ? AppColors.primaryColor.withValues(alpha: 0.08)
-            : isDark
-            ? AppColors.darkBackgroundColor
-            : AppColors.primaryColor.withValues(alpha: 0.04),
-        border: Border.all(
-          color: selected
-              ? AppColors.primaryColor
-              : const Color(0xFFD1D5DB),
-          width: selected ? 2 : 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: selected
-                  ? AppColors.primaryColor
-                  : isDark
-                  ? AppColors.whiteColor
-                  : AppColors.blackColor,
-            ),
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: selected ? AppColors.primaryColor.withValues(alpha: 0.08) : isDark ? AppColors.darkBackgroundColor : AppColors.primaryColor.withValues(alpha: 0.04),
+            border: Border.all(color: selected ? AppColors.primaryColor : const Color(0xFFD1D5DB), width: selected ? 2 : 1),
           ),
-          if (selected) ...[
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.check,
-              size: 14,
-              color: AppColors.primaryColor,
-            ),
-          ],
-        ],
-      ),
-    ),
-  );
+          child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? AppColors.primaryColor : isDark ? AppColors.whiteColor : AppColors.blackColor)),
+            if (selected) ...[const SizedBox(width: 4), const Icon(Icons.check, size: 14, color: AppColors.primaryColor)],
+          ]),
+        ),
+      );
     }
     return GestureDetector(
       onTap: onTap,
@@ -524,56 +345,25 @@ class _RoundChoice extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 36, height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              image: hasImg
-                  ? DecorationImage(
-                      image: CachedNetworkImageProvider(
-                        AppConfig.assetUrl(imageUrl!),
-                      ),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-              color: hasImg
-                  ? null
-                  : (validHex ? _hexToColor(hex!) : const Color(0xFFE5E7EB)),
-              border: Border.all(
-                color: selected
-                    ? AppColors.primaryColor
-                    : const Color(0xFFD1D5DB),
-                width: selected ? 2 : 1,
-              ),
+              image: hasImg ? DecorationImage(image: CachedNetworkImageProvider(AppConfig.assetUrl(imageUrl!)), fit: BoxFit.cover) : null,
+              color: hasImg ? null : (validHex ? _hexToColor(hex!) : const Color(0xFFE5E7EB)),
+              border: Border.all(color: selected ? AppColors.primaryColor : const Color(0xFFD1D5DB), width: selected ? 2 : 1),
             ),
           ),
-          if (selected)
-            const Positioned(
-              right: -2,
-              bottom: -2,
-              child: Icon(
-                Icons.check_circle,
-                size: 16,
-                color: AppColors.primaryColor,
-              ),
-            ),
+          if (selected) const Positioned(right: -2, bottom: -2, child: Icon(Icons.check_circle, size: 16, color: AppColors.primaryColor)),
         ],
       ),
     );
   }
 
-  Color _hexToColor(String v) {
-    final s = v.replaceAll('#', '');
-    return Color(int.parse('FF$s', radix: 16));
-  }
+  Color _hexToColor(String v) { final s = v.replaceAll('#', ''); return Color(int.parse('FF$s', radix: 16)); }
 }
 
 class _AttachmentPickerSection extends GetView<AddToCartController> {
-  const _AttachmentPickerSection({
-    required this.title,
-    required this.controllerTag,
-  });
-
+  const _AttachmentPickerSection({required this.title, required this.controllerTag});
   final String title;
   final String controllerTag;
 
@@ -583,7 +373,6 @@ class _AttachmentPickerSection extends GetView<AddToCartController> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -594,38 +383,14 @@ class _AttachmentPickerSection extends GetView<AddToCartController> {
           final uploading = c.isUploadingAttachment.value;
           final hasFile = c.attachmentFileId.value != null;
           final fileName = c.attachmentFileName.value;
-
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.darkCardColor
-                  : AppColors.lightCardColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    uploading
-                        ? 'Uploading'.tr
-                        : (hasFile ? fileName : 'No file chosen'.tr),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: uploading
-                      ? null
-                      : () => c.pickAndUploadAttachment(),
-                  child: Text(
-                    hasFile ? 'Change'.tr : 'Choose file'.tr,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(8)),
+            child: Row(children: [
+              Expanded(child: Text(uploading ? 'Uploading'.tr : (hasFile ? fileName : 'No file chosen'.tr), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              const SizedBox(width: 8),
+              ElevatedButton(onPressed: uploading ? null : () => c.pickAndUploadAttachment(), child: Text(hasFile ? 'Change'.tr : 'Choose file'.tr, style: const TextStyle(fontSize: 13))),
+            ]),
           );
         }),
       ],
