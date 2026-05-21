@@ -23,6 +23,7 @@ import '../../../core/utils/currency_formatters.dart';
 import '../../../data/repositories/wallet_repository.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../../auth/widget/custom_text_field.dart';
+import '../controller/wallet_controller.dart';
 import '../controller/wallet_recharge_controller.dart';
 import '../model/wallet_payment_methods_model.dart';
 
@@ -160,7 +161,13 @@ class _OnlineAmountSheet extends StatelessWidget {
               final login = LoginService(); final headers = <String, String>{}; final token = login.token;
               if (token != null && token.isNotEmpty) headers['Authorization'] = '${login.tokenType} $token';
               final result = await Get.to<bool>(() => WebPayView(initialUrl: url, headers: headers));
-              if (result == true) { if (Get.isBottomSheetOpen == true) safeBack(); }
+              if (result == true) {
+                if (Get.isBottomSheetOpen == true) safeBack();
+                Get.back(); // close recharge page
+                if (Get.isRegistered<WalletController>()) {
+                  Get.find<WalletController>().refreshList();
+                }
+              }
             },
             icon: c.isGeneratingLink.value ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Iconsax.send_2_copy),
             label: Text('Generate and Pay'.tr),
