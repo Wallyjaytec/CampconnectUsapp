@@ -847,7 +847,7 @@ Map<String, dynamic>? orderAttachment;
     return 0;
   }
 
-  bool get isUnlimitedStock => _serverStock.value < 0 || stock < 0;
+  bool get isUnlimitedStock => false;
 
   void _setImageIfNonEmpty(String? url) {
     final u = (url ?? '').trim();
