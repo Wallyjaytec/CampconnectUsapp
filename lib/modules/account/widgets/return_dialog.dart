@@ -149,6 +149,7 @@ class ReturnDialog extends StatelessWidget {
           const SizedBox(height: 10),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(top: 6),
             child: Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
               ...List.generate(files.length, (i) {
                 return Stack(
@@ -193,17 +194,15 @@ class ReturnDialog extends StatelessWidget {
             final ok = await rc.submit();
             if (ok) {
               Navigator.of(context).pop();
-              Future.delayed(const Duration(milliseconds: 150), () {
-                Get.snackbar(
-                  'Success'.tr,
-                  'Return request submitted'.tr,
-                  snackPosition: SnackPosition.TOP,
-                  backgroundColor: AppColors.primaryColor,
-                  colorText: AppColors.whiteColor,
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 2),
-                );
-              });
+              Get.snackbar(
+                'Success'.tr,
+                'Return request submitted'.tr,
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: AppColors.primaryColor,
+                colorText: AppColors.whiteColor,
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 2),
+              );
               try {
                 final odc = Get.find<OrderDetailsController>();
                 await odc.refreshNow(orderId);
