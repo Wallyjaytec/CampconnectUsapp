@@ -190,20 +190,28 @@ class ReturnDialog extends StatelessWidget {
             final ok = await rc.submit();
             if (ok) {
               Navigator.of(context).pop();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (Get.context != null) {
-                  ScaffoldMessenger.of(Get.context!).showSnackBar(
-                    SnackBar(content: Text('Return product submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-                  );
-                }
-              });
+              Get.snackbar(
+                'Success'.tr,
+                'Return product submitted'.tr,
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: AppColors.primaryColor,
+                colorText: AppColors.whiteColor,
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 2),
+              );
               try {
                 final odc = Get.find<OrderDetailsController>();
                 await odc.refreshNow(orderId);
               } catch (_) {}
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+              Get.snackbar(
+                'Failed'.tr,
+                'Could not submit'.tr,
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.red,
+                colorText: AppColors.whiteColor,
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 2),
               );
             }
           },
