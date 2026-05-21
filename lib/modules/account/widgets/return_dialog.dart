@@ -153,7 +153,22 @@ class ReturnDialog extends StatelessWidget {
               ...List.generate(files.length, (i) {
                 return Stack(clipBehavior: Clip.none, children: [
                   ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
-                  Positioned(right: -8, top: -8, child: IconButton(onPressed: () => rc.removeImageAt(i), icon: const Icon(Iconsax.close_circle_copy, size: 18), padding: EdgeInsets.zero, constraints: const BoxConstraints())),
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: GestureDetector(
+                      onTap: () => rc.removeImageAt(i),
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close, size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ]);
               }),
             ]),
