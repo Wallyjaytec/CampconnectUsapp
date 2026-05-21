@@ -244,7 +244,13 @@ class MyOrderDetailsView extends StatelessWidget {
         const SizedBox(height: 10),
         _stepperWithShimmer(context, step.clamp(1, 3), firstLabel),
         const SizedBox(height: 6),
-        _trackingPanel(context: context, pkgIndex: index, tracking: p.trackingList, c: Get.find<OrderDetailsController>()),
+        _trackingPanel(
+          context: context,
+          pkgIndex: index,
+          tracking: p.trackingList,
+          c: Get.find<OrderDetailsController>(),
+          isFinalStatus: delivered || cancelled,
+        ),
         const SizedBox(height: 12),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           ClipRRect(borderRadius: BorderRadius.circular(8), child: CachedNetworkImage(imageUrl: AppConfig.assetUrl(p.image), width: 56, height: 56, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(width: 56, height: 56, color: Colors.grey.shade300, alignment: Alignment.center, child: const Icon(Iconsax.gallery_remove_copy)))),
@@ -266,7 +272,13 @@ class MyOrderDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _trackingPanel({required BuildContext context, required int pkgIndex, required List<TrackingItem> tracking, required OrderDetailsController c}) {
+  Widget _trackingPanel({
+    required BuildContext context,
+    required int pkgIndex,
+    required List<TrackingItem> tracking,
+    required OrderDetailsController c,
+    bool isFinalStatus = false,
+  }) {
     if (tracking.isEmpty) return const SizedBox.shrink();
     final sortedDesc = List<TrackingItem>.from(tracking)..sort((a, b) { final da = DateTime.tryParse(a.date); final db = DateTime.tryParse(b.date); if (da == null || db == null) return b.date.compareTo(a.date); return db.compareTo(da); });
     return Obx(() {
@@ -283,7 +295,7 @@ class MyOrderDetailsView extends StatelessWidget {
             if (canToggle) GestureDetector(onTap: () => c.toggleExpanded(pkgIndex), child: Row(mainAxisSize: MainAxisSize.min, children: [Text(expanded ? 'Show less'.tr : 'Show all'.tr, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)), const SizedBox(width: 4), Icon(expanded ? Iconsax.arrow_up_2_copy : Iconsax.arrow_down_2_copy, size: 14, color: AppColors.primaryColor)])),
           ]),
           const SizedBox(height: 10),
-          ...List.generate(itemsToShow.length, (i) { final t = itemsToShow[i]; final isLast = i == itemsToShow.length - 1; final isFirst = i == 0; return _TimelineItem(date: t.date, message: t.message, isFirst: isFirst, isLast: isLast); }),
+          ...List.generate(itemsToShow.length, (i) { final t = itemsToShow[i]; final isLast = i == itemsToShow.length - 1; final isFirst = i == 0; return _TimelineItem(date: t.date, message: t.message, isFirst: isFirst, isLast: isLast, isFinalStatus: isFinalStatus); }),
         ]),
       );
     });
@@ -328,34 +340,90 @@ class MyOrderDetailsView extends StatelessWidget {
   String? _attachmentLabelFromRaw(dynamic raw) { if (raw == null) return null; if (raw is Map) { String? label = raw['label']?.toString(); label ??= raw['file_name']?.toString(); label ??= raw['name']?.toString(); if (label != null && label.isNotEmpty) return label; } if (raw is String) { final s = raw.trim(); if (s.isEmpty || s == 'null') return null; try { final decoded = jsonDecode(s); final fromJson = _attachmentLabelFromRaw(decoded); if (fromJson != null && fromJson.isNotEmpty) return fromJson; } catch (_) {} final parts = s.split('/'); return parts.last; } return null; }
 }
 
-// ANIMATED TIMELINE ITEM
 class _TimelineItem extends StatelessWidget {
   final String date;
   final String message;
   final bool isFirst;
   final bool isLast;
-  const _TimelineItem({required this.date, required this.message, required this.isFirst, required this.isLast});
+  final bool isFinalStatus;
+  const _TimelineItem({
+    required this.date,
+    required this.message,
+    required this.isFirst,
+    required this.isLast,
+    this.isFinalStatus = false,
+  });
+
+  Color get _dotColor {
+    if (isFinalStatus) return AppColors.primaryColor;
+    if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.5);
+    return AppColors.primaryColor;
+  }
+
+  Color get _lineColor {
+    if (isFinalStatus) return AppColors.primaryColor;
+    if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.5);
+    return AppColors.primaryColor;
+  }
+
+  Color get _textColor {
+    if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.7);
+    return AppColors.primaryColor;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 24, child: Column(children: [
-        _AnimatedDot(isActive: isFirst),
-        if (!isLast) Expanded(child: Container(width: 2, color: isFirst ? AppColors.primaryColor : Colors.grey.shade300)),
-      ])),
-      const SizedBox(width: 10),
-      Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: isFirst ? AppColors.primaryColor : Colors.grey.shade700)),
-        const SizedBox(height: 4),
-        HtmlWidget(message, textStyle: const TextStyle(fontSize: 13)),
-      ]))),
-    ]));
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                const SizedBox(height: 2),
+                _AnimatedDot(isActive: isFirst, dotColor: _dotColor),
+                if (!isLast)
+                  Expanded(
+                    child: Container(width: 2, color: _lineColor),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    date,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  HtmlWidget(
+                    message,
+                    textStyle: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
 class _AnimatedDot extends StatefulWidget {
   final bool isActive;
-  const _AnimatedDot({required this.isActive});
+  final Color dotColor;
+  const _AnimatedDot({required this.isActive, required this.dotColor});
   @override
   State<_AnimatedDot> createState() => _AnimatedDotState();
 }
@@ -368,8 +436,13 @@ class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderSta
   void initState() {
     super.initState();
     if (widget.isActive) {
-      _controller = AnimationController(duration: const Duration(milliseconds: 1500), vsync: this)..repeat(reverse: true);
-      _animation = Tween<double>(begin: 1.0, end: 1.3).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+      _controller = AnimationController(
+        duration: const Duration(milliseconds: 1500),
+        vsync: this,
+      )..repeat(reverse: true);
+      _animation = Tween<double>(begin: 1.0, end: 1.3).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      );
     }
   }
 
@@ -381,7 +454,36 @@ class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderSta
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.isActive) return Container(width: 10, height: 10, decoration: BoxDecoration(color: Colors.grey.shade400, shape: BoxShape.circle, border: Border.all(color: Colors.grey.shade400, width: 2)));
-    return AnimatedBuilder(animation: _animation, builder: (context, child) => Transform.scale(scale: _animation.value, child: Container(width: 10, height: 10, decoration: BoxDecoration(color: AppColors.primaryColor, shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.primaryColor.withValues(alpha: 0.5), blurRadius: 8 * _animation.value, spreadRadius: 2 * _animation.value)]))));
+    if (!widget.isActive) {
+      return Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          color: widget.dotColor,
+          shape: BoxShape.circle,
+        ),
+      );
+    }
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) => Transform.scale(
+        scale: _animation.value,
+        child: Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: widget.dotColor,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.dotColor.withValues(alpha: 0.6),
+                blurRadius: 8 * _animation.value,
+                spreadRadius: 2 * _animation.value,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
