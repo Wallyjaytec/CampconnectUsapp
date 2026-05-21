@@ -151,11 +151,11 @@ class ReturnDialog extends StatelessWidget {
                     SnackBar(content: Text('Return request submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
                   );
                 }
+                try {
+                  final odc = Get.find<OrderDetailsController>();
+                  odc.refreshNow(orderId);
+                } catch (_) {}
               });
-              try {
-                final odc = Get.find<OrderDetailsController>();
-                await odc.refreshNow(orderId);
-              } catch (_) {}
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
