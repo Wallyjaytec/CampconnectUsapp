@@ -90,6 +90,7 @@ class _MyWalletViewState extends State<MyWalletView> {
           onRefresh: c.refreshList,
           child: ListView(
             controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
             children: [
               if (c.isSummaryLoading.value && c.summary.value == null)
