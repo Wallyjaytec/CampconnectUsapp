@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../controller/review_controller.dart';
@@ -94,7 +93,6 @@ class ReviewDialog extends StatelessWidget {
                 }),
               ],
             ),
-
             Row(
               spacing: 10,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -159,7 +157,7 @@ class ReviewDialog extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => safeBack(),
+                      onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Iconsax.close_circle_copy),
                     ),
                   ],
@@ -199,7 +197,7 @@ class ReviewDialog extends StatelessWidget {
                                 productId: productId,
                               );
                               if (ok) {
-                                safeBack();
+                                Navigator.of(context).pop();
                                 Get.snackbar(
                                   'Success'.tr,
                                   'Review submitted'.tr,
