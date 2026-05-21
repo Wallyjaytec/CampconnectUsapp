@@ -64,34 +64,37 @@ class ReviewDialog extends StatelessWidget {
           spacing: 10,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              spacing: 10,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ...List.generate(files.length, (i) {
-                  return Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(files[i].path),
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 10,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ...List.generate(files.length, (i) {
+                    return Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            File(files[i].path),
+                            width: 70,
+                            height: 70,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                      Positioned(
-                        right: -8,
-                        top: -8,
-                        child: IconButton(
-                          onPressed: () => c.removeImageAt(i),
-                          icon: const Icon(Iconsax.close_circle_copy, size: 18),
+                        Positioned(
+                          right: -8,
+                          top: -8,
+                          child: IconButton(
+                            onPressed: () => c.removeImageAt(i),
+                            icon: const Icon(Iconsax.close_circle_copy, size: 18),
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                }),
-              ],
+                      ],
+                    );
+                  }),
+                ],
+              ),
             ),
             Row(
               spacing: 10,
@@ -198,21 +201,31 @@ class ReviewDialog extends StatelessWidget {
                               );
                               if (ok) {
                                 Navigator.of(context).pop();
-                                Get.snackbar(
-                                  'Success'.tr,
-                                  'Review submitted'.tr,
-                                  snackPosition: SnackPosition.TOP,
-                                  backgroundColor: AppColors.primaryColor,
-                                  colorText: AppColors.whiteColor,
-                                );
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (Get.context != null) {
+                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Review submitted'.tr),
+                                        backgroundColor: AppColors.primaryColor,
+                                        behavior: SnackBarBehavior.floating,
+                                        margin: const EdgeInsets.all(16),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                });
                                 c.clearAll();
                               } else {
-                                Get.snackbar(
-                                  'Failed'.tr,
-                                  'Could not submit review'.tr,
-                                  snackPosition: SnackPosition.TOP,
-                                  backgroundColor: AppColors.primaryColor,
-                                  colorText: AppColors.whiteColor,
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Could not submit review'.tr),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: const EdgeInsets.all(16),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    duration: const Duration(seconds: 2),
+                                  ),
                                 );
                               }
                             },
