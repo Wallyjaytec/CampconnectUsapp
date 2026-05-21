@@ -511,10 +511,16 @@ class MyOrderDetailsView extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-                Text(
-  '${'Tracking ID'.tr}: ${p.trackingId ?? 'N/A'}',
-  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-),
+                if (p.shippingType == 'logistics' && p.trackingId != null && p.trackingId!.isNotEmpty)
+  Text(
+    '${'Tracking ID'.tr}: ${p.trackingId}',
+    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+  ),
+if (p.shippingType == 'driver' && p.shippingContact != null && p.shippingContact!.isNotEmpty)
+  Text(
+    '${'Driver Phone'.tr}: ${p.shippingContact}',
+    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+  ),
               ],
             ),
             const SizedBox(height: 10),
@@ -684,10 +690,16 @@ class MyOrderDetailsView extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
-              Text(
-  '${'Tracking ID'.tr}: ${p.trackingId ?? 'N/A'}',
-  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-),
+             if (p.shippingType == 'logistics' && p.trackingId != null && p.trackingId!.isNotEmpty)
+  Text(
+    '${'Tracking ID'.tr}: ${p.trackingId}',
+    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+  ),
+if (p.shippingType == 'driver' && p.shippingContact != null && p.shippingContact!.isNotEmpty)
+  Text(
+    '${'Driver Phone'.tr}: ${p.shippingContact}',
+    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+  ), 
             ],
           ),
           const SizedBox(height: 10),
