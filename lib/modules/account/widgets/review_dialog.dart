@@ -84,13 +84,13 @@ class ReviewDialog extends StatelessWidget {
                           ),
                         ),
                         Positioned(
-                          right: -4,
-                          top: -4,
+                          right: -6,
+                          top: -6,
                           child: GestureDetector(
                             onTap: () => c.removeImageAt(i),
                             child: Container(
-                              width: 20,
-                              height: 20,
+                              width: 22,
+                              height: 22,
                               decoration: const BoxDecoration(
                                 color: AppColors.primaryColor,
                                 shape: BoxShape.circle,
@@ -201,31 +201,23 @@ class ReviewDialog extends StatelessWidget {
                               );
                               if (ok) {
                                 Navigator.of(context).pop();
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  if (Get.context != null) {
-                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Review submitted'.tr),
-                                        backgroundColor: AppColors.primaryColor,
-                                        behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.all(16),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
+                                Future.delayed(const Duration(milliseconds: 150), () {
+                                  Get.snackbar(
+                                    'Success'.tr,
+                                    'Review submitted'.tr,
+                                    snackPosition: SnackPosition.TOP,
+                                    backgroundColor: AppColors.primaryColor,
+                                    colorText: AppColors.whiteColor,
+                                  );
                                 });
                                 c.clearAll();
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Could not submit review'.tr),
-                                    backgroundColor: Colors.red,
-                                    behavior: SnackBarBehavior.floating,
-                                    margin: const EdgeInsets.all(16),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    duration: const Duration(seconds: 2),
-                                  ),
+                                Get.snackbar(
+                                  'Failed'.tr,
+                                  'Could not submit review'.tr,
+                                  snackPosition: SnackPosition.TOP,
+                                  backgroundColor: Colors.red,
+                                  colorText: AppColors.whiteColor,
                                 );
                               }
                             },
