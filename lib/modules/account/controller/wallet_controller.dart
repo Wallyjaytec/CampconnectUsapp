@@ -10,7 +10,6 @@ class WalletController extends GetxController {
 
   final RxList<WalletTransaction> items = <WalletTransaction>[].obs;
   final RxBool isLoading = false.obs;
-  final RxBool isRefreshing = false.obs;
   final RxString error = ''.obs;
 
   final RxInt page = 1.obs;
@@ -126,8 +125,6 @@ class WalletController extends GetxController {
   }
 
   Future<void> refreshList() async {
-    if (isRefreshing.value) return;
-    isRefreshing.value = true;
     error.value = '';
     page.value = 1;
 
@@ -148,8 +145,6 @@ class WalletController extends GetxController {
       summary.value = sumResp;
     } catch (e) {
       error.value = 'Something went wrong'.tr;
-    } finally {
-      isRefreshing.value = false;
     }
   }
 
