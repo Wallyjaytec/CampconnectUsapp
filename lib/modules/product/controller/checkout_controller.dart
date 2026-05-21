@@ -14,6 +14,7 @@ import '../../../data/repositories/checkout_repository.dart';
 import '../../../data/repositories/wallet_repository.dart';
 import '../../account/model/address_model.dart';
 import '../../account/widgets/order_pay_web_view.dart';
+import '../../account/controller/customer_dashboard_controller.dart';
 import '../model/cart_item_model.dart';
 import '../model/payment_method_model.dart';
 import '../model/pickup_point_model.dart';
@@ -959,12 +960,16 @@ try {
     }
 
     _loadWalletSummary();
+    
+    // Refresh dashboard stats after order
+    if (Get.isRegistered<CustomerDashboardController>()) {
+      Get.find<CustomerDashboardController>().fetchDashboard();
+    }
 
     _showSnackbar('Order placed successfully'.tr, 'Thank you'.tr);
 
     _goToOrderSummary(orderId);
   }
-
   void _goToOrderSummary(int orderId) {
     Get.offNamed(AppRoutes.orderSummaryView, arguments: orderId);
   }
