@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
-import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -172,7 +171,7 @@ class ReturnDialog extends StatelessWidget {
           onPressed: rc.submitting.value ? null : () async {
             final ok = await rc.submit();
             if (ok) {
-              safeBack();
+              Navigator.of(context).pop();
               ScaffoldMessenger.of(Get.context!).showSnackBar(
                 SnackBar(content: Text('Return product submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
               );
@@ -202,7 +201,7 @@ class ReturnDialog extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(child: Text('Return product'.tr, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))),
-              IconButton(onPressed: () => safeBack(), icon: const Icon(Iconsax.close_circle_copy)),
+              IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Iconsax.close_circle_copy)),
             ]),
             const SizedBox(height: 8),
             productHeader(),
