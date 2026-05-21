@@ -111,6 +111,7 @@ class OrderProductItem {
   final dynamic attachment;
   final String? trackingId;
   final String? shippingContact;
+  final String? shippingType;
 
   OrderProductItem({
     required this.id,
@@ -133,6 +134,7 @@ class OrderProductItem {
     this.attachment,
     this.trackingId,
     this.shippingContact,
+    this.shippingType,
   });
 
   static double _numToDouble(dynamic v) {
@@ -187,6 +189,7 @@ class OrderProductItem {
       attachment: attachmentRaw,
       trackingId: j['tracking_id']?.toString(),
       shippingContact: j['shipping_contact']?.toString(),
+      shippingType: j['shipping_type']?.toString(),
     );
   }
 
