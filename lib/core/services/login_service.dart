@@ -116,7 +116,7 @@ class LoginService {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
-        final dashData = body['dashboard_content'] ?? body;
+        final dashData = body['dashboard_content'] ?? body['dasboard_content'] ?? body;
         final dash = CustomerDashboardContent.fromJson(dashData);
         saveDashboardContent(dash);
         return dash;
