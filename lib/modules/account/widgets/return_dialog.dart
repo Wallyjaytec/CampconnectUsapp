@@ -151,6 +151,8 @@ class ReturnDialog extends StatelessWidget {
                     SnackBar(content: Text('Return request submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
                   );
                 }
+              });
+              Future.delayed(const Duration(seconds: 1), () {
                 try {
                   final odc = Get.find<OrderDetailsController>();
                   odc.refreshNow(orderId);
