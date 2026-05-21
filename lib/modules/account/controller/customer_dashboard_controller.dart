@@ -28,6 +28,7 @@ class CustomerDashboardController extends GetxController {
   void onInit() {
     super.onInit();
     loadFromStorage();
+    fetchDashboard();
   }
 
   void loadFromStorage() {
@@ -38,6 +39,17 @@ class CustomerDashboardController extends GetxController {
   void loadFromModel(CustomerDashboardContent? dash) {
     _apply(dash);
     _login.saveDashboardContent(dash);
+  }
+
+  Future<void> fetchDashboard() async {
+    try {
+      final dash = await _login.fetchDashboardFromApi();
+      if (dash != null) {
+        loadFromModel(dash);
+      }
+    } catch (e) {
+      // Keep current data on error
+    }
   }
 
   void clear() {
