@@ -140,25 +140,15 @@ class ReturnDialog extends StatelessWidget {
       return Obx(() => SizedBox(
         width: double.infinity, height: 44,
         child: ElevatedButton(
-          onPressed: rc.submitting.value ? null : () async {
-            final ok = await rc.submit();
-            if (ok) {
-              Navigator.of(context).pop();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (Get.context != null) {
-                  ScaffoldMessenger.of(Get.context!).showSnackBar(
-                    SnackBar(content: Text('Return request submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-                  );
-                }
-              });
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-              );
+          onPressed: () {
+            if (rc.selectedReasonId.value == null) {
+              Get.snackbar('Required'.tr, 'Please select a refund reason'.tr, snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
+              return;
             }
+            Navigator.of(context).pop(true);
           },
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-          child: rc.submitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator()) : Text('Submit'.tr),
+          child: Text('Submit'.tr),
         ),
       ));
     }
