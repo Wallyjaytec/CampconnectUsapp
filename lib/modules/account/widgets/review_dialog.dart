@@ -72,6 +72,7 @@ class ReviewDialog extends StatelessWidget {
                 children: [
                   ...List.generate(files.length, (i) {
                     return Stack(
+                      clipBehavior: Clip.none,
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -83,11 +84,19 @@ class ReviewDialog extends StatelessWidget {
                           ),
                         ),
                         Positioned(
-                          right: -8,
-                          top: -8,
-                          child: IconButton(
-                            onPressed: () => c.removeImageAt(i),
-                            icon: const Icon(Iconsax.close_circle_copy, size: 18),
+                          right: -4,
+                          top: -4,
+                          child: GestureDetector(
+                            onTap: () => c.removeImageAt(i),
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                color: AppColors.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close, size: 14, color: Colors.white),
+                            ),
                           ),
                         ),
                       ],
@@ -105,11 +114,7 @@ class ReviewDialog extends StatelessWidget {
                   child: const CircleAvatar(
                     radius: 24,
                     backgroundColor: AppColors.primaryColor,
-                    child: Icon(
-                      Iconsax.gallery_copy,
-                      size: 24,
-                      color: Colors.white,
-                    ),
+                    child: Icon(Iconsax.gallery_copy, size: 24, color: Colors.white),
                   ),
                 ),
                 GestureDetector(
@@ -117,11 +122,7 @@ class ReviewDialog extends StatelessWidget {
                   child: const CircleAvatar(
                     radius: 24,
                     backgroundColor: AppColors.primaryColor,
-                    child: Icon(
-                      Iconsax.camera_copy,
-                      size: 24,
-                      color: Colors.white,
-                    ),
+                    child: Icon(Iconsax.camera_copy, size: 24, color: Colors.white),
                   ),
                 ),
               ],
@@ -155,8 +156,7 @@ class ReviewDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Review product'.tr,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                     IconButton(
@@ -237,11 +237,7 @@ class ReviewDialog extends StatelessWidget {
                         ),
                       ),
                       child: busy
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(),
-                            )
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
                           : Text('Submit'.tr),
                     ),
                   );
