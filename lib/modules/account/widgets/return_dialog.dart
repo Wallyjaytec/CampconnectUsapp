@@ -8,7 +8,6 @@ import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../controller/my_order_details_controller.dart';
 import '../controller/return_controller.dart';
 
 class ReturnDialog extends StatelessWidget {
@@ -151,12 +150,6 @@ class ReturnDialog extends StatelessWidget {
                     SnackBar(content: Text('Return request submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
                   );
                 }
-              });
-              Future.delayed(const Duration(seconds: 1), () {
-                try {
-                  final odc = Get.find<OrderDetailsController>();
-                  odc.refreshNow(orderId);
-                } catch (_) {}
               });
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
