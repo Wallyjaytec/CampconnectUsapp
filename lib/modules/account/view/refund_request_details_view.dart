@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
@@ -109,10 +110,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                       : AppColors.lightCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 margin: const EdgeInsets.only(top: 10, left: 12, right: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,17 +134,11 @@ class RefundRequestDetailsView extends StatelessWidget {
                     ),
                     Text(
                       '${'Total'.tr} : ${formatCurrency(double.tryParse(d.totalAmount) ?? 0, applyConversion: true)}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                     Text(
                       '${'Returned on'.tr} ${d.refundDate}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
                     ),
                   ],
                 ),
@@ -158,10 +150,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                       : AppColors.lightCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 margin: const EdgeInsets.only(top: 10, left: 12, right: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,10 +158,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _kvSmall(
-                            'Return'.tr,
-                            _titleCase(d.returnStatus),
-                          ),
+                          child: _kvSmall('Return'.tr, _titleCase(d.returnStatus)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -224,9 +210,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                                 d.product.name,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: const TextStyle(fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 2),
                               Row(
@@ -258,16 +242,8 @@ class RefundRequestDetailsView extends StatelessWidget {
                       : AppColors.lightCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
-                ),
-                margin: const EdgeInsets.only(
-                  top: 10,
-                  left: 12,
-                  right: 12,
-                  bottom: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                margin: const EdgeInsets.only(top: 10, left: 12, right: 12, bottom: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -334,10 +310,7 @@ class RefundRequestDetailsView extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '$k: ',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
-        ),
+        Text('$k: ', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
         Flexible(
           child: Text(
             _titleCase(v),
@@ -352,22 +325,15 @@ class RefundRequestDetailsView extends StatelessWidget {
 
   Color _statusColor(String p) {
     final v = p.toLowerCase();
-    if (v == 'refunded' || v == 'paid' || v == 'success') {
-      return Colors.green;
-    }
-    if (v == 'pending' || v == 'processing') {
-      return Colors.blue;
-    }
+    if (v == 'refunded' || v == 'paid' || v == 'success') return Colors.green;
+    if (v == 'pending' || v == 'processing') return Colors.blue;
     return Colors.grey;
   }
 
   String _titleCase(String s) {
     final v = s.trim();
     if (v.isEmpty) return v;
-    return v
-        .split(' ')
-        .map((w) => w.isEmpty ? w : (w[0].toUpperCase() + w.substring(1)))
-        .join(' ');
+    return v.split(' ').map((w) => w.isEmpty ? w : (w[0].toUpperCase() + w.substring(1))).join(' ');
   }
 
   Widget _stepperWithShimmer(BuildContext context, int currentStep) {
@@ -378,32 +344,22 @@ class RefundRequestDetailsView extends StatelessWidget {
           height: 28,
           decoration: BoxDecoration(
             color: active ? AppColors.primaryColor : Colors.transparent,
-            border: Border.all(
-              color: active ? AppColors.primaryColor : Colors.grey,
-            ),
+            border: Border.all(color: active ? AppColors.primaryColor : Colors.grey),
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: active ? Colors.white : Colors.grey.shade700,
-            ),
-          ),
+          child: Text(label, style: TextStyle(fontSize: 12, color: active ? Colors.white : Colors.grey.shade700)),
         ),
         const SizedBox(height: 6),
       ],
     );
 
-    Widget shimmerLine() {
-      return Shimmer.fromColors(
-        baseColor: AppColors.primaryColor.withValues(alpha: 0.45),
-        highlightColor: AppColors.primaryColor.withValues(alpha: 0.95),
-        period: const Duration(milliseconds: 1200),
-        child: Container(height: 2, color: AppColors.primaryColor),
-      );
-    }
+    Widget shimmerLine() => Shimmer.fromColors(
+      baseColor: AppColors.primaryColor.withValues(alpha: 0.45),
+      highlightColor: AppColors.primaryColor.withValues(alpha: 0.95),
+      period: const Duration(milliseconds: 1200),
+      child: Container(height: 2, color: AppColors.primaryColor),
+    );
 
     Widget solidLine(Color c) => Container(height: 2, color: c);
 
@@ -416,33 +372,24 @@ class RefundRequestDetailsView extends StatelessWidget {
 
     Widget line12() {
       if (currentStep == 1) return shimmerLine();
-      if (currentStep > 1) {
-        return solidLine(AppColors.primaryColor);
-      }
+      if (currentStep > 1) return solidLine(AppColors.primaryColor);
       return solidLine(Colors.grey.shade400);
     }
 
     Widget line23() {
       if (currentStep == 2) return shimmerLine();
-      if (currentStep > 2) {
-        return solidLine(AppColors.primaryColor);
-      }
+      if (currentStep > 2) return solidLine(AppColors.primaryColor);
       return solidLine(Colors.grey.shade400);
     }
 
     Widget line34() {
       if (currentStep == 3) return shimmerLine();
-      if (currentStep > 3) {
-        return solidLine(AppColors.primaryColor);
-      }
+      if (currentStep > 3) return solidLine(AppColors.primaryColor);
       return solidLine(Colors.grey.shade400);
     }
 
-    Color labelColor(int stepNo) =>
-        currentStep == stepNo ? AppColors.primaryColor : Colors.grey;
-
-    FontWeight labelWeight(int stepNo) =>
-        currentStep == stepNo ? FontWeight.w600 : FontWeight.normal;
+    Color labelColor(int stepNo) => currentStep == stepNo ? AppColors.primaryColor : Colors.grey;
+    FontWeight labelWeight(int stepNo) => currentStep == stepNo ? FontWeight.w600 : FontWeight.normal;
 
     return Column(
       children: [
@@ -464,38 +411,10 @@ class RefundRequestDetailsView extends StatelessWidget {
             spacing: 10,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Pending'.tr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: labelColor(1),
-                  fontWeight: labelWeight(1),
-                ),
-              ),
-              Text(
-                'Product Received'.tr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: labelColor(2),
-                  fontWeight: labelWeight(2),
-                ),
-              ),
-              Text(
-                'Return Approved'.tr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: labelColor(3),
-                  fontWeight: labelWeight(3),
-                ),
-              ),
-              Text(
-                'Refunded'.tr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: labelColor(4),
-                  fontWeight: labelWeight(4),
-                ),
-              ),
+              Text('Pending'.tr, style: TextStyle(fontSize: 12, color: labelColor(1), fontWeight: labelWeight(1))),
+              Text('Product Received'.tr, style: TextStyle(fontSize: 12, color: labelColor(2), fontWeight: labelWeight(2))),
+              Text('Return Approved'.tr, style: TextStyle(fontSize: 12, color: labelColor(3), fontWeight: labelWeight(3))),
+              Text('Refunded'.tr, style: TextStyle(fontSize: 12, color: labelColor(4), fontWeight: labelWeight(4))),
             ],
           ),
         ),
@@ -510,68 +429,72 @@ class RefundRequestDetailsView extends StatelessWidget {
   }) {
     if (tracking.isEmpty) return const SizedBox.shrink();
 
-    final items = tracking;
+    final sortedDesc = List<RefundTrackingItem>.from(tracking)
+      ..sort((a, b) {
+        final da = DateTime.tryParse(a.date);
+        final db = DateTime.tryParse(b.date);
+        if (da == null || db == null) return b.date.compareTo(a.date);
+        return db.compareTo(da);
+      });
 
     return Obx(() {
       final expanded = c.trackingExpanded.value;
-      final canToggle = items.length > 1;
-      final show = expanded ? items : [items.first];
+      final itemsToShow = expanded ? sortedDesc : [sortedDesc.first];
+      final canToggle = sortedDesc.length > 1;
 
-      return Stack(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 10),
-            width: double.infinity,
-            padding: const EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: 12,
-              bottom: 6,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white10
-                  : Colors.black12,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: show.map((t) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t.date,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
+      return Container(
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white10
+              : Colors.black12,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Iconsax.empty_wallet_change, size: 14, color: AppColors.primaryColor),
+                const SizedBox(width: 6),
+                Text('Refund History'.tr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                if (canToggle)
+                  GestureDetector(
+                    onTap: () => c.toggleTracking(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          expanded ? 'Show less'.tr : 'Show all'.tr,
+                          style: const TextStyle(fontSize: 12, color: AppColors.primaryColor),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(t.message, style: const TextStyle(fontSize: 13)),
-                    ],
+                        const SizedBox(width: 4),
+                        Icon(
+                          expanded ? Iconsax.arrow_up_2_copy : Iconsax.arrow_down_2_copy,
+                          size: 14,
+                          color: AppColors.primaryColor,
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              }).toList(),
+              ],
             ),
-          ),
-          if (canToggle)
-            PositionedDirectional(
-              end: 0,
-              top: 10,
-              child: IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () => c.toggleTracking(),
-                icon: Icon(
-                  expanded ? Iconsax.minus_copy : Iconsax.add_copy,
-                  size: 18,
-                ),
-                tooltip: expanded ? 'Collapse' : 'Expand',
-              ),
-            ),
-        ],
+            const SizedBox(height: 10),
+            ...List.generate(itemsToShow.length, (i) {
+              final t = itemsToShow[i];
+              final isLast = i == itemsToShow.length - 1;
+              final isFirst = i == 0;
+              return _RefundTimelineItem(
+                date: t.date,
+                message: t.message,
+                isFirst: isFirst,
+                isLast: isLast,
+              );
+            }),
+          ],
+        ),
       );
     });
   }
@@ -583,18 +506,10 @@ class RefundRequestDetailsView extends StatelessWidget {
       children: [
         SizedBox(
           width: 120,
-          child: Text(
-            k,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-          ),
+          child: Text(k, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
         ),
         const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            v.isEmpty ? '-' : v,
-            style: const TextStyle(fontSize: 13),
-          ),
-        ),
+        Expanded(child: Text(v.isEmpty ? '-' : v, style: const TextStyle(fontSize: 13))),
       ],
     ),
   );
@@ -638,6 +553,79 @@ class RefundRequestDetailsView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// Must be OUTSIDE the class
+class _RefundTimelineItem extends StatelessWidget {
+  final String date;
+  final String message;
+  final bool isFirst;
+  final bool isLast;
+
+  const _RefundTimelineItem({
+    required this.date,
+    required this.message,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: isFirst ? AppColors.primaryColor : Colors.grey.shade400,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isFirst ? AppColors.primaryColor : Colors.grey.shade400,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                if (!isLast)
+                  Expanded(
+                    child: Container(width: 2, color: Colors.grey.shade300),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    date,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isFirst ? AppColors.primaryColor : Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  HtmlWidget(
+                    message,
+                    textStyle: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
