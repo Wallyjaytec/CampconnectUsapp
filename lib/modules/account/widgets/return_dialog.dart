@@ -200,8 +200,6 @@ class ReturnDialog extends StatelessWidget {
                 snackPosition: SnackPosition.TOP,
                 backgroundColor: AppColors.primaryColor,
                 colorText: AppColors.whiteColor,
-                margin: const EdgeInsets.all(16),
-                duration: const Duration(seconds: 2),
               );
               try {
                 final odc = Get.find<OrderDetailsController>();
@@ -214,8 +212,6 @@ class ReturnDialog extends StatelessWidget {
                 snackPosition: SnackPosition.TOP,
                 backgroundColor: Colors.red,
                 colorText: AppColors.whiteColor,
-                margin: const EdgeInsets.all(16),
-                duration: const Duration(seconds: 2),
               );
             }
           },
