@@ -288,8 +288,7 @@ class RefundRequestDetailsView extends StatelessWidget {
     return Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: SingleChildScrollView(child: Column(children: [block(h: 80, m: const EdgeInsets.fromLTRB(12, 12, 12, 8)), block(h: 220), block(h: 200)])));
   }
 
-  Widget _kvSmall(String k, String v, {Color? color}) => Row(mainAxisSize: MainAxisSize.min, children: [Text('$k: ', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)), Flexible(child: Text(_titleCase(v), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: color ?? Colors.black87)))]);
-
+  Widget _kvSmall(String k, String v, {Color? color}) => Row(mainAxisSize: MainAxisSize.min, children: [Text('$k: ', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)), Flexible(child: Text(_titleCase(v), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: color ?? (Get.theme.brightness == Brightness.dark ? Colors.white70 : Colors.black87))))]);
   Color _statusColor(String p) { final v = p.toLowerCase(); if (v == 'refunded' || v == 'paid' || v == 'success') return Colors.green; if (v == 'pending' || v == 'processing') return Colors.blue; return Colors.grey; }
 
   String _titleCase(String s) { final v = s.trim(); if (v.isEmpty) return v; return v.split(' ').map((w) => w.isEmpty ? w : (w[0].toUpperCase() + w.substring(1))).join(' '); }
