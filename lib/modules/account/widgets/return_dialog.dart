@@ -147,14 +147,17 @@ class ReturnDialog extends StatelessWidget {
         final files = rc.images;
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(height: 10),
-          Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
-            ...List.generate(files.length, (i) {
-              return Stack(clipBehavior: Clip.none, children: [
-                ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
-                Positioned(right: -8, top: -8, child: IconButton(onPressed: () => rc.removeImageAt(i), icon: const Icon(Iconsax.close_circle_copy, size: 18), padding: EdgeInsets.zero, constraints: const BoxConstraints())),
-              ]);
-            }),
-          ]),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
+              ...List.generate(files.length, (i) {
+                return Stack(clipBehavior: Clip.none, children: [
+                  ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(files[i].path), width: 70, height: 70, fit: BoxFit.cover)),
+                  Positioned(right: -8, top: -8, child: IconButton(onPressed: () => rc.removeImageAt(i), icon: const Icon(Iconsax.close_circle_copy, size: 18), padding: EdgeInsets.zero, constraints: const BoxConstraints())),
+                ]);
+              }),
+            ]),
+          ),
           const SizedBox(height: 10),
           Row(spacing: 10, mainAxisAlignment: MainAxisAlignment.center, children: [
             GestureDetector(onTap: rc.pickFromGallery, child: const CircleAvatar(radius: 24, backgroundColor: AppColors.primaryColor, child: Icon(Iconsax.gallery_copy, size: 24, color: Colors.white))),
@@ -172,15 +175,19 @@ class ReturnDialog extends StatelessWidget {
             final ok = await rc.submit();
             if (ok) {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(Get.context!).showSnackBar(
-                SnackBar(content: Text('Return product submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Get.context != null) {
+                  ScaffoldMessenger.of(Get.context!).showSnackBar(
+                    SnackBar(content: Text('Return product submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+                  );
+                }
+              });
               try {
                 final odc = Get.find<OrderDetailsController>();
                 await odc.refreshNow(orderId);
               } catch (_) {}
             } else {
-              ScaffoldMessenger.of(Get.context!).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
               );
             }
