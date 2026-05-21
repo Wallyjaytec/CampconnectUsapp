@@ -132,7 +132,7 @@ class ReturnController extends GetxController {
     try {
       final files = <http.MultipartFile>[];
       for (final x in images) {
-        files.add(await http.MultipartFile.fromPath('return_images', x.path));
+        files.add(await http.MultipartFile.fromPath('return_images[]', x.path));
       }
 
       final ok = await _repo.submitReturnRequest(
