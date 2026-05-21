@@ -105,7 +105,7 @@ class LoginService {
       final t = token;
       if (t == null) return null;
 
-      final uri = Uri.parse('${AppConfig.baseUrl}/api/customer-dashboard');
+      final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/customer-dashboard');
       final response = await http.get(
         uri,
         headers: {
