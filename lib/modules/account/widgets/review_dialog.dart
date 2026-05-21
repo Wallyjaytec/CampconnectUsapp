@@ -66,6 +66,7 @@ class ReviewDialog extends StatelessWidget {
           children: [
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(top: 6),
               child: Row(
                 spacing: 10,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -201,15 +202,13 @@ class ReviewDialog extends StatelessWidget {
                               );
                               if (ok) {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 150), () {
-                                  Get.snackbar(
-                                    'Success'.tr,
-                                    'Review submitted'.tr,
-                                    snackPosition: SnackPosition.TOP,
-                                    backgroundColor: AppColors.primaryColor,
-                                    colorText: AppColors.whiteColor,
-                                  );
-                                });
+                                Get.snackbar(
+                                  'Success'.tr,
+                                  'Review submitted'.tr,
+                                  snackPosition: SnackPosition.TOP,
+                                  backgroundColor: AppColors.primaryColor,
+                                  colorText: AppColors.whiteColor,
+                                );
                                 c.clearAll();
                               } else {
                                 Get.snackbar(
