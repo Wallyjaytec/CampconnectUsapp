@@ -245,7 +245,7 @@ class MyOrderDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _returnStatusChip(OrderProductItem p) {
+  Widget _returnStatusChip(BuildContext context, OrderProductItem p) {
     final statusRaw = p.returnStatus.status.trim();
 
     if (statusRaw == '4') {
@@ -314,14 +314,15 @@ class MyOrderDetailsView extends StatelessWidget {
 
     return const SizedBox.shrink();
   }
-Widget _productActions(OrderProductItem p, bool delivered) {
+
+  Widget _productActions(BuildContext context, OrderProductItem p, bool delivered) {
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Row(
         spacing: 8,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _returnStatusChip(p),
+          _returnStatusChip(context, p),
           if (delivered)
             OutlinedButton(
               onPressed: () {
@@ -362,7 +363,6 @@ Widget _productActions(OrderProductItem p, bool delivered) {
       ),
     );
   }
-  
 
   Widget _stepperWithShimmer(
     BuildContext context,
@@ -830,7 +830,7 @@ if (p.shippingType == 'driver' && p.shippingContact != null && p.shippingContact
                         ),
                       ),
                     const SizedBox(height: 8),
-                    _productActions(p, delivered),
+                    _productActions(context, p, delivered),
                   ],
                 ),
               ),
@@ -1309,7 +1309,6 @@ String? _attachmentPathFromRaw(dynamic raw) {
         if (fromJson != null && fromJson.isNotEmpty) return fromJson;
       } catch (_) {}
       
-      // Extract filename from path
       final parts = s.split('/');
       return parts.last;
     }
@@ -1318,7 +1317,6 @@ String? _attachmentPathFromRaw(dynamic raw) {
   }
 }
 
-// This class must be OUTSIDE MyOrderDetailsView
 class _TimelineItem extends StatelessWidget {
   final String date;
   final String message;
