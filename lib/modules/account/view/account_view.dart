@@ -88,7 +88,7 @@ class AccountView extends StatelessWidget {
         ),
         body: LoginService().isLoggedIn()
             ? RefreshIndicator(
-                onRefresh: () async { await infoCtrl.fetchBasicInfo(); dashCtrl.loadFromStorage(); currencyCtrl.refreshSelected(); },
+                onRefresh: () async { await infoCtrl.fetchBasicInfo(); await dashCtrl.fetchDashboard(); currencyCtrl.refreshSelected(); },
                 color: AppColors.primaryColor,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
