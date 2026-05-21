@@ -97,8 +97,11 @@ class RefundRequestDetailsView extends StatelessWidget {
 
         final d = c.details.value;
         if (d == null) return const SizedBox.shrink();
-        
+
         final step = c.currentStepByLabel(d.returnStatus, d.paymentStatus);
+        final isFinalStatus = d.returnStatus.toLowerCase() == 'refunded' || 
+                              d.returnStatus.toLowerCase() == 'cancelled' ||
+                              d.returnStatus.toLowerCase() == 'approved';
 
         return RefreshIndicator(
           onRefresh: () => c.refreshNow(refundId),
@@ -106,7 +109,7 @@ class RefundRequestDetailsView extends StatelessWidget {
             padding: EdgeInsets.zero,
             children: [
               _headerCard(d, copyRefundId),
-              _statusCard(context, d, step, c),
+              _statusCard(context, d, step, c, isFinalStatus),
               _infoCard(context, d),
             ],
           ),
@@ -158,7 +161,7 @@ class RefundRequestDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _statusCard(BuildContext context, dynamic d, int step, dynamic c) {
+  Widget _statusCard(BuildContext context, dynamic d, int step, dynamic c, bool isFinalStatus) {
     return Container(
       decoration: BoxDecoration(
         color: Get.theme.brightness == Brightness.dark
@@ -196,6 +199,7 @@ class RefundRequestDetailsView extends StatelessWidget {
             context: context,
             tracking: d.tracking,
             c: c,
+            isFinalStatus: isFinalStatus,
           ),
           const SizedBox(height: 12),
           Row(
@@ -440,6 +444,7 @@ class RefundRequestDetailsView extends StatelessWidget {
     required BuildContext context,
     required List<RefundTrackingItem> tracking,
     required RefundRequestDetailsController c,
+    bool isFinalStatus = false,
   }) {
     if (tracking.isEmpty) return const SizedBox.shrink();
 
@@ -498,6 +503,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                 message: t.message,
                 isFirst: isFirst,
                 isLast: isLast,
+                isFinalStatus: isFinalStatus,
               );
             }),
           ],
@@ -554,7 +560,31 @@ class _RefundTimelineItem extends StatelessWidget {
   final String message;
   final bool isFirst;
   final bool isLast;
-  const _RefundTimelineItem({required this.date, required this.message, required this.isFirst, required this.isLast});
+  final bool isFinalStatus;
+  const _RefundTimelineItem({
+    required this.date,
+    required this.message,
+    required this.isFirst,
+    required this.isLast,
+    this.isFinalStatus = false,
+  });
+
+  Color get _dotColor {
+    if (isFinalStatus) return AppColors.primaryColor;
+    if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.5);
+    return AppColors.primaryColor;
+  }
+
+  Color get _lineColor {
+    if (isFinalStatus) return AppColors.primaryColor;
+    if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.5);
+    return AppColors.primaryColor;
+  }
+
+  Color get _textColor {
+    if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.7);
+    return AppColors.primaryColor;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -566,8 +596,12 @@ class _RefundTimelineItem extends StatelessWidget {
             width: 24,
             child: Column(
               children: [
-                _AnimatedDot(isActive: isFirst),
-                if (!isLast) Expanded(child: Container(width: 2, color: isFirst ? AppColors.primaryColor : Colors.grey.shade300)),
+                const SizedBox(height: 2),
+                _AnimatedDot(isActive: isFirst, dotColor: _dotColor),
+                if (!isLast)
+                  Expanded(
+                    child: Container(width: 2, color: _lineColor),
+                  ),
               ],
             ),
           ),
@@ -578,9 +612,19 @@ class _RefundTimelineItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: isFirst ? AppColors.primaryColor : Colors.grey.shade700)),
+                  Text(
+                    date,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _textColor,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  HtmlWidget(message, textStyle: const TextStyle(fontSize: 13)),
+                  HtmlWidget(
+                    message,
+                    textStyle: const TextStyle(fontSize: 13),
+                  ),
                 ],
               ),
             ),
@@ -593,7 +637,8 @@ class _RefundTimelineItem extends StatelessWidget {
 
 class _AnimatedDot extends StatefulWidget {
   final bool isActive;
-  const _AnimatedDot({required this.isActive});
+  final Color dotColor;
+  const _AnimatedDot({required this.isActive, required this.dotColor});
   @override
   State<_AnimatedDot> createState() => _AnimatedDotState();
 }
@@ -606,8 +651,13 @@ class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderSta
   void initState() {
     super.initState();
     if (widget.isActive) {
-      _controller = AnimationController(duration: const Duration(milliseconds: 1500), vsync: this)..repeat(reverse: true);
-      _animation = Tween<double>(begin: 1.0, end: 1.3).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+      _controller = AnimationController(
+        duration: const Duration(milliseconds: 1500),
+        vsync: this,
+      )..repeat(reverse: true);
+      _animation = Tween<double>(begin: 1.0, end: 1.3).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      );
     }
   }
 
@@ -624,9 +674,8 @@ class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderSta
         width: 10,
         height: 10,
         decoration: BoxDecoration(
-          color: Colors.grey.shade400,
+          color: widget.dotColor,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade400, width: 2),
         ),
       );
     }
@@ -638,11 +687,11 @@ class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderSta
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            color: AppColors.primaryColor,
+            color: widget.dotColor,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryColor.withValues(alpha: 0.5),
+                color: widget.dotColor.withValues(alpha: 0.6),
                 blurRadius: 8 * _animation.value,
                 spreadRadius: 2 * _animation.value,
               ),
