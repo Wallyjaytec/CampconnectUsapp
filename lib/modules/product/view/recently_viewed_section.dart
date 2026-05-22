@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/modules/product/controller/recently_viewed_controller.dart';
+import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
 
 class RecentlyViewedSection extends StatelessWidget {
   const RecentlyViewedSection({super.key});
@@ -28,11 +29,9 @@ class RecentlyViewedSection extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Changed icon color to AppColors.primaryColor
                 Icon(Iconsax.clock_copy, size: 48, color: AppColors.primaryColor),
                 const SizedBox(height: 12),
                 Text(
-                  // Changed text
                   'Your recently viewed product(s) will appear here'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
@@ -100,6 +99,8 @@ class RecentlyViewedSection extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                                const SizedBox(height: 4),
+                                StarRow(rating: p.rating),
                                 const SizedBox(height: 4),
                                 Text(formatCurrency(p.price, applyConversion: true), 
                                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor)),
