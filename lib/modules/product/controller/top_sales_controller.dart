@@ -24,7 +24,7 @@ class TopSalesController extends GetxController {
     super.onInit();
     fetchTopSales();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       items.refresh();
     });
   }
