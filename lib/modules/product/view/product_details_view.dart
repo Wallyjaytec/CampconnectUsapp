@@ -42,8 +42,9 @@ import '../widgets/star_row.dart';
 class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
-  final controller = Get.replace(
+  final controller = Get.put(
     ProductDetailsController(ProductDetailsRepository(ApiService())),
+    permanent: false,
 );
   @override
   Widget build(BuildContext context) {
