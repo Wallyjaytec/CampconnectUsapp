@@ -15,7 +15,7 @@ class DiscountSalesController extends GetxController {
     super.onInit();
     loadDiscountProducts();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       products.refresh();
     });
   }
