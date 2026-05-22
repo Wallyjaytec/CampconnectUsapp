@@ -16,6 +16,7 @@ class WalletTransaction {
   final int id;
   final double rechargeAmount;
   final String date;
+  final String time;
   final String status;
   final String type;
   final String paymentMethod;
@@ -24,6 +25,7 @@ class WalletTransaction {
     required this.id,
     required this.rechargeAmount,
     required this.date,
+    required this.time,
     required this.status,
     required this.type,
     required this.paymentMethod,
@@ -36,6 +38,7 @@ class WalletTransaction {
           ? j['recharge_amount']
           : double.tryParse(j['recharge_amount']?.toString() ?? '') ?? 0,
       date: j['date']?.toString() ?? '',
+      time: j['time']?.toString() ?? '',
       status: j['status']?.toString() ?? '',
       type: j['type']?.toString() ?? '',
       paymentMethod: j['payment_method']?.toString() ?? '',
