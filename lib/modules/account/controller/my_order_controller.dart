@@ -16,6 +16,8 @@ class OrderController extends GetxController {
 
   final RxString searchKey = ''.obs;
   final RxString deliveryFilter = 'all'.obs;
+  final RxString dateFrom = ''.obs;
+  final RxString dateTo = ''.obs;
 
   int _page = 1;
   final int _perPage = 10;
@@ -24,8 +26,28 @@ class OrderController extends GetxController {
   bool get hasMore => _page < _lastPage;
 
   List<OrderItem> get filteredOrders {
-    if (deliveryFilter.value == 'all') return orders;
-    return orders.where((o) => o.deliveryStatus == deliveryFilter.value).toList();
+    var result = orders;
+    
+    if (deliveryFilter.value != 'all') {
+      result = result.where((o) => o.deliveryStatus == deliveryFilter.value).toList();
+    }
+    
+    if (dateFrom.value.isNotEmpty && dateTo.value.isNotEmpty) {
+      try {
+        final from = DateTime.parse(dateFrom.value);
+        final to = DateTime.parse(dateTo.value).add(const Duration(days: 1));
+        result = result.where((o) {
+          try {
+            final orderDate = DateTime.parse(o.orderDate);
+            return orderDate.isAfter(from.subtract(const Duration(days: 1))) && orderDate.isBefore(to);
+          } catch (_) {
+            return true;
+          }
+        }).toList();
+      } catch (_) {}
+    }
+    
+    return result;
   }
 
   @override
@@ -39,8 +61,16 @@ class OrderController extends GetxController {
     update();
   }
 
+  void setDateRange(String from, String to) {
+    dateFrom.value = from;
+    dateTo.value = to;
+    update();
+  }
+
   void clearFilters() {
     deliveryFilter.value = 'all';
+    dateFrom.value = '';
+    dateTo.value = '';
     searchKey.value = '';
     initLoad();
   }
