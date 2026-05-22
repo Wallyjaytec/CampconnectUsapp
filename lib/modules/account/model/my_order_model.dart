@@ -6,6 +6,8 @@ class OrderItem {
   final double totalPayableAmount;
   final int totalProducts;
   final String orderDate;
+  final String deliveryStatus;
+  final String paymentStatus;
 
   OrderItem({
     required this.id,
@@ -13,6 +15,8 @@ class OrderItem {
     required this.totalPayableAmount,
     required this.totalProducts,
     required this.orderDate,
+    required this.deliveryStatus,
+    required this.paymentStatus,
   });
 
   static double _parseAmount(dynamic v) {
@@ -37,6 +41,8 @@ class OrderItem {
           ? int.tryParse(json['total_products']) ?? 0
           : (json['total_products'] ?? 0),
       orderDate: json['order_date']?.toString() ?? '',
+      deliveryStatus: json['delivery_status']?.toString() ?? '',
+      paymentStatus: json['payment_status']?.toString() ?? '',
     );
   }
 }
