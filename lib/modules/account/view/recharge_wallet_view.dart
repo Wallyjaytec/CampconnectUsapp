@@ -200,7 +200,24 @@ class _OfflineTab extends StatelessWidget {
         final hasTxn = ctrl.transactionId.value.trim().isNotEmpty; final hasMethod = ctrl.selectedOfflineMethodId.value > 0;
         final hasFile = ctrl.transactionProof.value != null;
         final canSubmit = hasValidNumber && hasTxn && hasMethod && hasFile && !ctrl.isSubmitting.value;
-        return SizedBox(width: double.infinity, height: 48, child: ElevatedButton.icon(onPressed: canSubmit ? () async { final ok = await ctrl.submitOffline(); if (ok) { ctrl.setAmount(''); ctrl.setTxnId(''); ctrl.setProof(null); } } : null, icon: ctrl.isSubmitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const SizedBox(), label: Text('Submit'.tr)));
+        return SizedBox(width: double.infinity, height: 48, child: ElevatedButton.icon(
+          onPressed: canSubmit ? () async { 
+            final ok = await ctrl.submitOffline(); 
+            if (ok) { 
+              ctrl.setAmount(''); 
+              ctrl.setTxnId(''); 
+              ctrl.setProof(null); 
+              Get.offNamedUntil(AppRoutes.myWalletView, (route) => route.isFirst);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (Get.isRegistered<WalletController>()) {
+                  Get.find<WalletController>().refreshList();
+                }
+              });
+            } 
+          } : null, 
+          icon: ctrl.isSubmitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const SizedBox(), 
+          label: Text('Submit'.tr)
+        ));
       }),
     ]);
   }
