@@ -154,7 +154,7 @@ class MyOrderDetailsView extends StatelessWidget {
           Get.snackbar('Error'.tr, 'Order not found'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor);
           return;
         }
-        final result = await showDialog<bool>(
+        await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => ReturnDialog(
@@ -166,27 +166,7 @@ class MyOrderDetailsView extends StatelessWidget {
             quantity: p.quantity,
           ),
         );
-        if (result == true) {
-          final tag = 'return-$orderIdFromState-${p.id}';
-          if (Get.isRegistered<ReturnController>(tag: tag)) {
-            final rc = Get.find<ReturnController>(tag: tag);
-            final ok = await rc.submit();
-            if (ok) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (Get.context != null) {
-                  ScaffoldMessenger.of(Get.context!).showSnackBar(
-                    SnackBar(content: Text('Return request submitted'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-                  );
-                }
-              });
-              try { final odc = Get.find<OrderDetailsController>(); odc.refreshNow(orderId); } catch (_) {}
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Could not submit'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
-              );
-            }
-          }
-        }
+        try { final odc = Get.find<OrderDetailsController>(); odc.refreshNow(orderId); } catch (_) {}
       },
       style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
       child: Text('${'Return'.tr}/${'Refund'.tr}'),
