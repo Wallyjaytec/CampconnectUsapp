@@ -15,6 +15,7 @@ class OrderController extends GetxController {
   final RxnString error = RxnString();
 
   final RxString searchKey = ''.obs;
+  final RxString deliveryFilter = 'all'.obs;
 
   int _page = 1;
   final int _perPage = 10;
@@ -22,9 +23,25 @@ class OrderController extends GetxController {
 
   bool get hasMore => _page < _lastPage;
 
+  List<OrderItem> get filteredOrders {
+    if (deliveryFilter.value == 'all') return orders;
+    return orders.where((o) => o.deliveryStatus == deliveryFilter.value).toList();
+  }
+
   @override
   void onInit() {
     super.onInit();
+    initLoad();
+  }
+
+  void setDeliveryFilter(String status) {
+    deliveryFilter.value = status;
+    update();
+  }
+
+  void clearFilters() {
+    deliveryFilter.value = 'all';
+    searchKey.value = '';
     initLoad();
   }
 
