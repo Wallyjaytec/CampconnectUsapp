@@ -247,6 +247,24 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
     );
   }
 
+  Widget _emptySearchView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/icons/empty_orders.png', width: 120, height: 120),
+            const SizedBox(height: 24),
+            Text('No refund ID found'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text('No refund ID found for "${c.searchKey.value}"'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -294,6 +312,16 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
           }
 
           if (items.isEmpty) {
+            if (c.searchKey.value.isNotEmpty) {
+              return Column(
+                children: [
+                  _searchField(),
+                  _sectionHeader(),
+                  _filterChips(),
+                  Expanded(child: _emptySearchView()),
+                ],
+              );
+            }
             return Column(
               children: [
                 _searchField(),
