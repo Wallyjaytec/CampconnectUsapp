@@ -36,6 +36,10 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
   }
 
   Future<void> _pickDateRange() async {
+    if (c.dateFrom.value.isNotEmpty) {
+      c.setDateRange('', '');
+      return;
+    }
     final now = DateTime.now();
     final initial = DateTimeRange(
       start: now.subtract(const Duration(days: 30)),
@@ -168,7 +172,9 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
         return Row(
           children: [
             ...filters.map((f) {
-              final isSelected = selected == f['value'];
+              final isSelected = f['value'] == 'all' 
+                  ? (selected == 'all' && c.dateFrom.value.isEmpty) 
+                  : selected == f['value'];
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GestureDetector(
