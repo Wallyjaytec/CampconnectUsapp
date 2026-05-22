@@ -84,7 +84,7 @@ class LatestCollectionView extends StatelessWidget {
                           fit: BoxFit.cover,
                           width: double.infinity,
                           errorWidget: (_, __, ___) =>
-                              const Icon(Iconsax.gallery_remove_copy),
+                              Icon(Iconsax.gallery_remove_copy),
                         ),
                       ),
                     ),
