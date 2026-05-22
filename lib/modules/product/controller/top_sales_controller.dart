@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../core/controllers/currency_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/currency_service.dart';
@@ -22,6 +23,10 @@ class TopSalesController extends GetxController {
   void onInit() {
     super.onInit();
     fetchTopSales();
+    
+    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+      items.refresh();
+    });
   }
 
   @override
