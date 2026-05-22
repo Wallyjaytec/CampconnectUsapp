@@ -149,6 +149,36 @@ class ProductRepository {
       nextPage: page + 1,
     );
   }
+
+  Future<PaginatedProducts> fetchFeaturedPaged({
+    required int page,
+    required int perPage,
+  }) async {
+    final url = AppConfig.productsUrl();
+
+    final payload = <String, dynamic>{
+      'page': page,
+      'perPage': perPage,
+      'is_featured': '1',
+    };
+
+    final res = await api.postJson(url, body: payload);
+
+    final list = (res['data'] as List?) ?? [];
+
+    final items = list
+        .whereType<Map>()
+        .map((e) => ProductModel.fromJson(e.cast<String, dynamic>()))
+        .toList();
+
+    final bool hasMore = items.length == perPage;
+
+    return PaginatedProducts(
+      items: items,
+      hasMore: hasMore,
+      nextPage: page + 1,
+    );
+  }
 }
 
 class PaginatedProducts {
