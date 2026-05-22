@@ -15,7 +15,6 @@ class DiscountSalesController extends GetxController {
     super.onInit();
     loadDiscountProducts();
     
-    // ✅ Force UI refresh when currency changes
     ever(Get.find<CurrencyController>().selectedCurrency, (_) {
       products.refresh();
     });
