@@ -15,7 +15,7 @@ class FeaturedProductsController extends GetxController {
     super.onInit();
     loadFeatured();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       products.refresh();
     });
   }
