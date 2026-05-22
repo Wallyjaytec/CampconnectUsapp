@@ -62,6 +62,8 @@ class OrderController extends GetxController {
   }
 
   void setDeliveryFilter(String status) {
+    dateFrom.value = '';
+    dateTo.value = '';
     if (deliveryFilter.value == status) {
       deliveryFilter.value = 'all';
     } else {
@@ -71,8 +73,14 @@ class OrderController extends GetxController {
   }
 
   void setDateRange(String from, String to) {
-    dateFrom.value = from;
-    dateTo.value = to;
+    deliveryFilter.value = 'all';
+    if (dateFrom.value == from && dateTo.value == to) {
+      dateFrom.value = '';
+      dateTo.value = '';
+    } else {
+      dateFrom.value = from;
+      dateTo.value = to;
+    }
     update();
   }
 
