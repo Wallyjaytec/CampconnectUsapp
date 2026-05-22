@@ -61,6 +61,31 @@ class _MyOrderListViewState extends State<MyOrderListView> {
     );
   }
 
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final initial = DateTimeRange(
+      start: now.subtract(const Duration(days: 30)),
+      end: now,
+    );
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2023),
+      lastDate: now,
+      initialDateRange: controller.dateFrom.value.isNotEmpty
+          ? DateTimeRange(
+              start: DateTime.parse(controller.dateFrom.value),
+              end: DateTime.parse(controller.dateTo.value),
+            )
+          : initial,
+    );
+    if (picked != null) {
+      controller.setDateRange(
+        picked.start.toIso8601String().split('T')[0],
+        picked.end.toIso8601String().split('T')[0],
+      );
+    }
+  }
+
   Widget _searchField() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -162,37 +187,82 @@ class _MyOrderListViewState extends State<MyOrderListView> {
       child: Obx(() {
         final selected = controller.deliveryFilter.value;
         return Row(
-          children: filters.map((f) {
-            final isSelected = selected == f['value'];
-            return Padding(
+          children: [
+            ...filters.map((f) {
+              final isSelected = selected == f['value'];
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () => controller.setDeliveryFilter(f['value']!),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkCardColor
+                              : AppColors.lightCardColor),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Text(
+                      f['label']!,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : null,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            Padding(
               padding: const EdgeInsets.only(right: 8),
               child: GestureDetector(
-                onTap: () => controller.setDeliveryFilter(f['value']!),
+                onTap: _pickDateRange,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected
+                    color: controller.dateFrom.value.isNotEmpty
                         ? AppColors.primaryColor
                         : (Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkCardColor
                             : AppColors.lightCardColor),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+                      color: controller.dateFrom.value.isNotEmpty
+                          ? AppColors.primaryColor
+                          : Colors.grey.shade300,
                     ),
                   ),
-                  child: Text(
-                    f['label']!,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : null,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Iconsax.calendar_1_copy,
+                        size: 14,
+                        color: controller.dateFrom.value.isNotEmpty ? Colors.white : null,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        controller.dateFrom.value.isEmpty
+                            ? 'Date'.tr
+                            : '${controller.dateFrom.value} - ${controller.dateTo.value}',
+                        style: TextStyle(
+                          color: controller.dateFrom.value.isNotEmpty ? Colors.white : null,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          }).toList(),
+            ),
+          ],
         );
       }),
     );
