@@ -91,7 +91,7 @@ class FeaturedItemsSection extends StatelessWidget {
                               width: double.infinity,
                               fit: BoxFit.cover,
                               errorWidget: (_, __, ___) =>
-                                  const Icon(Iconsax.gallery_remove_copy),
+                                  Icon(Iconsax.gallery_remove_copy),
                             ),
                           ),
                           Padding(
