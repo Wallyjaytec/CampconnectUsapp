@@ -64,7 +64,6 @@ class FlashDealsController extends GetxController {
       ..addAll(favService.read());
     _loadForSection();
     
-    // ✅ Force UI refresh when currency changes
     ever(Get.find<CurrencyController>().selectedCurrency, (_) {
       sectionProducts.refresh();
       for (final list in _dealProducts.values) {
