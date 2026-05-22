@@ -1,54 +1,50 @@
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../data/repositories/refund_repository.dart';
-import '../model/refund_request_model.dart';
+import '../../../data/repositories/my_order_repository.dart';
+import '../model/my_order_model.dart';
 
-class RefundRequestController extends GetxController {
-  RefundRequestController({RefundRepository? repository})
-    : _repo = repository ?? RefundRepository();
+class OrderController extends GetxController {
+  OrderController({OrderRepository? repository})
+    : _repo = repository ?? OrderRepository();
 
-  final RefundRepository _repo;
+  final OrderRepository _repo;
 
-  final RxList<RefundRequest> items = <RefundRequest>[].obs;
+  final RxList<OrderItem> orders = <OrderItem>[].obs;
   final RxBool isLoading = false.obs;
-  final RxBool isRefreshing = false.obs;
-  final RxString error = ''.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxnString error = RxnString();
 
-  final RxString statusFilter = 'all'.obs;
+  final RxString searchKey = ''.obs;
+  final RxString deliveryFilter = 'all'.obs;
   final RxString dateFrom = ''.obs;
   final RxString dateTo = ''.obs;
-  final RxString searchKey = ''.obs;
 
-  final int _perPage = 10;
   int _page = 1;
+  final int _perPage = 10;
   int _lastPage = 1;
-  bool get canLoadMore => _page < _lastPage;
 
-  List<RefundRequest> get filteredItems {
-    List<RefundRequest> result = items.toList();
-    final filter = statusFilter.value;
+  bool get hasMore => _page < _lastPage;
+
+  List<OrderItem> get filteredOrders {
+    List<OrderItem> result = orders.toList();
+    final filter = deliveryFilter.value;
     
-    if (searchKey.value.isNotEmpty) {
-      result = result.where((r) => r.refundCode.toLowerCase().contains(searchKey.value.toLowerCase())).toList();
-    }
-    
-    if (filter == 'pending payment' || filter == 'approved refund') {
-      result = result.where((r) => r.paymentStatusLabel.toLowerCase() == filter).toList();
+    if (filter == 'paid') {
+      result = result.where((o) => o.paymentStatus == '1').toList();
+    } else if (filter == 'due') {
+      result = result.where((o) => o.paymentStatus == '0').toList();
     } else if (filter != 'all') {
-      result = result.where((r) => r.returnStatusLabel.toLowerCase() == filter).toList();
+      result = result.where((o) => o.deliveryStatus == filter).toList();
     }
     
     if (dateFrom.value.isNotEmpty && dateTo.value.isNotEmpty) {
       try {
         final from = DateTime.parse(dateFrom.value);
         final to = DateTime.parse(dateTo.value).add(const Duration(days: 1));
-        result = result.where((r) {
+        result = result.where((o) {
           try {
-            final returnDate = DateTime.parse(r.returnDate);
-            return returnDate.isAfter(from.subtract(const Duration(days: 1))) && returnDate.isBefore(to);
+            final orderDate = DateTime.parse(o.orderDate);
+            return orderDate.isAfter(from.subtract(const Duration(days: 1))) && orderDate.isBefore(to);
           } catch (_) {
             return true;
           }
@@ -62,48 +58,64 @@ class RefundRequestController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchFirstPage();
+    initLoad();
   }
 
-  void setStatusFilter(String status) {
-    if (statusFilter.value == status) {
-      statusFilter.value = 'all';
+  void setDeliveryFilter(String status) {
+    dateFrom.value = '';
+    dateTo.value = '';
+    if (deliveryFilter.value == status) {
+      deliveryFilter.value = 'all';
     } else {
-      statusFilter.value = status;
+      deliveryFilter.value = status;
     }
     update();
   }
 
   void setDateRange(String from, String to) {
-    dateFrom.value = from;
-    dateTo.value = to;
-    update();
-  }
-
-  void setSearchKey(String key) {
-    searchKey.value = key;
+    deliveryFilter.value = 'all';
+    if (dateFrom.value == from && dateTo.value == to) {
+      dateFrom.value = '';
+      dateTo.value = '';
+    } else {
+      dateFrom.value = from;
+      dateTo.value = to;
+    }
     update();
   }
 
   void clearFilters() {
-    statusFilter.value = 'all';
+    deliveryFilter.value = 'all';
     dateFrom.value = '';
     dateTo.value = '';
     searchKey.value = '';
-    update();
+    initLoad();
   }
 
-  Future<void> fetchFirstPage() async {
-    error.value = '';
-    isLoading.value = true;
+  Future<void> initLoad() async {
+    if (isLoading.value) return;
     _page = 1;
+    orders.clear();
+    error.value = null;
+    isLoading.value = true;
+
     try {
-      final res = await _repo.fetchRefundRequests(
+      final res = await _repo.fetchOrders(
         page: _page,
         perPage: _perPage,
+        searchKey: searchKey.value.isEmpty ? null : searchKey.value,
       );
-      items.assignAll(res.data);
-      _lastPage = res.lastPage;
+      orders.addAll(res.data);
+      
+      if (orders.isNotEmpty) {
+        Get.snackbar(
+          'Debug',
+          'delivery: ${orders.first.deliveryStatus}, payment: ${orders.first.paymentStatus}',
+          duration: const Duration(seconds: 5),
+        );
+      }
+      
+      _lastPage = res.meta?.lastPage ?? 1;
     } catch (e) {
       error.value = 'Something went wrong'.tr;
     } finally {
@@ -112,45 +124,33 @@ class RefundRequestController extends GetxController {
   }
 
   Future<void> refreshList() async {
-    isRefreshing.value = true;
-    try {
-      await fetchFirstPage();
-    } finally {
-      isRefreshing.value = false;
-    }
+    await initLoad();
   }
 
   Future<void> loadMore() async {
-    if (!canLoadMore || isLoading.value) return;
-    isLoading.value = true;
+    if (isLoadingMore.value || !hasMore) return;
+    isLoadingMore.value = true;
+    error.value = null;
+
     try {
       _page += 1;
-      final res = await _repo.fetchRefundRequests(
+      final res = await _repo.fetchOrders(
         page: _page,
         perPage: _perPage,
+        searchKey: searchKey.value.isEmpty ? null : searchKey.value,
       );
-      items.addAll(res.data);
-      _lastPage = res.lastPage;
+      orders.addAll(res.data);
+      _lastPage = res.meta?.lastPage ?? _lastPage;
     } catch (e) {
-      _page = (_page > 1) ? _page - 1 : 1;
       error.value = 'Something went wrong'.tr;
+      _page -= 1;
     } finally {
-      isLoading.value = false;
+      isLoadingMore.value = false;
     }
   }
 
-  Future<void> copyRefundCode(String code) async {
-    await Clipboard.setData(ClipboardData(text: code));
-    Get.snackbar(
-      'Copied'.tr,
-      'Refund ID copied to clipboard'.tr,
-      backgroundColor: AppColors.primaryColor,
-      snackPosition: SnackPosition.TOP,
-      colorText: AppColors.whiteColor,
-    );
-  }
-
-  void onTapItem(RefundRequest r) {
-    Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: r.id);
+  Future<void> searchOrders(String query) async {
+    searchKey.value = query;
+    await initLoad();
   }
 }
