@@ -42,10 +42,15 @@ import '../widgets/star_row.dart';
 class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
-  final controller = Get.put(
-    ProductDetailsController(ProductDetailsRepository(ApiService())),
-    permanent: false,
-);
+  ProductDetailsController get controller {
+  final args = Get.arguments;
+  final permalink = (args is Map) ? (args['permalink'] ?? args['slug'] ?? '') : '';
+  final tag = 'product_$permalink';
+  if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
+    return Get.find<ProductDetailsController>(tag: tag);
+  }
+  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
+}
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -209,9 +214,7 @@ class _Gallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(
-      ProductDetailsController(ProductDetailsRepository(ApiService())),
-    );
+    final controller = Get.find<ProductDetailsController>();
     final height = MediaQuery.sizeOf(context).width;
 
     final wish = WishlistController.ensure();
@@ -1258,9 +1261,7 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = Get.put(
-      ProductDetailsController(ProductDetailsRepository(ApiService())),
-    );
+    final controller = Get.find<ProductDetailsController>();
 
     return SafeArea(
       top: false,
@@ -1466,9 +1467,7 @@ class _OverviewBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final controller = Get.put(
-      ProductDetailsController(ProductDetailsRepository(ApiService())),
-    );
+    final controller = Get.find<ProductDetailsController>();
 
     return Obx(() {
       final p = controller.product.value;
@@ -1657,9 +1656,7 @@ class _ReviewsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = Get.put(
-      ProductDetailsController(ProductDetailsRepository(ApiService())),
-    );
+    final controller = Get.find<ProductDetailsController>();
 
     return Obx(() {
       final totalText = controller.totalReviewsText;
