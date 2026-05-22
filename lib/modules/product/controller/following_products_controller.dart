@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/controllers/currency_controller.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/seller_repository.dart';
 import '../../../data/repositories/product_repository.dart';
@@ -25,6 +26,10 @@ class FollowingProductsController extends GetxController {
   void onInit() {
     super.onInit();
     loadInitial();
+    
+    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+      products.refresh();
+    });
   }
 
   Future<void> loadInitial() async {
