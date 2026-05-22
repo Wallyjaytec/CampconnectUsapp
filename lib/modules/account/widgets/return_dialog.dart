@@ -137,10 +137,10 @@ class ReturnDialog extends StatelessWidget {
     }
 
     Widget submitBar() {
-      return SizedBox(
+      return Obx(() => SizedBox(
         width: double.infinity, height: 44,
         child: ElevatedButton(
-          onPressed: () async {
+          onPressed: rc.submitting.value ? null : () async {
             if (rc.selectedReasonId.value == null) {
               Get.snackbar('Required'.tr, 'Please select a refund reason'.tr, snackPosition: SnackPosition.TOP, backgroundColor: AppColors.primaryColor, colorText: AppColors.whiteColor);
               return;
@@ -162,9 +162,9 @@ class ReturnDialog extends StatelessWidget {
             }
           },
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-          child: Text('Submit'.tr),
+          child: rc.submitting.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator()) : Text('Submit'.tr),
         ),
-      );
+      ));
     }
 
     return Dialog(
