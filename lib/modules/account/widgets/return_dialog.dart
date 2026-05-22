@@ -137,7 +137,7 @@ class ReturnDialog extends StatelessWidget {
     }
 
     Widget submitBar() {
-      return Obx(() => SizedBox(
+      return SizedBox(
         width: double.infinity, height: 44,
         child: ElevatedButton(
           onPressed: () {
@@ -150,7 +150,7 @@ class ReturnDialog extends StatelessWidget {
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           child: Text('Submit'.tr),
         ),
-      ));
+      );
     }
 
     return Dialog(
