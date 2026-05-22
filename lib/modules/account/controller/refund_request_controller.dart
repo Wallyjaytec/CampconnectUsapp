@@ -111,15 +111,6 @@ class RefundRequestController extends GetxController {
         perPage: _perPage,
       );
       items.assignAll(res.data);
-      
-      if (items.isNotEmpty) {
-        Get.snackbar(
-          'Debug',
-          'returnStatus: ${items.first.returnStatusLabel}, paymentStatus: ${items.first.paymentStatusLabel}',
-          duration: const Duration(seconds: 5),
-        );
-      }
-      
       _lastPage = res.lastPage;
     } catch (e) {
       error.value = 'Something went wrong'.tr;
