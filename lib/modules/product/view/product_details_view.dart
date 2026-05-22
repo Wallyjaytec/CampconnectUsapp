@@ -1349,23 +1349,25 @@ class _BottomBar extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 2,
-              child: Obx(() {
-                final isLoading = controller.isLoading.value;
-                return _BigCTA(
-                  text: 'Buy Now'.tr,
-                  background: isLoading
-                      ? AppColors.lightBlueColor.withValues(alpha: 0.5)
-                      : AppColors.lightBlueColor,
-                  onTap: isLoading
-                  ? () {}
-                  : () {
-                          final c = Get.find<ProductDetailsController>();
-                          _handleBuyNow(c);
-                        },
-                );
-              }),
-            ),
+  flex: 2,
+  child: Obx(() {
+    final isLoading = controller.isLoading.value;
+    final p = controller.product.value;
+    final outOfStock = p != null && p.quantity <= 0;
+    return _BigCTA(
+      text: outOfStock ? 'Out of Stock'.tr : 'Buy Now'.tr,
+      background: (isLoading || outOfStock)
+          ? AppColors.lightBlueColor.withValues(alpha: 0.5)
+          : AppColors.lightBlueColor,
+      onTap: (isLoading || outOfStock)
+          ? () {}
+          : () {
+              final c = Get.find<ProductDetailsController>();
+              _handleBuyNow(c);
+            },
+    );
+  }),
+),
             const SizedBox(width: 10),
             Expanded(
               flex: 2,
