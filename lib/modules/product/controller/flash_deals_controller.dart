@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 
+import '../../../core/controllers/currency_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/favorites_service.dart';
@@ -62,6 +63,14 @@ class FlashDealsController extends GetxController {
       ..clear()
       ..addAll(favService.read());
     _loadForSection();
+    
+    // ✅ Force UI refresh when currency changes
+    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+      sectionProducts.refresh();
+      for (final list in _dealProducts.values) {
+        list.refresh();
+      }
+    });
   }
 
   @override
