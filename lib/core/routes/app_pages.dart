@@ -7,11 +7,14 @@ import 'package:kartly_e_commerce/modules/account/view/my_wallet_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/privacy_policy_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_view.dart';
+import 'package:kartly_e_commerce/modules/product/view/featured_items_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/following_products_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_checkout_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/guest_order_summary_view.dart';
+import 'package:kartly_e_commerce/modules/product/view/latest_collection_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/new_product_list_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/order_summary_view.dart';
+import 'package:kartly_e_commerce/modules/product/view/popular_items_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/product_filter_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/recently_viewed_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/top_sale_product_view.dart';
@@ -101,6 +104,18 @@ class AppPages {
     GetPage(
       name: AppRoutes.discountSalesView,
       page: () => const DiscountSalesView(),
+    ),
+    GetPage(
+      name: AppRoutes.featuredItemsView,
+      page: () => const FeaturedItemsView(),
+    ),
+    GetPage(
+      name: AppRoutes.latestCollectionView,
+      page: () => const LatestCollectionView(),
+    ),
+    GetPage(
+      name: AppRoutes.popularItemsView,
+      page: () => const PopularItemsView(),
     ),
     GetPage(name: AppRoutes.newProductView, page: () => const NewProductView()),
     GetPage(name: AppRoutes.myAddressView, page: () => const MyAddressView()),
