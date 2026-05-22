@@ -26,7 +26,7 @@ class OrderController extends GetxController {
   bool get hasMore => _page < _lastPage;
 
   List<OrderItem> get filteredOrders {
-    var result = orders;
+    List<OrderItem> result = orders.toList();
     
     if (deliveryFilter.value != 'all') {
       result = result.where((o) => o.deliveryStatus == deliveryFilter.value).toList();
