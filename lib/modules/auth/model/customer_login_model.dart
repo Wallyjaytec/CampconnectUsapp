@@ -54,6 +54,7 @@ class CustomerDashboardContent {
   final int totalOrder;
   final int totalSuccessfullOrder;
   final int totalPendingOrder;
+  final int totalCancelledOrder;
   final num totalPurchaseAmount;
   final String? lastPurchaseDate;
   final num lastPurchaseAmount;
@@ -69,6 +70,7 @@ class CustomerDashboardContent {
     required this.totalOrder,
     required this.totalSuccessfullOrder,
     required this.totalPendingOrder,
+    required this.totalCancelledOrder,
     required this.totalPurchaseAmount,
     required this.lastPurchaseDate,
     required this.lastPurchaseAmount,
@@ -86,6 +88,7 @@ class CustomerDashboardContent {
       totalOrder: _i(j['total_order']),
       totalSuccessfullOrder: _i(j['total_successfull_order']),
       totalPendingOrder: _i(j['total_pending_order']),
+      totalCancelledOrder: _i(j['total_cancelled_order']),
       totalPurchaseAmount: _n(j['total_purchase_amount']),
       lastPurchaseDate: j['last_purchase_date']?.toString(),
       lastPurchaseAmount: _n(j['last_purchase_amount']),
@@ -103,6 +106,7 @@ class CustomerDashboardContent {
     'total_order': totalOrder,
     'total_successfull_order': totalSuccessfullOrder,
     'total_pending_order': totalPendingOrder,
+    'total_cancelled_order': totalCancelledOrder,
     'total_purchase_amount': totalPurchaseAmount,
     'last_purchase_date': lastPurchaseDate,
     'last_purchase_amount': lastPurchaseAmount,
@@ -116,6 +120,5 @@ class CustomerDashboardContent {
   };
 
   static int _i(dynamic v) => int.tryParse(v?.toString() ?? '0') ?? 0;
-  static num _n(dynamic v) =>
-      (v is num) ? v : num.tryParse(v?.toString() ?? '0') ?? 0;
+  static num _n(dynamic v) => (v is num) ? v : num.tryParse(v?.toString() ?? '0') ?? 0;
 }
