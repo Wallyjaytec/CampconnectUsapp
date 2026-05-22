@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/modules/product/controller/following_products_controller.dart';
+import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
 import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
 
 class FollowingSection extends StatefulWidget {
@@ -133,6 +134,8 @@ class _FollowingSectionState extends State<FollowingSection> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                                const SizedBox(height: 4),
+                                StarRow(rating: p.rating),
                                 const SizedBox(height: 4),
                                 Text(formatCurrency(p.price, applyConversion: true), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor)),
                               ],
