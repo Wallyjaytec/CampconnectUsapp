@@ -28,7 +28,7 @@ class RefundRequestController extends GetxController {
   bool get canLoadMore => _page < _lastPage;
 
   List<RefundRequest> get filteredItems {
-    var result = items;
+    List<RefundRequest> result = items.toList();
     
     if (searchKey.value.isNotEmpty) {
       result = result.where((r) => r.refundCode.toLowerCase().contains(searchKey.value.toLowerCase())).toList();
