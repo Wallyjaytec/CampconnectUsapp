@@ -54,7 +54,7 @@ class NewProductController extends GetxController {
     }
     _ensureBrandsLoaded();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       items.refresh();
     });
   }
