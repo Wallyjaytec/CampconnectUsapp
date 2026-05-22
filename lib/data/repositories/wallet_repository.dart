@@ -18,6 +18,7 @@ class WalletRepository {
     required int perPage,
     String? entryType,
     String? rechargeType,
+    String? status,
     String? dateFrom,
     String? dateTo,
   }) async {
@@ -30,6 +31,7 @@ class WalletRepository {
     final params = <String>[];
     if (entryType != null && entryType.isNotEmpty) params.add('entry_type=$entryType');
     if (rechargeType != null && rechargeType.isNotEmpty) params.add('recharge_type=$rechargeType');
+    if (status != null && status.isNotEmpty) params.add('status=$status');
     if (dateFrom != null && dateFrom.isNotEmpty) params.add('date_from=$dateFrom');
     if (dateTo != null && dateTo.isNotEmpty) params.add('date_to=$dateTo');
     if (params.isNotEmpty) url = '$url?${params.join('&')}';
