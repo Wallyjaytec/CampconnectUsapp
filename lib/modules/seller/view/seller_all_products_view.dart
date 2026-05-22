@@ -11,6 +11,7 @@ import '../../../shared/widgets/cart_icon_widget.dart';
 import '../../../shared/widgets/notification_icon_widget.dart';
 import '../../../shared/widgets/search_icon_widget.dart';
 import '../../../shared/widgets/shimmer_widgets.dart';
+import '../../product/controller/product_details_controller.dart';
 import '../../product/model/product_model.dart';
 import '../../product/widgets/star_row.dart';
 import '../../wishlist/controller/wishlist_controller.dart';
@@ -96,7 +97,6 @@ class _SellerAllProductsViewState extends State<SellerAllProductsView> {
           titleSpacing: 10,
           leadingWidth: 44,
           elevation: 0,
-          //leading: const BackButtonIcon(),
           centerTitle: false,
           title: Obx(
             () => Text(
@@ -262,10 +262,15 @@ class _ListCard extends GetView<SellerAllProductsController> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () => Get.toNamed(
-            AppRoutes.productDetailsView,
-            arguments: controller.toDetailsArgs(p),
-          ),
+          onTap: () {
+            if (Get.isRegistered<ProductDetailsController>()) {
+              Get.delete<ProductDetailsController>(force: true);
+            }
+            Get.toNamed(
+              AppRoutes.productDetailsView,
+              arguments: controller.toDetailsArgs(p),
+            );
+          },
           child: Column(
             children: [
               Expanded(
