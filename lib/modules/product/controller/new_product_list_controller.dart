@@ -64,7 +64,7 @@ class NewProductListController extends GetxController {
   void onInit() {
     super.onInit();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       products.refresh();
     });
   }
