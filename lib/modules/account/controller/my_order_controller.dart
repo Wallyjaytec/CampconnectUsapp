@@ -32,7 +32,7 @@ class OrderController extends GetxController {
     if (filter == 'paid') {
       result = result.where((o) => o.paymentStatus == '1').toList();
     } else if (filter == 'due') {
-      result = result.where((o) => o.paymentStatus == '0').toList();
+      result = result.where((o) => o.paymentStatus == '2').toList();
     } else if (filter != 'all') {
       result = result.where((o) => o.deliveryStatus == filter).toList();
     }
@@ -106,15 +106,6 @@ class OrderController extends GetxController {
         searchKey: searchKey.value.isEmpty ? null : searchKey.value,
       );
       orders.addAll(res.data);
-      
-      if (orders.isNotEmpty) {
-        Get.snackbar(
-          'Debug',
-          'delivery: ${orders.first.deliveryStatus}, payment: ${orders.first.paymentStatus}',
-          duration: const Duration(seconds: 5),
-        );
-      }
-      
       _lastPage = res.meta?.lastPage ?? 1;
     } catch (e) {
       error.value = 'Something went wrong'.tr;
