@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/controllers/currency_controller.dart';
 import '../../../core/services/currency_service.dart';
 import '../../../data/repositories/brand_repository.dart';
 import '../../../data/repositories/product_repository.dart';
@@ -58,6 +59,15 @@ class NewProductListController extends GetxController {
 
   int _epoch = 0;
   String _activeQueryKey = '';
+
+  @override
+  void onInit() {
+    super.onInit();
+    
+    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+      products.refresh();
+    });
+  }
 
   void clearOnlyFilters({bool resetSorting = true}) {
     if (resetSorting) {
