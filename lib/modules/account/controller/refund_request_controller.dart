@@ -29,16 +29,16 @@ class RefundRequestController extends GetxController {
 
   List<RefundRequest> get filteredItems {
     List<RefundRequest> result = items.toList();
+    final filter = statusFilter.value;
     
     if (searchKey.value.isNotEmpty) {
       result = result.where((r) => r.refundCode.toLowerCase().contains(searchKey.value.toLowerCase())).toList();
     }
     
-    if (statusFilter.value != 'all') {
-      result = result.where((r) {
-        final label = r.returnStatusLabel.toLowerCase();
-        return label == statusFilter.value;
-      }).toList();
+    if (filter == 'pending payment' || filter == 'approved refund') {
+      result = result.where((r) => r.paymentStatusLabel.toLowerCase() == filter).toList();
+    } else if (filter != 'all') {
+      result = result.where((r) => r.returnStatusLabel.toLowerCase() == filter).toList();
     }
     
     if (dateFrom.value.isNotEmpty && dateTo.value.isNotEmpty) {
@@ -66,7 +66,11 @@ class RefundRequestController extends GetxController {
   }
 
   void setStatusFilter(String status) {
-    statusFilter.value = status;
+    if (statusFilter.value == status) {
+      statusFilter.value = 'all';
+    } else {
+      statusFilter.value = status;
+    }
     update();
   }
 
