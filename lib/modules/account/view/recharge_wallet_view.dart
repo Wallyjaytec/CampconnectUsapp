@@ -163,10 +163,12 @@ class _OnlineAmountSheet extends StatelessWidget {
               final result = await Get.to<bool>(() => WebPayView(initialUrl: url, headers: headers));
               if (result == true) {
                 if (Get.isBottomSheetOpen == true) safeBack();
-                Get.back(); // close recharge page
-                if (Get.isRegistered<WalletController>()) {
-                  Get.find<WalletController>().refreshList();
-                }
+                Get.offNamedUntil(AppRoutes.myWalletView, (route) => false);
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (Get.isRegistered<WalletController>()) {
+                    Get.find<WalletController>().refreshList();
+                  }
+                });
               }
             },
             icon: c.isGeneratingLink.value ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Iconsax.send_2_copy),
@@ -178,7 +180,6 @@ class _OnlineAmountSheet extends StatelessWidget {
     });
   }
 }
-
 class _OfflineTab extends StatelessWidget {
   const _OfflineTab({required this.methods, required this.currencyCode});
   final List<WalletOfflineMethod> methods;
