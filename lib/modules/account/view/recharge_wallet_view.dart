@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import '../../../core/routes/app_routes.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/currency_service.dart';
 import '../../../core/services/login_service.dart';
