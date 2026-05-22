@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/controllers/currency_controller.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/product_repository.dart';
 import '../model/product_model.dart';
@@ -13,6 +14,11 @@ class DiscountSalesController extends GetxController {
   void onInit() {
     super.onInit();
     loadDiscountProducts();
+    
+    // ✅ Force UI refresh when currency changes
+    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+      products.refresh();
+    });
   }
 
   Future<void> loadDiscountProducts() async {
