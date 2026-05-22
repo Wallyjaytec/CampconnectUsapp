@@ -27,7 +27,7 @@ class FollowingProductsController extends GetxController {
     super.onInit();
     loadInitial();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       products.refresh();
     });
   }
