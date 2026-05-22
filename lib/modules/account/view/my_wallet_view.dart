@@ -209,12 +209,13 @@ class _TransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     String capFirst(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
-    return Container(height: 98, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), child: Stack(children: [
+    return Container(height: 115, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), child: Stack(children: [
       Positioned(top: 10, right: 10, child: _StatusChip(status: tx.status)),
       Positioned(left: 10, top: 10, child: _Line(label: 'Date'.tr, value: tx.date)),
-      Positioned(left: 10, top: 30, child: _Line(label: 'Amount'.tr, value: formatCurrency(tx.rechargeAmount, applyConversion: true))),
-      Positioned(left: 10, top: 50, child: _TypeLine(type: tx.type)),
-      Positioned(left: 10, top: 70, child: _Line(label: 'Payment Option'.tr, value: capFirst(tx.paymentMethod))),
+      Positioned(left: 10, top: 28, child: _Line(label: 'Time'.tr, value: tx.time)),
+      Positioned(left: 10, top: 46, child: _Line(label: 'Amount'.tr, value: formatCurrency(tx.rechargeAmount, applyConversion: true))),
+      Positioned(left: 10, top: 64, child: _TypeLine(type: tx.type)),
+      Positioned(left: 10, top: 82, child: _Line(label: 'Payment Option'.tr, value: capFirst(tx.paymentMethod))),
     ]));
   }
 }
@@ -264,7 +265,7 @@ class _ShimmerList extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = Theme.of(context).brightness == Brightness.dark ? Colors.white12 : Colors.black12;
     final highlight = Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black26;
-    return ListView.builder(physics: const NeverScrollableScrollPhysics(), shrinkWrap: true, itemCount: 6, itemBuilder: (_, __) => Padding(padding: const EdgeInsets.only(bottom: 10), child: Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: Container(height: 110, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(12))))));
+    return ListView.builder(physics: const NeverScrollableScrollPhysics(), shrinkWrap: true, itemCount: 6, itemBuilder: (_, __) => Padding(padding: const EdgeInsets.only(bottom: 10), child: Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: Container(height: 115, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(12))))));
   }
 }
 
