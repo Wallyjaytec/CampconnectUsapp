@@ -164,7 +164,7 @@ class _OnlineAmountSheet extends StatelessWidget {
               final result = await Get.to<bool>(() => WebPayView(initialUrl: url, headers: headers));
               if (result == true) {
                 if (Get.isBottomSheetOpen == true) safeBack();
-                Get.offNamedUntil(AppRoutes.myWalletView, (route) => false);
+                Get.offNamedUntil(AppRoutes.myWalletView, (route) => route.isFirst);
                 Future.delayed(const Duration(milliseconds: 300), () {
                   if (Get.isRegistered<WalletController>()) {
                     Get.find<WalletController>().refreshList();
