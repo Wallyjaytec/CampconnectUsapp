@@ -128,6 +128,22 @@ class _MyOrderListViewState extends State<MyOrderListView> {
     );
   }
 
+  Widget _orderHistoryHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 4),
+      child: Row(
+        children: [
+          const Icon(Iconsax.receipt_2_1_copy, size: 18, color: AppColors.primaryColor),
+          const SizedBox(width: 8),
+          Text(
+            'Order History'.tr,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _filterChips() {
     final filters = [
       {'label': 'All'.tr, 'value': 'all'},
@@ -334,25 +350,31 @@ class _MyOrderListViewState extends State<MyOrderListView> {
           child: Builder(
             builder: (_) {
               if (isLoading && items.isEmpty) {
-                return ListView.builder(padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), itemCount: _initialShimmerCount + 1, itemBuilder: (_, i) => i == 0 ? _searchField() : _orderShimmerCard(context));
+                return ListView.builder(padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), itemCount: _initialShimmerCount + 3, itemBuilder: (_, i) {
+                  if (i == 0) return _searchField();
+                  if (i == 1) return _orderHistoryHeader();
+                  if (i == 2) return _filterChips();
+                  return _orderShimmerCard(context);
+                });
               }
               if (err != null && items.isEmpty && query.isEmpty) return _errorView(err);
-              if (!isLoading && items.isEmpty && query.isEmpty) return Column(children: [_searchField(), _filterChips(), Expanded(child: _emptyOrdersView())]);
-              if (!isLoading && items.isEmpty && query.isNotEmpty) return Column(children: [_searchField(), _filterChips(), Expanded(child: _emptySearchView(query))]);
+              if (!isLoading && items.isEmpty && query.isEmpty) return Column(children: [_searchField(), _orderHistoryHeader(), _filterChips(), Expanded(child: _emptyOrdersView())]);
+              if (!isLoading && items.isEmpty && query.isNotEmpty) return Column(children: [_searchField(), _orderHistoryHeader(), _filterChips(), Expanded(child: _emptySearchView(query))]);
               if (items.isNotEmpty) {
                 return ListView.builder(
                   controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: items.length + 2 + (isLoadingMore ? _loadMoreShimmerCount : 0),
+                  itemCount: items.length + 3 + (isLoadingMore ? _loadMoreShimmerCount : 0),
                   itemBuilder: (context, index) {
                     if (index == 0) return _searchField();
-                    if (index == 1) return _filterChips();
-                    final listIndex = index - 2;
+                    if (index == 1) return _orderHistoryHeader();
+                    if (index == 2) return _filterChips();
+                    final listIndex = index - 3;
                     if (listIndex >= items.length) return _orderShimmerCard(context);
                     return _orderTile(items[listIndex]);
                   },
                 );
               }
-              return ListView(padding: EdgeInsets.zero, children: [_searchField(), _filterChips()]);
+              return ListView(padding: EdgeInsets.zero, children: [_searchField(), _orderHistoryHeader(), _filterChips()]);
             },
           ),
         );
