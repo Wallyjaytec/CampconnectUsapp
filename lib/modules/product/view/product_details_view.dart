@@ -46,7 +46,7 @@ class ProductDetailsView extends StatelessWidget {
   if (Get.isRegistered<ProductDetailsController>()) {
     Get.delete<ProductDetailsController>(force: true);
   }
-  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService()));
+  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
 }
   @override
   Widget build(BuildContext context) {
