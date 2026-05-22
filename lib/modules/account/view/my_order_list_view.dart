@@ -128,6 +128,60 @@ class _MyOrderListViewState extends State<MyOrderListView> {
     );
   }
 
+  Widget _filterChips() {
+    final filters = [
+      {'label': 'All'.tr, 'value': 'all'},
+      {'label': 'Paid'.tr, 'value': 'paid'},
+      {'label': 'Due'.tr, 'value': 'due'},
+      {'label': 'Pending'.tr, 'value': 'pending'},
+      {'label': 'Ready to ship'.tr, 'value': 'ready_to_ship'},
+      {'label': 'Shipped'.tr, 'value': 'shipped'},
+      {'label': 'Delivered'.tr, 'value': 'delivered'},
+      {'label': 'Cancelled'.tr, 'value': 'cancelled'},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Obx(() {
+        final selected = controller.deliveryFilter.value;
+        return Row(
+          children: filters.map((f) {
+            final isSelected = selected == f['value'];
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () => controller.setDeliveryFilter(f['value']!),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primaryColor
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkCardColor
+                            : AppColors.lightCardColor),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Text(
+                    f['label']!,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : null,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      }),
+    );
+  }
+
   Widget _orderShimmerCard(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
@@ -271,7 +325,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
       body: Obx(() {
         final isLoading = controller.isLoading.value;
         final isLoadingMore = controller.isLoadingMore.value;
-        final items = controller.orders;
+        final items = controller.filteredOrders;
         final err = controller.error.value;
         final query = controller.searchKey.value.trim();
 
@@ -283,21 +337,22 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 return ListView.builder(padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), itemCount: _initialShimmerCount + 1, itemBuilder: (_, i) => i == 0 ? _searchField() : _orderShimmerCard(context));
               }
               if (err != null && items.isEmpty && query.isEmpty) return _errorView(err);
-              if (!isLoading && items.isEmpty && query.isEmpty) return Column(children: [_searchField(), Expanded(child: _emptyOrdersView())]);
-              if (!isLoading && items.isEmpty && query.isNotEmpty) return Column(children: [_searchField(), Expanded(child: _emptySearchView(query))]);
+              if (!isLoading && items.isEmpty && query.isEmpty) return Column(children: [_searchField(), _filterChips(), Expanded(child: _emptyOrdersView())]);
+              if (!isLoading && items.isEmpty && query.isNotEmpty) return Column(children: [_searchField(), _filterChips(), Expanded(child: _emptySearchView(query))]);
               if (items.isNotEmpty) {
                 return ListView.builder(
                   controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: items.length + 1 + (isLoadingMore ? _loadMoreShimmerCount : 0),
+                  itemCount: items.length + 2 + (isLoadingMore ? _loadMoreShimmerCount : 0),
                   itemBuilder: (context, index) {
                     if (index == 0) return _searchField();
-                    final listIndex = index - 1;
+                    if (index == 1) return _filterChips();
+                    final listIndex = index - 2;
                     if (listIndex >= items.length) return _orderShimmerCard(context);
                     return _orderTile(items[listIndex]);
                   },
                 );
               }
-              return ListView(padding: EdgeInsets.zero, children: [_searchField()]);
+              return ListView(padding: EdgeInsets.zero, children: [_searchField(), _filterChips()]);
             },
           ),
         );
