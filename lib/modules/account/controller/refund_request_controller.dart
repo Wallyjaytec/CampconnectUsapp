@@ -20,6 +20,7 @@ class RefundRequestController extends GetxController {
   final RxString statusFilter = 'all'.obs;
   final RxString dateFrom = ''.obs;
   final RxString dateTo = ''.obs;
+  final RxString searchKey = ''.obs;
 
   final int _perPage = 10;
   int _page = 1;
@@ -28,6 +29,10 @@ class RefundRequestController extends GetxController {
 
   List<RefundRequest> get filteredItems {
     var result = items;
+    
+    if (searchKey.value.isNotEmpty) {
+      result = result.where((r) => r.refundCode.toLowerCase().contains(searchKey.value.toLowerCase())).toList();
+    }
     
     if (statusFilter.value != 'all') {
       result = result.where((r) {
@@ -71,10 +76,16 @@ class RefundRequestController extends GetxController {
     update();
   }
 
+  void setSearchKey(String key) {
+    searchKey.value = key;
+    update();
+  }
+
   void clearFilters() {
     statusFilter.value = 'all';
     dateFrom.value = '';
     dateTo.value = '';
+    searchKey.value = '';
     update();
   }
 
