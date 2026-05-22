@@ -12,46 +12,295 @@ import '../../../shared/widgets/search_icon_widget.dart';
 import '../controller/refund_request_controller.dart';
 import '../widgets/status_badge.dart';
 
-class RefundRequestListView extends StatelessWidget {
+class RefundRequestListView extends StatefulWidget {
   const RefundRequestListView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return GetX<RefundRequestController>(
-      init: RefundRequestController(),
-      builder: (c) {
-        return Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leadingWidth: 44,
-            leading: const BackIconWidget(),
-            centerTitle: false,
-            titleSpacing: 0,
-            title: Text(
-              'Refund Requests'.tr,
-              style: const TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 18,
+  State<RefundRequestListView> createState() => _RefundRequestListViewState();
+}
+
+class _RefundRequestListViewState extends State<RefundRequestListView> {
+  late final RefundRequestController c;
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    c = Get.put(RefundRequestController(), permanent: false);
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final initial = DateTimeRange(
+      start: now.subtract(const Duration(days: 30)),
+      end: now,
+    );
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2023),
+      lastDate: now,
+      initialDateRange: c.dateFrom.value.isNotEmpty
+          ? DateTimeRange(
+              start: DateTime.parse(c.dateFrom.value),
+              end: DateTime.parse(c.dateTo.value),
+            )
+          : initial,
+    );
+    if (picked != null) {
+      c.setDateRange(
+        picked.start.toIso8601String().split('T')[0],
+        picked.end.toIso8601String().split('T')[0],
+      );
+    }
+  }
+
+  Widget _searchField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchCtrl,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) {
+                c.setSearchKey(value.trim());
+              },
+              onChanged: (value) {
+                if (value.isEmpty) {
+                  c.setSearchKey('');
+                }
+              },
+              decoration: InputDecoration(
+                hintText: 'Search by Refund ID'.tr,
+                hintStyle: const TextStyle(
+                  color: AppColors.greyColor,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                isDense: true,
               ),
             ),
-            actionsPadding: const EdgeInsetsDirectional.only(end: 10),
-            actions: const [
-              SearchIconWidget(),
-              CartIconWidget(),
-              NotificationIconWidget(),
-            ],
-            elevation: 0,
           ),
-          body: RefreshIndicator(
-            onRefresh: c.refreshList,
-            child: c.isLoading.value && c.items.isEmpty
-                ? ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: 6,
-                    itemBuilder: (ctx, i) => _orderShimmerCard(ctx),
-                  )
-                : c.items.isEmpty
-                ? Center(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_searchCtrl.text.isNotEmpty)
+                InkWell(
+                  radius: 10,
+                  onTap: () {
+                    _searchCtrl.clear();
+                    c.setSearchKey('');
+                  },
+                  child: const Icon(Iconsax.close_circle_copy, size: 18),
+                ),
+              const SizedBox(width: 10),
+              InkWell(
+                radius: 10,
+                onTap: () {
+                  final q = _searchCtrl.text.trim();
+                  FocusScope.of(context).unfocus();
+                  c.setSearchKey(q);
+                },
+                child: const Icon(Iconsax.search_normal_1_copy, size: 18),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 4),
+      child: Row(
+        children: [
+          const Icon(Iconsax.receipt_2_1_copy, size: 18, color: AppColors.primaryColor),
+          const SizedBox(width: 8),
+          Text(
+            'Refund/Return History'.tr,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChips() {
+    final filters = [
+      {'label': 'All'.tr, 'value': 'all'},
+      {'label': 'Pending Return'.tr, 'value': 'pending return'},
+      {'label': 'Processing Return'.tr, 'value': 'processing return'},
+      {'label': 'Product Received'.tr, 'value': 'product received'},
+      {'label': 'Approved Return'.tr, 'value': 'approved return'},
+      {'label': 'Canceled Return'.tr, 'value': 'canceled return'},
+      {'label': 'Pending Payment'.tr, 'value': 'pending payment'},
+      {'label': 'Approved Refund'.tr, 'value': 'approved refund'},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Obx(() {
+        final selected = c.statusFilter.value;
+        return Row(
+          children: [
+            ...filters.map((f) {
+              final isSelected = selected == f['value'];
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () => c.setStatusFilter(f['value']!),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryColor
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkCardColor
+                              : AppColors.lightCardColor),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Text(
+                      f['label']!,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : null,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: _pickDateRange,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: c.dateFrom.value.isNotEmpty
+                        ? AppColors.primaryColor
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkCardColor
+                            : AppColors.lightCardColor),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: c.dateFrom.value.isNotEmpty
+                          ? AppColors.primaryColor
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Iconsax.calendar_1_copy,
+                        size: 14,
+                        color: c.dateFrom.value.isNotEmpty ? Colors.white : null,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        c.dateFrom.value.isEmpty
+                            ? 'Date'.tr
+                            : '${c.dateFrom.value} - ${c.dateTo.value}',
+                        style: TextStyle(
+                          color: c.dateFrom.value.isNotEmpty ? Colors.white : null,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leadingWidth: 44,
+        leading: const BackIconWidget(),
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Text(
+          'Refund Requests'.tr,
+          style: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 18,
+          ),
+        ),
+        actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+        actions: const [
+          SearchIconWidget(),
+          CartIconWidget(),
+          NotificationIconWidget(),
+        ],
+        elevation: 0,
+      ),
+      body: RefreshIndicator(
+        onRefresh: c.refreshList,
+        child: Obx(() {
+          final items = c.filteredItems;
+
+          if (c.isLoading.value && items.isEmpty) {
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: 9,
+              itemBuilder: (ctx, i) {
+                if (i == 0) return _searchField();
+                if (i == 1) return _sectionHeader();
+                if (i == 2) return _filterChips();
+                return _orderShimmerCard(ctx);
+              },
+            );
+          }
+
+          if (c.error.isNotEmpty && items.isEmpty) {
+            return _ErrorView(error: c.error.value, onRetry: c.fetchFirstPage);
+          }
+
+          if (items.isEmpty) {
+            return Column(
+              children: [
+                _searchField(),
+                _sectionHeader(),
+                _filterChips(),
+                Expanded(
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -71,40 +320,43 @@ class RefundRequestListView extends StatelessWidget {
                         ),
                       ],
                     ),
-                  )
-                : c.error.isNotEmpty && c.items.isEmpty
-                ? _ErrorView(error: c.error.value, onRetry: c.fetchFirstPage)
-                : NotificationListener<ScrollNotification>(
-                    onNotification: (sn) {
-                      if (sn.metrics.pixels >=
-                          sn.metrics.maxScrollExtent - 80) {
-                        c.loadMore();
-                      }
-                      return false;
-                    },
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: c.items.length + (c.canLoadMore ? 1 : 0),
-                      itemBuilder: (ctx, index) {
-                        if (index >= c.items.length) {
-                          return _orderShimmerCard(ctx);
-                        }
-                        final item = c.items[index];
-                        return _RefundRow(
-                          refundCode: item.refundCode,
-                          returnDate: item.returnDate,
-                          refundedAmount: item.totalRefundAmount,
-                          paymentStatus: item.paymentStatusLabel,
-                          returnStatus: item.returnStatusLabel,
-                          onCopy: () => c.copyRefundCode(item.refundCode),
-                          onTap: () => c.onTapItem(item),
-                        );
-                      },
-                    ),
                   ),
-          ),
-        );
-      },
+                ),
+              ],
+            );
+          }
+
+          return NotificationListener<ScrollNotification>(
+            onNotification: (sn) {
+              if (sn.metrics.pixels >= sn.metrics.maxScrollExtent - 80) {
+                c.loadMore();
+              }
+              return false;
+            },
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: items.length + 3 + (c.canLoadMore ? 1 : 0),
+              itemBuilder: (ctx, index) {
+                if (index == 0) return _searchField();
+                if (index == 1) return _sectionHeader();
+                if (index == 2) return _filterChips();
+                final listIndex = index - 3;
+                if (listIndex >= items.length) return _orderShimmerCard(ctx);
+                final item = items[listIndex];
+                return _RefundRow(
+                  refundCode: item.refundCode,
+                  returnDate: item.returnDate,
+                  refundedAmount: item.totalRefundAmount,
+                  paymentStatus: item.paymentStatusLabel,
+                  returnStatus: item.returnStatusLabel,
+                  onCopy: () => c.copyRefundCode(item.refundCode),
+                  onTap: () => c.onTapItem(item),
+                );
+              },
+            ),
+          );
+        }),
+      ),
     );
   }
 }
