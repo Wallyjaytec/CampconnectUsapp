@@ -313,41 +313,41 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
 
           if (items.isEmpty) {
             if (c.searchKey.value.isNotEmpty) {
-              return Column(
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   _searchField(),
                   _sectionHeader(),
                   _filterChips(),
-                  Expanded(child: _emptySearchView()),
+                  _emptySearchView(),
                 ],
               );
             }
-            return Column(
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 _searchField(),
                 _sectionHeader(),
                 _filterChips(),
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/icons/empty_refund.png',
-                          width: 120,
-                          height: 120,
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/icons/empty_refund.png',
+                        width: 120,
+                        height: 120,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'You have no refund/return request'.tr,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'You have no refund/return request'.tr,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ],
