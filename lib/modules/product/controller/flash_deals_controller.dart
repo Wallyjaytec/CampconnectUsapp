@@ -64,7 +64,7 @@ class FlashDealsController extends GetxController {
       ..addAll(favService.read());
     _loadForSection();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       sectionProducts.refresh();
       for (final list in _dealProducts.values) {
         list.refresh();
