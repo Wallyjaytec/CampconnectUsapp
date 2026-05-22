@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kartly_e_commerce/modules/product/controller/new_product_list_controller.dart';
 import 'package:kartly_e_commerce/modules/product/controller/following_products_controller.dart';
+import 'package:kartly_e_commerce/modules/product/view/featured_items_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/following_section.dart';
+import 'package:kartly_e_commerce/modules/product/view/latest_collection_section.dart';
+import 'package:kartly_e_commerce/modules/product/view/popular_items_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/recently_viewed_section.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -266,6 +269,9 @@ class _HomeViewState extends State<HomeView> {
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 45, title: 'Health & Beauty')),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 43, title: 'Jewelry')),
+                      const SliverToBoxAdapter(child: FeaturedItemsSection()),
+                      const SliverToBoxAdapter(child: PopularItemsSection()),
+                      const SliverToBoxAdapter(child: LatestCollectionSection()),
                       const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
                       SliverToBoxAdapter(child: ForYouSection()),
                     ],
