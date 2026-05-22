@@ -175,9 +175,11 @@ class _MyOrderListViewState extends State<MyOrderListView> {
       {'label': 'Paid'.tr, 'value': 'paid'},
       {'label': 'Due'.tr, 'value': 'due'},
       {'label': 'Pending'.tr, 'value': '2'},
+      {'label': 'Processing'.tr, 'value': '5'},
+      {'label': 'Ready to ship'.tr, 'value': '6'},
       {'label': 'Shipped'.tr, 'value': '3'},
       {'label': 'Delivered'.tr, 'value': '1'},
-      {'label': 'Cancelled'.tr, 'value': 'cancelled'},
+      {'label': 'Cancelled'.tr, 'value': '4'},
     ];
 
     return SingleChildScrollView(
@@ -427,8 +429,18 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                 });
               }
               if (err != null && items.isEmpty && query.isEmpty) return _errorView(err);
-              if (!isLoading && items.isEmpty && query.isEmpty) return Column(children: [_searchField(), _orderHistoryHeader(), _filterChips(), Expanded(child: _emptyOrdersView())]);
-              if (!isLoading && items.isEmpty && query.isNotEmpty) return Column(children: [_searchField(), _orderHistoryHeader(), _filterChips(), Expanded(child: _emptySearchView(query))]);
+              if (!isLoading && items.isEmpty && query.isEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [_searchField(), _orderHistoryHeader(), _filterChips(), _emptyOrdersView()],
+                );
+              }
+              if (!isLoading && items.isEmpty && query.isNotEmpty) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [_searchField(), _orderHistoryHeader(), _filterChips(), _emptySearchView(query)],
+                );
+              }
               if (items.isNotEmpty) {
                 return ListView.builder(
                   controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(),
@@ -443,7 +455,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
                   },
                 );
               }
-              return ListView(padding: EdgeInsets.zero, children: [_searchField(), _orderHistoryHeader(), _filterChips()]);
+              return ListView(padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [_searchField(), _orderHistoryHeader(), _filterChips()]);
             },
           ),
         );
