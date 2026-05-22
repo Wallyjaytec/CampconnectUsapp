@@ -174,10 +174,9 @@ class _MyOrderListViewState extends State<MyOrderListView> {
       {'label': 'All'.tr, 'value': 'all'},
       {'label': 'Paid'.tr, 'value': 'paid'},
       {'label': 'Due'.tr, 'value': 'due'},
-      {'label': 'Pending'.tr, 'value': 'pending'},
-      {'label': 'Ready to ship'.tr, 'value': 'ready_to_ship'},
-      {'label': 'Shipped'.tr, 'value': 'shipped'},
-      {'label': 'Delivered'.tr, 'value': 'delivered'},
+      {'label': 'Pending'.tr, 'value': '2'},
+      {'label': 'Shipped'.tr, 'value': '3'},
+      {'label': 'Delivered'.tr, 'value': '1'},
       {'label': 'Cancelled'.tr, 'value': 'cancelled'},
     ];
 
