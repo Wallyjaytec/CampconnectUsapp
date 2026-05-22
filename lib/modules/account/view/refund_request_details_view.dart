@@ -98,9 +98,11 @@ class RefundRequestDetailsView extends StatelessWidget {
         final d = c.details.value;
         if (d == null) return const SizedBox.shrink();
 
+        final cancelled = d.returnStatus.toLowerCase() == 'cancelled' ||
+                          d.returnStatus.toLowerCase() == 'canceled';
+
         final step = c.currentStepByLabel(d.returnStatus, d.paymentStatus);
-        final isFinalStatus = d.returnStatus.toLowerCase() == 'refunded' || 
-                              d.returnStatus.toLowerCase() == 'cancelled' ||
+        final isFinalStatus = d.returnStatus.toLowerCase() == 'refunded' ||
                               d.returnStatus.toLowerCase() == 'approved';
 
         return RefreshIndicator(
@@ -160,33 +162,49 @@ class RefundRequestDetailsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _kvSmall('Return'.tr, _titleCase(d.returnStatus)),
+                    if (cancelled) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.withValues(alpha: 0.25)),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: _kvSmall(
-                              'Payment'.tr,
-                              _titleCase(d.paymentStatus),
-                              color: _statusColor(d.paymentStatus),
+                        child: Text(
+                          'This refund request has been cancelled'.tr,
+                          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+                        ),
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _kvSmall('Return'.tr, _titleCase(d.returnStatus)),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: _kvSmall(
+                                'Payment'.tr,
+                                _titleCase(d.paymentStatus),
+                                color: _statusColor(d.paymentStatus),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _stepperWithShimmer(context, step),
-                    const SizedBox(height: 10),
-                    _trackingPanel(
-                      context: context,
-                      tracking: d.tracking,
-                      c: c,
-                      isFinalStatus: isFinalStatus,
-                    ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _stepperWithShimmer(context, step),
+                      const SizedBox(height: 10),
+                      _trackingPanel(
+                        context: context,
+                        tracking: d.tracking,
+                        c: c,
+                        isFinalStatus: isFinalStatus,
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
