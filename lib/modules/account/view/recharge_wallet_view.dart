@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../controller/customer_dashboard_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/currency_service.dart';
@@ -169,6 +170,9 @@ class _OnlineAmountSheet extends StatelessWidget {
                   if (Get.isRegistered<WalletController>()) {
                     Get.find<WalletController>().refreshList();
                   }
+                  if (Get.isRegistered<CustomerDashboardController>()) {
+                    Get.find<CustomerDashboardController>().fetchDashboard();
+                  }
                 });
               }
             },
@@ -211,6 +215,9 @@ class _OfflineTab extends StatelessWidget {
               Future.delayed(const Duration(milliseconds: 300), () {
                 if (Get.isRegistered<WalletController>()) {
                   Get.find<WalletController>().refreshList();
+                }
+                if (Get.isRegistered<CustomerDashboardController>()) {
+                  Get.find<CustomerDashboardController>().fetchDashboard();
                 }
               });
             } 
