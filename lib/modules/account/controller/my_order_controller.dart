@@ -98,6 +98,15 @@ class OrderController extends GetxController {
         searchKey: searchKey.value.isEmpty ? null : searchKey.value,
       );
       orders.addAll(res.data);
+      
+      if (orders.isNotEmpty) {
+        Get.snackbar(
+          'Debug',
+          'delivery: ${orders.first.deliveryStatus}, payment: ${orders.first.paymentStatus}',
+          duration: const Duration(seconds: 5),
+        );
+      }
+      
       _lastPage = res.meta?.lastPage ?? 1;
     } catch (e) {
       error.value = 'Something went wrong'.tr;
