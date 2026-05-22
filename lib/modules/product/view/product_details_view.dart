@@ -42,12 +42,9 @@ import '../widgets/star_row.dart';
 class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
-  ProductDetailsController get controller {
-  if (Get.isRegistered<ProductDetailsController>()) {
-    Get.delete<ProductDetailsController>(force: true);
-  }
-  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
-}
+  final controller = Get.put(
+    ProductDetailsController(ProductDetailsRepository(ApiService())),
+);
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -211,7 +208,9 @@ class _Gallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ProductDetailsController>();
+    final controller = Get.put(
+    ProductDetailsController(ProductDetailsRepository(ApiService())),
+);
     final height = MediaQuery.sizeOf(context).width;
 
     final wish = WishlistController.ensure();
@@ -1258,7 +1257,9 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = Get.find<ProductDetailsController>();
+    final controller = Get.put(
+    ProductDetailsController(ProductDetailsRepository(ApiService())),
+);
 
     return SafeArea(
       top: false,
@@ -1464,7 +1465,9 @@ class _OverviewBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final controller = Get.find<ProductDetailsController>();
+    final controller = Get.put(
+    ProductDetailsController(ProductDetailsRepository(ApiService())),
+);
 
     return Obx(() {
       final p = controller.product.value;
@@ -1653,7 +1656,9 @@ class _ReviewsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = Get.find<ProductDetailsController>();
+    final controller = Get.put(
+    ProductDetailsController(ProductDetailsRepository(ApiService())),
+);
 
     return Obx(() {
       final totalText = controller.totalReviewsText;
