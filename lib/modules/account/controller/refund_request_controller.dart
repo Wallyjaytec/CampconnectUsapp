@@ -17,15 +17,65 @@ class RefundRequestController extends GetxController {
   final RxBool isRefreshing = false.obs;
   final RxString error = ''.obs;
 
+  final RxString statusFilter = 'all'.obs;
+  final RxString dateFrom = ''.obs;
+  final RxString dateTo = ''.obs;
+
   final int _perPage = 10;
   int _page = 1;
   int _lastPage = 1;
   bool get canLoadMore => _page < _lastPage;
 
+  List<RefundRequest> get filteredItems {
+    var result = items;
+    
+    if (statusFilter.value != 'all') {
+      result = result.where((r) {
+        final label = r.returnStatusLabel.toLowerCase();
+        return label == statusFilter.value;
+      }).toList();
+    }
+    
+    if (dateFrom.value.isNotEmpty && dateTo.value.isNotEmpty) {
+      try {
+        final from = DateTime.parse(dateFrom.value);
+        final to = DateTime.parse(dateTo.value).add(const Duration(days: 1));
+        result = result.where((r) {
+          try {
+            final returnDate = DateTime.parse(r.returnDate);
+            return returnDate.isAfter(from.subtract(const Duration(days: 1))) && returnDate.isBefore(to);
+          } catch (_) {
+            return true;
+          }
+        }).toList();
+      } catch (_) {}
+    }
+    
+    return result;
+  }
+
   @override
   void onInit() {
     super.onInit();
     fetchFirstPage();
+  }
+
+  void setStatusFilter(String status) {
+    statusFilter.value = status;
+    update();
+  }
+
+  void setDateRange(String from, String to) {
+    dateFrom.value = from;
+    dateTo.value = to;
+    update();
+  }
+
+  void clearFilters() {
+    statusFilter.value = 'all';
+    dateFrom.value = '';
+    dateTo.value = '';
+    update();
   }
 
   Future<void> fetchFirstPage() async {
