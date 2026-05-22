@@ -15,7 +15,7 @@ class LatestCollectionController extends GetxController {
     super.onInit();
     loadLatest();
     
-    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+    ever(Get.find<CurrencyController>().selectedRx, (_) {
       products.refresh();
     });
   }
