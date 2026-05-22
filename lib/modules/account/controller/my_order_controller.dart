@@ -27,9 +27,14 @@ class OrderController extends GetxController {
 
   List<OrderItem> get filteredOrders {
     List<OrderItem> result = orders.toList();
+    final filter = deliveryFilter.value;
     
-    if (deliveryFilter.value != 'all') {
-      result = result.where((o) => o.deliveryStatus == deliveryFilter.value).toList();
+    if (filter == 'paid') {
+      result = result.where((o) => o.paymentStatus == '1').toList();
+    } else if (filter == 'due') {
+      result = result.where((o) => o.paymentStatus == '0').toList();
+    } else if (filter != 'all') {
+      result = result.where((o) => o.deliveryStatus == filter).toList();
     }
     
     if (dateFrom.value.isNotEmpty && dateTo.value.isNotEmpty) {
@@ -57,7 +62,11 @@ class OrderController extends GetxController {
   }
 
   void setDeliveryFilter(String status) {
-    deliveryFilter.value = status;
+    if (deliveryFilter.value == status) {
+      deliveryFilter.value = 'all';
+    } else {
+      deliveryFilter.value = status;
+    }
     update();
   }
 
