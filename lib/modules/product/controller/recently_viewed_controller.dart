@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../core/controllers/currency_controller.dart';
 import '../model/product_model.dart';
 
 class RecentlyViewedController extends GetxController {
@@ -13,6 +14,10 @@ class RecentlyViewedController extends GetxController {
   void onInit() {
     super.onInit();
     loadFromStorage();
+    
+    ever(Get.find<CurrencyController>().selectedCurrency, (_) {
+      products.refresh();
+    });
   }
 
   void loadFromStorage() {
