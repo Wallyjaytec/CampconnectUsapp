@@ -21,6 +21,7 @@ class WalletController extends GetxController {
 
   final RxString filterType = 'all'.obs;
   final RxString filterMethod = 'all'.obs;
+  final RxString filterStatus = 'all'.obs;
   final RxString dateFrom = ''.obs;
   final RxString dateTo = ''.obs;
 
@@ -42,6 +43,12 @@ class WalletController extends GetxController {
     return null;
   }
 
+  String? get _statusParam {
+    if (filterStatus.value == 'pending') return 'pending';
+    if (filterStatus.value == 'declined') return 'declined';
+    return null;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -50,6 +57,7 @@ class WalletController extends GetxController {
 
   void setFilterType(String type) {
     filterMethod.value = 'all';
+    filterStatus.value = 'all';
     dateFrom.value = '';
     dateTo.value = '';
     if (filterType.value == type) {
@@ -62,6 +70,7 @@ class WalletController extends GetxController {
 
   void setFilterMethod(String method) {
     filterType.value = 'all';
+    filterStatus.value = 'all';
     dateFrom.value = '';
     dateTo.value = '';
     if (filterMethod.value == method) {
@@ -72,9 +81,23 @@ class WalletController extends GetxController {
     refreshList();
   }
 
+  void setFilterStatus(String status) {
+    filterType.value = 'all';
+    filterMethod.value = 'all';
+    dateFrom.value = '';
+    dateTo.value = '';
+    if (filterStatus.value == status) {
+      filterStatus.value = 'all';
+    } else {
+      filterStatus.value = status;
+    }
+    refreshList();
+  }
+
   void setDateRange(String from, String to) {
     filterType.value = 'all';
     filterMethod.value = 'all';
+    filterStatus.value = 'all';
     if (dateFrom.value == from && dateTo.value == to) {
       dateFrom.value = '';
       dateTo.value = '';
@@ -88,6 +111,7 @@ class WalletController extends GetxController {
   void clearFilters() {
     filterType.value = 'all';
     filterMethod.value = 'all';
+    filterStatus.value = 'all';
     dateFrom.value = '';
     dateTo.value = '';
     refreshList();
@@ -106,6 +130,7 @@ class WalletController extends GetxController {
         repo.fetchTransactions(
           page: page.value, perPage: perPage,
           entryType: _entryTypeParam, rechargeType: _rechargeTypeParam,
+          status: _statusParam,
           dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
           dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
         ),
@@ -133,6 +158,7 @@ class WalletController extends GetxController {
         repo.fetchTransactions(
           page: page.value, perPage: perPage,
           entryType: _entryTypeParam, rechargeType: _rechargeTypeParam,
+          status: _statusParam,
           dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
           dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
         ),
@@ -157,6 +183,7 @@ class WalletController extends GetxController {
       final resp = await repo.fetchTransactions(
         page: page.value, perPage: perPage,
         entryType: _entryTypeParam, rechargeType: _rechargeTypeParam,
+        status: _statusParam,
         dateFrom: dateFrom.value.isNotEmpty ? dateFrom.value : null,
         dateTo: dateTo.value.isNotEmpty ? dateTo.value : null,
       );
