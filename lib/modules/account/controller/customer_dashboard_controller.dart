@@ -9,6 +9,7 @@ class CustomerDashboardController extends GetxController {
   final totalOrder = 0.obs;
   final totalPendingOrder = 0.obs;
   final totalSuccessOrder = 0.obs;
+  final totalCancelledOrder = 0.obs;
 
   final totalPurchaseAmount = 0.0.obs;
   final lastPurchaseAmount = 0.0.obs;
@@ -61,6 +62,7 @@ class CustomerDashboardController extends GetxController {
       totalOrder.value = 0;
       totalPendingOrder.value = 0;
       totalSuccessOrder.value = 0;
+      totalCancelledOrder.value = 0;
 
       totalPurchaseAmount.value = 0.0;
       lastPurchaseAmount.value = 0.0;
@@ -81,6 +83,7 @@ class CustomerDashboardController extends GetxController {
     totalOrder.value = d.totalOrder;
     totalPendingOrder.value = d.totalPendingOrder;
     totalSuccessOrder.value = d.totalSuccessfullOrder;
+    totalCancelledOrder.value = d.totalCancelledOrder;
 
     totalPurchaseAmount.value = d.totalPurchaseAmount.toDouble();
     lastPurchaseAmount.value = d.lastPurchaseAmount.toDouble();
