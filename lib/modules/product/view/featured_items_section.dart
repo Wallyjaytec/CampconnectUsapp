@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/modules/product/controller/featured_products_controller.dart';
 import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class FeaturedItemsSection extends StatelessWidget {
   const FeaturedItemsSection({super.key});
