@@ -44,8 +44,8 @@ class WalletController extends GetxController {
   }
 
   String? get _statusParam {
-    if (filterStatus.value == 'pending') return 'pending';
-    if (filterStatus.value == 'declined') return 'declined';
+    if (filterStatus.value == 'pending') return '3';
+    if (filterStatus.value == 'declined') return '2';
     return null;
   }
 
