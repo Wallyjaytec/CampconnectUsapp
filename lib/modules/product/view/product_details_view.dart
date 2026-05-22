@@ -43,13 +43,10 @@ class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
   ProductDetailsController get controller {
-  final args = Get.arguments;
-  final permalink = (args is Map) ? (args['permalink'] ?? args['slug'] ?? '') : '';
-  final tag = 'product_$permalink';
-  if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
-    return Get.find<ProductDetailsController>(tag: tag);
+  if (Get.isRegistered<ProductDetailsController>()) {
+    Get.delete<ProductDetailsController>(force: true);
   }
-  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
+  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService()));
 }
   @override
   Widget build(BuildContext context) {
