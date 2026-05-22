@@ -118,13 +118,7 @@ class ReturnController extends GetxController {
 
     final reason = selectedReason.value;
     if (reason == null) {
-      Get.snackbar(
-        'Required'.tr,
-        'Please select a refund reason'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      // Don't show snackbar here - dialog handles UI feedback
       return false;
     }
 
@@ -142,33 +136,10 @@ class ReturnController extends GetxController {
         images: files,
       );
 
-      if (ok) {
-        Get.snackbar(
-          'Success'.tr,
-          'Return request submitted'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-        return true;
-      } else {
-        Get.snackbar(
-          'Failed'.tr,
-          'Could not submit return'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
-        return false;
-      }
+      // ✅ Return result without showing snackbar - dialog handles UI feedback
+      return ok;
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      // ✅ Return false without showing snackbar - dialog handles UI feedback
       return false;
     } finally {
       submitting.value = false;
