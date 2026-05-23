@@ -164,7 +164,7 @@ class _SettingsViewState extends State<SettingsView> {
                       ),
                     ),
                     TextButton(
-                      onPressed: _isClearing ? null : () async {
+                      onPressed: _isClearing ? null : () {
                         setState(() => _isClearing = true);
                         
                         final box = GetStorage();
@@ -174,8 +174,6 @@ class _SettingsViewState extends State<SettingsView> {
                             box.remove(key);
                           }
                         }
-                        
-                        PaintingBinding.instance.imageCache.clear();
                         
                         _calculateCacheSize();
                         setState(() => _isClearing = false);
