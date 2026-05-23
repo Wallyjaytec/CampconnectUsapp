@@ -164,14 +164,16 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                     TextButton(
                       onPressed: () {
-                        final box = GetStorage();
-                        final keys = box.getKeys();
-                        for (final key in keys) {
-                          if (key.startsWith('i18n_')) {
-                            box.remove(key);
+                        setState(() {
+                          final box = GetStorage();
+                          final keys = box.getKeys();
+                          for (final key in keys) {
+                            if (key.startsWith('i18n_')) {
+                              box.remove(key);
+                            }
                           }
-                        }
-                        _calculateCacheSize();
+                          _cacheSize = 0;
+                        });
                         
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
