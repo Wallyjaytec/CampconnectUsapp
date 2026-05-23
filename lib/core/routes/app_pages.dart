@@ -5,6 +5,7 @@ import 'package:kartly_e_commerce/modules/account/view/my_order_details_view.dar
 import 'package:kartly_e_commerce/modules/account/view/my_order_list_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_wallet_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/privacy_policy_view.dart';
+import 'package:kartly_e_commerce/modules/account/view/settings_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/featured_items_view.dart';
@@ -60,6 +61,7 @@ class AppPages {
       page: () => const BottomNavbarView(),
     ),
     GetPage(name: AppRoutes.searchView, page: () => const SearchView()),
+    GetPage(name: AppRoutes.settingsView, page: () => const SettingsView()),
     GetPage(
       name: AppRoutes.allCategoriesView,
       page: () => const AllCategoriesView(showBackButton: true),
@@ -211,4 +213,52 @@ class AppPages {
       },
     ),
   ];
+}
+
+class AppRoutes {
+  AppRoutes._();
+  static const splashView = '/';
+  static const bottomNavbarView = '/bottom_navbar_view';
+  static const sellerBottomNavbar = '/seller_bottom_navbar_view';
+  static const searchView = '/search_view';
+  static const settingsView = '/settings_view';
+  static const allCategoriesView = '/all_categories_view';
+  static const newProductListView = '/new_product_list_view';
+  static const featuredItemsView = '/featured_items_view';
+  static const flashDealsView = '/flash_deals_view';
+  static const discountSalesView = '/discount_sales_view';
+  static const latestCollectionView = '/latest_collection_view';
+  static const productDetailsView = '/product_details_view';
+  static const fullScreenImageView = '/full_screen_image_view';
+  static const productFilterView = '/product_filter_view';
+  static const popularItemsView = '/popular_items_view';
+  static const cartView = '/cart_view';
+  static const checkoutView = '/checkout_view';
+  static const loginView = '/login_view';
+  static const signupView = '/signup_view';
+  static const editProfileView = '/edit_profile_view';
+  static const topSaleProductView = '/top_sale_product_view';
+  static const newProductView = '/new_product_view';
+  static const myAddressView = '/my_address_view';
+  static const addAddressView = '/add_address_view';
+  static const editAddressView = '/edit_address_view';
+  static const myWalletView = '/my_wallet_view';
+  static const rechargeWalletView = '/recharge_wallet_view';
+  static const collectionView = '/collection_view';
+  static const searchResultsListView = '/search_results_list_view';
+  static const productSearchFilter = '/product_search_filter';
+  static const myOrderListView = '/my_order_list_view';
+  static const myOrderDetailsView = '/my_order_details_view';
+  static const sellerView = '/seller_view';
+  static const refundRequestListView = '/refund_request_list_view';
+  static const contactUsView = '/contact_us_view';
+  static const guestCheckoutView = '/guest_checkout_view';
+  static const orderSummaryView = '/order_summary_view';
+  static const guestOrderSummaryView = '/guest_order_summary_view';
+  static const notificationsView = '/notifications_view';
+  static const privacyPolicyView = '/privacy_policy_view';
+  static const termsConditionsView = '/terms_conditions_view';
+  static const refundRequestDetailsView = '/refund_request_details_view';
+  static const followingProductsView = '/following_products_view';
+  static const recentlyViewedView = '/recently_viewed_view';
 }
