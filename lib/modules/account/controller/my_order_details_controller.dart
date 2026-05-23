@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/modules/account/view/web_pay_view.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -349,7 +350,7 @@ class OrderDetailsController extends GetxController {
                     value: selectedPaymentId.value,
                     hint: Text('Select Payment method'.tr, style: const TextStyle(fontSize: 13)),
                     onChanged: (v) => selectedPaymentId.value = v,
-                    iconStyleData: IconStyleData(icon: const Icon(Iconsax.arrow_down_1_copy), iconSize: 18),
+                    iconStyleData: IconStyleData(icon: Icon(Iconsax.arrow_down_1_copy), iconSize: 18),
                     dropdownStyleData: DropdownStyleData(
                       maxHeight: 300,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
