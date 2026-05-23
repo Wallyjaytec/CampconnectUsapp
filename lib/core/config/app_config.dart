@@ -139,6 +139,8 @@ static const String resetPasswordPath =
   static const String storeContactMessagePath = '/api/v1/store/contact/message';
   static const String customerCheckoutOrderPath =
       '/api/v1/ecommerce-core/customer/order/create';
+  static const String payOrderWithWalletPath =
+      '/api/v1/ecommerce-core/customer/order/pay-with-wallet';
   static const String guestCheckoutPath =
       '/api/v1/ecommerce-core/guest/checkout';
   static String guestOrderDetailsPath =
@@ -248,6 +250,8 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   static String storeContactMessageUrl() => '$baseUrl$storeContactMessagePath';
   static String customerCheckoutOrderUrl() =>
       '$baseUrl$customerCheckoutOrderPath';
+  static String payOrderWithWalletUrl() =>
+      '$baseUrl$payOrderWithWalletPath';
   static String guestCheckoutUrl() => '$baseUrl$guestCheckoutPath';
   static String guestOrderDetailsUrl() => '$baseUrl$guestOrderDetailsPath';
   static String unreadNotificationsUrl() => '$baseUrl$unreadNotificationsPath';
