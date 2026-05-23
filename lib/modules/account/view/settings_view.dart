@@ -21,7 +21,6 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   String _appVersion = '';
   double _cacheSize = 0;
-  bool _isClearing = false;
 
   @override
   void initState() {
@@ -164,9 +163,7 @@ class _SettingsViewState extends State<SettingsView> {
                       ),
                     ),
                     TextButton(
-                      onPressed: _isClearing ? null : () {
-                        setState(() => _isClearing = true);
-                        
+                      onPressed: () {
                         final box = GetStorage();
                         final keys = box.getKeys();
                         for (final key in keys) {
@@ -174,9 +171,7 @@ class _SettingsViewState extends State<SettingsView> {
                             box.remove(key);
                           }
                         }
-                        
                         _calculateCacheSize();
-                        setState(() => _isClearing = false);
                         
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -191,9 +186,7 @@ class _SettingsViewState extends State<SettingsView> {
                           );
                         }
                       },
-                      child: _isClearing 
-                        ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Text('CLEAR'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      child: Text('CLEAR'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
