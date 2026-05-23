@@ -162,7 +162,7 @@ class _SettingsViewState extends State<SettingsView> {
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
-                    GestureDetector(
+                    InkWell(
                       onTap: () {
                         final box = GetStorage();
                         final keys = box.getKeys();
@@ -171,15 +171,29 @@ class _SettingsViewState extends State<SettingsView> {
                             box.remove(key);
                           }
                         }
-                        setState(() {
-                          _cacheSize = 0;
-                        });
+                        _cacheSize = 0;
+                        setState(() {});
+                        
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Cache cleared successfully'.tr),
+                            backgroundColor: AppColors.primaryColor,
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
                       },
-                      child: Text(
-                        'CLEAR'.tr,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Text(
+                          'CLEAR'.tr,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryColor,
+                          ),
                         ),
                       ),
                     ),
