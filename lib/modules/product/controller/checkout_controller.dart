@@ -875,12 +875,15 @@ class CheckoutController extends GetxController {
   final responseUrl = _extractRedirectUrl(resp);
 
   if (responseUrl.isEmpty) {
-    await _afterOrderSuccess(orderId);
-    return;
-  }
+  await _afterOrderSuccess(orderId);
+  return;
+}
 
-  _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
+if (Get.isRegistered<CustomerDashboardController>()) {
+  Get.find<CustomerDashboardController>().fetchDashboard();
+}
 
+_showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
   final result = await Get.to<PaymentPageResult?>(
     () => OrderPayWebView(
       initialUrl: responseUrl,
