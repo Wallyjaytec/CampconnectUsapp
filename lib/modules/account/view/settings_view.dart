@@ -21,6 +21,7 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   String _appVersion = '';
   double _cacheSize = 0;
+  bool _isClearing = false;
 
   @override
   void initState() {
@@ -158,12 +159,13 @@ class _SettingsViewState extends State<SettingsView> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Cache : ${_formatBytes(_cacheSize)}'.tr,
+                        'Cache : ${_formatBytes(_cacheSize)}',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
+                      onPressed: _isClearing ? null : () async {
+                        setState(() => _isClearing = true);
                         final box = GetStorage();
                         final keys = box.getKeys();
                         for (final key in keys) {
@@ -173,15 +175,26 @@ class _SettingsViewState extends State<SettingsView> {
                         }
                         PaintingBinding.instance.imageCache.clear();
                         PaintingBinding.instance.imageCache.clearLiveImages();
-                        setState(() { _cacheSize = 0; });
-                        Get.snackbar(
-                          'Cache'.tr,
-                          'Cache cleared successfully'.tr,
-                          backgroundColor: AppColors.primaryColor,
-                          colorText: AppColors.whiteColor,
-                        );
+                        setState(() { 
+                          _cacheSize = 0; 
+                          _isClearing = false;
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Cache cleared successfully'.tr),
+                              backgroundColor: AppColors.primaryColor,
+                              behavior: SnackBarBehavior.floating,
+                              margin: const EdgeInsets.all(16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       },
-                      child: Text('CLEAR'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      child: _isClearing 
+                        ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : Text('CLEAR'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
