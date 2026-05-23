@@ -28,13 +28,7 @@ class CustomerDashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadFromStorage();
     fetchDashboard();
-  }
-
-  void loadFromStorage() {
-    final dash = _login.getDashboardContent();
-    _apply(dash);
   }
 
   void loadFromModel(CustomerDashboardContent? dash) {
