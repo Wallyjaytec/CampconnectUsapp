@@ -4,6 +4,7 @@ class AppRoutes {
   static const bottomNavbarView = '/bottom_navbar_view';
   static const sellerBottomNavbar = '/seller_bottom_navbar_view';
   static const searchView = '/search_view';
+  static const settingsView = '/settings_view';
   static const allCategoriesView = '/all_categories_view';
   static const newProductListView = '/new_product_list_view';
   static const featuredItemsView = '/featured_items_view';
