@@ -157,6 +157,7 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
       {'label': 'All'.tr, 'value': 'all'},
       {'label': 'Pending Return'.tr, 'value': 'pending'},
       {'label': 'Processing'.tr, 'value': 'processing'},
+      {'label': 'Product Received'.tr, 'value': 'product_received'},
       {'label': 'Approved Return'.tr, 'value': 'approved'},
       {'label': 'Cancelled'.tr, 'value': 'cancelled'},
       {'label': 'Pending Payment'.tr, 'value': 'payment_pending'},
