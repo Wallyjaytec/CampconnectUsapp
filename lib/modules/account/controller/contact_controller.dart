@@ -20,7 +20,7 @@ class ContactController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   final isLoading = false.obs;
-  final Rx<PlatformFile?> selectedFile = Rx<PlatformFile?>(null);
+  final RxList<PlatformFile> selectedFiles = <PlatformFile>[].obs;
 
   @override
   void onClose() {
@@ -53,18 +53,19 @@ class ContactController extends GetxController {
     );
   }
 
-  Future<void> pickFile() async {
+  Future<void> pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'txt', 'jpg', 'jpeg', 'png'],
+      allowMultiple: true,
     );
     if (result != null && result.files.isNotEmpty) {
-      selectedFile.value = result.files.first;
+      selectedFiles.addAll(result.files);
     }
   }
 
-  void removeFile() {
-    selectedFile.value = null;
+  void removeFile(int index) {
+    selectedFiles.removeAt(index);
   }
 
   Future<void> submitContactForm() async {
@@ -113,7 +114,7 @@ class ContactController extends GetxController {
             email: email,
             subject: subject,
             message: message,
-            file: selectedFile.value,
+            files: selectedFiles.isNotEmpty ? selectedFiles.toList() : null,
           );
 
       if (response.success) {
@@ -122,7 +123,7 @@ class ContactController extends GetxController {
         emailController.clear();
         subjectController.clear();
         messageController.clear();
-        selectedFile.value = null;
+        selectedFiles.clear();
       } else {
         _showSnack('Failed'.tr, 'Failed to send your message. Please try again.'.tr, isError: true);
       }
