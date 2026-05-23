@@ -27,7 +27,7 @@ class BrandView extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Brands',
+                  'Brands'.tr,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
