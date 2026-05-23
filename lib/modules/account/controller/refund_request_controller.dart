@@ -88,6 +88,7 @@ class RefundRequestController extends GetxController {
       dateTo.value = to;
     }
     update();
+    fetchFirstPage();
   }
 
   void setSearchKey(String key) {
