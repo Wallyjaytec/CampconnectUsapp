@@ -16,6 +16,8 @@ class OrderRepository {
     required int page,
     required int perPage,
     String? searchKey,
+    String? dateFrom,
+    String? dateTo,
   }) async {
     final cb = DateTime.now().millisecondsSinceEpoch;
     final base = AppConfig.customerOrdersUrl();
@@ -24,6 +26,10 @@ class OrderRepository {
     final body = <String, dynamic>{'page': page, 'perPage': perPage};
     if (searchKey != null && searchKey.isNotEmpty) {
       body['search_key'] = searchKey;
+    }
+    if (dateFrom != null && dateFrom.isNotEmpty && dateTo != null && dateTo.isNotEmpty) {
+      body['date_from'] = dateFrom;
+      body['date_to'] = dateTo;
     }
 
     final resp = await _api.postJson(url, body: body);
