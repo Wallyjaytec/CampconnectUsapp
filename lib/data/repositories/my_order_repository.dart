@@ -28,8 +28,8 @@ class OrderRepository {
       body['search_key'] = searchKey;
     }
     if (dateFrom != null && dateFrom.isNotEmpty && dateTo != null && dateTo.isNotEmpty) {
-      body['date_from'] = dateFrom;
-      body['date_to'] = dateTo;
+      body['date_from'] = '$dateFrom 00:00:00';
+      body['date_to'] = '$dateTo 23:59:59';
     }
 
     final resp = await _api.postJson(url, body: body);
