@@ -78,7 +78,7 @@ class FlashDealsSection extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Flash Sales'.tr,
+                  deal.title.isNotEmpty ? deal.title.tr : 'Flash Deals'.tr,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
