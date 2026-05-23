@@ -54,7 +54,7 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(widget.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))),
+              Expanded(child: Text(widget.title.tr, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))),
               TextButton(onPressed: _viewAll, child: Text('View All'.tr)),
             ],
           ),
@@ -71,7 +71,6 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
                 );
               }
               
-              // Show error text (same as other sections)
               if (_ctrl.error.isNotEmpty) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
@@ -79,7 +78,6 @@ class _CategoryProductSectionState extends State<CategoryProductSection> {
                 );
               }
               
-              // Show empty if no products
               if (_ctrl.products.isEmpty) {
                 return const SizedBox.shrink();
               }
