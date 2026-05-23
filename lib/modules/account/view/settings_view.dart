@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/shared/widgets/currency_select.dart';
 import 'package:kartly_e_commerce/shared/widgets/language_select.dart';
+import 'package:app_settings/app_settings.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../../../shared/widgets/theme_switch.dart';
 
@@ -11,7 +14,7 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('locale=${Get.locale}, tr(Registration)=${'Registration'.tr}');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SafeArea(
       child: Scaffold(
@@ -40,6 +43,97 @@ class SettingsView extends StatelessWidget {
               LanguageSelect(),
               const SizedBox(height: 8),
               CurrencySelect(),
+              const SizedBox(height: 8),
+              // Push Notifications
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    AppSettings.openAppSettings(type: AppSettingsType.notification);
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.notification, color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Push Notifications'.tr,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // App Permissions
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    AppSettings.openAppSettings(type: AppSettingsType.settings);
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.shield_tick, color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'App Permissions'.tr,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Clear Cache
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Iconsax.trash, color: AppColors.primaryColor, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Clear Cache'.tr,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Text(
+                      '0 B',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () {
+                        Get.snackbar(
+                          'Cache'.tr,
+                          'Cache cleared successfully'.tr,
+                          backgroundColor: AppColors.primaryColor,
+                          colorText: AppColors.whiteColor,
+                        );
+                      },
+                      child: Text('CLEAR'.tr),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
