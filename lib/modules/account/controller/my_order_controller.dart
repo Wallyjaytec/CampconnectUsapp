@@ -70,6 +70,7 @@ class OrderController extends GetxController {
       deliveryFilter.value = status;
     }
     update();
+    initLoad();
   }
 
   void setDateRange(String from, String to) {
