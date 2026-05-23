@@ -83,6 +83,7 @@ class OrderController extends GetxController {
       dateTo.value = to;
     }
     update();
+    initLoad();
   }
 
   void clearFilters() {
