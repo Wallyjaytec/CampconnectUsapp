@@ -46,6 +46,10 @@ class _MyWalletViewState extends State<MyWalletView> {
   }
 
   Future<void> _pickDateRange() async {
+    if (c.dateFrom.value.isNotEmpty) {
+      c.setDateRange('', '');
+      return;
+    }
     final now = DateTime.now();
     final initial = DateTimeRange(start: now.subtract(const Duration(days: 30)), end: now);
     final picked = await showDateRangePicker(
