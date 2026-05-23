@@ -266,7 +266,6 @@ class OrderDetailsController extends GetxController {
     final d = order.value;
     if (d == null || paying.value) return;
 
-    // Load payment methods
     isLoadingPayments.value = true;
     try {
       final checkoutRepo = CheckoutRepository(ApiService());
@@ -284,7 +283,6 @@ class OrderDetailsController extends GetxController {
     } catch (_) {}
     isLoadingPayments.value = false;
 
-    // Check wallet balance
     double walletBalance = 0;
     try {
       final walletRepo = WalletRepository(api: ApiService());
@@ -318,10 +316,9 @@ class OrderDetailsController extends GetxController {
               const SizedBox(height: 4),
               Text('${'Total'.tr}: ${formatCurrency(d.totalPayableAmount, applyConversion: true)}', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
               const SizedBox(height: 16),
-              // Wallet option
               if (canWallet) ...[
                 ListTile(
-                  leading: const Icon(Iconsax.wallet_3_copy, color: AppColors.primaryColor),
+                  leading: Icon(Iconsax.wallet_3_copy, color: AppColors.primaryColor),
                   title: Text('Pay with Wallet'.tr),
                   subtitle: Text('Balance: ${formatCurrency(walletBalance, applyConversion: true)}'),
                   onTap: () {
@@ -331,7 +328,6 @@ class OrderDetailsController extends GetxController {
                 ),
                 const Divider(),
               ],
-              // Payment method dropdown
               if (paymentMethods.isNotEmpty) ...[
                 Text('${'Payment method'.tr}:', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
@@ -353,7 +349,7 @@ class OrderDetailsController extends GetxController {
                     value: selectedPaymentId.value,
                     hint: Text('Select Payment method'.tr, style: const TextStyle(fontSize: 13)),
                     onChanged: (v) => selectedPaymentId.value = v,
-                    iconStyleData: const IconStyleData(icon: Icon(Iconsax.arrow_down_1_copy), iconSize: 18),
+                    iconStyleData: IconStyleData(icon: const Icon(Iconsax.arrow_down_1_copy), iconSize: 18),
                     dropdownStyleData: DropdownStyleData(
                       maxHeight: 300,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
@@ -393,8 +389,6 @@ class OrderDetailsController extends GetxController {
 
     paying.value = true;
     try {
-      final walletRepo = WalletRepository(api: ApiService());
-      // Use checkout to pay with wallet
       final checkoutRepo = CheckoutRepository(ApiService());
       final body = <String, dynamic>{
         'payment_id': '2',
