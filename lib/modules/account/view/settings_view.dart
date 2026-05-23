@@ -162,8 +162,8 @@ class _SettingsViewState extends State<SettingsView> {
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
+                    GestureDetector(
+                      onTap: () {
                         final box = GetStorage();
                         final keys = box.getKeys();
                         for (final key in keys) {
@@ -185,7 +185,13 @@ class _SettingsViewState extends State<SettingsView> {
                           ),
                         );
                       },
-                      child: Text('CLEAR'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      child: Text(
+                        'CLEAR'.tr,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
                     ),
                   ],
                 ),
