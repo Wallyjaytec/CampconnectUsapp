@@ -155,13 +155,12 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
   Widget _filterChips() {
     final filters = [
       {'label': 'All'.tr, 'value': 'all'},
-      {'label': 'Pending Return'.tr, 'value': 'pending return'},
-      {'label': 'Processing Return'.tr, 'value': 'processing return'},
-      {'label': 'Product Received'.tr, 'value': 'product received'},
-      {'label': 'Approved Return'.tr, 'value': 'approved return'},
-      {'label': 'Canceled Return'.tr, 'value': 'canceled return'},
-      {'label': 'Pending Payment'.tr, 'value': 'pending payment'},
-      {'label': 'Approved Refund'.tr, 'value': 'approved refund'},
+      {'label': 'Pending Return'.tr, 'value': 'pending'},
+      {'label': 'Processing'.tr, 'value': 'processing'},
+      {'label': 'Approved Return'.tr, 'value': 'approved'},
+      {'label': 'Cancelled'.tr, 'value': 'cancelled'},
+      {'label': 'Pending Payment'.tr, 'value': 'payment_pending'},
+      {'label': 'Refunded'.tr, 'value': 'refunded'},
     ];
 
     return SingleChildScrollView(
