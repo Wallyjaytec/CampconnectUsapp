@@ -17,7 +17,7 @@ class LanguageService {
   static final Map<String, DateTime> _memCacheTime = {};
   static final Set<String> _inflight = <String>{};
 
-  static const Duration _ttl = Duration(days: 7);
+  static const Duration _ttl = Duration(seconds: 1);
 
   static String _cacheKey(String apiCode) => 'i18n_$apiCode';
   static String _tsKey(String apiCode) => 'i18n_${apiCode}_ts';
