@@ -62,6 +62,10 @@ class _MyOrderListViewState extends State<MyOrderListView> {
   }
 
   Future<void> _pickDateRange() async {
+    if (controller.dateFrom.value.isNotEmpty) {
+      controller.setDateRange('', '');
+      return;
+    }
     final now = DateTime.now();
     final initial = DateTimeRange(
       start: now.subtract(const Duration(days: 30)),
@@ -190,7 +194,9 @@ class _MyOrderListViewState extends State<MyOrderListView> {
         return Row(
           children: [
             ...filters.map((f) {
-              final isSelected = selected == f['value'];
+              final isSelected = f['value'] == 'all' 
+                  ? (selected == 'all' && controller.dateFrom.value.isEmpty) 
+                  : selected == f['value'];
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GestureDetector(
