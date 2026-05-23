@@ -1263,7 +1263,6 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // ✅ CHANGE 3: Use Get.find() instead of Get.put()
     final controller = Get.find<ProductDetailsController>();
 
     return SafeArea(
@@ -1302,133 +1301,122 @@ class _BottomBar extends StatelessWidget {
                 }),
                 label: 'Store'.tr,
                 onTap: () {
-  final p = controller.product.value;
-  if (p == null) return;
+                  final p = controller.product.value;
+                  if (p == null) return;
 
-  final s = p.shopInfo;
+                  final s = p.shopInfo;
 
-  String slug = '';
-  final rawSlug = (s.slug).toString().trim();
+                  String slug = '';
+                  final rawSlug = (s.slug).toString().trim();
 
-  if (rawSlug.isNotEmpty) {
-    slug = rawSlug;
-  } else {
-    slug = s.name
-        .toLowerCase()
-        .trim()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'-+'), '-')
-        .replaceAll(RegExp(r'^-|-$'), '');
-  }
+                  if (rawSlug.isNotEmpty) {
+                    slug = rawSlug;
+                  } else {
+                    slug = s.name
+                        .toLowerCase()
+                        .trim()
+                        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                        .replaceAll(RegExp(r'-+'), '-')
+                        .replaceAll(RegExp(r'^-|-$'), '');
+                  }
 
-  final int ratingPercent =
-      int.tryParse((s.positiveRating).toString()) ?? 0;
+                  final int ratingPercent =
+                      int.tryParse((s.positiveRating).toString()) ?? 0;
 
-  final tag2 = 'seller_bottom_$slug';
-  final sellerCtrl2 = Get.isRegistered<SellerProductsController>(tag: tag2)
-      ? Get.find<SellerProductsController>(tag: tag2)
-      : Get.put(
-          SellerProductsController(slug: slug, autoLoad: false),
-          tag: tag2,
-        );
-  sellerCtrl2.seedHeaderMeta(
-    followersCount: s.totalFollowers,
-    alreadyFollowing: s.isFollowing,
-  );
+                  final tag2 = 'seller_bottom_$slug';
+                  final sellerCtrl2 = Get.isRegistered<SellerProductsController>(tag: tag2)
+                      ? Get.find<SellerProductsController>(tag: tag2)
+                      : Get.put(
+                          SellerProductsController(slug: slug, autoLoad: false),
+                          tag: tag2,
+                        );
+                  sellerCtrl2.seedHeaderMeta(
+                    followersCount: s.totalFollowers,
+                    alreadyFollowing: s.isFollowing,
+                  );
 
-  Get.toNamed(
-    AppRoutes.sellerBottomNavbar,
-    arguments: SellerNavArgs(
-      title: s.name,
-      logo: s.logo,
-      slug: slug,
-      ratingPercent: ratingPercent,
-      followers: sellerCtrl2.followers.value,
-      shopBanner: s.shopBanner,
-      isFollowing: s.isFollowing,
-      isVerified: s.isVerified,
-    ),
-  );
-},
+                  Get.toNamed(
+                    AppRoutes.sellerBottomNavbar,
+                    arguments: SellerNavArgs(
+                      title: s.name,
+                      logo: s.logo,
+                      slug: slug,
+                      ratingPercent: ratingPercent,
+                      followers: sellerCtrl2.followers.value,
+                      shopBanner: s.shopBanner,
+                      isFollowing: s.isFollowing,
+                      isVerified: s.isVerified,
+                    ),
+                  );
+                },
               ),
             ),
             Expanded(
-  flex: 2,
-  child: Obx(() {
-    final isLoading = controller.isLoading.value;
-    final isBuying = controller.buyNowLoading.value;
-    final p = controller.product.value;
-    final outOfStock = p != null && p.quantity <= 0;
-    return _BigCTA(
-      text: outOfStock ? 'Out of Stock'.tr : 'Buy Now'.tr,
-      background: (isLoading || outOfStock || isBuying)
-          ? AppColors.lightBlueColor.withValues(alpha: 0.5)
-          : AppColors.lightBlueColor,
-      onTap: (isLoading || outOfStock || isBuying)
-          ? () {}
-          : () {
-              final c = Get.find<ProductDetailsController>();
-              _handleBuyNow(c);
-            },
-      child: isBuying 
-          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-          : Text(...),
-    );
-}),
+              flex: 2,
+              child: Obx(() {
+                final isLoading = controller.isLoading.value;
+                final isBuying = controller.buyNowLoading.value;
+                final p = controller.product.value;
+                final outOfStock = p != null && p.quantity <= 0;
+                final disabled = isLoading || outOfStock || isBuying;
+                return SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: disabled
+                          ? AppColors.lightBlueColor.withValues(alpha: 0.5)
+                          : AppColors.lightBlueColor,
+                    ),
+                    onPressed: disabled
+                        ? null
+                        : () {
+                            final c = Get.find<ProductDetailsController>();
+                            _handleBuyNow(c);
+                          },
+                    child: Center(
+                      child: isBuying
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Text(
+                              outOfStock ? 'Out of Stock'.tr : 'Buy Now'.tr,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                    ),
+                  ),
+                );
+              }),
+            ),
             const SizedBox(width: 10),
             Expanded(
               flex: 2,
               child: Obx(() {
                 final isLoading = controller.isLoading.value;
-                return _BigCTA(
-                  text: 'Add To Cart'.tr,
-                  background: isLoading
-                      ? AppColors.primaryColor.withValues(alpha: 0.5)
-                      : AppColors.primaryColor,
-                  onTap: isLoading
-                  ? () {}
-                  : () {
-                          final c = Get.find<ProductDetailsController>();
-                          c.openAddToCartSheet();
-                        },
+                return SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isLoading
+                          ? AppColors.primaryColor.withValues(alpha: 0.5)
+                          : AppColors.primaryColor,
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            final c = Get.find<ProductDetailsController>();
+                            c.openAddToCartSheet();
+                          },
+                    child: Center(
+                      child: Text(
+                        'Add To Cart'.tr,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
+                  ),
                 );
               }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniAction extends StatelessWidget {
-  const _MiniAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-  final Widget icon;
-  final String label;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.white70 : const Color(0xFF444444),
-                fontWeight: FontWeight.w600,
-              ),
             ),
           ],
         ),
@@ -1901,7 +1889,7 @@ class _ReviewImagesStrip extends StatelessWidget {
 
 Future<void> _handleBuyNow(ProductDetailsController controller) async {
   final p = controller.product.value;
-  if (p == null) return;
+  if (p == null || controller.buyNowLoading.value) return;
 
   final hasAttachmentTitle = (p.attachmentTitle ?? '').trim().isNotEmpty;
 
@@ -1909,6 +1897,8 @@ Future<void> _handleBuyNow(ProductDetailsController controller) async {
     controller.openAddToCartSheet();
     return;
   }
+
+  controller.buyNowLoading.value = true;
 
   try {
     final loggedIn = LoginService().isLoggedIn();
@@ -2039,6 +2029,8 @@ Future<void> _handleBuyNow(ProductDetailsController controller) async {
       backgroundColor: AppColors.primaryColor,
       colorText: Colors.white,
     );
+  } finally {
+    controller.buyNowLoading.value = false;
   }
 }
 
