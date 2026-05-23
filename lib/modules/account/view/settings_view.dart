@@ -171,19 +171,9 @@ class _SettingsViewState extends State<SettingsView> {
                             box.remove(key);
                           }
                         }
-                        _cacheSize = 0;
-                        setState(() {});
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Cache cleared successfully'.tr),
-                            backgroundColor: AppColors.primaryColor,
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        setState(() {
+                          _cacheSize = 0;
+                        });
                       },
                       child: Text(
                         'CLEAR'.tr,
