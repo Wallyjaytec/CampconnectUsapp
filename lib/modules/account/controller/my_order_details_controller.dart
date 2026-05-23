@@ -1,11 +1,17 @@
 import 'dart:async';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/modules/account/view/web_pay_view.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/utils/currency_formatters.dart';
+import '../../../data/repositories/checkout_repository.dart';
 import '../../../data/repositories/my_order_repository.dart';
+import '../../../data/repositories/wallet_repository.dart';
+import '../../product/model/payment_method_model.dart';
 import '../model/my_order_details_model.dart';
 
 class OrderDetailsController extends GetxController {
@@ -33,6 +39,9 @@ class OrderDetailsController extends GetxController {
   final RxSet<int> optimisticCancelledItemIds = <int>{}.obs;
 
   final RxBool paying = false.obs;
+  final RxBool isLoadingPayments = false.obs;
+  final RxList<ActivePaymentMethod> paymentMethods = <ActivePaymentMethod>[].obs;
+  final RxnInt selectedPaymentId = RxnInt();
 
   Future<void> load(int orderId) async {
     await _fetch(orderId, showSpinner: true);
@@ -239,6 +248,185 @@ class OrderDetailsController extends GetxController {
             colorText: AppColors.whiteColor,
           );
         }
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Payment Error'.tr,
+        'Something went wrong'.tr,
+        backgroundColor: AppColors.primaryColor,
+        snackPosition: SnackPosition.TOP,
+        colorText: AppColors.whiteColor,
+      );
+    } finally {
+      paying.value = false;
+    }
+  }
+
+  Future<void> showPayOptions(BuildContext context) async {
+    final d = order.value;
+    if (d == null || paying.value) return;
+
+    // Load payment methods
+    isLoadingPayments.value = true;
+    try {
+      final checkoutRepo = CheckoutRepository(ApiService());
+      final shipping = d.shippingDetails;
+      final cityId = shipping.city.isNotEmpty ? shipping.city : '0';
+      final map = await checkoutRepo.fetchActivePaymentMethods(
+        city: cityId,
+        pickupPoint: '',
+        productsJsonString: '[]',
+      );
+      final resp = ActivePaymentMethodsResponse.fromJson(map);
+      if (resp.success) {
+        paymentMethods.assignAll(resp.data);
+      }
+    } catch (_) {}
+    isLoadingPayments.value = false;
+
+    // Check wallet balance
+    double walletBalance = 0;
+    try {
+      final walletRepo = WalletRepository(api: ApiService());
+      final summary = await walletRepo.fetchWalletSummary();
+      walletBalance = summary.totalAvailable.toDouble();
+    } catch (_) {}
+
+    final canWallet = walletBalance >= d.totalPayableAmount;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Pay for Order'.tr, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+              const SizedBox(height: 4),
+              Text('${'Total'.tr}: ${formatCurrency(d.totalPayableAmount, applyConversion: true)}', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+              const SizedBox(height: 16),
+              // Wallet option
+              if (canWallet) ...[
+                ListTile(
+                  leading: const Icon(Iconsax.wallet_3_copy, color: AppColors.primaryColor),
+                  title: Text('Pay with Wallet'.tr),
+                  subtitle: Text('Balance: ${formatCurrency(walletBalance, applyConversion: true)}'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _payWithWallet(context);
+                  },
+                ),
+                const Divider(),
+              ],
+              // Payment method dropdown
+              if (paymentMethods.isNotEmpty) ...[
+                Text('${'Payment method'.tr}:', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton2<int>(
+                    buttonStyleData: ButtonStyleData(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    isExpanded: true,
+                    items: paymentMethods.map((m) => DropdownMenuItem<int>(
+                      value: m.id,
+                      child: Text(m.name, style: const TextStyle(fontSize: 13)),
+                    )).toList(),
+                    value: selectedPaymentId.value,
+                    hint: Text('Select Payment method'.tr, style: const TextStyle(fontSize: 13)),
+                    onChanged: (v) => selectedPaymentId.value = v,
+                    iconStyleData: const IconStyleData(icon: Icon(Iconsax.arrow_down_1_copy), iconSize: 18),
+                    dropdownStyleData: DropdownStyleData(
+                      maxHeight: 300,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: selectedPaymentId.value == null ? null : () {
+                      Navigator.pop(ctx);
+                      payNow(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text('Pay Now'.tr),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _payWithWallet(BuildContext context) async {
+    final d = order.value;
+    if (d == null) return;
+    if (paying.value) return;
+
+    paying.value = true;
+    try {
+      final walletRepo = WalletRepository(api: ApiService());
+      // Use checkout to pay with wallet
+      final checkoutRepo = CheckoutRepository(ApiService());
+      final body = <String, dynamic>{
+        'payment_id': '2',
+        'note': '',
+        'wallet_payment': '1',
+        'origin': 'app',
+        'billing_address': '0',
+        'products': '[]',
+        'order_id': d.id,
+      };
+
+      final resp = await checkoutRepo.customerCheckoutOrderCreate(body: body);
+      final success = resp['success'] == true;
+      
+      if (success) {
+        await refreshNow(d.id);
+        Get.snackbar(
+          'Payment'.tr,
+          'Payment successful'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+        );
+      } else {
+        final msg = resp['message']?.toString() ?? 'Payment failed'.tr;
+        Get.snackbar(
+          'Payment'.tr,
+          msg,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+        );
       }
     } catch (e) {
       Get.snackbar(
