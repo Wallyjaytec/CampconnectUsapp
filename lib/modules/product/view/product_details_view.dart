@@ -1424,7 +1424,41 @@ class _BottomBar extends StatelessWidget {
     );
   }
 }
-
+class _MiniAction extends StatelessWidget {
+  const _MiniAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+  final Widget icon;
+  final String label;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white70 : const Color(0xFF444444),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class _BigCTA extends StatelessWidget {
   const _BigCTA({
     required this.text,
