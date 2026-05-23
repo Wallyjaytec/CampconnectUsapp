@@ -9,7 +9,6 @@ import 'core/config/app_scroll_behavior.dart';
 import 'core/constants/app_colors.dart';
 import 'core/controllers/theme_controller.dart';
 import 'core/routes/app_pages.dart';
-import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'modules/auth/view/password_reset_view.dart';
