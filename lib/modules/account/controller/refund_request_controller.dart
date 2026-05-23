@@ -35,8 +35,9 @@ class RefundRequestController extends GetxController {
       result = result.where((r) => r.refundCode.toLowerCase().contains(searchKey.value.toLowerCase())).toList();
     }
     
-    if (filter == 'pending payment' || filter == 'approved refund') {
-      result = result.where((r) => r.paymentStatusLabel.toLowerCase() == filter).toList();
+    if (filter == 'payment_pending' || filter == 'refunded') {
+      final paymentFilter = filter.replaceAll('payment_', '');
+      result = result.where((r) => r.paymentStatusLabel.toLowerCase() == paymentFilter).toList();
     } else if (filter != 'all') {
       result = result.where((r) => r.returnStatusLabel.toLowerCase() == filter).toList();
     }
