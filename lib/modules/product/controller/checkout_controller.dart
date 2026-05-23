@@ -455,28 +455,29 @@ class CheckoutController extends GetxController {
       }
     }
 
-    isScreenLoading.value = true;
-try {
-  final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body);
+      isScreenLoading.value = true;
+  try {
+    final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body);
 
-  if (Get.context == null) return;
+    if (Get.context == null) return;
 
-  await _handleOrderResponse(resp);
-} catch (e, stackTrace) {
-  if (Get.context == null) return;
-  String message = 'Something went wrong. Please try again.';
-  if (e is ApiHttpException) {
-    try {
-      final body = jsonDecode(e.body);
-      if (body is Map && body['message'] != null) {
-        message = body['message'].toString();
-      }
-    } catch (_) {}
+    await _handleOrderResponse(resp);
+  } catch (e, stackTrace) {
+    if (Get.context == null) return;
+    String message = 'Something went wrong. Please try again.';
+    if (e is ApiHttpException) {
+      try {
+        final body = jsonDecode(e.body);
+        if (body is Map && body['message'] != null) {
+          message = body['message'].toString();
+        }
+      } catch (_) {}
+    }
+    _showSnackbar('Checkout'.tr, message);
+  } finally {
+    isScreenLoading.value = false;
   }
-  _showSnackbar('Checkout'.tr, message);
 }
-  }
-
   String _productsJsonString() {
     final payload = items.map((e) => e.toApiModel().toJson()).toList();
     return jsonEncode(payload);
