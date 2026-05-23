@@ -51,7 +51,7 @@ class LanguageController extends GetxController {
   Future<void> setLanguage(String apiCode, {bool persist = true}) async {
     selectedApiCode.value = apiCode;
 
-    await LanguageService.load(apiCode);
+    await LanguageService.load(apiCode, force: true);
 
     final locale = LocaleMapper.fromApiCode(apiCode);
     Get.updateLocale(locale);
