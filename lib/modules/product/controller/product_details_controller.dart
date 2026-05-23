@@ -32,6 +32,7 @@ class ProductDetailsController extends GetxController {
   late final String permalink;
 
   final RxBool isLoading = false.obs;
+  final RxBool buyNowLoading = false.obs;
   final RxString error = ''.obs;
   final Rxn<ProductDetailsModel> product = Rxn<ProductDetailsModel>();
 
@@ -91,7 +92,6 @@ class ProductDetailsController extends GetxController {
       final res = await _detailsRepo.fetchByPermalink(permalink);
       product.value = res;
       
-      // Record recently viewed
       if (Get.isRegistered<RecentlyViewedController>()) {
         final rv = Get.find<RecentlyViewedController>();
         rv.addProduct(ProductModel(
