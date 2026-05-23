@@ -11,13 +11,18 @@ class RefundRepository {
   Future<RefundRequestResponse> fetchRefundRequests({
     required int page,
     required int perPage,
+    String? dateFrom,
+    String? dateTo,
   }) async {
     final url = AppConfig.refundRequestsUrl();
 
-    final res = await _api.postJson(
-      url,
-      body: {'page': page, 'perPage': perPage},
-    );
+    final body = <String, dynamic>{'page': page, 'perPage': perPage};
+    if (dateFrom != null && dateFrom.isNotEmpty && dateTo != null && dateTo.isNotEmpty) {
+      body['date_from'] = dateFrom;
+      body['date_to'] = dateTo;
+    }
+
+    final res = await _api.postJson(url, body: body);
     return RefundRequestResponse.fromJson(res);
   }
 
