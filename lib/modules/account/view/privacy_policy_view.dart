@@ -93,7 +93,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
                       ),
                     HtmlWidget(
                       _content,
-                      baseUrl: AppConfig.baseUrl,
+                      baseUrl: Uri.parse(AppConfig.baseUrl),
                     ),
                   ],
                 ),
