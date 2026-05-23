@@ -93,7 +93,7 @@ class _TermsConditionsViewState extends State<TermsConditionsView> {
                       ),
                     HtmlWidget(
                       _content,
-                      baseUrl: AppConfig.baseUrl,
+                      baseUrl: Uri.parse(AppConfig.baseUrl),
                     ),
                   ],
                 ),
