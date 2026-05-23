@@ -112,6 +112,8 @@ class RefundRequestController extends GetxController {
       final res = await _repo.fetchRefundRequests(
         page: _page,
         perPage: _perPage,
+        dateFrom: dateFrom.value.isEmpty ? null : dateFrom.value,
+        dateTo: dateTo.value.isEmpty ? null : dateTo.value,
       );
       items.assignAll(res.data);
       _lastPage = res.lastPage;
@@ -139,6 +141,8 @@ class RefundRequestController extends GetxController {
       final res = await _repo.fetchRefundRequests(
         page: _page,
         perPage: _perPage,
+        dateFrom: dateFrom.value.isEmpty ? null : dateFrom.value,
+        dateTo: dateTo.value.isEmpty ? null : dateTo.value,
       );
       items.addAll(res.data);
       _lastPage = res.lastPage;
