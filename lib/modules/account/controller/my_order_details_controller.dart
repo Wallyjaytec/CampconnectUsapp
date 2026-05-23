@@ -198,8 +198,9 @@ class OrderDetailsController extends GetxController {
         ),
       );
 
-      await refreshNow(d.id);
       if (ok == true) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        await refreshNow(d.id);
         Get.snackbar(
           'Payment'.tr,
           'Payment successful'.tr,
@@ -313,9 +314,9 @@ class OrderDetailsController extends GetxController {
       final resp = jsonDecode(response.body);
       final success = resp['success'] == true;
       
-      await refreshNow(d.id);
-      
       if (success) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        await refreshNow(d.id);
         Get.snackbar(
           'Payment'.tr,
           'Payment successful'.tr,
