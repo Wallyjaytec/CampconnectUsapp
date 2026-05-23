@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -17,6 +18,7 @@ class PrivacyPolicyView extends StatefulWidget {
 class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
   String _title = '';
   String _content = '';
+  String? _featuredImage;
   bool _isLoading = true;
 
   @override
@@ -41,6 +43,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
           setState(() {
             _title = data['data']['title'] ?? 'Privacy Policy';
             _content = data['data']['content'] ?? '';
+            _featuredImage = data['data']['featured_image'];
             _isLoading = false;
           });
           return;
@@ -74,7 +77,26 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
-                child: HtmlWidget(_content),
+                child: Column(
+                  children: [
+                    if (_featuredImage != null && _featuredImage!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CachedNetworkImage(
+                            imageUrl: _featuredImage!,
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                          ),
+                        ),
+                      ),
+                    HtmlWidget(
+                      _content,
+                      baseUrl: AppConfig.baseUrl,
+                    ),
+                  ],
+                ),
               ),
       ),
     );
