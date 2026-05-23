@@ -75,6 +75,7 @@ class RefundRequestController extends GetxController {
       statusFilter.value = status;
     }
     update();
+    fetchFirstPage();
   }
 
   void setDateRange(String from, String to) {
