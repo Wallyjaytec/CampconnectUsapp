@@ -91,13 +91,18 @@ class OrderDetailsController extends GetxController {
       final ok = await _repo.cancelOrder(orderId: d.id);
       if (ok) {
         optimisticOrderCancelled.value = true;
-        Get.snackbar(
-          'Cancelled'.tr,
-          'Order has been cancelled'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
+        if (Get.context != null) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text('Order has been cancelled'.tr),
+              backgroundColor: AppColors.primaryColor,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
 
         await _fetch(d.id, showSpinner: false);
 
@@ -106,22 +111,32 @@ class OrderDetailsController extends GetxController {
           await _fetch(d.id, showSpinner: false);
         }
       } else {
-        Get.snackbar(
-          'Failed'.tr,
-          'Order cancel failed'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
+        if (Get.context != null) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text('Order cancel failed'.tr),
+              backgroundColor: AppColors.primaryColor,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(
+            content: Text('Something went wrong'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -134,13 +149,18 @@ class OrderDetailsController extends GetxController {
       if (ok) {
         optimisticCancelledItemIds.add(itemId);
         optimisticCancelledItemIds.refresh();
-        Get.snackbar(
-          'Cancelled'.tr,
-          'This item has been cancelled'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
+        if (Get.context != null) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text('This item has been cancelled'.tr),
+              backgroundColor: AppColors.primaryColor,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
 
         await _fetch(d.id, showSpinner: false);
 
@@ -149,22 +169,32 @@ class OrderDetailsController extends GetxController {
           await _fetch(d.id, showSpinner: false);
         }
       } else {
-        Get.snackbar(
-          'Failed'.tr,
-          'Item cancel failed'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
-        );
+        if (Get.context != null) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text('Item cancel failed'.tr),
+              backgroundColor: AppColors.primaryColor,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(
+            content: Text('Something went wrong'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -177,12 +207,15 @@ class OrderDetailsController extends GetxController {
     try {
       final link = await _repo.generateOrderPaymentLink(orderId: d.id);
       if (link == null || link.isEmpty) {
-        Get.snackbar(
-          'Payment'.tr,
-          'Could not generate payment link'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not generate payment link'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
         return;
       }
@@ -199,31 +232,39 @@ class OrderDetailsController extends GetxController {
       );
 
       if (ok == true) {
-        await Future.delayed(const Duration(milliseconds: 300));
         await refreshNow(d.id);
-        Get.snackbar(
-          'Payment'.tr,
-          'Payment successful'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment successful'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       } else if (ok == false) {
-        Get.snackbar(
-          'Payment'.tr,
-          'Payment was cancelled'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment was cancelled'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'Payment Error'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Something went wrong'.tr),
+          backgroundColor: AppColors.primaryColor,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 2),
+        ),
       );
     } finally {
       paying.value = false;
@@ -315,32 +356,40 @@ class OrderDetailsController extends GetxController {
       final success = resp['success'] == true;
       
       if (success) {
-        await Future.delayed(const Duration(milliseconds: 300));
         await refreshNow(d.id);
-        Get.snackbar(
-          'Payment'.tr,
-          'Payment successful'.tr,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment successful'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       } else {
         final msg = resp['message']?.toString() ?? 'Payment failed'.tr;
-        Get.snackbar(
-          'Payment'.tr,
-          msg,
-          backgroundColor: AppColors.primaryColor,
-          snackPosition: SnackPosition.TOP,
-          colorText: AppColors.whiteColor,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
-      Get.snackbar(
-        'Payment Error'.tr,
-        'Something went wrong'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Something went wrong'.tr),
+          backgroundColor: AppColors.primaryColor,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 2),
+        ),
       );
     } finally {
       paying.value = false;
