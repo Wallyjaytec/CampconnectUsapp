@@ -464,9 +464,16 @@ try {
   await _handleOrderResponse(resp);
 } catch (e, stackTrace) {
   if (Get.context == null) return;
-  _showSnackbar('Checkout'.tr, 'Error: $e\n\n$stackTrace');
-} finally {
-  isScreenLoading.value = false;
+  String message = 'Something went wrong. Please try again.';
+  if (e is ApiHttpException) {
+    try {
+      final body = jsonDecode(e.body);
+      if (body is Map && body['message'] != null) {
+        message = body['message'].toString();
+      }
+    } catch (_) {}
+  }
+  _showSnackbar('Checkout'.tr, message);
 }
   }
 
