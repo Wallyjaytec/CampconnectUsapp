@@ -1356,22 +1356,25 @@ class _BottomBar extends StatelessWidget {
   flex: 2,
   child: Obx(() {
     final isLoading = controller.isLoading.value;
+    final isBuying = controller.buyNowLoading.value;
     final p = controller.product.value;
     final outOfStock = p != null && p.quantity <= 0;
     return _BigCTA(
       text: outOfStock ? 'Out of Stock'.tr : 'Buy Now'.tr,
-      background: (isLoading || outOfStock)
+      background: (isLoading || outOfStock || isBuying)
           ? AppColors.lightBlueColor.withValues(alpha: 0.5)
           : AppColors.lightBlueColor,
-      onTap: (isLoading || outOfStock)
+      onTap: (isLoading || outOfStock || isBuying)
           ? () {}
           : () {
               final c = Get.find<ProductDetailsController>();
               _handleBuyNow(c);
             },
+      child: isBuying 
+          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          : Text(...),
     );
-  }),
-),
+}),
             const SizedBox(width: 10),
             Expanded(
               flex: 2,
