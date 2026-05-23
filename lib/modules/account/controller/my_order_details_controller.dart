@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/modules/account/view/web_pay_view.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/services/login_service.dart';
 import '../../../core/utils/currency_formatters.dart';
-import '../../../data/repositories/checkout_repository.dart';
 import '../../../data/repositories/my_order_repository.dart';
 import '../../../data/repositories/wallet_repository.dart';
 import '../model/my_order_details_model.dart';
@@ -230,10 +233,8 @@ class OrderDetailsController extends GetxController {
     final d = order.value;
     if (d == null || paying.value) return;
 
-    // Show spinner immediately
     paying.value = true;
 
-    // Check wallet balance
     double walletBalance = 0;
     bool canWallet = false;
     try {
@@ -243,7 +244,6 @@ class OrderDetailsController extends GetxController {
       canWallet = walletBalance >= d.totalPayableAmount;
     } catch (_) {}
 
-    // Stop spinner, show dialog
     paying.value = false;
 
     showDialog(
@@ -295,18 +295,18 @@ class OrderDetailsController extends GetxController {
 
     paying.value = true;
     try {
-      final checkoutRepo = CheckoutRepository(ApiService());
-      final body = <String, dynamic>{
-        'payment_id': '2',
-        'note': '',
-        'wallet_payment': '1',
-        'origin': 'app',
-        'billing_address': '0',
-        'products': '[]',
-        'order_id': d.id,
-      };
+      final token = LoginService().token;
+      final uri = Uri.parse(AppConfig.payOrderWithWalletUrl());
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+        body: {'order_id': d.id.toString()},
+      );
 
-      final resp = await checkoutRepo.customerCheckoutOrderCreate(body: body);
+      final resp = jsonDecode(response.body);
       final success = resp['success'] == true;
       
       await refreshNow(d.id);
