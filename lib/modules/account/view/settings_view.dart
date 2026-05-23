@@ -166,6 +166,7 @@ class _SettingsViewState extends State<SettingsView> {
                     TextButton(
                       onPressed: _isClearing ? null : () async {
                         setState(() => _isClearing = true);
+                        
                         final box = GetStorage();
                         final keys = box.getKeys();
                         for (final key in keys) {
@@ -173,12 +174,12 @@ class _SettingsViewState extends State<SettingsView> {
                             box.remove(key);
                           }
                         }
+                        
                         PaintingBinding.instance.imageCache.clear();
-                        PaintingBinding.instance.imageCache.clearLiveImages();
-                        setState(() { 
-                          _cacheSize = 0; 
-                          _isClearing = false;
-                        });
+                        
+                        _calculateCacheSize();
+                        setState(() => _isClearing = false);
+                        
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
