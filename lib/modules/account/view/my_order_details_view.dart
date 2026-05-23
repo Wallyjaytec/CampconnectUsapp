@@ -11,6 +11,7 @@ import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -96,7 +97,7 @@ class MyOrderDetailsView extends StatelessWidget {
           SizedBox(
             height: 38,
             child: ElevatedButton(
-              onPressed: () => c.payNow(context),
+            onPressed: () => c.showPayOptions(context),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
               child: Obx(() {
                 final paying = c.paying.value;
