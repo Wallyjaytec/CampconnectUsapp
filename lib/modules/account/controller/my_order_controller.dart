@@ -106,6 +106,8 @@ class OrderController extends GetxController {
         page: _page,
         perPage: _perPage,
         searchKey: searchKey.value.isEmpty ? null : searchKey.value,
+        dateFrom: dateFrom.value.isEmpty ? null : dateFrom.value,
+        dateTo: dateTo.value.isEmpty ? null : dateTo.value,
       );
       orders.addAll(res.data);
       _lastPage = res.meta?.lastPage ?? 1;
@@ -131,6 +133,8 @@ class OrderController extends GetxController {
         page: _page,
         perPage: _perPage,
         searchKey: searchKey.value.isEmpty ? null : searchKey.value,
+        dateFrom: dateFrom.value.isEmpty ? null : dateFrom.value,
+        dateTo: dateTo.value.isEmpty ? null : dateTo.value,
       );
       orders.addAll(res.data);
       _lastPage = res.meta?.lastPage ?? _lastPage;
