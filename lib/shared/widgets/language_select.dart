@@ -15,7 +15,6 @@ class LanguageSelect extends StatefulWidget {
 
 class _LanguageSelectState extends State<LanguageSelect> {
   final controller = Get.find<LanguageController>();
-  bool _isSelecting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -81,122 +80,126 @@ class _LanguageSelectState extends State<LanguageSelect> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.66,
-          maxChildSize: 0.66,
-          minChildSize: 0.40,
-          expand: false,
-          builder: (context, scrollController) {
-            return Obx(() {
-              final langs = controller.languages;
-              final selected = tempSelected.value;
+        bool isSelecting = false;
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.66,
+              maxChildSize: 0.66,
+              minChildSize: 0.40,
+              expand: false,
+              builder: (context, scrollController) {
+                return Obx(() {
+                  final langs = controller.languages;
+                  final selected = tempSelected.value;
 
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white24
-                              : const Color(0xFFE5E7EB),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  RadioGroup<String>(
-                    groupValue: selected,
-                    onChanged: (v) {
-                      if (v != null) tempSelected.value = v;
-                    },
-                    child: CustomScrollView(
-                      controller: scrollController,
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 30, 16, 8),
-                            child: Text(
-                              'Select Language'.tr,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
+                  return Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white24
+                                  : const Color(0xFFE5E7EB),
+                              borderRadius: BorderRadius.circular(999),
                             ),
                           ),
                         ),
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate((context, index) {
-                            final lang = langs[index];
-                            final code = lang.code.toString();
-
-                            return RadioListTile<String>(
-                              key: ValueKey(code),
-                              value: code,
-                              title: Text(
-                                lang.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                              subtitle: Text(
-                                code.toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            );
-                          }, childCount: langs.length),
-                        ),
-                        const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                      ],
-                    ),
-                  ),
-
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkCardColor
-                            : AppColors.lightCardColor,
                       ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+
+                      RadioGroup<String>(
+                        groupValue: selected,
+                        onChanged: (v) {
+                          if (v != null) tempSelected.value = v;
+                        },
+                        child: CustomScrollView(
+                          controller: scrollController,
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 30, 16, 8),
+                                child: Text(
+                                  'Select Language'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate((context, index) {
+                                final lang = langs[index];
+                                final code = lang.code.toString();
+
+                                return RadioListTile<String>(
+                                  key: ValueKey(code),
+                                  value: code,
+                                  title: Text(
+                                    lang.title,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    code.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                );
+                              }, childCount: langs.length),
+                            ),
+                            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                          ],
+                        ),
+                      ),
+
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkCardColor
+                                : AppColors.lightCardColor,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: isSelecting ? null : () async {
+                                setSheetState(() => isSelecting = true);
+                                await controller.setLanguage(selected);
+                                safeBack();
+                              },
+                              child: isSelecting 
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                                : Text('Select'.tr),
                             ),
                           ),
-                          onPressed: _isSelecting ? null : () async {
-                            _isSelecting = true;
-                            setState(() {});
-                            await controller.setLanguage(selected);
-                            safeBack();
-                          },
-                          child: _isSelecting 
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
-                            : Text('Select'.tr),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              );
-            });
+                    ],
+                  );
+                });
+              },
+            );
           },
         );
       },
