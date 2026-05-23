@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -12,7 +11,6 @@ import '../../../core/utils/currency_formatters.dart';
 import '../../../data/repositories/checkout_repository.dart';
 import '../../../data/repositories/my_order_repository.dart';
 import '../../../data/repositories/wallet_repository.dart';
-import '../../product/model/payment_method_model.dart';
 import '../model/my_order_details_model.dart';
 
 class OrderDetailsController extends GetxController {
@@ -40,9 +38,6 @@ class OrderDetailsController extends GetxController {
   final RxSet<int> optimisticCancelledItemIds = <int>{}.obs;
 
   final RxBool paying = false.obs;
-  final RxBool isLoadingPayments = false.obs;
-  final RxList<ActivePaymentMethod> paymentMethods = <ActivePaymentMethod>[].obs;
-  final RxnInt selectedPaymentId = RxnInt();
 
   Future<void> load(int orderId) async {
     await _fetch(orderId, showSpinner: true);
@@ -170,7 +165,7 @@ class OrderDetailsController extends GetxController {
     }
   }
 
-  Future<void> payNow(BuildContext context) async {
+  Future<void> payWithGateway(BuildContext context) async {
     final d = order.value;
     if (d == null) return;
     if (paying.value) return;
@@ -186,7 +181,6 @@ class OrderDetailsController extends GetxController {
           snackPosition: SnackPosition.TOP,
           colorText: AppColors.whiteColor,
         );
-        paying.value = false;
         return;
       }
 
@@ -201,54 +195,23 @@ class OrderDetailsController extends GetxController {
         ),
       );
 
-      if (ok == null) {
-        final result = await Get.to<bool>(
-          () => WebPayView(
-            initialUrl: link,
-            headers: const {},
-            successUrlContains: null,
-            cancelUrlContains: null,
-            failedUrlContains: null,
-            timeout: const Duration(seconds: 200),
-          ),
+      await refreshNow(d.id);
+      if (ok == true) {
+        Get.snackbar(
+          'Payment'.tr,
+          'Payment successful'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
         );
-        await refreshNow(d.id);
-        if (result == true) {
-          Get.snackbar(
-            'Payment'.tr,
-            'Payment successful'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        } else {
-          Get.snackbar(
-            'Payment'.tr,
-            'Payment not completed'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        }
-      } else {
-        await refreshNow(d.id);
-        if (ok == true) {
-          Get.snackbar(
-            'Payment'.tr,
-            'Payment successful'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        } else {
-          Get.snackbar(
-            'Payment'.tr,
-            'Payment not completed'.tr,
-            backgroundColor: AppColors.primaryColor,
-            snackPosition: SnackPosition.TOP,
-            colorText: AppColors.whiteColor,
-          );
-        }
+      } else if (ok == false) {
+        Get.snackbar(
+          'Payment'.tr,
+          'Payment was cancelled'.tr,
+          backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
+          colorText: AppColors.whiteColor,
+        );
       }
     } catch (e) {
       Get.snackbar(
@@ -267,117 +230,60 @@ class OrderDetailsController extends GetxController {
     final d = order.value;
     if (d == null || paying.value) return;
 
-    isLoadingPayments.value = true;
-    try {
-      final checkoutRepo = CheckoutRepository(ApiService());
-      final shipping = d.shippingDetails;
-      final cityId = shipping.city.isNotEmpty ? shipping.city : '0';
-      final map = await checkoutRepo.fetchActivePaymentMethods(
-        city: cityId,
-        pickupPoint: '',
-        productsJsonString: '[]',
-      );
-      final resp = ActivePaymentMethodsResponse.fromJson(map);
-      if (resp.success) {
-        paymentMethods.assignAll(resp.data);
-      }
-    } catch (_) {}
-    isLoadingPayments.value = false;
+    // Show spinner immediately
+    paying.value = true;
 
+    // Check wallet balance
     double walletBalance = 0;
+    bool canWallet = false;
     try {
       final walletRepo = WalletRepository(api: ApiService());
       final summary = await walletRepo.fetchWalletSummary();
       walletBalance = summary.totalAvailable.toDouble();
+      canWallet = walletBalance >= d.totalPayableAmount;
     } catch (_) {}
 
-    final canWallet = walletBalance >= d.totalPayableAmount;
+    // Stop spinner, show dialog
+    paying.value = false;
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
-                ),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Pay for Order'.tr),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${'Total'.tr}: ${formatCurrency(d.totalPayableAmount, applyConversion: true)}',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryColor)),
+            const SizedBox(height: 16),
+            if (canWallet) ...[
+              ListTile(
+                leading: Icon(Iconsax.wallet_3_copy, color: AppColors.primaryColor),
+                title: Text('Pay with Wallet'.tr),
+                subtitle: Text('Balance: ${formatCurrency(walletBalance, applyConversion: true)}'),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                tileColor: AppColors.primaryColor.withValues(alpha: 0.05),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _payWithWallet(context);
+                },
               ),
-              const SizedBox(height: 16),
-              Text('Pay for Order'.tr, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
-              const SizedBox(height: 4),
-              Text('${'Total'.tr}: ${formatCurrency(d.totalPayableAmount, applyConversion: true)}', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
-              const SizedBox(height: 16),
-              if (canWallet) ...[
-                ListTile(
-                  leading: Icon(Iconsax.wallet_3_copy, color: AppColors.primaryColor),
-                  title: Text('Pay with Wallet'.tr),
-                  subtitle: Text('Balance: ${formatCurrency(walletBalance, applyConversion: true)}'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _payWithWallet(context);
-                  },
-                ),
-                const Divider(),
-              ],
-              if (paymentMethods.isNotEmpty) ...[
-                Text('${'Payment method'.tr}:', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton2<int>(
-                    buttonStyleData: ButtonStyleData(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                    ),
-                    isExpanded: true,
-                    items: paymentMethods.map((m) => DropdownMenuItem<int>(
-                      value: m.id,
-                      child: Text(m.name, style: const TextStyle(fontSize: 13)),
-                    )).toList(),
-                    value: selectedPaymentId.value,
-                    hint: Text('Select Payment method'.tr, style: const TextStyle(fontSize: 13)),
-                    onChanged: (v) => selectedPaymentId.value = v,
-                    iconStyleData: IconStyleData(icon: Icon(Iconsax.arrow_down_1_copy), iconSize: 18),
-                    dropdownStyleData: DropdownStyleData(
-                      maxHeight: 300,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: selectedPaymentId.value == null ? null : () {
-                      Navigator.pop(ctx);
-                      payNow(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Text('Pay Now'.tr),
-                  ),
-                ),
-              ],
+              const SizedBox(height: 8),
+              Center(child: Text('— OR —'.tr, style: const TextStyle(color: Colors.grey))),
               const SizedBox(height: 8),
             ],
-          ),
+            ListTile(
+              leading: Icon(Iconsax.card_copy, color: AppColors.primaryColor),
+              title: Text('Pay with Payment Gateway'.tr),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              tileColor: AppColors.primaryColor.withValues(alpha: 0.05),
+              onTap: () {
+                Navigator.pop(ctx);
+                payWithGateway(context);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -385,8 +291,7 @@ class OrderDetailsController extends GetxController {
 
   Future<void> _payWithWallet(BuildContext context) async {
     final d = order.value;
-    if (d == null) return;
-    if (paying.value) return;
+    if (d == null || paying.value) return;
 
     paying.value = true;
     try {
@@ -404,8 +309,9 @@ class OrderDetailsController extends GetxController {
       final resp = await checkoutRepo.customerCheckoutOrderCreate(body: body);
       final success = resp['success'] == true;
       
+      await refreshNow(d.id);
+      
       if (success) {
-        await refreshNow(d.id);
         Get.snackbar(
           'Payment'.tr,
           'Payment successful'.tr,
