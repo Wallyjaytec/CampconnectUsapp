@@ -6,10 +6,16 @@ import '../../shared/utils/dialog_utils.dart';
 
 import '../../core/controllers/language_controller.dart';
 
-class LanguageSelect extends StatelessWidget {
+class LanguageSelect extends StatefulWidget {
   LanguageSelect({super.key});
 
+  @override
+  State<LanguageSelect> createState() => _LanguageSelectState();
+}
+
+class _LanguageSelectState extends State<LanguageSelect> {
   final controller = Get.find<LanguageController>();
+  bool _isSelecting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -175,11 +181,15 @@ class LanguageSelect extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: () async {
+                          onPressed: _isSelecting ? null : () async {
+                            _isSelecting = true;
+                            setState(() {});
                             await controller.setLanguage(selected);
                             safeBack();
                           },
-                          child: Text('Select'.tr),
+                          child: _isSelecting 
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                            : Text('Select'.tr),
                         ),
                       ),
                     ),
