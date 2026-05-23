@@ -266,7 +266,9 @@ class OrderDetailsController extends GetxController {
                 tileColor: AppColors.primaryColor.withValues(alpha: 0.05),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _payWithWallet(context);
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    _payWithWallet(context);
+                  });
                 },
               ),
               const SizedBox(height: 8),
@@ -280,7 +282,9 @@ class OrderDetailsController extends GetxController {
               tileColor: AppColors.primaryColor.withValues(alpha: 0.05),
               onTap: () {
                 Navigator.pop(ctx);
-                payWithGateway(context);
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  payWithGateway(context);
+                });
               },
             ),
           ],
