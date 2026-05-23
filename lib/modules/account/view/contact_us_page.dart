@@ -86,20 +86,86 @@ class ContactUsView extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              // File Picker Section
+              Obx(() {
+                final files = controller.selectedFiles;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => controller.pickFiles(),
+                      icon: const Icon(Iconsax.attach_circle, size: 18),
+                      label: Text('Attach Files'.tr),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryColor,
+                        side: const BorderSide(color: AppColors.primaryColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    if (files.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '${'Files'.tr}: ${files.length}',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      ...List.generate(files.length, (i) {
+                        final file = files[i];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Iconsax.document, size: 16, color: AppColors.primaryColor),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  file.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => controller.removeFile(i),
+                                child: const Icon(Icons.close, size: 16, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ],
+                );
+              }),
               const SizedBox(height: 24),
               Obx(
                 () => SizedBox(
                   width: double.infinity,
                   height: 44,
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     onPressed: controller.isLoading.value
                         ? null
-                        : controller.submitContactForm,
+                        : () => controller.submitContactForm(),
                     child: controller.isLoading.value
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(),
+                            child: CircularProgressIndicator(color: Colors.white),
                           )
                         : Text('Submit'.tr),
                   ),
