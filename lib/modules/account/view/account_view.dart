@@ -198,7 +198,7 @@ class AccountView extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 12, right: 12), dense: true, visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
       leading: Icon(icon, color: AppColors.primaryColor, size: 20),
       title: Text(title, style: const TextStyle(fontSize: 14)),
-      trailing: const Icon(Iconsax.arrow_right_3, size: 18),
+      trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
       onTap: onTap,
     );
   }
