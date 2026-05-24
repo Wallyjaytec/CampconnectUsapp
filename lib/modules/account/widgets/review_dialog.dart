@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -146,7 +147,7 @@ class ReviewDialog extends StatelessWidget {
                       onPressed: busy ? null : () async {
                         final ok = await c.submit(orderId: orderId, productId: productId);
                         if (ok) {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(true);
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (Get.context != null) {
                               ScaffoldMessenger.of(Get.context!).showSnackBar(
