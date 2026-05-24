@@ -80,11 +80,13 @@ class CouponsView extends StatelessWidget {
                 coupons: controller.activeCoupons,
                 isEmptyMessage: 'No active coupons available'.tr,
                 isActive: true,
+                onRefresh: controller.loadCoupons,
               ),
               _CouponList(
                 coupons: controller.inactiveCoupons,
                 isEmptyMessage: 'No inactive coupons'.tr,
                 isActive: false,
+                onRefresh: controller.loadCoupons,
               ),
             ],
           );
@@ -99,42 +101,60 @@ class _CouponList extends StatelessWidget {
     required this.coupons,
     required this.isEmptyMessage,
     required this.isActive,
+    required this.onRefresh,
   });
 
   final List<CouponModel> coupons;
   final String isEmptyMessage;
   final bool isActive;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
     if (coupons.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
           children: [
-            Image.asset(
-              'assets/icons/empty_coupon.png',
-              width: 120,
-              height: 120,
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.25,
             ),
-            const SizedBox(height: 16),
-            Text(
-              isEmptyMessage,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icons/empty_coupon.png',
+                    width: 120,
+                    height: 120,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    isEmptyMessage,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemCount: coupons.length,
-      itemBuilder: (context, index) {
-        final coupon = coupons[index];
-        return _CouponCard(coupon: coupon, isActive: isActive);
-      },
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(12),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemCount: coupons.length,
+        itemBuilder: (context, index) {
+          final coupon = coupons[index];
+          return _CouponCard(coupon: coupon, isActive: isActive);
+        },
+      ),
     );
   }
 }
