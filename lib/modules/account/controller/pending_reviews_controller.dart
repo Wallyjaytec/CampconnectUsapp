@@ -5,14 +5,14 @@ import '../model/my_order_details_model.dart';
 
 class PendingReviewsController extends GetxController {
   PendingReviewsController({OrderRepository? repository})
-      : _repo = repository ?? OrderRepository(ApiService());
+      : _repo = repository ?? OrderRepository(api: ApiService());
 
   final OrderRepository _repo;
 
   final RxBool isLoading = false.obs;
   final RxString error = ''.obs;
   final RxList<OrderProductItem> products = <OrderProductItem>[].obs;
-  final Map<int, int> productOrderMap = {}; // productId -> orderId
+  final Map<int, int> productOrderMap = {};
 
   @override
   void onInit() {
