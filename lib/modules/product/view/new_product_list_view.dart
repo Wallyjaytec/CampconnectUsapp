@@ -200,6 +200,9 @@ class _NewProductListViewState extends State<NewProductListView> {
           }
 
           if (!controller.isLoading.value && controller.error.isEmpty && controller.products.isEmpty && !controller.hasMore) {
+            // Check if viewing by brand or category
+            final isBrand = controller.selectedBrandId.value != null && controller.selectedBrandId.value! > 0;
+            
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -208,9 +211,21 @@ class _NewProductListViewState extends State<NewProductListView> {
                   children: [
                     Image.asset('assets/icons/categories_empty.png', width: 100, height: 100),
                     const SizedBox(height: 16),
-                    Text('No products found under this brand'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    Text(
+                      isBrand 
+                          ? 'No products found under this brand'.tr 
+                          : 'No products found under this category'.tr,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
                     const SizedBox(height: 8),
-                    Text('Browse later or check other brands'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                    Text(
+                      isBrand 
+                          ? 'Browse later or check other brands'.tr 
+                          : 'Browse later or check other categories'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
                   ],
                 ),
               ),
