@@ -62,7 +62,12 @@ class PendingReviewsController extends GetxController {
     return productOrderCodeMap[productId] ?? '';
   }
 
-  void removeProduct(int productId) {
+  void removeProduct(int productId) async {
+    final orderId = getOrderIdForProduct(productId);
     products.removeWhere((p) => p.productId == productId);
+    
+    try {
+      await _repo.markReviewedFromList(productId: productId, orderId: orderId);
+    } catch (_) {}
   }
 }
