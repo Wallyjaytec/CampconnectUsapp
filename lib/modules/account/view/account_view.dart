@@ -94,7 +94,6 @@ class AccountView extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(children: [
                     const SizedBox(height: 20),
-                    // Row 1: 4 boxes - Orders
                     Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Obx(() => Row(children: [
                       Expanded(child: _statCard("${"Total".tr}\n${"Orders".tr}", '${dashCtrl.totalOrder.value}', context)),
                       const SizedBox(width: 6),
@@ -105,7 +104,6 @@ class AccountView extends StatelessWidget {
                       Expanded(child: _statCard("${"Cancelled".tr}\n${"Orders".tr}", '${dashCtrl.totalCancelledOrder.value}', context)),
                     ]))),
                     const SizedBox(height: 10),
-                    // Row 2: 4 boxes - Purchase & Balance
                     Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Obx(() { String money(num v) => currencyCtrl.format(v, applyConversion: true);
                       return Row(children: [
                         Expanded(child: _statCard("${"Total".tr}\n${"Purchase".tr}", money(dashCtrl.totalPurchaseAmount.value), context)),
@@ -123,6 +121,7 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.card_copy, "My Wallet".tr, () => Get.toNamed(AppRoutes.myWalletView)),
                     _menuItem(Iconsax.star, "Ratings & Reviews".tr, () => Get.toNamed(AppRoutes.pendingReviewsView)),
                     _menuItem(Iconsax.ticket_discount_copy, "Coupons".tr, () => Get.toNamed(AppRoutes.couponsView)),
+                    _menuItem(Iconsax.shop_add, "Follow Sellers".tr, () => Get.toNamed(AppRoutes.followSellerView)),
                     _menuItem(Iconsax.undo_copy, "Refund Requests".tr, () => Get.toNamed(AppRoutes.refundRequestListView)),
                     _menuItem(Iconsax.settings_copy, "Settings".tr, () => Get.toNamed(AppRoutes.settingsView)),
                     _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
@@ -165,6 +164,7 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.card_copy, "My Wallet".tr, () => _showLoginPrompt(redirectTo: AppRoutes.myWalletView)),
                     _menuItem(Iconsax.star, "Ratings & Reviews".tr, () => _showLoginPrompt(redirectTo: AppRoutes.pendingReviewsView)),
                     _menuItem(Iconsax.ticket_discount_copy, "Coupons".tr, () => _showLoginPrompt(redirectTo: AppRoutes.couponsView)),
+                    _menuItem(Iconsax.shop_add, "Follow Sellers".tr, () => _showLoginPrompt(redirectTo: AppRoutes.followSellerView)),
                     _menuItem(Iconsax.undo_copy, "Refund Requests".tr, () => _showLoginPrompt(redirectTo: AppRoutes.refundRequestListView)),
                     _menuItem(Iconsax.settings_copy, "Settings".tr, () => _showLoginPrompt(redirectTo: AppRoutes.settingsView)),
                     _menuItem(Iconsax.message_add_1_copy, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
