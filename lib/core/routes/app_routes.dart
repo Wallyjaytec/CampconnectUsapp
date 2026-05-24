@@ -37,6 +37,7 @@ class AppRoutes {
   static const pendingReviewsView = '/pending_reviews_view';
   static const couponsView = '/coupons_view';
   static const followSellerView = '/follow_seller_view';
+  static const reportSellerView = '/report_seller_view';
   static const contactUsView = '/contact_us_view';
   static const guestCheckoutView = '/guest_checkout_view';
   static const orderSummaryView = '/order_summary_view';
