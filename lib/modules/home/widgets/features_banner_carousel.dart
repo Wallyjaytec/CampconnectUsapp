@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class FeaturesBannerCarousel extends StatefulWidget {
   const FeaturesBannerCarousel({super.key});
@@ -13,10 +12,10 @@ class _FeaturesBannerCarouselState extends State<FeaturesBannerCarousel> {
   int _currentPage = 0;
 
   final List<String> _images = [
-    'assets/images/support.Png',
-    'assets/images/easy_return.png',
-    'assets/images/nationwide_delivery.png',
-    'assets/images/secure_payments.png',
+    'assets/icons/support.png',
+    'assets/icons/easy_return.png',
+    'assets/icons/nationwide_delivery.png',
+    'assets/icons/secure_payments.png',
   ];
 
   @override
@@ -50,35 +49,39 @@ class _FeaturesBannerCarouselState extends State<FeaturesBannerCarousel> {
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 6),
       child: Column(
         children: [
-          SizedBox(
-            height: 150,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-                _startAutoPlay();
-              },
-              itemCount: _images.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      _images[index],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: 150,
-                    ),
-                  ),
-                );
-              },
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              height: 150,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                  _startAutoPlay();
+                },
+                itemCount: _images.length,
+                itemBuilder: (context, index) {
+                  return Image.asset(
+                    _images[index],
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 150,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
           const SizedBox(height: 10),
-          // Dot indicators
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
