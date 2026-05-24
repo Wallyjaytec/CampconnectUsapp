@@ -121,8 +121,7 @@ class PendingReviewsView extends StatelessWidget {
               itemCount: controller.products.length,
               itemBuilder: (context, index) {
                 final product = controller.products[index];
-                final orderId =
-                    controller.getOrderIdForProduct(product.productId);
+                final orderCode = controller.getOrderCodeForProduct(product.productId);
 
                 return Container(
                   padding: const EdgeInsets.all(12),
@@ -173,7 +172,7 @@ class PendingReviewsView extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${'Order ID'.tr}: #${orderId}',
+                              '${'Order ID'.tr}: #${orderCode}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -189,14 +188,15 @@ class PendingReviewsView extends StatelessWidget {
                             context: context,
                             barrierDismissible: false,
                             builder: (ctx) => ReviewDialog(
-                              orderId: orderId,
+                              orderId: controller.getOrderIdForProduct(product.productId),
                               productId: product.productId,
                               productName: product.name,
-                              productImage:
-                                  AppConfig.assetUrl(product.image),
+                              productImage: AppConfig.assetUrl(product.image),
                             ),
-                          ).then((_) {
-                            controller.removeProduct(product.productId);
+                          ).then((submitted) {
+                            if (submitted == true) {
+                              controller.removeProduct(product.productId);
+                            }
                           });
                         },
                         style: OutlinedButton.styleFrom(
