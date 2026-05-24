@@ -8,6 +8,7 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import '../controller/follow_seller_controller.dart';
 import '../model/follow_seller_model.dart';
 import '../../seller/model/seller_shop_model.dart';
+import '../../seller/controller/seller_products_controller.dart';
 
 class FollowSellerView extends StatelessWidget {
   const FollowSellerView({super.key});
@@ -103,12 +104,27 @@ class FollowSellerView extends StatelessWidget {
   }
 
   void _navigateToShop(FollowSellerModel seller) {
+    final slug = seller.slug;
+    final tag = 'seller_bottom_$slug';
+    
+    final sellerCtrl = Get.isRegistered<SellerProductsController>(tag: tag)
+        ? Get.find<SellerProductsController>(tag: tag)
+        : Get.put(
+            SellerProductsController(slug: slug, autoLoad: false),
+            tag: tag,
+          );
+    
+    sellerCtrl.seedHeaderMeta(
+      followersCount: seller.totalFollowers,
+      alreadyFollowing: seller.isFollowing,
+    );
+
     final args = SellerNavArgs(
       title: seller.name,
       logo: AppConfig.assetUrl(seller.logo),
-      slug: seller.slug,
+      slug: slug,
       ratingPercent: seller.positiveRating,
-      followers: seller.totalFollowers,
+      followers: sellerCtrl.followers.value,
       shopBanner: seller.shopBanner != null
           ? AppConfig.assetUrl(seller.shopBanner!)
           : null,
