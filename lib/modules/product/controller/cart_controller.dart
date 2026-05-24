@@ -44,12 +44,24 @@ class CartController extends GetxController {
   final RxString couponPillText = ''.obs;
   final Rx<CouponPillKind> couponPillKind = CouponPillKind.none.obs;
   final RxnString appliedCouponCode = RxnString();
+  final RxnInt appliedCouponId = RxnInt();
   final RxDouble _couponDiscount = 0.0.obs;
   final RxString lastCouponError = ''.obs;
   final Set<String> _usedCoupons = <String>{};
 
   bool get _isLoggedIn => LoginService().isLoggedIn();
   final GuestCartService _guest = GuestCartService();
+
+  List<Map<String, dynamic>> get appliedCoupons {
+    if (appliedCouponCode.value == null) return [];
+    return [
+      {
+        'id': appliedCouponId.value ?? 0,
+        'coupon_code': appliedCouponCode.value,
+        'discount': _couponDiscount.value,
+      }
+    ];
+  }
 
   @override
   void onInit() {
@@ -454,6 +466,7 @@ class CartController extends GetxController {
       if (resp.success) {
         _couponDiscount.value = (resp.discount ?? 0).toDouble();
         appliedCouponCode.value = resp.couponCode ?? '';
+        appliedCouponId.value = resp.couponId;
         couponPillText.value = 'Applied'.tr;
         couponPillKind.value = CouponPillKind.success;
         _usedCoupons.add(code);
@@ -462,6 +475,7 @@ class CartController extends GetxController {
         lastCouponError.value = msg;
         _couponDiscount.value = 0.0;
         appliedCouponCode.value = null;
+        appliedCouponId.value = null;
         couponPillText.value = msg;
         couponPillKind.value = CouponPillKind.error;
       }
@@ -470,6 +484,7 @@ class CartController extends GetxController {
       lastCouponError.value = 'Something went wrong'.tr;
       _couponDiscount.value = 0;
       appliedCouponCode.value = null;
+      appliedCouponId.value = null;
 
       couponPillText.value = 'Something went wrong'.tr;
       couponPillKind.value = CouponPillKind.error;
@@ -501,6 +516,7 @@ class CartController extends GetxController {
   void clearCoupon() {
     _couponDiscount.value = 0.0;
     appliedCouponCode.value = null;
+    appliedCouponId.value = null;
     couponPillText.value = '';
     couponPillKind.value = CouponPillKind.none;
   }
