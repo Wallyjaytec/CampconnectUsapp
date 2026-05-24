@@ -112,6 +112,7 @@ static const String resetPasswordPath =
       '/api/v1/multivendor/shop-all-products';
   static const String shopAllReviewsPath =
       '/api/v1/multivendor/shop-all-reviews';
+  static const String activeShopListPath = '/api/v1/multivendor/active-shop-list';
   static const String cancelOrderPath =
       '/api/v1/ecommerce-core/customer/cancel-order';
   static const String reviewProductPath =
@@ -229,6 +230,7 @@ static const String resetPasswordPath =
   static String unfollowShopUrl() => '$baseUrl$unfollowShopPath';
   static String shopAllProductsUrl() => '$baseUrl$shopAllProductsPath';
   static String shopAllReviewsUrl() => '$baseUrl$shopAllReviewsPath';
+  static String activeShopListUrl() => '$baseUrl$activeShopListPath';
   static String cancelOrderUrl() => '$baseUrl$cancelOrderPath';
   static String reviewProductUrl() => '$baseUrl$reviewProductPath';
   static String refundReasonsUrl() => '$baseUrl$refundReasonsPath';
