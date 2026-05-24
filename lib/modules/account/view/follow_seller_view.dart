@@ -140,7 +140,7 @@ class _SellerList extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'assets/icons/empty_coupon.png',
+              'assets/icons/empty_follow.png',
               width: 120,
               height: 120,
             ),
