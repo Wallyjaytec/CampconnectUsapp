@@ -143,4 +143,11 @@ class SellerRepository {
     };
     return await api.postMultipart(url, fields: fields);
   }
+
+  Future<List<Map<String, dynamic>>> fetchActiveShopList() async {
+    final url = AppConfig.activeShopListUrl();
+    final res = await api.postJson(url, body: {});
+    final List<dynamic> data = res['data'] ?? [];
+    return data.cast<Map<String, dynamic>>();
+  }
 }
