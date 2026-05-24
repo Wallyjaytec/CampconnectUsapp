@@ -42,6 +42,7 @@ class CheckoutController extends GetxController {
   final RxBool isScreenLoading = false.obs;
 
   final RxList<CartListItem> items = <CartListItem>[].obs;
+  final RxList<Map<String, dynamic>> appliedCoupons = <Map<String, dynamic>>[].obs;
 
   final Rx<DeliveryMode> deliveryMode = DeliveryMode.home.obs;
   bool get isPickupSelected => deliveryMode.value == DeliveryMode.pickup;
@@ -283,6 +284,11 @@ class CheckoutController extends GetxController {
     _uidByProductId
       ..clear()
       ..addAll({for (final it in items) it.id: it.uid});
+
+    final coupons = Get.arguments?['coupons'];
+    if (coupons is List) {
+      appliedCoupons.assignAll(coupons.cast<Map<String, dynamic>>());
+    }
   }
 
   CartListItem _fromApiModel(CartApiItem a) {
@@ -434,6 +440,7 @@ class CheckoutController extends GetxController {
       'origin': 'app',
       'billing_address': (selectedBillingId.value ?? 0).toString(),
       'products': _productsJsonForCheckout(),
+      'coupon_discounts': jsonEncode(appliedCoupons),
     };
 
     if (isHome) {
@@ -972,7 +979,6 @@ _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
 
     _loadWalletSummary();
     
-    // Refresh dashboard stats after order
     if (Get.isRegistered<CustomerDashboardController>()) {
       Get.find<CustomerDashboardController>().fetchDashboard();
     }
