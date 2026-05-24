@@ -13,6 +13,7 @@ class PendingReviewsController extends GetxController {
   final RxString error = ''.obs;
   final RxList<OrderProductItem> products = <OrderProductItem>[].obs;
   final Map<int, int> productOrderMap = {};
+  final Map<int, String> productOrderCodeMap = {};
 
   @override
   void onInit() {
@@ -39,6 +40,7 @@ class PendingReviewsController extends GetxController {
             if (product.deliveryStatus == '1') {
               deliveredProducts.add(product);
               productOrderMap[product.productId] = orderData.id;
+              productOrderCodeMap[product.productId] = orderData.orderCode;
             }
           }
         } catch (_) {}
@@ -54,6 +56,10 @@ class PendingReviewsController extends GetxController {
 
   int getOrderIdForProduct(int productId) {
     return productOrderMap[productId] ?? 0;
+  }
+
+  String getOrderCodeForProduct(int productId) {
+    return productOrderCodeMap[productId] ?? '';
   }
 
   void removeProduct(int productId) {
