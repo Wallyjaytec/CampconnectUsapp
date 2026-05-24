@@ -147,7 +147,7 @@ class _SettingsViewState extends State<SettingsView> {
               const SizedBox(height: 8),
               // Cache
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
                   borderRadius: BorderRadius.circular(10),
@@ -162,37 +162,42 @@ class _SettingsViewState extends State<SettingsView> {
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        final box = GetStorage();
-                        final keys = box.getKeys();
-                        for (final key in keys) {
-                          if (key.startsWith('i18n_')) {
-                            box.remove(key);
-                          }
-                        }
-                        _cacheSize = 0;
-                        setState(() {});
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Cache cleared successfully'.tr),
-                            backgroundColor: AppColors.primaryColor,
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
+                    Material(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text(
-                          'CLEAR'.tr,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryColor,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          final box = GetStorage();
+                          final keys = box.getKeys();
+                          for (final key in keys) {
+                            if (key.startsWith('i18n_')) {
+                              box.remove(key);
+                            }
+                          }
+                          _cacheSize = 0;
+                          setState(() {});
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Cache cleared successfully'.tr),
+                              backgroundColor: AppColors.primaryColor,
+                              behavior: SnackBarBehavior.floating,
+                              margin: const EdgeInsets.all(16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          child: Text(
+                            'CLEAR'.tr,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ),
