@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/modules/account/view/coupons_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/edit_address_view.dart';
+import 'package:kartly_e_commerce/modules/account/view/follow_seller_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_address_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_order_details_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/my_order_list_view.dart';
@@ -172,6 +173,7 @@ class AppPages {
     GetPage(name: AppRoutes.refundRequestListView, page: () => const RefundRequestListView()),
     GetPage(name: AppRoutes.pendingReviewsView, page: () => const PendingReviewsView()),
     GetPage(name: AppRoutes.couponsView, page: () => const CouponsView()),
+    GetPage(name: AppRoutes.followSellerView, page: () => const FollowSellerView()),
     GetPage(name: AppRoutes.contactUsView, page: () => const ContactUsView()),
     GetPage(name: AppRoutes.guestCheckoutView, page: () => const GuestCheckoutView()),
     GetPage(
@@ -257,6 +259,7 @@ class AppRoutes {
   static const refundRequestListView = '/refund_request_list_view';
   static const pendingReviewsView = '/pending_reviews_view';
   static const couponsView = '/coupons_view';
+  static const followSellerView = '/follow_seller_view';
   static const contactUsView = '/contact_us_view';
   static const guestCheckoutView = '/guest_checkout_view';
   static const orderSummaryView = '/order_summary_view';
