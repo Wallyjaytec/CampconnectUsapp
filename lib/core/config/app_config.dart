@@ -117,6 +117,7 @@ static const String resetPasswordPath =
       '/api/v1/ecommerce-core/customer/cancel-order';
   static const String reviewProductPath =
       '/api/v1/ecommerce-core/customer/review-product';
+  static const String reviewProductFromListPath = '/api/v1/ecommerce-core/customer/review-product-from-list';
   static const String refundReasonsPath = '/api/refund/v1/get-refund-reasons';
   static const String submitReturnPath =
       '/api/v1/ecommerce-core/customer/order/return';
@@ -233,6 +234,7 @@ static const String resetPasswordPath =
   static String activeShopListUrl() => '$baseUrl$activeShopListPath';
   static String cancelOrderUrl() => '$baseUrl$cancelOrderPath';
   static String reviewProductUrl() => '$baseUrl$reviewProductPath';
+  static String reviewProductFromListUrl() => '$baseUrl$reviewProductFromListPath';
   static String refundReasonsUrl() => '$baseUrl$refundReasonsPath';
   static String submitReturnUrl() => '$baseUrl$submitReturnPath';
   static String generateOrderPaymentUrl() =>
