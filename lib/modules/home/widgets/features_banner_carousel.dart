@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class FeaturesBannerCarousel extends StatefulWidget {
   const FeaturesBannerCarousel({super.key});
@@ -27,12 +28,16 @@ class _FeaturesBannerCarouselState extends State<FeaturesBannerCarousel> {
   void _startAutoPlay() {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted && _pageController.hasClients) {
-        final nextPage = (_currentPage + 1) % _images.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
+        if (_currentPage == _images.length - 1) {
+          _pageController.jumpToPage(0);
+          setState(() => _currentPage = 0);
+        } else {
+          _pageController.nextPage(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+        _startAutoPlay();
       }
     });
   }
@@ -48,7 +53,17 @@ class _FeaturesBannerCarouselState extends State<FeaturesBannerCarousel> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 6),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10, left: 4),
+            child: Text(
+              'Why Shop With Us'.tr,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: SizedBox(
@@ -59,7 +74,6 @@ class _FeaturesBannerCarouselState extends State<FeaturesBannerCarousel> {
                   setState(() {
                     _currentPage = index;
                   });
-                  _startAutoPlay();
                 },
                 itemCount: _images.length,
                 itemBuilder: (context, index) {
