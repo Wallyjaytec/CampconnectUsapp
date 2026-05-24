@@ -41,6 +41,7 @@ import '../../product/view/new_product_section.dart';
 import '../../product/view/top_sales_section.dart';
 import '../controller/banner_controller.dart';
 import '../widgets/banner_carousel.dart';
+import '../widgets/features_banner_carousel.dart';
 import '../widgets/search_header.dart';
 
 class HomeView extends StatefulWidget {
@@ -263,6 +264,7 @@ class _HomeViewState extends State<HomeView> {
                       const SliverToBoxAdapter(child: FlashDealsSection()),
                       const SliverToBoxAdapter(child: DiscountSalesSection()),
                       const SliverToBoxAdapter(child: RecentlyViewedSection()),
+                      const SliverToBoxAdapter(child: FeaturesBannerCarousel()),
                       SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
                       const SliverToBoxAdapter(child: FollowingSection()),
                       const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 55, title: 'Gaming')),
