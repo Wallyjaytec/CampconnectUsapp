@@ -11,14 +11,27 @@ class InternetChecker {
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _subscription;
   bool _isDialogShowing = false;
+  Timer? _periodicCheck;
 
   void startMonitoring() {
+    _subscription?.cancel();
     _subscription = _connectivity.onConnectivityChanged.listen((results) {
       final bool hasInternet = results.any((r) => r != ConnectivityResult.none);
       if (!hasInternet) {
         _showNoInternetDialog();
       } else {
         _hideNoInternetDialog();
+      }
+    });
+
+    // Periodic check every 30 seconds as backup
+    _periodicCheck?.cancel();
+    _periodicCheck = Timer.periodic(const Duration(seconds: 30), (_) async {
+      if (_isDialogShowing) {
+        final hasInternet = await checkInternet();
+        if (hasInternet) {
+          _hideNoInternetDialog();
+        }
       }
     });
   }
@@ -32,25 +45,36 @@ class InternetChecker {
     if (_isDialogShowing) return;
     _isDialogShowing = true;
 
+    final context = Get.context;
+    if (context == null) return;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     Get.dialog(
       PopScope(
         canPop: false,
         child: AlertDialog(
-          title: const Row(
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          title: Row(
             children: [
-              Icon(Icons.wifi_off, color: Colors.red),
-              SizedBox(width: 10),
-              Text('No Internet'),
+              const Icon(Icons.wifi_off, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(
+                'No Internet',
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              ),
             ],
           ),
-          content: const Text('Please check your connection and try again.'),
+          content: Text(
+            'Please check your connection and try again.',
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+          ),
           actions: [
             TextButton(
               onPressed: () async {
                 final hasInternet = await checkInternet();
                 if (hasInternet) {
-                  if (Get.isDialogOpen == true) Get.back();
-                  Get.forceAppUpdate();
+                  _hideNoInternetDialog();
                 } else {
                   Get.snackbar('No Internet', 'Still no connection',
                       backgroundColor: Colors.red, colorText: Colors.white);
@@ -66,13 +90,14 @@ class InternetChecker {
   }
 
   void _hideNoInternetDialog() {
-    if (Get.isDialogOpen == true && _isDialogShowing) {
+    _isDialogShowing = false;
+    if (Get.isDialogOpen == true) {
       Get.back();
-      _isDialogShowing = false;
     }
   }
 
   void dispose() {
     _subscription?.cancel();
+    _periodicCheck?.cancel();
   }
 }
