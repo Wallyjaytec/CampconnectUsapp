@@ -83,6 +83,7 @@ class FollowSellerView extends StatelessWidget {
                 sellers: controller.followList,
                 isEmptyMessage: 'No sellers to follow'.tr,
                 isFollowTab: true,
+                onRefresh: controller.loadSellers,
                 onToggle: (seller) => controller.followShop(seller),
                 onTap: (seller) => _navigateToShop(seller),
               ),
@@ -90,6 +91,7 @@ class FollowSellerView extends StatelessWidget {
                 sellers: controller.followingList,
                 isEmptyMessage: "You haven't followed any seller".tr,
                 isFollowTab: false,
+                onRefresh: controller.loadSellers,
                 onToggle: (seller) => controller.unfollowShop(seller),
                 onTap: (seller) => _navigateToShop(seller),
               ),
@@ -113,7 +115,7 @@ class FollowSellerView extends StatelessWidget {
       isFollowing: seller.isFollowing,
       isVerified: seller.isVerified,
     );
-    Get.toNamed(AppRoutes.sellerView, arguments: args);
+    Get.toNamed(AppRoutes.sellerBottomNavbar, arguments: args);
   }
 }
 
@@ -122,6 +124,7 @@ class _SellerList extends StatelessWidget {
     required this.sellers,
     required this.isEmptyMessage,
     required this.isFollowTab,
+    required this.onRefresh,
     required this.onToggle,
     required this.onTap,
   });
@@ -129,45 +132,62 @@ class _SellerList extends StatelessWidget {
   final List<FollowSellerModel> sellers;
   final String isEmptyMessage;
   final bool isFollowTab;
+  final Future<void> Function() onRefresh;
   final void Function(FollowSellerModel) onToggle;
   final void Function(FollowSellerModel) onTap;
 
   @override
   Widget build(BuildContext context) {
     if (sellers.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
           children: [
-            Image.asset(
-              'assets/icons/empty_follow.png',
-              width: 120,
-              height: 120,
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.25,
             ),
-            const SizedBox(height: 16),
-            Text(
-              isEmptyMessage,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              textAlign: TextAlign.center,
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icons/empty_follow.png',
+                    width: 120,
+                    height: 120,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    isEmptyMessage,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemCount: sellers.length,
-      itemBuilder: (context, index) {
-        final seller = sellers[index];
-        return _SellerCard(
-          seller: seller,
-          isFollowTab: isFollowTab,
-          onToggle: () => onToggle(seller),
-          onTap: () => onTap(seller),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(12),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemCount: sellers.length,
+        itemBuilder: (context, index) {
+          final seller = sellers[index];
+          return _SellerCard(
+            seller: seller,
+            isFollowTab: isFollowTab,
+            onToggle: () => onToggle(seller),
+            onTap: () => onTap(seller),
+          );
+        },
+      ),
     );
   }
 }
