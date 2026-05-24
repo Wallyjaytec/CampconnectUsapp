@@ -172,7 +172,7 @@ class PendingReviewsView extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${'Order ID'.tr}: #${orderCode}',
+                              '${'Order ID'.tr}: ${orderCode}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
