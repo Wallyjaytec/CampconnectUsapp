@@ -160,4 +160,11 @@ class OrderRepository {
       'order_id': orderId,
     });
   }
+
+  Future<List<int>> fetchReviewedProductIds() async {
+    final url = AppConfig.reviewedProductIdsUrl();
+    final resp = await _api.getJson(url);
+    final List<dynamic> data = resp['data'] ?? [];
+    return data.map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0).toList();
+  }
 }
