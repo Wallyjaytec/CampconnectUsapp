@@ -36,7 +36,7 @@ class PendingReviewsController extends GetxController {
           final orderData = detailsResponse.data;
 
           for (final product in orderData.products) {
-            if (product.deliveryStatus == '3') {
+            if (product.deliveryStatus == '1') {
               deliveredProducts.add(product);
               productOrderMap[product.productId] = orderData.id;
             }
