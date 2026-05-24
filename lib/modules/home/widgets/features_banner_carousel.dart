@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
 class FeaturesBannerCarousel extends StatefulWidget {
   const FeaturesBannerCarousel({super.key});
@@ -107,7 +108,7 @@ class _FeaturesBannerCarouselState extends State<FeaturesBannerCarousel> {
                 height: 8,
                 decoration: BoxDecoration(
                   color: _currentPage == index
-                      ? Theme.of(context).primaryColor
+                      ? AppColors.primaryColor
                       : Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(4),
                 ),
