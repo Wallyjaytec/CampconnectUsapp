@@ -112,15 +112,15 @@ class _CouponList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isActive ? Iconsax.ticket_discount_copy : Iconsax.ticket_expired_copy,
-              size: 64,
-              color: Colors.grey,
+            Image.asset(
+              'assets/icons/empty_coupon.png',
+              width: 120,
+              height: 120,
             ),
             const SizedBox(height: 16),
             Text(
               isEmptyMessage,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ],
         ),
