@@ -14,6 +14,7 @@ class PendingReviewsController extends GetxController {
   final RxList<OrderProductItem> products = <OrderProductItem>[].obs;
   final Map<int, int> productOrderMap = {};
   final Map<int, String> productOrderCodeMap = {};
+  final Set<int> _reviewedIds = {};
 
   @override
   void onInit() {
@@ -26,18 +27,19 @@ class PendingReviewsController extends GetxController {
     error.value = '';
 
     try {
-      final orderResponse = await _repo.fetchOrders(page: 1, perPage: 100);
+      // Load reviewed IDs from backend
+      await _loadReviewedIds();
 
+      final orderResponse = await _repo.fetchOrders(page: 1, perPage: 100);
       final List<OrderProductItem> deliveredProducts = [];
 
       for (final order in orderResponse.data) {
         try {
-          final detailsResponse =
-              await _repo.fetchOrderDetails(orderId: order.id);
+          final detailsResponse = await _repo.fetchOrderDetails(orderId: order.id);
           final orderData = detailsResponse.data;
 
           for (final product in orderData.products) {
-            if (product.deliveryStatus == '1') {
+            if (product.deliveryStatus == '1' && !_reviewedIds.contains(product.productId)) {
               deliveredProducts.add(product);
               productOrderMap[product.productId] = orderData.id;
               productOrderCodeMap[product.productId] = orderData.orderCode;
@@ -54,6 +56,14 @@ class PendingReviewsController extends GetxController {
     }
   }
 
+  Future<void> _loadReviewedIds() async {
+    try {
+      final ids = await _repo.fetchReviewedProductIds();
+      _reviewedIds.clear();
+      _reviewedIds.addAll(ids);
+    } catch (_) {}
+  }
+
   int getOrderIdForProduct(int productId) {
     return productOrderMap[productId] ?? 0;
   }
@@ -64,8 +74,9 @@ class PendingReviewsController extends GetxController {
 
   void removeProduct(int productId) async {
     final orderId = getOrderIdForProduct(productId);
+    _reviewedIds.add(productId);
     products.removeWhere((p) => p.productId == productId);
-    
+
     try {
       await _repo.markReviewedFromList(productId: productId, orderId: orderId);
     } catch (_) {}
