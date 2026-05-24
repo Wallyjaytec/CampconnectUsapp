@@ -152,4 +152,12 @@ class OrderRepository {
       rethrow;
     }
   }
+
+  Future<void> markReviewedFromList({required int productId, required int orderId}) async {
+    final url = AppConfig.reviewProductFromListUrl();
+    await _api.postJson(url, body: {
+      'product_id': productId,
+      'order_id': orderId,
+    });
+  }
 }
