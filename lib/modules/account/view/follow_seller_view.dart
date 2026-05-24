@@ -135,7 +135,7 @@ class FollowSellerView extends StatelessWidget {
   }
 }
 
-class _SellerList extends StatelessWidget {
+class _SellerList extends StatefulWidget {
   const _SellerList({
     required this.sellers,
     required this.isEmptyMessage,
@@ -153,57 +153,119 @@ class _SellerList extends StatelessWidget {
   final void Function(FollowSellerModel) onTap;
 
   @override
+  State<_SellerList> createState() => _SellerListState();
+}
+
+class _SellerListState extends State<_SellerList> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+
+  List<FollowSellerModel> get _filtered {
+    if (_query.isEmpty) return widget.sellers;
+    return widget.sellers
+        .where((s) => s.name.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (sellers.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: onRefresh,
-        child: ListView(
-          children: [
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.25,
-            ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/icons/empty_follow.png',
-                    width: 120,
-                    height: 120,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isEmptyMessage,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filtered = _filtered;
+
+    return Column(
+      children: [
+        // Search bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: TextField(
+            controller: _searchCtrl,
+            onChanged: (v) => setState(() => _query = v),
+            decoration: InputDecoration(
+              hintText: 'Search sellers...'.tr,
+              prefixIcon: const Icon(Iconsax.search_normal_1_copy, size: 18),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Iconsax.close_circle_copy, size: 18),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        setState(() => _query = '');
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
               ),
             ),
-          ],
+          ),
         ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemCount: sellers.length,
-        itemBuilder: (context, index) {
-          final seller = sellers[index];
-          return _SellerCard(
-            seller: seller,
-            isFollowTab: isFollowTab,
-            onToggle: () => onToggle(seller),
-            onTap: () => onTap(seller),
-          );
-        },
-      ),
+        // List
+        Expanded(
+          child: filtered.isEmpty
+              ? RefreshIndicator(
+                  onRefresh: widget.onRefresh,
+                  child: ListView(
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.2,
+                      ),
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_query.isNotEmpty)
+                              const Icon(Iconsax.search_normal_1_copy, size: 80, color: Colors.grey)
+                            else
+                              Image.asset(
+                                'assets/icons/empty_follow.png',
+                                width: 120,
+                                height: 120,
+                              ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _query.isNotEmpty
+                                  ? 'No sellers found'.tr
+                                  : widget.isEmptyMessage,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: widget.onRefresh,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final seller = filtered[index];
+                      return _SellerCard(
+                        seller: seller,
+                        isFollowTab: widget.isFollowTab,
+                        onToggle: () => widget.onToggle(seller),
+                        onTap: () => widget.onTap(seller),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }
