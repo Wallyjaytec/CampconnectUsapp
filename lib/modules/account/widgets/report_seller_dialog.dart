@@ -22,16 +22,6 @@ class ReportSellerDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ReportSubmitController());
 
-    final reasons = [
-      'Fake/Counterfeit Products',
-      'Scam/Fraud',
-      'Poor Quality Products',
-      'Misleading Product Description',
-      'Non-Delivery of Items',
-      'Poor Customer Service',
-      'Other',
-    ];
-
     return Dialog(
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? AppColors.darkProductCardColor
@@ -94,7 +84,7 @@ class ReportSellerDialog extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Reason dropdown
+                // Reason dropdown (from API)
                 Row(
                   children: [
                     Text('Reason'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
@@ -103,31 +93,39 @@ class ReportSellerDialog extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Obx(() => DropdownButtonFormField<String>(
-                      value: controller.selectedReason.value,
-                      items: reasons
-                          .map((r) => DropdownMenuItem<String>(
-                                value: r,
-                                child: Text(r.tr, overflow: TextOverflow.ellipsis),
-                              ))
-                          .toList(),
-                      onChanged: (v) => controller.selectedReason.value = v,
-                      isExpanded: true,
-                      icon: const Icon(Iconsax.arrow_down_1_copy, size: 18),
-                      borderRadius: BorderRadius.circular(8),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.darkCardColor
-                            : AppColors.lightCardColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                Obx(() {
+                  if (controller.isLoadingReasons.value) {
+                    return const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  return DropdownButtonFormField<String>(
+                    value: controller.selectedReason.value,
+                    items: controller.reasons
+                        .map((r) => DropdownMenuItem<String>(
+                              value: r,
+                              child: Text(r, overflow: TextOverflow.ellipsis),
+                            ))
+                        .toList(),
+                    onChanged: (v) => controller.selectedReason.value = v,
+                    isExpanded: true,
+                    icon: const Icon(Iconsax.arrow_down_1_copy, size: 18),
+                    borderRadius: BorderRadius.circular(8),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkCardColor
+                          : AppColors.lightCardColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
                       ),
-                      hint: Text('Select a reason'.tr),
-                    )),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    ),
+                    hint: Text('Select a reason'.tr),
+                  );
+                }),
                 const SizedBox(height: 12),
                 // Description
                 Text('Description'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
