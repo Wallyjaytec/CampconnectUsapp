@@ -185,7 +185,11 @@ class _ReportTab extends StatelessWidget {
                                 sellerName: seller.name,
                                 sellerLogo: AppConfig.assetUrl(seller.logo),
                               ),
-                            );
+                            ).then((_) {
+                              // Refresh status tab after submitting report
+                              final statusCtrl = Get.find<ReportSellerStatusController>();
+                              statusCtrl.loadReports();
+                            });
                           },
                         );
                       },
@@ -240,7 +244,7 @@ class _ReportStatusTab extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Iconsax.warning_2, size: 80, color: Colors.grey),
+                    const Icon(Iconsax.warning_2, size: 80, color: AppColors.primaryColor),
                     const SizedBox(height: 16),
                     Text(
                       'No reports submitted yet'.tr,
@@ -424,17 +428,17 @@ class _ReportStatusCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '${'Reason'.tr}: ${report.reason}',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
           ),
           const SizedBox(height: 4),
           Text(
             '${'Status'.tr}: ${report.statusText}',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _statusColor),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
           ),
           const SizedBox(height: 2),
           Text(
             '${'Date & Time'.tr}: $formattedDate',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
           ),
           const SizedBox(height: 8),
           // Feedback section
