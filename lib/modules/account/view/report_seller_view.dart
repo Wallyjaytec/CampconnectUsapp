@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
@@ -59,9 +60,7 @@ class ReportSellerView extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            // Report Tab
             _ReportTab(controller: reportController, isDark: isDark),
-            // Report Status Tab
             _ReportStatusTab(controller: statusController, isDark: isDark),
           ],
         ),
@@ -461,9 +460,9 @@ class _ReportStatusCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(
+                      HtmlWidget(
                         report.feedback ?? '',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        textStyle: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                       ),
                     ],
                   )
