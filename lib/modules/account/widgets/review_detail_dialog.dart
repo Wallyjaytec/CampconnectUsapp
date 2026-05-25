@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import '../../product/widgets/star_row.dart';
@@ -90,7 +91,7 @@ class ReviewDetailDialog extends StatelessWidget {
                         width: 64,
                         height: 64,
                         child: CachedNetworkImage(
-                          imageUrl: productImage,
+                          imageUrl: AppConfig.assetUrl(productImage),
                           fit: BoxFit.cover,
                           errorWidget: (_, __, ___) => Container(
                             color: Colors.grey.shade300,
@@ -154,10 +155,11 @@ class ReviewDetailDialog extends StatelessWidget {
                     children: images.map((img) {
                       return GestureDetector(
                         onTap: () {
+                          final fullUrls = images.map((i) => AppConfig.assetUrl(i)).toList();
                           Get.toNamed(
                             AppRoutes.fullScreenImageView,
                             arguments: {
-                              'images': images,
+                              'images': fullUrls,
                               'index': images.indexOf(img),
                             },
                           );
@@ -165,7 +167,7 @@ class ReviewDetailDialog extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: CachedNetworkImage(
-                            imageUrl: img,
+                            imageUrl: AppConfig.assetUrl(img),
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
