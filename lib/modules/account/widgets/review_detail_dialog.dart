@@ -5,7 +5,9 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import '../../product/widgets/star_row.dart';
+import 'dart:convert';
 
 class ReviewDetailDialog extends StatelessWidget {
   const ReviewDetailDialog({
@@ -26,7 +28,20 @@ class ReviewDetailDialog extends StatelessWidget {
     final reviewText = review['review']?.toString() ?? '';
     final orderCode = review['order_code']?.toString() ?? '';
     final createdAt = review['created_at']?.toString() ?? '';
-    final images = review['images'] is List ? List<String>.from(review['images']) : <String>[];
+    
+    // Parse images from JSON string
+    List<String> images = [];
+    final rawImages = review['images'];
+    if (rawImages is String && rawImages.isNotEmpty && rawImages != 'null') {
+      try {
+        final decoded = jsonDecode(rawImages);
+        if (decoded is List) {
+          images = decoded.map((e) => e.toString()).toList();
+        }
+      } catch (_) {}
+    } else if (rawImages is List) {
+      images = rawImages.map((e) => e.toString()).toList();
+    }
 
     String formattedDate = '';
     try {
@@ -49,7 +64,6 @@ class ReviewDetailDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Row(
                   children: [
                     Expanded(
@@ -68,22 +82,21 @@ class ReviewDetailDialog extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Product info
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        imageUrl: AppConfig.assetUrl(productImage),
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(
-                          width: 56,
-                          height: 56,
-                          color: Colors.grey.shade300,
-                          child: const Icon(Iconsax.gallery_remove_copy),
+                      child: SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: CachedNetworkImage(
+                          imageUrl: AppConfig.assetUrl(productImage),
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) => Container(
+                            color: Colors.grey.shade300,
+                            child: const Icon(Iconsax.gallery_remove_copy),
+                          ),
                         ),
                       ),
                     ),
@@ -102,7 +115,7 @@ class ReviewDetailDialog extends StatelessWidget {
                           StarRow(rating: rating),
                           const SizedBox(height: 4),
                           Text(
-                            '${'Order'.tr}: #$orderCode',
+                            '${'Order'.tr}: $orderCode',
                             style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                           Text(
@@ -143,7 +156,7 @@ class ReviewDetailDialog extends StatelessWidget {
                       return GestureDetector(
                         onTap: () {
                           Get.toNamed(
-                            '/full_screen_image_view',
+                            AppRoutes.fullScreenImageView,
                             arguments: {
                               'images': images,
                               'index': images.indexOf(img),
@@ -157,6 +170,12 @@ class ReviewDetailDialog extends StatelessWidget {
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey.shade300,
+                              child: const Icon(Iconsax.gallery_remove_copy, size: 24),
+                            ),
                           ),
                         ),
                       );
