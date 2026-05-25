@@ -36,7 +36,6 @@ class NetworkService extends GetxService {
       _showNoInternetDialog();
     } else {
       _hideNoInternetDialog();
-      // Force refresh UI when connection is restored
       Get.forceAppUpdate();
     }
   }
@@ -44,77 +43,80 @@ class NetworkService extends GetxService {
   void _showNoInternetDialog() {
     if (Get.isDialogOpen == true) return;
 
-    final primary = Get.theme.colorScheme.primary;
-
     Get.dialog(
       PopScope(
         canPop: false,
-        child: Dialog(
-          backgroundColor: Get.theme.brightness == Brightness.dark
-              ? AppColors.darkProductCardColor
-              : AppColors.lightBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 24,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: primary.withValues(alpha: 0.08),
-                  ),
-                  child: Icon(Icons.wifi_off_rounded, size: 38, color: primary),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'No Internet Connection',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Please check your Wi-Fi or mobile data.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.greyColor,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      // Always check connectivity when button is pressed
-                      final List<ConnectivityResult> results =
-                          await _connectivity.checkConnectivity();
-                      _updateConnectionStatus(results);
-                      
-                      // If still no internet, dialog will stay open
-                      // If internet is back, dialog will close and page will refresh
-                    },
-                    icon: const Icon(Iconsax.refresh_copy, size: 18),
-                    label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+        child: Builder(
+          builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Dialog(
+              backgroundColor: isDark
+                  ? AppColors.darkProductCardColor
+                  : AppColors.lightBackgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryColor.withValues(alpha: 0.08),
+                      ),
+                      child: const Icon(Icons.wifi_off_rounded, size: 38, color: AppColors.primaryColor),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Internet Connection',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please check your Wi-Fi or mobile data.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.greyColor,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final List<ConnectivityResult> results =
+                              await _connectivity.checkConnectivity();
+                          _updateConnectionStatus(results);
+                        },
+                        icon: const Icon(Iconsax.refresh_copy, size: 18),
+                        label: const Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
       barrierDismissible: false,
@@ -127,7 +129,6 @@ class NetworkService extends GetxService {
     }
   }
 
-  // Public method to show dialog from splash screen
   void showNoInternetDialog() {
     _showNoInternetDialog();
   }
