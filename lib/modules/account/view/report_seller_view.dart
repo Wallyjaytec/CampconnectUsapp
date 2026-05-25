@@ -186,7 +186,6 @@ class _ReportTab extends StatelessWidget {
                                 sellerLogo: AppConfig.assetUrl(seller.logo),
                               ),
                             ).then((_) {
-                              // Refresh status tab after submitting report
                               final statusCtrl = Get.find<ReportSellerStatusController>();
                               statusCtrl.loadReports();
                             });
@@ -426,19 +425,49 @@ class _ReportStatusCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            '${'Reason'.tr}: ${report.reason}',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${'Reason'.tr}: ',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                TextSpan(
+                  text: report.reason,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 4),
-          Text(
-            '${'Status'.tr}: ${report.statusText}',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${'Status'.tr}: ',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                TextSpan(
+                  text: report.statusText,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _statusColor),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 2),
-          Text(
-            '${'Date & Time'.tr}: $formattedDate',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${'Date & Time'.tr}: ',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                TextSpan(
+                  text: formattedDate,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           // Feedback section
