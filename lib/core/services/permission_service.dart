@@ -152,8 +152,10 @@ class PermissionService extends GetxService {
   }
 
   Future<bool?> _preAskDialog() async {
+    final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
     return await Get.dialog<bool>(
       Dialog(
+        backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
@@ -162,16 +164,17 @@ class PermissionService extends GetxService {
             children: [
               Text(
                 '${'Allow camera and gallery'.tr}?',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 'We use your camera and photo library so you can take or pick photos while shopping'
                     .tr,
-                style: const TextStyle(fontSize: 14),
+                style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87),
               ),
               const SizedBox(height: 16),
               Row(
@@ -200,8 +203,10 @@ class PermissionService extends GetxService {
     required String title,
     required String message,
   }) async {
+    final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
     await Get.dialog(
       Dialog(
+        backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
@@ -210,13 +215,14 @@ class PermissionService extends GetxService {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
               const SizedBox(height: 10),
-              Text(message, style: const TextStyle(fontSize: 14)),
+              Text(message, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87)),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
