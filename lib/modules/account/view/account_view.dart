@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:kartly_e_commerce/modules/account/view/settings_view.dart';
 import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/controllers/currency_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../auth/controller/auth_controller.dart';
@@ -44,6 +46,152 @@ class AccountView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCloseAccountDialog() {
+    final confirmCtrl = TextEditingController();
+    final codeCtrl = TextEditingController();
+    final isCodeSent = false.obs;
+    final maskedEmail = ''.obs;
+    final isLoading = false.obs;
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Iconsax.warning_2, color: Colors.red, size: 24),
+            const SizedBox(width: 8),
+            Text('Close Account'.tr),
+          ],
+        ),
+        content: Obx(() {
+          if (isCodeSent.value) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${'A verification code has been sent to'.tr} ${maskedEmail.value}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: codeCtrl,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  decoration: InputDecoration(
+                    hintText: 'Enter 6-digit code'.tr,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            );
+          }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '⚠️ Warning',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This action cannot be undone. All your data will be permanently deleted.'.tr,
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '${'Type'.tr} "DELETE MY CCU ACCOUNT" ${'to confirm'.tr}:',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmCtrl,
+                decoration: InputDecoration(
+                  hintText: 'DELETE MY CCU ACCOUNT',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          );
+        }),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'.tr),
+          ),
+          Obx(() => ElevatedButton(
+            onPressed: isLoading.value
+                ? null
+                : () async {
+                    if (!isCodeSent.value) {
+                      if (confirmCtrl.text.trim() != 'DELETE MY CCU ACCOUNT') {
+                        Get.snackbar('Error'.tr, 'Please type the confirmation text correctly'.tr,
+                            backgroundColor: Colors.red, colorText: Colors.white);
+                        return;
+                      }
+                      isLoading.value = true;
+                      try {
+                        final api = ApiService();
+                        final resp = await api.postJson(AppConfig.sendCloseAccountCodeUrl());
+                        if (resp['success'] == true) {
+                          isCodeSent.value = true;
+                          maskedEmail.value = resp['email']?.toString() ?? '';
+                        } else {
+                          Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Failed'.tr,
+                              backgroundColor: Colors.red, colorText: Colors.white);
+                        }
+                      } catch (_) {
+                        Get.snackbar('Error'.tr, 'Something went wrong'.tr,
+                            backgroundColor: Colors.red, colorText: Colors.white);
+                      } finally {
+                        isLoading.value = false;
+                      }
+                    } else {
+                      if (codeCtrl.text.trim().isEmpty || codeCtrl.text.trim().length < 6) {
+                        Get.snackbar('Error'.tr, 'Please enter the verification code'.tr,
+                            backgroundColor: Colors.red, colorText: Colors.white);
+                        return;
+                      }
+                      isLoading.value = true;
+                      try {
+                        final api = ApiService();
+                        final resp = await api.postJson(AppConfig.closeAccountUrl(), body: {
+                          'code': codeCtrl.text.trim(),
+                        });
+                        if (resp['success'] == true) {
+                          Get.back();
+                          final authCtrl = Get.find<AuthController>();
+                          await authCtrl.logout();
+                          Get.offAllNamed(AppRoutes.loginView);
+                          Get.snackbar('Account Closed'.tr, 'Your account has been closed permanently.'.tr,
+                              backgroundColor: AppColors.primaryColor, colorText: Colors.white);
+                        } else {
+                          Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Invalid code'.tr,
+                              backgroundColor: Colors.red, colorText: Colors.white);
+                        }
+                      } catch (_) {
+                        Get.snackbar('Error'.tr, 'Something went wrong'.tr,
+                            backgroundColor: Colors.red, colorText: Colors.white);
+                      } finally {
+                        isLoading.value = false;
+                      }
+                    }
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: isLoading.value
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
+                : Text(isCodeSent.value ? 'Delete My Account'.tr : 'Send Code'.tr),
+          )),
+        ],
+      ),
+      barrierDismissible: false,
     );
   }
 
@@ -128,6 +276,7 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.message_add, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.message_question, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
                     _menuItem(Iconsax.info_circle, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
+                    _menuItem(Iconsax.profile_delete, "Close Account".tr, () => _showCloseAccountDialog()),
                     _menuItem(Iconsax.logout, "Logout".tr, () async { await authCtrl.logout(); infoCtrl.avatarUrl.value = ''; infoCtrl.name.value = ''; infoCtrl.email.value = ''; infoCtrl.phone.value = ''; dashCtrl.clear(); }),
                     const SizedBox(height: 20),
                   ]),
