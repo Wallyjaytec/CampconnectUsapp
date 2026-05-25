@@ -167,4 +167,11 @@ class OrderRepository {
     final List<dynamic> data = resp['data'] ?? [];
     return data.map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0).toList();
   }
+
+  Future<List<Map<String, dynamic>>> fetchMyReviews() async {
+    final url = AppConfig.myReviewsUrl();
+    final resp = await _api.getJson(url);
+    final List<dynamic> data = resp['data'] ?? [];
+    return data.cast<Map<String, dynamic>>();
+  }
 }
