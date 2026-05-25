@@ -184,4 +184,11 @@ class SellerRepository {
     final List<dynamic> data = resp['data'] ?? [];
     return data.cast<Map<String, dynamic>>();
   }
+
+  Future<List<Map<String, dynamic>>> fetchReportReasons() async {
+    final url = AppConfig.reportReasonsUrl();
+    final resp = await api.getJson(url);
+    final List<dynamic> data = resp['data'] ?? [];
+    return data.cast<Map<String, dynamic>>();
+  }
 }
