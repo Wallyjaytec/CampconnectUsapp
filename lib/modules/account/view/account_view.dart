@@ -115,7 +115,7 @@ class AccountView extends StatelessWidget {
                   TextField(
                     controller: confirmCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Type here....'.tr,
+                      hintText: 'Type here...'.tr,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
@@ -134,19 +134,22 @@ class AccountView extends StatelessWidget {
               Obx(() {
                 if (isLoading.value) {
                   return const Padding(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator()),
                   );
                 }
                 return ElevatedButton(
                   onPressed: () async {
+                    if (isLoading.value) return;
+                    isLoading.value = true;
+                    
                     if (!isCodeSent.value) {
                       if (confirmCtrl.text.trim() != 'DELETE MY CCU ACCOUNT') {
+                        isLoading.value = false;
                         Get.snackbar('Error'.tr, 'Please type the confirmation text correctly'.tr,
                             backgroundColor: Colors.red, colorText: Colors.white);
                         return;
                       }
-                      isLoading.value = true;
                       try {
                         final api = ApiService();
                         final resp = await api.postJson(AppConfig.sendCloseAccountCodeUrl());
@@ -165,11 +168,11 @@ class AccountView extends StatelessWidget {
                       }
                     } else {
                       if (codeCtrl.text.trim().isEmpty || codeCtrl.text.trim().length < 6) {
+                        isLoading.value = false;
                         Get.snackbar('Error'.tr, 'Please enter the verification code'.tr,
                             backgroundColor: Colors.red, colorText: Colors.white);
                         return;
                       }
-                      isLoading.value = true;
                       try {
                         final api = ApiService();
                         final resp = await api.postJson(AppConfig.closeAccountUrl(), body: {
