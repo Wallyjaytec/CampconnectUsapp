@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../data/repositories/seller_repository.dart';
-import '../controller/report_submit_controller.dart';
+
 
 class ReportSubmitController extends GetxController {
   final RxnString selectedReason = RxnString();
