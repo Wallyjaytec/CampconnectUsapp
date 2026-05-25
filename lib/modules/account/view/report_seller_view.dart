@@ -11,6 +11,7 @@ import '../controller/report_seller_status_controller.dart';
 import '../model/follow_seller_model.dart';
 import '../model/report_seller_model.dart';
 import '../widgets/report_seller_dialog.dart';
+import '../controller/report_submit_controller.dart';
 
 class ReportSellerView extends StatelessWidget {
   const ReportSellerView({super.key});
