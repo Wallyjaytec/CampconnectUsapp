@@ -115,7 +115,7 @@ class AccountView extends StatelessWidget {
                   TextField(
                     controller: confirmCtrl,
                     decoration: InputDecoration(
-                      hintText: 'DELETE MY CCU ACCOUNT',
+                      hintText: 'Type here....'.tr,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
