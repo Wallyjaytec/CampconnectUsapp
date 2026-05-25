@@ -123,6 +123,8 @@ static const String resetPasswordPath =
   static const String myReportsPath = '/api/v1/ecommerce-core/customer/my-reports';
   static const String reportReasonsPath = '/api/v1/ecommerce-core/customer/report-reasons';
   static const String myReviewsPath = '/api/v1/ecommerce-core/customer/my-reviews';
+  static const String sendCloseAccountCodePath = '/api/v1/ecommerce-core/customer/send-close-account-code';
+  static const String closeAccountPath = '/api/v1/ecommerce-core/customer/close-account';
   static const String refundReasonsPath = '/api/refund/v1/get-refund-reasons';
   static const String submitReturnPath =
       '/api/v1/ecommerce-core/customer/order/return';
@@ -245,6 +247,8 @@ static const String resetPasswordPath =
   static String myReportsUrl() => '$baseUrl$myReportsPath';
   static String reportReasonsUrl() => '$baseUrl$reportReasonsPath';
   static String myReviewsUrl() => '$baseUrl$myReviewsPath';
+  static String sendCloseAccountCodeUrl() => '$baseUrl$sendCloseAccountCodePath';
+  static String closeAccountUrl() => '$baseUrl$closeAccountPath';
   static String refundReasonsUrl() => '$baseUrl$refundReasonsPath';
   static String submitReturnUrl() => '$baseUrl$submitReturnPath';
   static String generateOrderPaymentUrl() =>
