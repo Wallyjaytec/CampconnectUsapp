@@ -177,6 +177,9 @@ class _ReportTab extends StatelessWidget {
                         return _ReportSellerCard(
                           seller: seller,
                           onTap: () {
+                            final submitCtrl = Get.put(ReportSubmitController());
+                            submitCtrl.loadReasons();
+                            submitCtrl.clearAll();
                             showDialog(
                               context: context,
                               barrierDismissible: false,
@@ -430,7 +433,11 @@ class _ReportStatusCard extends StatelessWidget {
               children: [
                 TextSpan(
                   text: '${'Reason'.tr}: ',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
                 TextSpan(
                   text: report.reason,
@@ -445,7 +452,11 @@ class _ReportStatusCard extends StatelessWidget {
               children: [
                 TextSpan(
                   text: '${'Status'.tr}: ',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
                 TextSpan(
                   text: report.statusText,
@@ -460,7 +471,11 @@ class _ReportStatusCard extends StatelessWidget {
               children: [
                 TextSpan(
                   text: '${'Date & Time'.tr}: ',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
                 TextSpan(
                   text: formattedDate,
