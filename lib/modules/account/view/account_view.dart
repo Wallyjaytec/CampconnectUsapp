@@ -57,76 +57,89 @@ class AccountView extends StatelessWidget {
     final isLoading = false.obs;
 
     Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Iconsax.warning_2, color: Colors.red, size: 24),
-            const SizedBox(width: 8),
-            Text('Close Account'.tr),
-          ],
-        ),
-        content: Obx(() {
-          if (isCodeSent.value) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      Builder(
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AlertDialog(
+            backgroundColor: isDark ? AppColors.darkProductCardColor : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
               children: [
-                Text(
-                  '${'A verification code has been sent to'.tr} ${maskedEmail.value}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: codeCtrl,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  decoration: InputDecoration(
-                    hintText: 'Enter 6-digit code'.tr,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
+                const Icon(Iconsax.warning_2, color: AppColors.primaryColor, size: 24),
+                const SizedBox(width: 8),
+                Text('Close Account'.tr),
               ],
-            );
-          }
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '⚠️ Warning',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+            content: Obx(() {
+              if (isCodeSent.value) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${'A verification code has been sent to'.tr} ${maskedEmail.value}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: codeCtrl,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: InputDecoration(
+                        hintText: 'Enter 6-digit code'.tr,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '⚠️ ${'Warning'.tr}',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'This action cannot be undone. All your data will be permanently deleted.'.tr,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '${'Type'.tr} "DELETE MY CCU ACCOUNT" ${'to confirm'.tr}:',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: confirmCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'DELETE MY CCU ACCOUNT',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              );
+            }),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  confirmCtrl.dispose();
+                  codeCtrl.dispose();
+                  Get.back();
+                },
+                child: Text('Cancel'.tr),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'This action cannot be undone. All your data will be permanently deleted.'.tr,
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '${'Type'.tr} "DELETE MY CCU ACCOUNT" ${'to confirm'.tr}:',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: confirmCtrl,
-                decoration: InputDecoration(
-                  hintText: 'DELETE MY CCU ACCOUNT',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            ],
-          );
-        }),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'.tr),
-          ),
-          Obx(() => ElevatedButton(
-            onPressed: isLoading.value
-                ? null
-                : () async {
+              Obx(() {
+                if (isLoading.value) {
+                  return const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator()),
+                  );
+                }
+                return ElevatedButton(
+                  onPressed: () async {
                     if (!isCodeSent.value) {
                       if (confirmCtrl.text.trim() != 'DELETE MY CCU ACCOUNT') {
                         Get.snackbar('Error'.tr, 'Please type the confirmation text correctly'.tr,
@@ -163,6 +176,8 @@ class AccountView extends StatelessWidget {
                           'code': codeCtrl.text.trim(),
                         });
                         if (resp['success'] == true) {
+                          confirmCtrl.dispose();
+                          codeCtrl.dispose();
                           Get.back();
                           final authCtrl = Get.find<AuthController>();
                           await authCtrl.logout();
@@ -181,15 +196,17 @@ class AccountView extends StatelessWidget {
                       }
                     }
                   },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: isLoading.value
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
-                : Text(isCodeSent.value ? 'Delete My Account'.tr : 'Send Code'.tr),
-          )),
-        ],
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text(isCodeSent.value ? 'Delete My Account'.tr : 'Send Code'.tr),
+                );
+              }),
+            ],
+          );
+        },
       ),
       barrierDismissible: false,
     );
