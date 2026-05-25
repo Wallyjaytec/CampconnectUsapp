@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../../../../core/config/app_config.dart';
@@ -149,5 +150,31 @@ class SellerRepository {
     final res = await api.postJson(url, body: {});
     final List<dynamic> data = res['data'] ?? [];
     return data.cast<Map<String, dynamic>>();
+  }
+
+  Future<bool> submitSellerReport({
+    required int sellerId,
+    required String reason,
+    required String description,
+    List<File>? images,
+  }) async {
+    final url = AppConfig.reportSellerUrl();
+    
+    final fields = <String, String>{
+      'seller_id': sellerId.toString(),
+      'reason': reason,
+      'description': description,
+    };
+
+    List<http.MultipartFile>? files;
+    if (images != null && images.isNotEmpty) {
+      files = [];
+      for (final img in images) {
+        files.add(await http.MultipartFile.fromPath('images[]', img.path));
+      }
+    }
+
+    final resp = await api.postMultipart(url, fields: fields, files: files);
+    return resp['success'] == true;
   }
 }
