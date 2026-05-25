@@ -256,7 +256,7 @@ class _ReviewedTab extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Iconsax.star, size: 80, color: Colors.grey),
+                    const Icon(Iconsax.star, size: 80, color: AppColors.primaryColor),
                     const SizedBox(height: 16),
                     Text(
                       'No reviews submitted yet'.tr,
@@ -355,7 +355,7 @@ class _ReviewedCard extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 Text(
-                  '${'Order'.tr}: #$orderCode',
+                  '${'Order'.tr}: $orderCode',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ],
