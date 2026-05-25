@@ -9,8 +9,37 @@ class ReportSubmitController extends GetxController {
   final RxString description = ''.obs;
   final RxList<XFile> images = <XFile>[].obs;
   final RxBool submitting = false.obs;
+  final RxBool isLoadingReasons = false.obs;
+  final RxList<String> reasons = <String>[].obs;
   final ImagePicker _picker = ImagePicker();
   final SellerRepository _repo = SellerRepository();
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadReasons();
+  }
+
+  Future<void> loadReasons() async {
+    isLoadingReasons.value = true;
+    try {
+      final data = await _repo.fetchReportReasons();
+      reasons.assignAll(data.map((e) => e['name']?.toString() ?? '').toList());
+    } catch (_) {
+      // Fallback to hardcoded reasons
+      reasons.assignAll([
+        'Fake/Counterfeit Products',
+        'Scam/Fraud',
+        'Poor Quality Products',
+        'Misleading Product Description',
+        'Non-Delivery of Items',
+        'Poor Customer Service',
+        'Other',
+      ]);
+    } finally {
+      isLoadingReasons.value = false;
+    }
+  }
 
   Future<void> pickFromCamera() async {
     final allowed = await PermissionService.I.canUseMediaOrExplain();
