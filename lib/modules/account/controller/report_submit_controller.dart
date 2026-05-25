@@ -26,7 +26,6 @@ class ReportSubmitController extends GetxController {
       final data = await _repo.fetchReportReasons();
       reasons.assignAll(data.map((e) => e['name']?.toString() ?? '').toList());
     } catch (_) {
-      // Fallback to hardcoded reasons
       reasons.assignAll([
         'Fake/Counterfeit Products',
         'Scam/Fraud',
@@ -39,6 +38,12 @@ class ReportSubmitController extends GetxController {
     } finally {
       isLoadingReasons.value = false;
     }
+  }
+
+  void clearAll() {
+    selectedReason.value = null;
+    description.value = '';
+    images.clear();
   }
 
   Future<void> pickFromCamera() async {
@@ -78,6 +83,9 @@ class ReportSubmitController extends GetxController {
         description: description.value,
         images: imageFiles,
       );
+      if (ok) {
+        clearAll();
+      }
       return ok;
     } catch (_) {
       return false;
