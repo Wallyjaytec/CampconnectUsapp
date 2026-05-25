@@ -10,8 +10,10 @@ class PendingReviewsController extends GetxController {
   final OrderRepository _repo;
 
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingReviewed = false.obs;
   final RxString error = ''.obs;
   final RxList<OrderProductItem> products = <OrderProductItem>[].obs;
+  final RxList<Map<String, dynamic>> reviewedProducts = <Map<String, dynamic>>[].obs;
   final Map<int, int> productOrderMap = {};
   final Map<int, String> productOrderCodeMap = {};
   final Set<int> _reviewedIds = {};
@@ -20,6 +22,7 @@ class PendingReviewsController extends GetxController {
   void onInit() {
     super.onInit();
     loadPendingReviews();
+    loadReviewedReviews();
   }
 
   Future<void> loadPendingReviews() async {
@@ -27,7 +30,6 @@ class PendingReviewsController extends GetxController {
     error.value = '';
 
     try {
-      // Load reviewed IDs from backend
       await _loadReviewedIds();
 
       final orderResponse = await _repo.fetchOrders(page: 1, perPage: 100);
@@ -53,6 +55,17 @@ class PendingReviewsController extends GetxController {
       error.value = 'Failed to load reviews'.tr;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadReviewedReviews() async {
+    isLoadingReviewed.value = true;
+    try {
+      final data = await _repo.fetchMyReviews();
+      reviewedProducts.assignAll(data);
+    } catch (_) {
+    } finally {
+      isLoadingReviewed.value = false;
     }
   }
 
