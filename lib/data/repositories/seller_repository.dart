@@ -177,4 +177,11 @@ class SellerRepository {
     final resp = await api.postMultipart(url, fields: fields, files: files);
     return resp['success'] == true;
   }
+
+  Future<List<Map<String, dynamic>>> fetchMyReports() async {
+    final url = AppConfig.myReportsUrl();
+    final resp = await _api.getJson(url);
+    final List<dynamic> data = resp['data'] ?? [];
+    return data.cast<Map<String, dynamic>>();
+  }
 }
