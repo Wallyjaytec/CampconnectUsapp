@@ -55,6 +55,11 @@ class AccountView extends StatelessWidget {
     final isCodeSent = false.obs;
     final maskedEmail = ''.obs;
     final isLoading = false.obs;
+    final isTextValid = false.obs;
+
+    confirmCtrl.addListener(() {
+      isTextValid.value = confirmCtrl.text.trim() == 'DELETE MY CCU ACCOUNT';
+    });
 
     Get.dialog(
       Builder(
@@ -132,79 +137,74 @@ class AccountView extends StatelessWidget {
                 child: Text('Cancel'.tr),
               ),
               Obx(() {
-                if (isLoading.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator()),
-                  );
-                }
+                final valid = isCodeSent.value || isTextValid.value;
                 return ElevatedButton(
-                  onPressed: () async {
-                    if (isLoading.value) return;
-                    isLoading.value = true;
-                    
-                    if (!isCodeSent.value) {
-                      if (confirmCtrl.text.trim() != 'DELETE MY CCU ACCOUNT') {
-                        isLoading.value = false;
-                        Get.snackbar('Error'.tr, 'Please type the confirmation text correctly'.tr,
-                            backgroundColor: Colors.red, colorText: Colors.white);
-                        return;
-                      }
-                      try {
-                        final api = ApiService();
-                        final resp = await api.postJson(AppConfig.sendCloseAccountCodeUrl());
-                        if (resp['success'] == true) {
-                          isCodeSent.value = true;
-                          maskedEmail.value = resp['email']?.toString() ?? '';
-                        } else {
-                          Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Failed'.tr,
-                              backgroundColor: Colors.red, colorText: Colors.white);
-                        }
-                      } catch (_) {
-                        Get.snackbar('Error'.tr, 'Something went wrong'.tr,
-                            backgroundColor: Colors.red, colorText: Colors.white);
-                      } finally {
-                        isLoading.value = false;
-                      }
-                    } else {
-                      if (codeCtrl.text.trim().isEmpty || codeCtrl.text.trim().length < 6) {
-                        isLoading.value = false;
-                        Get.snackbar('Error'.tr, 'Please enter the verification code'.tr,
-                            backgroundColor: Colors.red, colorText: Colors.white);
-                        return;
-                      }
-                      try {
-                        final api = ApiService();
-                        final resp = await api.postJson(AppConfig.closeAccountUrl(), body: {
-                          'code': codeCtrl.text.trim(),
-                        });
-                        if (resp['success'] == true) {
-                          confirmCtrl.dispose();
-                          codeCtrl.dispose();
-                          Get.back();
-                          final authCtrl = Get.find<AuthController>();
-                          await authCtrl.logout();
-                          Get.offAllNamed(AppRoutes.loginView);
-                          Get.snackbar('Account Closed'.tr, 'Your account has been closed permanently.'.tr,
-                              backgroundColor: AppColors.primaryColor, colorText: Colors.white);
-                        } else {
-                          Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Invalid code'.tr,
-                              backgroundColor: Colors.red, colorText: Colors.white);
-                        }
-                      } catch (_) {
-                        Get.snackbar('Error'.tr, 'Something went wrong'.tr,
-                            backgroundColor: Colors.red, colorText: Colors.white);
-                      } finally {
-                        isLoading.value = false;
-                      }
-                    }
-                  },
+                  onPressed: !valid || isLoading.value
+                      ? null
+                      : () async {
+                          if (isLoading.value) return;
+                          isLoading.value = true;
+
+                          if (!isCodeSent.value) {
+                            try {
+                              final api = ApiService();
+                              final resp = await api.postJson(AppConfig.sendCloseAccountCodeUrl());
+                              if (resp['success'] == true) {
+                                isCodeSent.value = true;
+                                maskedEmail.value = resp['email']?.toString() ?? '';
+                              } else {
+                                Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Failed'.tr,
+                                    backgroundColor: Colors.red, colorText: Colors.white);
+                              }
+                            } catch (_) {
+                              Get.snackbar('Error'.tr, 'Something went wrong'.tr,
+                                  backgroundColor: Colors.red, colorText: Colors.white);
+                            } finally {
+                              isLoading.value = false;
+                            }
+                          } else {
+                            if (codeCtrl.text.trim().isEmpty || codeCtrl.text.trim().length < 6) {
+                              isLoading.value = false;
+                              Get.snackbar('Error'.tr, 'Please enter the verification code'.tr,
+                                  backgroundColor: Colors.red, colorText: Colors.white);
+                              return;
+                            }
+                            try {
+                              final api = ApiService();
+                              final resp = await api.postJson(AppConfig.closeAccountUrl(), body: {
+                                'code': codeCtrl.text.trim(),
+                              });
+                              if (resp['success'] == true) {
+                                confirmCtrl.dispose();
+                                codeCtrl.dispose();
+                                Get.back();
+                                final authCtrl = Get.find<AuthController>();
+                                await authCtrl.logout();
+                                Get.offAllNamed(AppRoutes.loginView);
+                                Get.snackbar('Account Closed'.tr, 'Your account has been closed permanently.'.tr,
+                                    backgroundColor: AppColors.primaryColor, colorText: Colors.white);
+                              } else {
+                                Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Invalid code'.tr,
+                                    backgroundColor: Colors.red, colorText: Colors.white);
+                              }
+                            } catch (_) {
+                              Get.snackbar('Error'.tr, 'Something went wrong'.tr,
+                                  backgroundColor: Colors.red, colorText: Colors.white);
+                            } finally {
+                              isLoading.value = false;
+                            }
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
+                    disabledForegroundColor: Colors.white70,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text(isCodeSent.value ? 'Delete My Account'.tr : 'Send Code'.tr),
+                  child: isLoading.value
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white))
+                      : Text(isCodeSent.value ? 'Delete My Account'.tr : 'Send Code'.tr),
                 );
               }),
             ],
