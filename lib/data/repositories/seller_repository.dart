@@ -180,7 +180,7 @@ class SellerRepository {
 
   Future<List<Map<String, dynamic>>> fetchMyReports() async {
     final url = AppConfig.myReportsUrl();
-    final resp = await _api.getJson(url);
+    final resp = await api.getJson(url);
     final List<dynamic> data = resp['data'] ?? [];
     return data.cast<Map<String, dynamic>>();
   }
