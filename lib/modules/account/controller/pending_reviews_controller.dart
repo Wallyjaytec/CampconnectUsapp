@@ -34,6 +34,7 @@ class PendingReviewsController extends GetxController {
 
       final orderResponse = await _repo.fetchOrders(page: 1, perPage: 100);
       final List<OrderProductItem> deliveredProducts = [];
+      final seenCombos = <String>{};
 
       for (final order in orderResponse.data) {
         try {
@@ -41,7 +42,11 @@ class PendingReviewsController extends GetxController {
           final orderData = detailsResponse.data;
 
           for (final product in orderData.products) {
-            if (product.deliveryStatus == '1' && !_reviewedIds.contains(product.productId)) {
+            final comboKey = '${product.productId}_${orderData.id}';
+            if (product.deliveryStatus == '1' 
+                && !_reviewedIds.contains(product.productId)
+                && !seenCombos.contains(comboKey)) {
+              seenCombos.add(comboKey);
               deliveredProducts.add(product);
               productOrderMap[product.productId] = orderData.id;
               productOrderCodeMap[product.productId] = orderData.orderCode;
@@ -71,12 +76,10 @@ class PendingReviewsController extends GetxController {
 
   Future<void> _loadReviewedIds() async {
     try {
-      // Get IDs from pending review track
       final ids = await _repo.fetchReviewedProductIds();
       _reviewedIds.clear();
       _reviewedIds.addAll(ids);
       
-      // Also get IDs from actual product reviews table
       final myReviews = await _repo.fetchMyReviews();
       for (final review in myReviews) {
         final productId = review['product_id'];
