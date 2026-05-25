@@ -24,6 +24,15 @@ class ThemeController extends GetxController {
     }
 
     Get.changeThemeMode(themeMode.value);
+
+    // Listen to system brightness changes for system theme mode
+    if (themeMode.value == ThemeMode.system) {
+      WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
+        if (themeMode.value == ThemeMode.system) {
+          update(); // Triggers GetBuilder rebuild when system theme changes
+        }
+      };
+    }
   }
 
   void setMode(ThemeMode mode) {
@@ -36,6 +45,15 @@ class ThemeController extends GetxController {
     });
 
     Get.changeThemeMode(mode);
+
+    // Re-register listener if switching back to system mode
+    if (mode == ThemeMode.system) {
+      WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
+        if (themeMode.value == ThemeMode.system) {
+          update();
+        }
+      };
+    }
   }
 
   void toggle() {
