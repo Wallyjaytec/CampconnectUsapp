@@ -240,7 +240,7 @@ class _ReportStatusTab extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Iconsax.document_text, size: 80, color: Colors.grey),
+                    const Icon(Iconsax.warning_2, size: 80, color: Colors.grey),
                     const SizedBox(height: 16),
                     Text(
                       'No reports submitted yet'.tr,
