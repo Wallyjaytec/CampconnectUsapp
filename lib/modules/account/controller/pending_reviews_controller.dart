@@ -71,9 +71,21 @@ class PendingReviewsController extends GetxController {
 
   Future<void> _loadReviewedIds() async {
     try {
+      // Get IDs from pending review track
       final ids = await _repo.fetchReviewedProductIds();
       _reviewedIds.clear();
       _reviewedIds.addAll(ids);
+      
+      // Also get IDs from actual product reviews table
+      final myReviews = await _repo.fetchMyReviews();
+      for (final review in myReviews) {
+        final productId = review['product_id'];
+        if (productId is int) {
+          _reviewedIds.add(productId);
+        } else if (productId is String) {
+          _reviewedIds.add(int.tryParse(productId) ?? 0);
+        }
+      }
     } catch (_) {}
   }
 
