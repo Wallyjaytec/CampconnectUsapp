@@ -6,11 +6,21 @@ import '../../../data/models/site_settings_properties_model.dart';
 class LanguageSelectController extends GetxController {
   final GetStorage _box = GetStorage();
   final RxnString selectedLangCode = RxnString();
+  final RxString searchQuery = ''.obs;
+  final RxBool isSaving = false.obs;
   
   late final LanguageController _languageController;
 
   List<LanguageModel> get languages => _languageController.languages;
   bool get isLoading => _languageController.isLoading.value;
+
+  List<LanguageModel> get filteredLanguages {
+    if (searchQuery.value.isEmpty) return languages;
+    return languages.where((lang) {
+      return lang.title.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+             lang.code.toLowerCase().contains(searchQuery.value.toLowerCase());
+    }).toList();
+  }
 
   @override
   void onInit() {
@@ -24,23 +34,26 @@ class LanguageSelectController extends GetxController {
 
   void saveAndContinue() async {
     if (selectedLangCode.value != null) {
-      // Use your existing LanguageController to set the language
-      await _languageController.setLanguage(selectedLangCode.value!);
+      isSaving.value = true;
       
-      // Mark onboarding language step as done
+      // Save to storage immediately
+      _box.write('selected_language_code', selectedLangCode.value);
+      _box.write('selected_language_api_code', selectedLangCode.value);
       _box.write('language_selected', true);
       
-      // Navigate to country select
+      // Navigate immediately - don't wait for language to load
       Get.offAllNamed('/country_select');
+      
+      // Do the heavy work after navigation
+      await _languageController.setLanguage(selectedLangCode.value!);
+      
+      isSaving.value = false;
     }
   }
 
   static bool get isLanguageSelected => GetStorage().read<bool>('language_selected') ?? false;
 
-  String getFlagEmoji(String code) {
-    if (code.length != 2) return '';
-    final first = code.toUpperCase().codeUnitAt(0) - 0x41 + 0x1F1E6;
-    final second = code.toUpperCase().codeUnitAt(1) - 0x41 + 0x1F1E6;
-    return String.fromCharCodes([first, second]);
+  String getFlagUrl(String code) {
+    return 'https://campconnectus.store/public/web-assets/backend/img/flags/$code.png';
   }
 }
