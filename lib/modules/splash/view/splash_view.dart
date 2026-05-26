@@ -45,8 +45,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           return;
         }
         
-        // Check if onboarding is complete (offline check using local storage)
-        final onboardingComplete = box.read<bool>('onboarding_complete') ?? false;
+        // Check if onboarding is complete - FIXED: changed from 'onboarding_complete' to 'onboarding_done'
+        final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
         
         // Also check individual steps for backward compatibility
         final languageSelected = box.read<bool>('language_selected') ?? false;
