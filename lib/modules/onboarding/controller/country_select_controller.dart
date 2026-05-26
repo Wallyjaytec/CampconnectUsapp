@@ -95,7 +95,7 @@ class CountrySelectController extends GetxController {
       _box.write('selected_country_code', country['code']);
       _box.write('selected_country_name', country['name']);
       _box.write('country_selected', true);
-      _box.write('onboarding_done', true);  // FIXED: Changed from 'onboarding_complete' to 'onboarding_done'
+      _box.write('onboarding_done', true);  // ONLY HERE - last screen of onboarding
       
       Get.offAllNamed('/bottom_navbar_view');
       
