@@ -103,6 +103,13 @@ class CountrySelectController extends GetxController {
     }
   }
 
+  String getCountryFlagEmoji(String countryCode) {
+    if (countryCode.isEmpty || countryCode.length != 2) return '🏳️';
+    final first = countryCode.toUpperCase().codeUnitAt(0) - 0x41 + 0x1F1E6;
+    final second = countryCode.toUpperCase().codeUnitAt(1) - 0x41 + 0x1F1E6;
+    return String.fromCharCodes([first, second]);
+  }
+
   static bool get isOnboardingDone => GetStorage().read<bool>('onboarding_complete') ?? false;
   static bool get isCountrySelected => GetStorage().read<bool>('country_selected') ?? false;
   static String? get savedCountryCode => GetStorage().read<String>('selected_country_code');
