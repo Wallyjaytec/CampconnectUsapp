@@ -11,6 +11,7 @@ import 'package:kartly_e_commerce/modules/account/view/privacy_policy_view.dart'
 import 'package:kartly_e_commerce/modules/account/view/report_seller_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/settings_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
+import 'package:kartly_e_commerce/modules/onboarding/view/country_select_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/featured_items_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/following_products_view.dart';
@@ -60,6 +61,7 @@ class AppPages {
 
   static final pages = [
     GetPage(name: AppRoutes.splashView, page: () => const SplashScreen()),
+    GetPage(name: AppRoutes.countrySelect, page: () => const CountrySelectView()),
     GetPage(
       name: AppRoutes.bottomNavbarView,
       page: () => const BottomNavbarView(),
@@ -226,6 +228,7 @@ class AppPages {
 class AppRoutes {
   AppRoutes._();
   static const splashView = '/';
+  static const countrySelect = '/country_select';
   static const bottomNavbarView = '/bottom_navbar_view';
   static const sellerBottomNavbar = '/seller_bottom_navbar_view';
   static const searchView = '/search_view';
