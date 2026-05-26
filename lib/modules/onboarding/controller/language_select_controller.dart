@@ -93,7 +93,9 @@ class LanguageSelectController extends GetxController {
       _box.write('selected_language_code', selectedLangCode.value);
       _box.write('selected_language_api_code', selectedLangCode.value);
       _box.write('language_selected', true);
-      // DO NOT write onboarding_done here - only in country screen
+      
+      // Update locale immediately
+      Get.updateLocale(Locale(selectedLangCode.value!));
       
       // Preload countries in background
       try {
