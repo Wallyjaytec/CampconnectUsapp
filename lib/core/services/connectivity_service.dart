@@ -22,7 +22,7 @@ class ConnectivityService extends GetxService {
       final currentLocale = Get.locale;
       final expectedLocale = LocaleMapper.fromApiCode(savedLang);
       
-      if (currentLocale != expectedLocale) {
+      if (currentLocale?.languageCode != expectedLocale.languageCode) {
         Get.updateLocale(expectedLocale);
       }
     }
