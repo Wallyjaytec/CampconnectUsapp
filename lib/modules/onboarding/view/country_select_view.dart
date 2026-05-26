@@ -87,7 +87,8 @@ class CountrySelectView extends StatelessWidget {
                       final code = country['code']?.toString() ?? '';
                       final isSelected = controller.selectedCountryId.value == country['id'];
 
-                      return Obx(() => ListTile(
+                      return ListTile(
+                        key: ValueKey('${country['id']}_$isSelected'),
                         leading: Icon(
                           isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
                           color: isSelected ? AppColors.primaryColor : Colors.grey,
@@ -102,7 +103,7 @@ class CountrySelectView extends StatelessWidget {
                           ),
                         ),
                         onTap: () => controller.selectCountry(country['id']),
-                      ));
+                      );
                     },
                   );
                 }),
