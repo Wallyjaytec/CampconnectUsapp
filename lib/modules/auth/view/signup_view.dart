@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/modules/account/widgets/custom_text_form_field.dart';
@@ -11,6 +12,16 @@ import '../controller/auth_controller.dart';
 
 class SignupView extends StatelessWidget {
   const SignupView({super.key});
+
+  IsoCode _getSavedIsoCode() {
+    final box = GetStorage();
+    final code = box.read<String>('selected_country_code') ?? 'NG';
+    try {
+      return IsoCode.values.firstWhere((e) => e.name == code);
+    } catch (_) {
+      return IsoCode.NG;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +110,10 @@ class SignupView extends StatelessWidget {
                         ),
                         child: Center(
                           child: PhoneFormField(
-                            initialValue: PhoneNumber(isoCode: IsoCode.NG, nsn: ''),
+                            initialValue: PhoneNumber(
+                              isoCode: _getSavedIsoCode(),
+                              nsn: '',
+                            ),
                             countrySelectorNavigator:
                                 const CountrySelectorNavigator.page(),
                             decoration: InputDecoration(
