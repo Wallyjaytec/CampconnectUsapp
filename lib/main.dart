@@ -55,8 +55,9 @@ Future<void> main() async {
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
   
-  // Load saved language from onboarding
   final box = GetStorage();
+  
+  // Load saved language from onboarding
   final savedLanguage = box.read<String>('selected_language_api_code');
   if (savedLanguage != null && savedLanguage.isNotEmpty) {
     try {
