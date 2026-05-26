@@ -36,16 +36,21 @@ class LanguageSelectController extends GetxController {
     if (selectedLangCode.value != null) {
       isSaving.value = true;
       
-      // Save to storage immediately
+      // Save to local storage immediately
       _box.write('selected_language_code', selectedLangCode.value);
       _box.write('selected_language_api_code', selectedLangCode.value);
       _box.write('language_selected', true);
       
-      // Navigate immediately - don't wait for language to load
+      // Navigate immediately - no waiting
       Get.offAllNamed('/country_select');
       
-      // Do the heavy work after navigation
-      await _languageController.setLanguage(selectedLangCode.value!);
+      // Sync with server in background (don't wait for result)
+      try {
+        await _languageController.setLanguage(selectedLangCode.value!);
+      } catch (e) {
+        // Silently fail - will retry when app restarts or online
+        print('Background language sync failed: $e');
+      }
       
       isSaving.value = false;
     }
@@ -53,7 +58,21 @@ class LanguageSelectController extends GetxController {
 
   static bool get isLanguageSelected => GetStorage().read<bool>('language_selected') ?? false;
 
-  String getFlagUrl(String code) {
-    return 'https://campconnectus.store/public/web-assets/backend/img/flags/$code.png';
+  String getFlagEmoji(String languageCode) {
+    switch (languageCode.toLowerCase()) {
+      case 'en': return '🇺🇸';
+      case 'de': return '🇩🇪';
+      case 'zh': return '🇨🇳';
+      case 'es': return '🇪🇸';
+      case 'ar': return '🇸🇦';
+      case 'fr': return '🇫🇷';
+      case 'ru': return '🇷🇺';
+      case 'ja': return '🇯🇵';
+      case 'ko': return '🇰🇷';
+      case 'pt': return '🇵🇹';
+      case 'it': return '🇮🇹';
+      case 'hi': return '🇮🇳';
+      default: return '🏳️';
+    }
   }
 }
