@@ -23,10 +23,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  Brightness? _lastBrightness;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
   }
 
   @override
@@ -37,8 +40,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangePlatformBrightness() {
-    if (Get.isRegistered<ThemeController>()) {
-      Get.find<ThemeController>().update();
+    final newBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    if (_lastBrightness != newBrightness) {
+      _lastBrightness = newBrightness;
+      if (Get.isRegistered<ThemeController>()) {
+        Get.find<ThemeController>().setMode(ThemeMode.system);
+      }
     }
   }
 
