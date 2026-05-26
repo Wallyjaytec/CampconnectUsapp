@@ -26,7 +26,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
     
-    // Start animation after first frame to ensure it always shows
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
 
@@ -43,6 +42,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           } else {
             Get.offAll(() => PasswordResetView(token: token));
           }
+          return;
+        }
+        // Check if onboarding is done
+        final onboardingDone = box.read<bool>('onboarding_done') ?? false;
+        if (!onboardingDone) {
+          Get.offAllNamed(AppRoutes.countrySelect);
           return;
         }
         Get.offAllNamed(AppRoutes.bottomNavbarView);
