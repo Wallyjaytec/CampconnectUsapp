@@ -44,13 +44,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           }
           return;
         }
-        // Check if onboarding is done
-        final onboardingDone = box.read<bool>('onboarding_done') ?? false;
-        if (!onboardingDone) {
-          // Language first, then country, then currency
+        
+        // Check if onboarding is complete (offline check using local storage)
+        final onboardingComplete = box.read<bool>('onboarding_complete') ?? false;
+        
+        // Also check individual steps for backward compatibility
+        final languageSelected = box.read<bool>('language_selected') ?? false;
+        final countrySelected = box.read<bool>('country_selected') ?? false;
+        
+        // If onboarding not complete OR missing steps, show language selection
+        if (!onboardingComplete || !languageSelected || !countrySelected) {
           Get.offAllNamed(AppRoutes.languageSelect);
           return;
         }
+        
+        // All onboarding done, go to homepage
         Get.offAllNamed(AppRoutes.bottomNavbarView);
       });
     });
