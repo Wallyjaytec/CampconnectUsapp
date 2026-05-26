@@ -16,6 +16,7 @@ class CountrySelectController extends GetxController {
   final RxBool isSaving = false.obs;
 
   static const String _countryKey = 'selected_country';
+  static const String _cachedCountriesKey = 'cached_countries';
 
   List<Map<String, dynamic>> get filteredCountries {
     if (searchQuery.value.isEmpty) return countries;
@@ -34,6 +35,15 @@ class CountrySelectController extends GetxController {
   Future<void> loadCountries() async {
     isLoading.value = true;
     error.value = '';
+    
+    // Try to load from cache first (offline support)
+    final cachedCountries = _box.read(_cachedCountriesKey);
+    if (cachedCountries != null) {
+      countries.assignAll(List<Map<String, dynamic>>.from(cachedCountries));
+      isLoading.value = false;
+    }
+    
+    // Then try to fetch from API (if online)
     try {
       final url = AppConfig.getCountriesUrl();
       final resp = await _api.getJson(url);
@@ -42,9 +52,14 @@ class CountrySelectController extends GetxController {
         final list = List<Map<String, dynamic>>.from(data['countries']);
         list.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
         countries.assignAll(list);
+        // Save to cache for offline use
+        _box.write(_cachedCountriesKey, list);
       }
     } catch (e) {
-      error.value = 'Failed to load countries'.tr;
+      // Silently fail - cached data will be used
+      if (countries.isEmpty) {
+        error.value = 'Failed to load countries. Please check your internet connection.'.tr;
+      }
     } finally {
       isLoading.value = false;
     }
