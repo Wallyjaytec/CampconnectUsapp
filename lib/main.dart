@@ -55,6 +55,15 @@ Future<void> main() async {
   await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
   
+  // Load saved language from onboarding
+  final box = GetStorage();
+  final savedLanguage = box.read<String>('selected_language_api_code');
+  if (savedLanguage != null && savedLanguage.isNotEmpty) {
+    try {
+      await LanguageService.load(savedLanguage);
+    } catch (_) {}
+  }
+  
   try {
     Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
   } catch (_) {}
@@ -73,7 +82,6 @@ Future<void> main() async {
   Get.put<CartController>(CartController(CartRepository(ApiService())), permanent: true);
   Get.put(AuthController(), permanent: true);
 
-  final box = GetStorage();
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
   
   try {
