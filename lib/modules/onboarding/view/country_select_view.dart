@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_country_selector/flutter_country_selector.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
@@ -7,6 +7,15 @@ import '../controller/country_select_controller.dart';
 
 class CountrySelectView extends StatelessWidget {
   const CountrySelectView({super.key});
+
+  String getFlagEmoji(String code) {
+    try {
+      final country = Country.parse(code);
+      return country.flagEmoji;
+    } catch (_) {
+      return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +42,6 @@ class CountrySelectView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Search bar
               TextField(
                 controller: searchCtrl,
                 onChanged: (v) => controller.searchQuery.value = v,
@@ -59,7 +67,6 @@ class CountrySelectView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Country list
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
@@ -82,7 +89,8 @@ class CountrySelectView extends StatelessWidget {
                       final country = list[i];
                       final code = country['code']?.toString() ?? '';
                       final isSelected = controller.selectedCountryId.value == country['id'];
-                      return ListTile(
+                      
+                      return Obx(() => ListTile(
                         leading: Icon(
                           isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
                           color: isSelected ? AppColors.primaryColor : Colors.grey,
@@ -91,53 +99,33 @@ class CountrySelectView extends StatelessWidget {
                         trailing: CircleAvatar(
                           radius: 18,
                           backgroundColor: Colors.grey.shade200,
-                          backgroundImage: CachedNetworkImageProvider(
-                            'https://flagcdn.com/w80/${code.toLowerCase()}.png',
-                          ),
-                          onBackgroundImageError: (_, __) {},
                           child: Text(
-                            code,
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                            getFlagEmoji(code),
+                            style: const TextStyle(fontSize: 18),
                           ),
                         ),
                         onTap: () => controller.selectCountry(country['id']),
-                      );
+                      ));
                     },
                   );
                 }),
               ),
               const SizedBox(height: 12),
-              // Selected + Continue
-              Obx(() => Column(
-                children: [
-                  if (controller.selectedCountryName.value.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '${'Selected'.tr}: ${controller.selectedCountryName.value}',
-                        style: const TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: controller.selectedCountryId.value != null
-                          ? () => controller.saveAndContinue()
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Text('Continue'.tr),
-                    ),
+              Obx(() => SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: controller.selectedCountryId.value != null
+                      ? () => controller.saveAndContinue()
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                ],
+                  child: Text('Continue'.tr),
+                ),
               )),
             ],
           ),
