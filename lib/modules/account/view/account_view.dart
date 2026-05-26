@@ -59,13 +59,7 @@ class AccountView extends StatelessWidget {
     final isCodeValid = false.obs;
 
     confirmCtrl.addListener(() {
-      final text = confirmCtrl.text;
-      final trimmed = text.trimRight();
-      if (text != trimmed) {
-        confirmCtrl.text = trimmed;
-        confirmCtrl.selection = TextSelection.fromPosition(TextPosition(offset: trimmed.length));
-      }
-      isTextValid.value = trimmed == 'DELETE MY CCU ACCOUNT';
+      isTextValid.value = confirmCtrl.text == 'DELETE MY CCU ACCOUNT';
     });
 
     codeCtrl.addListener(() {
@@ -76,6 +70,8 @@ class AccountView extends StatelessWidget {
       Builder(
         builder: (context) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+          
           return AlertDialog(
             backgroundColor: isDark ? AppColors.darkProductCardColor : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -165,20 +161,44 @@ class AccountView extends StatelessWidget {
                                 isCodeSent.value = true;
                                 maskedEmail.value = resp['email']?.toString() ?? '';
                               } else {
-                                Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Failed'.tr,
-                                    backgroundColor: Colors.red, colorText: Colors.white);
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(resp['message']?.toString() ?? 'Failed'.tr),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: const EdgeInsets.all(16),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
                               }
                             } catch (_) {
-                              Get.snackbar('Error'.tr, 'Something went wrong'.tr,
-                                  backgroundColor: Colors.red, colorText: Colors.white);
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Something went wrong'.tr),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.all(16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
                             } finally {
                               isLoading.value = false;
                             }
                           } else {
                             if (codeCtrl.text.trim().isEmpty || codeCtrl.text.trim().length < 6) {
                               isLoading.value = false;
-                              Get.snackbar('Error'.tr, 'Please enter the verification code'.tr,
-                                  backgroundColor: Colors.red, colorText: Colors.white);
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Please enter the verification code'.tr),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.all(16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
                               return;
                             }
                             try {
@@ -193,15 +213,39 @@ class AccountView extends StatelessWidget {
                                 final authCtrl = Get.find<AuthController>();
                                 await authCtrl.logout();
                                 Get.offAllNamed(AppRoutes.loginView);
-                                Get.snackbar('Account Closed'.tr, 'Your account has been closed permanently.'.tr,
-                                    backgroundColor: AppColors.primaryColor, colorText: Colors.white);
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text('Account closed permanently'.tr),
+                                    backgroundColor: AppColors.primaryColor,
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: const EdgeInsets.all(16),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
                               } else {
-                                Get.snackbar('Error'.tr, resp['message']?.toString() ?? 'Invalid code'.tr,
-                                    backgroundColor: Colors.red, colorText: Colors.white);
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(resp['message']?.toString() ?? 'Invalid code'.tr),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: const EdgeInsets.all(16),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
                               }
                             } catch (_) {
-                              Get.snackbar('Error'.tr, 'Something went wrong'.tr,
-                                  backgroundColor: Colors.red, colorText: Colors.white);
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Something went wrong'.tr),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.all(16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
                             } finally {
                               isLoading.value = false;
                             }
