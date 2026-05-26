@@ -1,35 +1,36 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../core/controllers/language_controller.dart';
+import '../../../data/models/site_settings_properties_model.dart';
 
 class LanguageSelectController extends GetxController {
   final GetStorage _box = GetStorage();
   final RxnString selectedLangCode = RxnString();
+  
+  late final LanguageController _languageController;
 
-  final List<Map<String, String>> languages = [
-    {'name': 'English', 'code': 'EN', 'flag': 'GB'},
-    {'name': 'German (Deutsch)', 'code': 'DE', 'flag': 'DE'},
-    {'name': 'Chinese (中文)', 'code': 'ZH', 'flag': 'CN'},
-    {'name': 'Spanish (Español)', 'code': 'ES', 'flag': 'ES'},
-    {'name': 'Arabic (العربية)', 'code': 'AR', 'flag': 'SA'},
-    {'name': 'French (Français)', 'code': 'FR', 'flag': 'FR'},
-    {'name': 'Russian (Русский)', 'code': 'RU', 'flag': 'RU'},
-    {'name': 'Japanese (日本語)', 'code': 'JA', 'flag': 'JP'},
-    {'name': 'Korean (한국어)', 'code': 'KO', 'flag': 'KR'},
-    {'name': 'Portuguese (Português)', 'code': 'PT', 'flag': 'PT'},
-    {'name': 'Italian (Italiano)', 'code': 'IT', 'flag': 'IT'},
-    {'name': 'Hindi (हिन्दी)', 'code': 'HI', 'flag': 'IN'},
-  ];
+  List<LanguageModel> get languages => _languageController.languages;
+  bool get isLoading => _languageController.isLoading.value;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _languageController = Get.find<LanguageController>();
+  }
 
   void selectLanguage(String code) {
     selectedLangCode.value = code;
   }
 
-  void saveAndContinue() {
+  void saveAndContinue() async {
     if (selectedLangCode.value != null) {
-      final lang = languages.firstWhere((l) => l['code'] == selectedLangCode.value);
-      _box.write('selected_language_code', lang['code']);
-      _box.write('selected_language_api_code', lang['code']?.toLowerCase());
+      // Use your existing LanguageController to set the language
+      await _languageController.setLanguage(selectedLangCode.value!);
+      
+      // Mark onboarding language step as done
       _box.write('language_selected', true);
+      
+      // Navigate to country select
       Get.offAllNamed('/country_select');
     }
   }
