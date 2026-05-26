@@ -7,13 +7,6 @@ import '../controller/country_select_controller.dart';
 class CountrySelectView extends StatelessWidget {
   const CountrySelectView({super.key});
 
-  String getFlagEmoji(String code) {
-    if (code.length != 2) return '';
-    final first = code.toUpperCase().codeUnitAt(0) - 0x41 + 0x1F1E6;
-    final second = code.toUpperCase().codeUnitAt(1) - 0x41 + 0x1F1E6;
-    return String.fromCharCodes([first, second]);
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CountrySelectController());
@@ -70,7 +63,6 @@ class CountrySelectView extends StatelessWidget {
                   if (list.isEmpty) {
                     return Center(child: Text('No countries found'.tr));
                   }
-                  // Force rebuild when selection changes
                   final _ = controller.selectedCountryId.value;
                   return ListView.separated(
                     itemCount: list.length,
@@ -94,8 +86,8 @@ class CountrySelectView extends StatelessWidget {
                           ),
                         ),
                         trailing: Container(
-                          width: 40,
-                          height: 40,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
@@ -103,11 +95,10 @@ class CountrySelectView extends StatelessWidget {
                               width: isSelected ? 2 : 1,
                             ),
                           ),
-                          clipBehavior: Clip.antiAlias,
                           child: Center(
                             child: Text(
-                              getFlagEmoji(code),
-                              style: const TextStyle(fontSize: 22),
+                              controller.getCountryFlagEmoji(code),
+                              style: const TextStyle(fontSize: 28),
                             ),
                           ),
                         ),
