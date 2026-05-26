@@ -18,6 +18,20 @@ class CountrySelectController extends GetxController {
   static const String _countryKey = 'selected_country';
   static const String _cachedCountriesKey = 'cached_countries';
 
+  // Default fallback countries for first-time offline
+  final List<Map<String, dynamic>> defaultCountries = [
+    {'id': 1, 'name': 'United States', 'code': 'US'},
+    {'id': 2, 'name': 'Nigeria', 'code': 'NG'},
+    {'id': 3, 'name': 'United Kingdom', 'code': 'GB'},
+    {'id': 4, 'name': 'Canada', 'code': 'CA'},
+    {'id': 5, 'name': 'Germany', 'code': 'DE'},
+    {'id': 6, 'name': 'France', 'code': 'FR'},
+    {'id': 7, 'name': 'Japan', 'code': 'JP'},
+    {'id': 8, 'name': 'China', 'code': 'CN'},
+    {'id': 9, 'name': 'India', 'code': 'IN'},
+    {'id': 10, 'name': 'Australia', 'code': 'AU'},
+  ];
+
   List<Map<String, dynamic>> get filteredCountries {
     if (searchQuery.value.isEmpty) return countries;
     return countries.where((c) {
@@ -38,8 +52,12 @@ class CountrySelectController extends GetxController {
     
     // Try to load from cache first (offline support)
     final cachedCountries = _box.read(_cachedCountriesKey);
-    if (cachedCountries != null) {
+    if (cachedCountries != null && cachedCountries.isNotEmpty) {
       countries.assignAll(List<Map<String, dynamic>>.from(cachedCountries));
+      isLoading.value = false;
+    } else {
+      // No cache - show default countries
+      countries.assignAll(defaultCountries);
       isLoading.value = false;
     }
     
@@ -56,7 +74,7 @@ class CountrySelectController extends GetxController {
         _box.write(_cachedCountriesKey, list);
       }
     } catch (e) {
-      // Silently fail - cached data will be used
+      // Silently fail - default or cached data will be used
       if (countries.isEmpty) {
         error.value = 'Failed to load countries. Please check your internet connection.'.tr;
       }
@@ -90,9 +108,7 @@ class CountrySelectController extends GetxController {
       // Sync with server in background (if needed)
       try {
         // Add any API call to save country to server here if needed
-        // Example: _api.post('save-country', {'country_id': selectedCountryId.value});
       } catch (e) {
-        // Silently fail - will retry later
         print('Background country sync failed: $e');
       }
       
