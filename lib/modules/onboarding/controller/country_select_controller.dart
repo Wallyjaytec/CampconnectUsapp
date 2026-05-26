@@ -13,6 +13,7 @@ class CountrySelectController extends GetxController {
   final RxnInt selectedCountryId = RxnInt();
   final RxString selectedCountryName = ''.obs;
   final RxString searchQuery = ''.obs;
+  final RxBool isSaving = false.obs;
 
   static const String _countryKey = 'selected_country';
 
@@ -57,16 +58,35 @@ class CountrySelectController extends GetxController {
 
   void saveAndContinue() {
     if (selectedCountryId.value != null) {
+      isSaving.value = true;
+      
       final country = countries.firstWhere((c) => c['id'] == selectedCountryId.value);
+      
+      // Save to local storage immediately
       _box.write(_countryKey, country['id']);
       _box.write('selected_country_code', country['code']);
       _box.write('selected_country_name', country['name']);
-      _box.write('onboarding_done', true);
+      _box.write('country_selected', true);
+      _box.write('onboarding_complete', true);
+      
+      // Navigate immediately - no waiting
       Get.offAllNamed('/bottom_navbar_view');
+      
+      // Sync with server in background (if needed)
+      try {
+        // Add any API call to save country to server here if needed
+        // Example: _api.post('save-country', {'country_id': selectedCountryId.value});
+      } catch (e) {
+        // Silently fail - will retry later
+        print('Background country sync failed: $e');
+      }
+      
+      isSaving.value = false;
     }
   }
 
-  static bool get isOnboardingDone => GetStorage().read<bool>('onboarding_done') ?? false;
+  static bool get isOnboardingDone => GetStorage().read<bool>('onboarding_complete') ?? false;
+  static bool get isCountrySelected => GetStorage().read<bool>('country_selected') ?? false;
   static String? get savedCountryCode => GetStorage().read<String>('selected_country_code');
   static int? get savedCountryId => GetStorage().read<int>('selected_country');
 }
