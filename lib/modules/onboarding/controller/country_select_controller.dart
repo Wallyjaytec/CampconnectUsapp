@@ -95,7 +95,7 @@ class CountrySelectController extends GetxController {
       _box.write('selected_country_code', country['code']);
       _box.write('selected_country_name', country['name']);
       _box.write('country_selected', true);
-      _box.write('onboarding_complete', true);
+      _box.write('onboarding_done', true);  // FIXED: Changed from 'onboarding_complete' to 'onboarding_done'
       
       Get.offAllNamed('/bottom_navbar_view');
       
@@ -110,7 +110,7 @@ class CountrySelectController extends GetxController {
     return String.fromCharCodes([first, second]);
   }
 
-  static bool get isOnboardingDone => GetStorage().read<bool>('onboarding_complete') ?? false;
+  static bool get isOnboardingDone => GetStorage().read<bool>('onboarding_done') ?? false;
   static bool get isCountrySelected => GetStorage().read<bool>('country_selected') ?? false;
   static String? get savedCountryCode => GetStorage().read<String>('selected_country_code');
   static int? get savedCountryId => GetStorage().read<int>('selected_country');
