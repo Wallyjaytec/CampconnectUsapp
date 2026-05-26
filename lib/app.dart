@@ -25,12 +25,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
+  late Rx<Locale> _locale;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    
+    // Get saved language from storage
+    final box = GetStorage();
+    final savedLangCode = box.read<String>('selected_language_api_code');
+    final localeCode = savedLangCode ?? widget.initialLocaleCode;
+    _locale = LocaleMapper.fromApiCode(localeCode).obs;
   }
 
   @override
@@ -52,32 +59,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final initialLocale = LocaleMapper.fromApiCode(widget.initialLocaleCode);
-
-    return GetMaterialApp(
+    return Obx(() => GetMaterialApp(
       debugShowCheckedModeBanner: false,
       scrollBehavior: AppScrollBehavior(),
       useInheritedMediaQuery: true,
-      locale: initialLocale,
+      locale: _locale.value,
       fallbackLocale: const Locale('en'),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       supportedLocales: const [
-        Locale('en'),
-        Locale('de'),
-        Locale('zh'),
-        Locale('es'),
-        Locale('ar'),
-        Locale('fr'),
-        Locale('ru'),
-        Locale('ja'),
-        Locale('ko'),
-        Locale('pt'),
-        Locale('it'),
-        Locale('hi'),
+        Locale('en'), Locale('de'), Locale('zh'), Locale('es'),
+        Locale('ar'), Locale('fr'), Locale('ru'), Locale('ja'),
+        Locale('ko'), Locale('pt'), Locale('it'), Locale('hi'),
       ],
       onGenerateTitle: (_) => 'app_title'.tr,
-      theme: AppTheme.lightFor(initialLocale),
-      darkTheme: AppTheme.darkFor(initialLocale),
+      theme: AppTheme.lightFor(_locale.value),
+      darkTheme: AppTheme.darkFor(_locale.value),
       themeMode: ThemeMode.system,
       builder: (context, child) {
         return Scaffold(
@@ -120,6 +116,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
         return null;
       },
-    );
+    ));
   }
 }
