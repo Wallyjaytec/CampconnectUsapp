@@ -10,6 +10,7 @@ class LanguageSelectView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(LanguageSelectController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final searchCtrl = TextEditingController();
 
     return SafeArea(
       child: Scaffold(
@@ -26,23 +27,49 @@ class LanguageSelectView extends StatelessWidget {
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              // Search Box
+              TextField(
+                controller: searchCtrl,
+                onChanged: (v) => controller.searchQuery.value = v,
+                decoration: InputDecoration(
+                  hintText: 'Search language...'.tr,
+                  prefixIcon: const Icon(Icons.search, size: 18),
+                  suffixIcon: Obx(() => controller.searchQuery.value.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () {
+                            searchCtrl.clear();
+                            controller.searchQuery.value = '';
+                          },
+                        )
+                      : const SizedBox.shrink()),
+                  filled: true,
+                  fillColor: isDark ? Colors.grey[800] : Colors.grey[100],
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (controller.languages.isEmpty) {
-                    return Center(child: Text('No languages available'.tr));
+                  if (controller.filteredLanguages.isEmpty) {
+                    return Center(child: Text('No language found'.tr));
                   }
                   final _ = controller.selectedLangCode.value;
                   return ListView.separated(
-                    itemCount: controller.languages.length,
+                    itemCount: controller.filteredLanguages.length,
                     separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? Colors.white12 : Colors.grey.shade200),
                     itemBuilder: (_, i) {
-                      final lang = controller.languages[i];
+                      final lang = controller.filteredLanguages[i];
                       final isSelected = controller.selectedLangCode.value == lang.code;
-                      final flagCode = lang.code.length >= 2 ? lang.code.substring(0, 2) : '';
+                      final flagCode = lang.code;
 
                       return ListTile(
                         leading: Icon(
@@ -50,26 +77,20 @@ class LanguageSelectView extends StatelessWidget {
                           color: isSelected ? AppColors.primaryColor : Colors.grey,
                           size: 22,
                         ),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              lang.title,  // Changed from 'name' to 'title'
-                              style: TextStyle(
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                                color: isSelected ? AppColors.primaryColor : null,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              lang.code.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.7) : Colors.grey,
-                              ),
-                            ),
-                          ],
+                        title: Text(
+                          lang.title,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                            color: isSelected ? AppColors.primaryColor : null,
+                            fontSize: 14,
+                          ),
+                        ),
+                        subtitle: Text(
+                          lang.code.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.7) : Colors.grey,
+                          ),
                         ),
                         trailing: Container(
                           width: 36,
@@ -82,11 +103,19 @@ class LanguageSelectView extends StatelessWidget {
                             ),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: Center(
-                            child: Text(
-                              controller.getFlagEmoji(flagCode),
-                              style: const TextStyle(fontSize: 20),
-                            ),
+                          child: Image.network(
+                            controller.getFlagUrl(lang.code),
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Text(
+                                  lang.code.substring(0, 2).toUpperCase(),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         onTap: () => controller.selectLanguage(lang.code),
@@ -100,7 +129,7 @@ class LanguageSelectView extends StatelessWidget {
                 width: double.infinity, 
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: controller.selectedLangCode.value != null
+                  onPressed: controller.selectedLangCode.value != null && !controller.isSaving.value
                       ? () => controller.saveAndContinue()
                       : null,
                   style: ElevatedButton.styleFrom(
@@ -109,7 +138,16 @@ class LanguageSelectView extends StatelessWidget {
                     disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text('Continue'.tr),
+                  child: controller.isSaving.value
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text('Continue'.tr),
                 ),
               )),
               const SizedBox(height: 20),
