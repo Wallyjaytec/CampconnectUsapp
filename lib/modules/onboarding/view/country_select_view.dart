@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_country_selector/flutter_country_selector.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
@@ -9,12 +8,10 @@ class CountrySelectView extends StatelessWidget {
   const CountrySelectView({super.key});
 
   String getFlagEmoji(String code) {
-    try {
-      final country = Country.parse(code);
-      return country.flagEmoji;
-    } catch (_) {
-      return '';
-    }
+    if (code.length != 2) return '';
+    final first = code.toUpperCase().codeUnitAt(0) - 0x41 + 0x1F1E6;
+    final second = code.toUpperCase().codeUnitAt(1) - 0x41 + 0x1F1E6;
+    return String.fromCharCodes([first, second]);
   }
 
   @override
@@ -89,7 +86,7 @@ class CountrySelectView extends StatelessWidget {
                       final country = list[i];
                       final code = country['code']?.toString() ?? '';
                       final isSelected = controller.selectedCountryId.value == country['id'];
-                      
+
                       return Obx(() => ListTile(
                         leading: Icon(
                           isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
@@ -101,7 +98,7 @@ class CountrySelectView extends StatelessWidget {
                           backgroundColor: Colors.grey.shade200,
                           child: Text(
                             getFlagEmoji(code),
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 20),
                           ),
                         ),
                         onTap: () => controller.selectCountry(country['id']),
