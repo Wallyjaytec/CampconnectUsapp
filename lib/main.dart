@@ -7,6 +7,7 @@ import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
+import 'package:kartly_e_commerce/core/services/connectivity_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -56,6 +57,9 @@ Future<void> main() async {
   Get.put(ThemeController(), permanent: true);
   
   final box = GetStorage();
+  
+  // Register connectivity service for language sync when online
+  await Get.putAsync<ConnectivityService>(() => ConnectivityService().init());
   
   // Load saved language from onboarding
   final savedLanguage = box.read<String>('selected_language_api_code');
