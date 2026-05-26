@@ -20,6 +20,13 @@ class CountrySelectController extends GetxController {
   static const String _countryKey = 'selected_country';
   static const String _cachedCountriesKey = 'cached_countries';
 
+  // Countries to exclude (no phone codes or not in IsoCode)
+  final List<String> excludeCodes = [
+    'AQ', 'BV', 'HM', 'TF', 'GS', 'UM', 'AX', 'SJ', 'CX', 'CC', 'NF',
+    'IO', 'PN', 'BL', 'MF', 'PM', 'WF', 'GP', 'MQ', 'YT', 'RE', 'GF',
+    'BQ', 'CW', 'SX', 'GG', 'JE', 'IM', 'GI', 'VA', 'SS'
+  ];
+
   List<Map<String, dynamic>> get filteredCountries {
     if (searchQuery.value.isEmpty) return countries;
     return countries.where((c) {
@@ -35,24 +42,32 @@ class CountrySelectController extends GetxController {
   }
 
   Future<void> loadCountries() async {
-    // Load from local JSON file (offline first - works immediately)
+    // Try to load from local JSON file first (offline)
     try {
       final jsonString = await rootBundle.loadString('assets/countries.json');
       final Map<String, dynamic> jsonData = json.decode(jsonString);
       final List<dynamic> jsonList = jsonData['data']['countries'];
       final list = jsonList.map((e) => Map<String, dynamic>.from(e)).toList();
-      list.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
-      countries.assignAll(list);
+      
+      // Filter out excluded countries
+      final filteredList = list.where((country) {
+        final code = country['code'] ?? '';
+        return !excludeCodes.contains(code);
+      }).toList();
+      
+      filteredList.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
+      countries.assignAll(filteredList);
       
       // Save to cache for faster loading next time
-      _box.write(_cachedCountriesKey, list);
+      _box.write(_cachedCountriesKey, filteredList);
     } catch (e) {
       print('Error loading local countries: $e');
-      // Fallback to cache or API
+      // Fallback to cache
       final cachedCountries = _box.read(_cachedCountriesKey);
       if (cachedCountries != null && cachedCountries.isNotEmpty) {
         countries.assignAll(List<Map<String, dynamic>>.from(cachedCountries));
       } else {
+        // No cache, try API
         isLoading.value = true;
         await _fetchFromApi();
       }
@@ -66,9 +81,16 @@ class CountrySelectController extends GetxController {
       final data = resp['data'];
       if (data != null && data['countries'] != null) {
         final list = List<Map<String, dynamic>>.from(data['countries']);
-        list.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
-        countries.assignAll(list);
-        _box.write(_cachedCountriesKey, list);
+        
+        // Filter out excluded countries
+        final filteredList = list.where((country) {
+          final code = country['code'] ?? '';
+          return !excludeCodes.contains(code);
+        }).toList();
+        
+        filteredList.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
+        countries.assignAll(filteredList);
+        _box.write(_cachedCountriesKey, filteredList);
       } else {
         error.value = 'Failed to load countries'.tr;
       }
@@ -95,7 +117,7 @@ class CountrySelectController extends GetxController {
       _box.write('selected_country_code', country['code']);
       _box.write('selected_country_name', country['name']);
       _box.write('country_selected', true);
-      _box.write('onboarding_done', true);  // ONLY HERE - last screen of onboarding
+      _box.write('onboarding_done', true);
       
       Get.offAllNamed('/bottom_navbar_view');
       
