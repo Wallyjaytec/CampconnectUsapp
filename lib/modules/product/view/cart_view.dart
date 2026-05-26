@@ -976,7 +976,7 @@ class _CouponField extends GetView<CartController> {
     return TextField(
       controller: controller.couponCtrl,
       decoration: InputDecoration(
-        hintText: 'WELCOME500',
+        hintText: 'Enter Coupon Code'.tr,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
