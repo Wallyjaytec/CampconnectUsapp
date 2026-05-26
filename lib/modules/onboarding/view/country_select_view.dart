@@ -1,8 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:phone_form_field/phone_form_field.dart';
 import '../controller/country_select_controller.dart';
 
 class CountrySelectView extends StatelessWidget {
@@ -83,22 +83,22 @@ class CountrySelectView extends StatelessWidget {
                       final code = country['code']?.toString() ?? '';
                       final isSelected = controller.selectedCountryId.value == country['id'];
                       return ListTile(
-                        leading: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
-                          child: Text(
-                            code,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isSelected ? Colors.white : Colors.black54,
-                            ),
-                          ),
-                        ),
-                        title: Text(country['name'] ?? ''),
-                        trailing: Icon(
+                        leading: Icon(
                           isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
                           color: isSelected ? AppColors.primaryColor : Colors.grey,
+                        ),
+                        title: Text(country['name'] ?? ''),
+                        trailing: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage: CachedNetworkImageProvider(
+                            'https://flagcdn.com/w80/${code.toLowerCase()}.png',
+                          ),
+                          onBackgroundImageError: (_, __) {},
+                          child: Text(
+                            code,
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                          ),
                         ),
                         onTap: () => controller.selectCountry(country['id']),
                       );
@@ -107,22 +107,37 @@ class CountrySelectView extends StatelessWidget {
                 }),
               ),
               const SizedBox(height: 12),
-              // Continue button
-              Obx(() => SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: controller.selectedCountryId.value != null
-                      ? () => controller.saveAndContinue()
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              // Selected + Continue
+              Obx(() => Column(
+                children: [
+                  if (controller.selectedCountryName.value.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        '${'Selected'.tr}: ${controller.selectedCountryName.value}',
+                        style: const TextStyle(
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: controller.selectedCountryId.value != null
+                          ? () => controller.saveAndContinue()
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Text('Continue'.tr),
+                    ),
                   ),
-                  child: Text('Continue'.tr),
-                ),
+                ],
               )),
             ],
           ),
