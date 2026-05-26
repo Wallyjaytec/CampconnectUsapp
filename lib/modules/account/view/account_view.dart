@@ -56,9 +56,20 @@ class AccountView extends StatelessWidget {
     final maskedEmail = ''.obs;
     final isLoading = false.obs;
     final isTextValid = false.obs;
+    final isCodeValid = false.obs;
 
     confirmCtrl.addListener(() {
-      isTextValid.value = confirmCtrl.text.trim() == 'DELETE MY CCU ACCOUNT';
+      final text = confirmCtrl.text;
+      final trimmed = text.trimRight();
+      if (text != trimmed) {
+        confirmCtrl.text = trimmed;
+        confirmCtrl.selection = TextSelection.fromPosition(TextPosition(offset: trimmed.length));
+      }
+      isTextValid.value = trimmed == 'DELETE MY CCU ACCOUNT';
+    });
+
+    codeCtrl.addListener(() {
+      isCodeValid.value = codeCtrl.text.trim().length == 6;
     });
 
     Get.dialog(
@@ -92,6 +103,7 @@ class AccountView extends StatelessWidget {
                       maxLength: 6,
                       decoration: InputDecoration(
                         hintText: 'Enter 6-digit code'.tr,
+                        counterText: '',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
@@ -137,9 +149,9 @@ class AccountView extends StatelessWidget {
                 child: Text('Cancel'.tr),
               ),
               Obx(() {
-                final valid = isCodeSent.value || isTextValid.value;
+                final valid = isCodeSent.value ? isCodeValid.value && !isLoading.value : isTextValid.value && !isLoading.value;
                 return ElevatedButton(
-                  onPressed: !valid || isLoading.value
+                  onPressed: !valid
                       ? null
                       : () async {
                           if (isLoading.value) return;
