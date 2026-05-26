@@ -32,10 +32,7 @@ class CountrySelectView extends StatelessWidget {
               Center(
                 child: Text(
                   'Choose Your Country'.tr,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                 ),
               ),
               const SizedBox(height: 20),
@@ -57,10 +54,7 @@ class CountrySelectView extends StatelessWidget {
                   filled: true,
                   fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                 ),
               ),
               const SizedBox(height: 12),
@@ -76,25 +70,21 @@ class CountrySelectView extends StatelessWidget {
                   if (list.isEmpty) {
                     return Center(child: Text('No countries found'.tr));
                   }
+                  // Force rebuild when selection changes
+                  final _ = controller.selectedCountryId.value;
                   return ListView.separated(
                     itemCount: list.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 1,
-                      color: isDark ? Colors.white12 : Colors.grey.shade200,
-                    ),
+                    separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? Colors.white12 : Colors.grey.shade200),
                     itemBuilder: (_, i) {
                       final country = list[i];
                       final code = country['code']?.toString() ?? '';
                       final isSelected = controller.selectedCountryId.value == country['id'];
 
                       return ListTile(
-                        key: ValueKey('${country['id']}_$isSelected'),
-                        leading: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          child: Icon(
-                            isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                            color: isSelected ? AppColors.primaryColor : Colors.grey,
-                          ),
+                        leading: Icon(
+                          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                          color: isSelected ? AppColors.primaryColor : Colors.grey,
+                          size: 22,
                         ),
                         title: Text(
                           country['name'] ?? '',
@@ -103,22 +93,21 @@ class CountrySelectView extends StatelessWidget {
                             color: isSelected ? AppColors.primaryColor : null,
                           ),
                         ),
-                        trailing: ClipOval(
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                                width: 2,
-                              ),
-                              shape: BoxShape.circle,
+                        trailing: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
                             ),
-                            child: Center(
-                              child: Text(
-                                getFlagEmoji(code),
-                                style: const TextStyle(fontSize: 22),
-                              ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Center(
+                            child: Text(
+                              getFlagEmoji(code),
+                              style: const TextStyle(fontSize: 22),
                             ),
                           ),
                         ),
@@ -130,8 +119,7 @@ class CountrySelectView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Obx(() => SizedBox(
-                width: double.infinity,
-                height: 48,
+                width: double.infinity, height: 48,
                 child: ElevatedButton(
                   onPressed: controller.selectedCountryId.value != null
                       ? () => controller.saveAndContinue()
