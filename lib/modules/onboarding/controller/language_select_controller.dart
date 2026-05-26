@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import '../../../core/controllers/language_controller.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/services/language_service.dart';
 import '../../../core/utils/locale_mapper.dart';
 import '../../../data/models/site_settings_properties_model.dart';
 
@@ -96,7 +97,11 @@ class LanguageSelectController extends GetxController {
       _box.write('selected_language_api_code', selectedLangCode.value);
       _box.write('language_selected', true);
       
-      // Update locale using LocaleMapper
+      // Load translations and wait for completion
+      await LanguageService.load(selectedLangCode.value!);
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Update locale
       final locale = LocaleMapper.fromApiCode(selectedLangCode.value!);
       Get.updateLocale(locale);
       
@@ -106,7 +111,7 @@ class LanguageSelectController extends GetxController {
         await _api.getJson(url);
       } catch (e) {}
       
-      // Navigate immediately - no waiting
+      // Navigate immediately
       Get.offAllNamed('/country_select');
       
       // Sync with server in background
