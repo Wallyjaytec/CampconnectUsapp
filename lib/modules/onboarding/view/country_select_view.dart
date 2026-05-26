@@ -89,17 +89,37 @@ class CountrySelectView extends StatelessWidget {
 
                       return ListTile(
                         key: ValueKey('${country['id']}_$isSelected'),
-                        leading: Icon(
-                          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                          color: isSelected ? AppColors.primaryColor : Colors.grey,
+                        leading: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                            color: isSelected ? AppColors.primaryColor : Colors.grey,
+                          ),
                         ),
-                        title: Text(country['name'] ?? ''),
-                        trailing: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.grey.shade200,
-                          child: Text(
-                            getFlagEmoji(code),
-                            style: const TextStyle(fontSize: 20),
+                        title: Text(
+                          country['name'] ?? '',
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                            color: isSelected ? AppColors.primaryColor : null,
+                          ),
+                        ),
+                        trailing: ClipOval(
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                                width: 2,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                getFlagEmoji(code),
+                                style: const TextStyle(fontSize: 22),
+                              ),
+                            ),
                           ),
                         ),
                         onTap: () => controller.selectCountry(country['id']),
