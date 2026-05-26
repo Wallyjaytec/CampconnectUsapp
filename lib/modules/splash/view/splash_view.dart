@@ -47,7 +47,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // Check if onboarding is done
         final onboardingDone = box.read<bool>('onboarding_done') ?? false;
         if (!onboardingDone) {
-          Get.offAllNamed(AppRoutes.countrySelect);
+          // Language first, then country, then currency
+          Get.offAllNamed(AppRoutes.languageSelect);
           return;
         }
         Get.offAllNamed(AppRoutes.bottomNavbarView);
