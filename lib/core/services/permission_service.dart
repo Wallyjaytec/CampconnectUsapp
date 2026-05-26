@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -154,9 +153,9 @@ class PermissionService extends GetxService {
 
   Future<bool?> _preAskDialog() async {
     return await Get.dialog<bool>(
-      GetBuilder<ThemeController>(
-        builder: (themeCtrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+      GetBuilder<PermissionService>(
+        builder: (ctrl) {
+          final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
           return Dialog(
             backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -209,9 +208,9 @@ class PermissionService extends GetxService {
     required String message,
   }) async {
     await Get.dialog(
-      GetBuilder<ThemeController>(
-        builder: (themeCtrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+      GetBuilder<PermissionService>(
+        builder: (ctrl) {
+          final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
           return Dialog(
             backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24),
