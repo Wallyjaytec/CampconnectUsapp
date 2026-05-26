@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../constants/app_colors.dart';
+import '../controllers/theme_controller.dart';
 
 class NetworkService extends GetxService {
   final Connectivity _connectivity = Connectivity();
@@ -46,7 +47,7 @@ class NetworkService extends GetxService {
     Get.dialog(
       PopScope(
         canPop: false,
-        child: GetBuilder<NetworkService>(
+        child: GetBuilder<ThemeController>(
           builder: (ctrl) {
             final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
             return Dialog(
