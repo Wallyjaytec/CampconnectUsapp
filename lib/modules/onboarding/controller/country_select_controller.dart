@@ -11,6 +11,7 @@ class CountrySelectController extends GetxController {
   final RxString error = ''.obs;
   final RxList<Map<String, dynamic>> countries = <Map<String, dynamic>>[].obs;
   final RxnInt selectedCountryId = RxnInt();
+  final RxString selectedCountryName = ''.obs;
   final RxString searchQuery = ''.obs;
 
   static const String _countryKey = 'selected_country';
@@ -38,7 +39,6 @@ class CountrySelectController extends GetxController {
       final data = resp['data'];
       if (data != null && data['countries'] != null) {
         final list = List<Map<String, dynamic>>.from(data['countries']);
-        // Sort A-Z
         list.sort((a, b) => (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString()));
         countries.assignAll(list);
       }
@@ -51,6 +51,8 @@ class CountrySelectController extends GetxController {
 
   void selectCountry(int id) {
     selectedCountryId.value = id;
+    final country = countries.firstWhere((c) => c['id'] == id);
+    selectedCountryName.value = country['name'] ?? '';
   }
 
   void saveAndContinue() {
