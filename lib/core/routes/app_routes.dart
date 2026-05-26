@@ -1,6 +1,8 @@
 class AppRoutes {
   AppRoutes._();
   static const splashView = '/';
+  static const languageSelect = '/language_select';
+  static const countrySelect = '/country_select';
   static const bottomNavbarView = '/bottom_navbar_view';
   static const sellerBottomNavbar = '/seller_bottom_navbar_view';
   static const searchView = '/search_view';
@@ -48,5 +50,4 @@ class AppRoutes {
   static const refundRequestDetailsView = '/refund_request_details_view';
   static const followingProductsView = '/following_products_view';
   static const recentlyViewedView = '/recently_viewed_view';
-  static const countrySelect = '/country_select';
 }
