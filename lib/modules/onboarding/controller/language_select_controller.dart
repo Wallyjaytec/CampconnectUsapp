@@ -93,6 +93,7 @@ class LanguageSelectController extends GetxController {
       _box.write('selected_language_code', selectedLangCode.value);
       _box.write('selected_language_api_code', selectedLangCode.value);
       _box.write('language_selected', true);
+      _box.write('onboarding_done', true);  // FIXED: Added to match splash screen
       
       // Preload countries in background
       try {
