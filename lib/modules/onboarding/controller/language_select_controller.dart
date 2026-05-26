@@ -8,11 +8,21 @@ class LanguageSelectController extends GetxController {
   final RxnString selectedLangCode = RxnString();
   final RxString searchQuery = ''.obs;
   final RxBool isSaving = false.obs;
+  final RxList<LanguageModel> cachedLanguages = <LanguageModel>[].obs;
   
   late final LanguageController _languageController;
 
-  List<LanguageModel> get languages => _languageController.languages;
-  bool get isLoading => _languageController.isLoading.value;
+  List<LanguageModel> get languages {
+    // Return cached languages if available, otherwise from controller
+    if (cachedLanguages.isNotEmpty) {
+      return cachedLanguages;
+    }
+    return _languageController.languages;
+  }
+  
+  bool get isLoading {
+    return _languageController.isLoading.value && cachedLanguages.isEmpty;
+  }
 
   List<LanguageModel> get filteredLanguages {
     if (searchQuery.value.isEmpty) return languages;
@@ -26,6 +36,22 @@ class LanguageSelectController extends GetxController {
   void onInit() {
     super.onInit();
     _languageController = Get.find<LanguageController>();
+    
+    // Load cached languages first (offline support)
+    final cached = _box.read<List<dynamic>>('cached_languages');
+    if (cached != null) {
+      cachedLanguages.assignAll(cached.map((e) => LanguageModel.fromJson(e)).toList());
+    }
+    
+    // Listen for when languages load from API and cache them
+    ever(_languageController.languages, (List<LanguageModel> langs) {
+      if (langs.isNotEmpty) {
+        cachedLanguages.assignAll(langs);
+        // Save to cache
+        final jsonList = langs.map((e) => e.toJson()).toList();
+        _box.write('cached_languages', jsonList);
+      }
+    });
   }
 
   void selectLanguage(String code) {
