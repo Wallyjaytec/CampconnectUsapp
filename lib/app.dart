@@ -12,6 +12,7 @@ import 'core/controllers/theme_controller.dart';
 import 'core/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
+import 'core/services/language_service.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 
@@ -38,6 +39,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
+    
+    // Reload translations after app is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      LanguageService.load(localeCode);
+    });
   }
 
   @override
