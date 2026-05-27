@@ -81,12 +81,12 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(
+                  SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                       child: Text(
                         'Discount Sales'.tr,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
@@ -145,12 +145,12 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(
+                  SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                       child: Text(
-                        'Discount Sale'.tr,
-                        style: TextStyle(
+                        'Discount Sales'.tr,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
@@ -192,12 +192,12 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                     child: Text(
                       'Discount Sales'.tr,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
