@@ -117,9 +117,9 @@ class CountrySelectController extends GetxController {
       _box.write('selected_country_code', country['code']);
       _box.write('selected_country_name', country['name']);
       _box.write('country_selected', true);
-      _box.write('onboarding_done', true);
+      // DO NOT write onboarding_done here - currency screen will do it
       
-      Get.offAllNamed('/bottom_navbar_view');
+      Get.offAllNamed('/currency_select');
       
       isSaving.value = false;
     }
