@@ -302,7 +302,7 @@ class _OfflineMethodDetails extends StatelessWidget {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.only(right: 8),
                   child: HtmlWidget(
-                    (m.instructionHtml ?? '').replaceAll('&nbsp;', ' ').replaceAll('&amp;', '&'),
+                    (m.instructionHtml ?? '').replaceAll('&nbsp;', ' ').replaceAll('&amp;', '&').tr,
                     textStyle: const TextStyle(fontSize: 14, height: 1.8),
                   ),
                 ),
