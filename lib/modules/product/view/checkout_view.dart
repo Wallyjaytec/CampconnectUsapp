@@ -513,7 +513,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                                       scrollDirection:
                                                           Axis.horizontal,
                                                       child: HtmlWidget(
-                                                        instruction,
+                                                        instruction.tr,
                                                         textStyle:
                                                             const TextStyle(
                                                               fontSize: 11,
@@ -528,7 +528,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                                   )
                                                 else
                                                   Text(
-                                                    instruction,
+                                                    instruction.tr,
                                                     maxLines: 1,
                                                     overflow:
                                                         TextOverflow.ellipsis,
