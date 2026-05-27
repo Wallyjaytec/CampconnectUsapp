@@ -62,11 +62,11 @@ class AuthController extends GetxController {
 
   void _applyFieldErrors(Map<String, dynamic> errors) {
     String firstMsg(dynamic v) => (v is List && v.isNotEmpty) ? v.first.toString() : '';
-    nameError.value = firstMsg(errors['name']);
-    emailError.value = firstMsg(errors['email']);
-    phoneError.value = firstMsg(errors['phone']);
-    passwordError.value = firstMsg(errors['password']);
-    confirmPasswordError.value = firstMsg(errors['password_confirmation'] ?? errors['confirm_password']);
+    nameError.value = firstMsg(errors['name']).tr;
+    emailError.value = firstMsg(errors['email']).tr;
+    phoneError.value = firstMsg(errors['phone']).tr;
+    passwordError.value = firstMsg(errors['password']).tr;
+    confirmPasswordError.value = firstMsg(errors['password_confirmation'] ?? errors['confirm_password']).tr;
   }
 
   String _buildValidationMessage(Map<String, dynamic> errors) {
