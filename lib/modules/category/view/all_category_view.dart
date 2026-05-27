@@ -80,7 +80,7 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
   }
 
   Future<void> _onRefresh() async {
-    _productCtrl?.refreshProducts();
+    _productCtrl?.loadInitial();
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
