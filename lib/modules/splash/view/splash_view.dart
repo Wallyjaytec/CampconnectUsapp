@@ -45,15 +45,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           return;
         }
         
-        // Check if onboarding is complete - FIXED: changed from 'onboarding_complete' to 'onboarding_done'
+        // Check if onboarding is complete
         final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
         
-        // Also check individual steps for backward compatibility
+        // Check individual steps
         final languageSelected = box.read<bool>('language_selected') ?? false;
         final countrySelected = box.read<bool>('country_selected') ?? false;
+        final currencySelected = box.read<bool>('currency_selected') ?? false;
         
-        // If onboarding not complete OR missing steps, show language selection
-        if (!onboardingComplete || !languageSelected || !countrySelected) {
+        // If onboarding not complete OR missing any step, show language selection
+        if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
           Get.offAllNamed(AppRoutes.languageSelect);
           return;
         }
