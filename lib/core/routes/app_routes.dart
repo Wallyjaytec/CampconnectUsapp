@@ -3,6 +3,7 @@ class AppRoutes {
   static const splashView = '/';
   static const languageSelect = '/language_select';
   static const countrySelect = '/country_select';
+  static const currencySelect = '/currency_select';
   static const bottomNavbarView = '/bottom_navbar_view';
   static const sellerBottomNavbar = '/seller_bottom_navbar_view';
   static const searchView = '/search_view';
