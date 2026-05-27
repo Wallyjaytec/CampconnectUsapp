@@ -75,7 +75,7 @@ class _EmailResetViewState extends State<EmailResetView> {
 
     if (!_isValid) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Reset Email'), centerTitle: true),
+        appBar: AppBar(title: Text('Reset Email').tr, centerTitle: true),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -102,7 +102,7 @@ class _EmailResetViewState extends State<EmailResetView> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset Email'), centerTitle: true, elevation: 0),
+      appBar: AppBar(title: Text('Reset Email').tr, centerTitle: true, elevation: 0),
       body: SingleChildScrollView(
         child: Column(
           children: [
