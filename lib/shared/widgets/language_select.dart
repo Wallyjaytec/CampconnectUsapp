@@ -3,11 +3,10 @@ import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import '../../shared/utils/dialog_utils.dart';
-
 import '../../core/controllers/language_controller.dart';
 
 class LanguageSelect extends StatefulWidget {
-  LanguageSelect({super.key});
+  const LanguageSelect({super.key});
 
   @override
   State<LanguageSelect> createState() => _LanguageSelectState();
@@ -19,7 +18,6 @@ class _LanguageSelectState extends State<LanguageSelect> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       height: 100,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -37,8 +35,7 @@ class _LanguageSelectState extends State<LanguageSelect> {
           const SizedBox(height: 8),
           Obx(() {
             final selectedCode = controller.selectedApiCode.value ?? 'en';
-            final selectedTitle =
-                controller.languages
+            final selectedTitle = controller.languages
                     .firstWhereOrNull((e) => e.code == selectedCode)
                     ?.title ??
                 selectedCode.toUpperCase();
@@ -65,10 +62,10 @@ class _LanguageSelectState extends State<LanguageSelect> {
   }
 
   void _openLanguageBottomSheet(BuildContext context) {
+    controller.fetchLanguages(); // Refresh list from API before showing
     final RxString tempSelected =
         (controller.selectedApiCode.value ?? 'en').obs;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
@@ -92,7 +89,6 @@ class _LanguageSelectState extends State<LanguageSelect> {
                 return Obx(() {
                   final langs = controller.languages;
                   final selected = tempSelected.value;
-
                   return Stack(
                     children: [
                       Padding(
@@ -112,7 +108,6 @@ class _LanguageSelectState extends State<LanguageSelect> {
                           ),
                         ),
                       ),
-
                       RadioGroup<String>(
                         groupValue: selected,
                         onChanged: (v) {
@@ -123,7 +118,8 @@ class _LanguageSelectState extends State<LanguageSelect> {
                           slivers: [
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 30, 16, 8),
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 30, 16, 8),
                                 child: Text(
                                   'Select Language'.tr,
                                   style: const TextStyle(
@@ -134,35 +130,37 @@ class _LanguageSelectState extends State<LanguageSelect> {
                               ),
                             ),
                             SliverList(
-                              delegate: SliverChildBuilderDelegate((context, index) {
-                                final lang = langs[index];
-                                final code = lang.code.toString();
-
-                                return RadioListTile<String>(
-                                  key: ValueKey(code),
-                                  value: code,
-                                  title: Text(
-                                    lang.title,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.normal,
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final lang = langs[index];
+                                  final code = lang.code.toString();
+                                  return RadioListTile<String>(
+                                    key: ValueKey(code),
+                                    value: code,
+                                    title: Text(
+                                      lang.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    code.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
+                                    subtitle: Text(
+                                      code.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              }, childCount: langs.length),
+                                  );
+                                },
+                                childCount: langs.length,
+                              ),
                             ),
-                            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                            const SliverToBoxAdapter(
+                                child: SizedBox(height: 8)),
                           ],
                         ),
                       ),
-
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: Container(
@@ -183,14 +181,21 @@ class _LanguageSelectState extends State<LanguageSelect> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              onPressed: isSelecting ? null : () async {
-                                setSheetState(() => isSelecting = true);
-                                await controller.setLanguage(selected);
-                                safeBack();
-                              },
-                              child: isSelecting 
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
-                                : Text('Select'.tr),
+                              onPressed: isSelecting
+                                  ? null
+                                  : () async {
+                                      setSheetState(() => isSelecting = true);
+                                      await controller.setLanguage(selected);
+                                      safeBack();
+                                    },
+                              child: isSelecting
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white),
+                                    )
+                                  : Text('Select'.tr),
                             ),
                           ),
                         ),
