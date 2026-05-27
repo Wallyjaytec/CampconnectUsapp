@@ -46,8 +46,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
   void _navigateAfterSuccess({bool isEmailReset = false}) async {
     final isLoggedIn = LoginService().isLoggedIn();
     final successMessage = isEmailReset 
-        ? 'Your email has been updated successfully!'
-        : 'Your password has been changed successfully!';
+        ? 'Your email has been updated successfully!'.tr
+        : 'Your password has been changed successfully!'.tr;
     
     ScaffoldMessenger.of(Get.context!).showSnackBar(
       SnackBar(
@@ -120,14 +120,14 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     final newEmail = _emailController.text.trim();
     if (newEmail.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter a new email address';
+        _errorMessage = 'Please enter a new email address'.tr;
       });
       return;
     }
     
     if (newEmail == _email) {
       setState(() {
-        _errorMessage = 'This email is already your current email. Please enter a different email.';
+        _errorMessage = 'This email is already your current email. Please enter a different email.'.tr;
       });
       return;
     }
@@ -149,7 +149,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         });
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Verification code sent to $newEmail'),
+            content: Text('${'Verification code sent to'.tr} $newEmail'),
             backgroundColor: AppColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -160,18 +160,18 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } else if (response['message'] == 'same_email') {
         setState(() {
           _sendingCode = false;
-          _errorMessage = 'This email is already your current email. Please enter a different email.';
+          _errorMessage = 'This email is already your current email. Please enter a different email.'.tr;
         });
       } else {
         setState(() {
           _sendingCode = false;
-          _errorMessage = response['message'] ?? 'Failed to send verification code';
+          _errorMessage = response['message'] ?? 'Failed to send verification code'.tr;
         });
       }
     } catch (e) {
       setState(() {
         _sendingCode = false;
-        _errorMessage = 'Something went wrong. Please try again.';
+        _errorMessage = 'Something went wrong. Please try again.'.tr;
       });
     }
   }
@@ -180,7 +180,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter the verification code';
+        _errorMessage = 'Please enter the verification code'.tr;
       });
       return;
     }
@@ -198,13 +198,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } else {
         setState(() {
           _loading = false;
-          _errorMessage = response['message'] ?? 'Invalid or expired code';
+          _errorMessage = response['message'] ?? 'Invalid or expired code'.tr;
         });
       }
     } catch (e) {
       setState(() {
         _loading = false;
-        _errorMessage = 'Something went wrong. Please try again.';
+        _errorMessage = 'Something went wrong. Please try again.'.tr;
       });
     }
   }
@@ -229,18 +229,18 @@ class _PasswordResetViewState extends State<PasswordResetView> {
         } else if (result == 'old_password') {
           setState(() {
             _loading = false;
-            _errorMessage = 'You are using your old password. Please enter a new one.';
+            _errorMessage = 'You are using your old password. Please enter a new one.'.tr;
           });
         } else {
           setState(() {
             _loading = false;
-            _errorMessage = 'Failed to reset password. Please try again.';
+            _errorMessage = 'Failed to reset password. Please try again.'.tr;
           });
         }
       } catch (e) {
         setState(() {
           _loading = false;
-          _errorMessage = 'Something went wrong. Please try again.';
+          _errorMessage = 'Something went wrong. Please try again.'.tr;
         });
       }
     }
@@ -262,7 +262,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       return Scaffold(
         backgroundColor: isDark ? AppColors.darkBackgroundColor : Colors.white,
         appBar: AppBar(
-          title: Text(_isEmailReset ? 'Reset Email' : 'Reset Password'),
+          title: Text(_isEmailReset ? 'Reset Email'.tr : 'Reset Password'.tr),
           centerTitle: true,
           backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
           elevation: 0,
@@ -279,7 +279,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Link Expired',
+                  'Link Expired'.tr,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -288,7 +288,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'This reset link has already been used or has expired.\nPlease request a new one.',
+                  'This reset link has already been used or has expired.\nPlease request a new one.'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 14),
                 ),
@@ -319,20 +319,20 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       backgroundColor: AppColors.primaryColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text(
-                      'Request New Link',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    child: Text(
+                      'Request New Link'.tr,
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Need help?',
+                  'Need help?'.tr,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Visit our Help Center or contact us on',
+                  'Visit our Help Center or contact us on'.tr,
                   style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 13),
                 ),
                 Text(
@@ -349,7 +349,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackgroundColor : Colors.white,
       appBar: AppBar(
-        title: Text(_isEmailReset ? 'Reset Email' : 'Reset Password'),
+        title: Text(_isEmailReset ? 'Reset Email'.tr : 'Reset Password'.tr),
         centerTitle: true,
         elevation: 0,
         backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
@@ -375,7 +375,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isEmailReset ? 'Update your email' : 'Reset your password',
+                      _isEmailReset ? 'Update your email'.tr : 'Reset your password'.tr,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -384,7 +384,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _isEmailReset ? 'Enter your new email address' : 'Insert your new password',
+                      _isEmailReset ? 'Enter your new email address'.tr : 'Insert your new password'.tr,
                       style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                     ),
                     const SizedBox(height: 20),
@@ -393,7 +393,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                       initialValue: _email,
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: InputDecoration(
-                        labelText: 'Current Email',
+                        labelText: 'Current Email'.tr,
                         labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.email_outlined),
@@ -407,7 +407,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                         style: TextStyle(color: isDark ? Colors.white : Colors.black),
                         enabled: !_codeSent,
                         decoration: InputDecoration(
-                          labelText: 'New Email',
+                          labelText: 'New Email'.tr,
                           labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.email_outlined),
@@ -420,13 +420,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                                           height: 20,
                                           child: CircularProgressIndicator(strokeWidth: 2),
                                         )
-                                      : Icon(Iconsax.send_copy),
+                                      : const Icon(Iconsax.send_copy),
                                   onPressed: _sendingCode ? null : _sendVerificationCode,
                                 ),
                         ),
                         validator: (v) {
-                          if (!_codeSent && (v == null || v.isEmpty)) return 'Email is required';
-                          if (!_codeSent && v != null && v.isNotEmpty && !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email';
+                          if (!_codeSent && (v == null || v.isEmpty)) return 'Email is required'.tr;
+                          if (!_codeSent && v != null && v.isNotEmpty && !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email'.tr;
                           return null;
                         },
                       ),
@@ -437,13 +437,13 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                           keyboardType: TextInputType.number,
                           style: TextStyle(color: isDark ? Colors.white : Colors.black),
                           decoration: InputDecoration(
-                            labelText: 'Verification Code',
-                            hintText: 'Enter 6-digit code',
+                            labelText: 'Verification Code'.tr,
+                            hintText: 'Enter 6-digit code'.tr,
                             labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                             border: const OutlineInputBorder(),
-                            prefixIcon: Icon(Iconsax.security_copy),
+                            prefixIcon: const Icon(Iconsax.security_copy),
                           ),
-                          validator: (v) => v == null || v.isEmpty ? 'Code is required' : null,
+                          validator: (v) => v == null || v.isEmpty ? 'Code is required'.tr : null,
                         ),
                       ],
                     ] else ...[
@@ -452,7 +452,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                         obscureText: _obscurePassword,
                         style: TextStyle(color: isDark ? Colors.white : Colors.black),
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: 'Password'.tr,
                           labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.lock_outlined),
@@ -461,7 +461,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
                         ),
-                        validator: (v) => v == null || v.length < 6 ? 'Min 6 characters' : null,
+                        validator: (v) => v == null || v.length < 6 ? 'Min 6 characters'.tr : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -469,7 +469,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                         obscureText: _obscureConfirm,
                         style: TextStyle(color: isDark ? Colors.white : Colors.black),
                         decoration: InputDecoration(
-                          labelText: 'Confirm Password',
+                          labelText: 'Confirm Password'.tr,
                           labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.lock_outlined),
@@ -478,7 +478,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                             onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                           ),
                         ),
-                        validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
+                        validator: (v) => v != _passwordController.text ? 'Passwords do not match'.tr : null,
                       ),
                     ],
                     const SizedBox(height: 24),
@@ -503,8 +503,8 @@ class _PasswordResetViewState extends State<PasswordResetView> {
                               )
                             : Text(
                                 _isEmailReset
-                                    ? (_codeSent ? 'Verify & Update' : 'Send Code')
-                                    : 'Change Password',
+                                    ? (_codeSent ? 'Verify & Update'.tr : 'Send Code'.tr)
+                                    : 'Change Password'.tr,
                                 style: const TextStyle(fontSize: 16, color: Colors.white),
                               ),
                       ),
@@ -527,12 +527,12 @@ class _PasswordResetViewState extends State<PasswordResetView> {
               child: Column(
                 children: [
                   Text(
-                    'Need help?',
+                    'Need help?'.tr,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Visit our Help Center or contact us on',
+                    'Visit our Help Center or contact us on'.tr,
                     style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 13),
                   ),
                   const Text(
