@@ -129,12 +129,12 @@ class CheckoutController extends GetxController {
     ].join(', ');
 
     return [
-      'Name: ${a.name}',
-      if (a.address.isNotEmpty) 'Address: ${a.address}',
-      if (a.phone.isNotEmpty) 'Phone: ${a.phone}',
-      if (a.postalCode.isNotEmpty) 'Postal Code: ${a.postalCode}',
-      if (lastLine.trim().isNotEmpty) lastLine,
-    ];
+  '${'Name'.tr}: ${a.name}',
+  if (a.address.isNotEmpty) '${'Address'.tr}: ${a.address}',
+  if (a.phone.isNotEmpty) '${'Phone'.tr}: ${a.phone}',
+  if (a.postalCode.isNotEmpty) '${'Postal Code'.tr}: ${a.postalCode}',
+  if (lastLine.trim().isNotEmpty) lastLine,
+];
   }
 
   bool get _hasOptionsOrNA =>
