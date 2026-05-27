@@ -570,14 +570,14 @@ class _OrderPayWebViewState extends State<OrderPayWebView> {
               : null,
         ),
         body: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (!_completed && (_loading || _bootMaskVisible))
-              const Positioned.fill(child: ColoredBox(color: Colors.white)),
-            if (!_completed && (_loading || _bootMaskVisible))
-              const Center(child: CircularProgressIndicator()),
-          ],
-        ),
+  children: [
+    WebViewWidget(controller: _controller),
+    if (!_completed)
+      const Positioned.fill(child: ColoredBox(color: Colors.white)),
+    if (!_completed)
+      const Center(child: CircularProgressIndicator()),
+  ],
+),
       ),
     );
   }
