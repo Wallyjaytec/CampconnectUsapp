@@ -147,7 +147,7 @@ class _OnlineAmountSheet extends StatelessWidget {
     return Obx(() {
       final min = c.minAmount.value; final max = c.maxAmount.value; final isLoaded = c.isLimitsLoaded.value;
       String helper = '';
-      if (isLoaded) { final parts = <String>[]; if (min != null) parts.add('min ${_pretty(min)}'); if (max != null) parts.add('max ${_pretty(max)}'); if (parts.isNotEmpty) helper = 'Limits: ${parts.join(', ')} ($currencyCode)'; } else { helper = 'Fetching limits...'; }
+      if (isLoaded) { final parts = <String>[]; if (min != null) parts.add('min ${_pretty(min)}'); if (max != null) parts.add('max ${_pretty(max)}'); if (parts.isNotEmpty) helper = 'Limits: ${parts.join(', ')} ($currencyCode)'; } else { helper = 'Fetching limits...'.tr; }
       final err = c.onlineFieldErrors['recharge_amount'];
       return Wrap(children: [
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
