@@ -60,11 +60,29 @@ class CurrencySelectView extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (controller.currencies.isEmpty) {
-                    return Center(child: Text('No currencies found'.tr));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Iconsax.money_3_copy, size: 64, color: AppColors.primaryColor),
+                          const SizedBox(height: 16),
+                          Text('No currencies found'.tr, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                        ],
+                      ),
+                    );
                   }
                   final list = controller.filteredCurrencies;
                   if (list.isEmpty) {
-                    return Center(child: Text('No currencies found'.tr));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Iconsax.money_3_copy, size: 64, color: AppColors.primaryColor),
+                          const SizedBox(height: 16),
+                          Text('No currencies found'.tr, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                        ],
+                      ),
+                    );
                   }
                   final _ = controller.selectedCurrencyCode.value;
                   return ListView.separated(
