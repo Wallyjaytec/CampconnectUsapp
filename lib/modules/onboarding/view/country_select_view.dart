@@ -61,7 +61,16 @@ class CountrySelectView extends StatelessWidget {
                   }
                   final list = controller.filteredCountries;
                   if (list.isEmpty) {
-                    return Center(child: Text('No countries found'.tr));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Iconsax.global_search, size: 64, color: AppColors.primaryColor),
+                          const SizedBox(height: 16),
+                          Text('No countries found'.tr, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                        ],
+                      ),
+                    );
                   }
                   final _ = controller.selectedCountryId.value;
                   return ListView.separated(
