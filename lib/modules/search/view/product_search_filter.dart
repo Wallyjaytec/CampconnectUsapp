@@ -225,12 +225,12 @@ class ProductSearchFilter extends StatelessWidget {
                     runSpacing: 10,
                     children: [
                       _ChipSelectable(
-                        label: 'Newest',
+                        label: 'Newest'.tr,
                         selected: sel == 'newest',
                         onTap: () => controller.pickSorting('newest'),
                       ),
                       _ChipSelectable(
-                        label: 'Popular',
+                        label: 'Popular'.tr,
                         selected: sel == 'popular',
                         onTap: () => controller.pickSorting('popular'),
                       ),
@@ -257,7 +257,7 @@ class ProductSearchFilter extends StatelessWidget {
                                 controller._catCollapsedCount)
                         ? null
                         : (controller.showAllCats.value
-                              ? 'See Less'
+                              ? 'See Less.'.tr
                               : 'See All'.tr),
                     onTrailingTap: () => controller.showAllCats.value =
                         !controller.showAllCats.value,
@@ -297,7 +297,7 @@ class ProductSearchFilter extends StatelessWidget {
                                 controller._brandCollapsedCount)
                         ? null
                         : (controller.showAllBrands.value
-                              ? 'See Less'
+                              ? 'See Less'.tr
                               : 'See All'.tr),
                     onTrailingTap: () => controller.showAllBrands.value =
                         !controller.showAllBrands.value,
