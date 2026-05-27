@@ -85,7 +85,7 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
                       child: Text(
-                        'Discount Sales',
+                        'Discount Sales'.tr,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -149,7 +149,7 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
                       child: Text(
-                        'Discount Sales',
+                        'Discount Sale'.tr,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -196,7 +196,7 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
                     child: Text(
-                      'Discount Sales',
+                      'Discount Sales'.tr,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
