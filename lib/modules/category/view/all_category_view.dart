@@ -79,15 +79,20 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
     setState(() {});
   }
 
+  Future<void> _onRefresh() async {
+    _productCtrl?.refreshProducts();
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final leftPaneWidth = MediaQuery.of(context).size.width >= 600 ? 140.0 : 100.0;
 
     return SafeArea(
-  child: Scaffold(
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-    appBar: AppBar(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
           automaticallyImplyLeading: false,
           leadingWidth: 44,
           titleSpacing: widget.showBackButton ? 0 : 10,
@@ -192,45 +197,76 @@ class _AllCategoriesViewState extends State<AllCategoriesView> {
                                 );
                               }
                               if (ctrl.error.isNotEmpty && ctrl.products.isEmpty) {
-                                return Center(child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Text(ctrl.error.value, textAlign: TextAlign.center),
-                                ));
-                              }
-                              if (ctrl.products.isEmpty && !ctrl.hasMore) {
-                                return Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(32),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset('assets/icons/categories_empty.png', width: 100, height: 100),
-                                        const SizedBox(height: 16),
-                                        Text('No products in this category yet'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                                        const SizedBox(height: 8),
-                                        Text('Wait for sellers to add products and browse here later'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-                                      ],
-                                    ),
+                                return RefreshIndicator(
+                                  onRefresh: _onRefresh,
+                                  color: AppColors.primaryColor,
+                                  child: ListView(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: [
+                                      SizedBox(
+                                        height: MediaQuery.of(context).size.height * 0.6,
+                                        child: Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Text(ctrl.error.value, textAlign: TextAlign.center),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 );
                               }
-                              return GridView.builder(
-                                controller: _rightScrollCtrl,
-                                padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, mainAxisExtent: 220,
+                              if (ctrl.products.isEmpty && !ctrl.hasMore) {
+                                return RefreshIndicator(
+                                  onRefresh: _onRefresh,
+                                  color: AppColors.primaryColor,
+                                  child: ListView(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: [
+                                      SizedBox(
+                                        height: MediaQuery.of(context).size.height * 0.6,
+                                        child: Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(32),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Image.asset('assets/icons/categories_empty.png', width: 100, height: 100),
+                                                const SizedBox(height: 16),
+                                                Text('No products in this category yet'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                                const SizedBox(height: 8),
+                                                Text('Wait for sellers to add products and browse here later'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return RefreshIndicator(
+                                onRefresh: _onRefresh,
+                                color: AppColors.primaryColor,
+                                child: GridView.builder(
+                                  controller: _rightScrollCtrl,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, mainAxisExtent: 220,
+                                  ),
+                                  itemCount: ctrl.products.length + (ctrl.isLoadingMore.value ? 2 : 0),
+                                  itemBuilder: (context, i) {
+                                    if (i >= ctrl.products.length) {
+                                      return Container(
+                                        decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
+                                        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                      );
+                                    }
+                                    final p = ctrl.products[i];
+                                    return _ProductCard(product: p);
+                                  },
                                 ),
-                                itemCount: ctrl.products.length + (ctrl.isLoadingMore.value ? 2 : 0),
-                                itemBuilder: (context, i) {
-                                  if (i >= ctrl.products.length) {
-                                    return Container(
-                                      decoration: BoxDecoration(color: Theme.of(context).dividerColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
-                                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                                    );
-                                  }
-                                  final p = ctrl.products[i];
-                                  return _ProductCard(product: p);
-                                },
                               );
                             }),
                     ),
