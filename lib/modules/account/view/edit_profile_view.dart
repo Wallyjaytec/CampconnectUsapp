@@ -175,7 +175,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           if (basicCtrl.isSendingResetLink.value)
                             const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                           else
-                            Text("Reset Email ?", style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                            Text("Reset Email ?".tr, style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
                         ],
                       ),
                     )),
@@ -199,7 +199,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           if (basicCtrl.isSendingForgotLink.value)
                             const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                           else
-                            Text('Reset Password ?', style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
+                            Text('Reset Password ?'.tr, style: const TextStyle(fontSize: 14, color: AppColors.primaryColor)),
                         ],
                       ),
                     )),
