@@ -287,7 +287,7 @@ class _VariationGroupView extends GetView<AddToCartController> {
 
   @override
   Widget build(BuildContext context) {
-    final title = group.name;
+    final title = group.name.tr;
     final opts = group.options;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +298,7 @@ class _VariationGroupView extends GetView<AddToCartController> {
           spacing: 8, runSpacing: 8,
           children: opts.map((o) {
             final selected = controller.isSelected(group.name, o.id);
-            return _RoundChoice(label: o.label, imageUrl: o.imageUrl, hex: o.hex, selected: selected, onTap: () => controller.selectVariation(group.name, o.id));
+            return _RoundChoice(label: o.label.tr, imageUrl: o.imageUrl, hex: o.hex, selected: selected, onTap: () => controller.selectVariation(group.name, o.id));
           }).toList(),
         )),
       ],
