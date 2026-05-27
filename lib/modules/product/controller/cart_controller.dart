@@ -476,7 +476,7 @@ class CartController extends GetxController {
         _couponDiscount.value = 0.0;
         appliedCouponCode.value = null;
         appliedCouponId.value = null;
-        couponPillText.value = msg;
+        couponPillText.value = msg.tr;
         couponPillKind.value = CouponPillKind.error;
       }
     } catch (e) {
