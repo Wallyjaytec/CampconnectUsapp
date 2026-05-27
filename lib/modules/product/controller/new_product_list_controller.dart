@@ -412,22 +412,22 @@ class NewProductListController extends GetxController {
   void _recomputeTitle() {
     final t = (customTitle ?? '').trim();
     if (t.isNotEmpty) {
-      titleRx.value = t;
+      titleRx.value = t.tr;
       return;
     }
     final leaf = (leafName ?? '').trim();
     if (leaf.isNotEmpty) {
-      titleRx.value = leaf;
+      titleRx.value = leaf.tr;
       return;
     }
     final sub = (subcategoryName ?? '').trim();
     if (sub.isNotEmpty) {
-      titleRx.value = sub;
+      titleRx.value = sub.tr;
       return;
     }
     final cat = (categoryName ?? '').trim();
     if (cat.isNotEmpty) {
-      titleRx.value = cat;
+      titleRx.value = cat.tr;
       return;
     }
     titleRx.value = 'All Products'.tr;
