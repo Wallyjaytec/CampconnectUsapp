@@ -62,7 +62,7 @@ class _EmailResetViewState extends State<EmailResetView> {
     } catch (e) {
       setState(() {
         _loading = false;
-        _errorMessage = 'Something went wrong. Please try again.';
+        _errorMessage = 'Something went wrong. Please try again.'.tr;
       });
     }
   }
@@ -75,7 +75,7 @@ class _EmailResetViewState extends State<EmailResetView> {
 
     if (!_isValid) {
       return Scaffold(
-        appBar: AppBar(title: Text('Reset Email').tr, centerTitle: true),
+        appBar: AppBar(title: Text('Reset Email'.tr), centerTitle: true),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -84,16 +84,16 @@ class _EmailResetViewState extends State<EmailResetView> {
               children: [
                 Image.asset('assets/icons/password_warning.png', height: 80),
                 const SizedBox(height: 24),
-                const Text('Link Expired', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Link Expired'.tr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                const Text('This reset link has already been used or has expired.\nPlease request a new one.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 14)),
+                Text('This reset link has already been used or has expired.\nPlease request a new one.'.tr, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 14)),
                 const SizedBox(height: 24),
-                SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: () { Get.offAllNamed('/login_view'); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: const Text('Back to Login', style: TextStyle(fontSize: 16, color: Colors.white)))),
+                SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: () { Get.offAllNamed('/login_view'); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text('Back to Login'.tr, style: const TextStyle(fontSize: 16, color: Colors.white)))),
                 const SizedBox(height: 24),
-                const Text('Need help?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text('Need help?'.tr, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 4),
-                const Text('Visit our Help Center or contact us on', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                const Text('Support@campconnectus.store', style: TextStyle(color: AppColors.primaryColor, fontSize: 13)),
+                Text('Visit our Help Center or contact us on'.tr, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text('Support@campconnectus.store', style: const TextStyle(color: AppColors.primaryColor, fontSize: 13)),
               ],
             ),
           ),
@@ -102,7 +102,7 @@ class _EmailResetViewState extends State<EmailResetView> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Reset Email').tr, centerTitle: true, elevation: 0),
+      appBar: AppBar(title: Text('Reset Email'.tr), centerTitle: true, elevation: 0),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -114,15 +114,15 @@ class _EmailResetViewState extends State<EmailResetView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Update your email', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                    Text('Update your email'.tr, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
                     const SizedBox(height: 8),
-                    const Text('Enter your new email address', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    Text('Enter your new email address'.tr, style: const TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 20),
-                    TextFormField(enabled: false, initialValue: _email, decoration: const InputDecoration(labelText: 'Current Email', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email_outlined))),
+                    TextFormField(enabled: false, initialValue: _email, decoration: InputDecoration(labelText: 'Current Email'.tr, border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.email_outlined))),
                     const SizedBox(height: 16),
-                    TextFormField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'New Email', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email_outlined)), validator: (v) { if (v == null || v.isEmpty) return 'Email is required'; if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email'; return null; }),
+                    TextFormField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'New Email'.tr, border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.email_outlined)), validator: (v) { if (v == null || v.isEmpty) return 'Email is required'.tr; if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v)) return 'Please enter a valid email'.tr; return null; }),
                     const SizedBox(height: 24),
-                    SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _loading ? null : _resetEmail, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Update Email', style: TextStyle(fontSize: 16, color: Colors.white)))),
+                    SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _loading ? null : _resetEmail, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : Text('Update Email'.tr, style: const TextStyle(fontSize: 16, color: Colors.white)))),
                     if (_errorMessage.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
@@ -132,7 +132,7 @@ class _EmailResetViewState extends State<EmailResetView> {
                 ),
               ),
             ),
-            Container(width: double.infinity, padding: const EdgeInsets.all(24), child: Column(children: const [Text('Need help?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), SizedBox(height: 4), Text('Visit our Help Center or contact us on', style: TextStyle(color: Colors.grey, fontSize: 13)), Text('Support@campconnectus.store', style: TextStyle(color: AppColors.primaryColor, fontSize: 13))])),
+            Container(width: double.infinity, padding: const EdgeInsets.all(24), child: Column(children: [Text('Need help?'.tr, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), const SizedBox(height: 4), Text('Visit our Help Center or contact us on'.tr, style: const TextStyle(color: Colors.grey, fontSize: 13)), const Text('Support@campconnectus.store', style: TextStyle(color: AppColors.primaryColor, fontSize: 13))])),
           ],
         ),
       ),
