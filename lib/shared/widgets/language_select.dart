@@ -62,7 +62,7 @@ class _LanguageSelectState extends State<LanguageSelect> {
   }
 
   void _openLanguageBottomSheet(BuildContext context) {
-    controller.fetchLanguages(); // Refresh list from API before showing
+    controller.fetchLanguages();
     final RxString tempSelected =
         (controller.selectedApiCode.value ?? 'en').obs;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -81,15 +81,14 @@ class _LanguageSelectState extends State<LanguageSelect> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return DraggableScrollableSheet(
-              initialChildSize: 0.80,
-              maxChildSize: 0.80,
+              initialChildSize: 0.66,
+              maxChildSize: 0.66,
               minChildSize: 0.40,
               expand: false,
               builder: (context, scrollController) {
                 return Obx(() {
                   final langs = controller.languages;
                   final selected = tempSelected.value;
-                  final isLoading = controller.isLoading.value;
                   return Stack(
                     children: [
                       Padding(
@@ -109,87 +108,58 @@ class _LanguageSelectState extends State<LanguageSelect> {
                           ),
                         ),
                       ),
-                      CustomScrollView(
-                        controller: scrollController,
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 30, 16, 8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Select Language'.tr,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                    ),
+                      RadioGroup<String>(
+                        groupValue: selected,
+                        onChanged: (v) {
+                          if (v != null) tempSelected.value = v;
+                        },
+                        child: CustomScrollView(
+                          controller: scrollController,
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 30, 16, 8),
+                                child: Text(
+                                  'Select Language'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
                                   ),
-                                  const SizedBox(height: 8),
-                                  // DEBUG INFO
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.yellow.withValues(alpha: 0.3),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'DEBUG: Total: ${langs.length} languages',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Loading: $isLoading',
-                                          style: const TextStyle(fontSize: 11),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        ...langs.map((l) => Text(
-                                              '${l.id}: ${l.title} (${l.code})',
-                                              style: const TextStyle(fontSize: 10),
-                                            )),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final lang = langs[index];
-                                final code = lang.code.toString();
-                                return RadioListTile<String>(
-                                  key: ValueKey(code),
-                                  value: code,
-                                  title: Text(
-                                    lang.title,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.normal,
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final lang = langs[index];
+                                  final code = lang.code.toString();
+                                  return RadioListTile<String>(
+                                    key: ValueKey(code),
+                                    value: code,
+                                    title: Text(
+                                      lang.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    code.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
+                                    subtitle: Text(
+                                      code.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                              childCount: langs.length,
+                                  );
+                                },
+                                childCount: langs.length,
+                              ),
                             ),
-                          ),
-                          const SliverToBoxAdapter(
-                              child: SizedBox(height: 70)),
-                        ],
+                            const SliverToBoxAdapter(
+                                child: SizedBox(height: 70)),
+                          ],
+                        ),
                       ),
                       Align(
                         alignment: Alignment.bottomCenter,
