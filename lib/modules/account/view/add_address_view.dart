@@ -73,7 +73,7 @@ class AddAddressView extends StatelessWidget {
 
   void _openCountrySheet(BuildContext context, AddressController c) { 
     _openSelectSheet<CountryModel>(
-      title: 'Select Country', 
+      title: 'Select Country'.tr, 
       itemsRx: c.countries, 
       itemLabel: (x) => x.name, 
       onSelected: (x) => c.onSelectCountry(x), 
