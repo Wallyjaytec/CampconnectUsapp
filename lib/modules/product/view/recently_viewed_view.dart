@@ -114,7 +114,7 @@ class _RecentlyViewedViewState extends State<RecentlyViewedView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Iconsax.clock_copy, size: 64, color: Colors.grey.shade400),
+                        const Icon(Iconsax.clock_copy, size: 64, color: AppColors.primaryColor),
                         const SizedBox(height: 16),
                         Text('View a product to see your recent viewed products'.tr, 
                           textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
