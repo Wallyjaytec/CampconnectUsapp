@@ -71,7 +71,7 @@ class NetworkService extends GetxService {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No Internet Connection',
+                      'No Internet Connection'.tr,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -80,10 +80,10 @@ class NetworkService extends GetxService {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Please check your Wi-Fi or mobile data.',
+                    Text(
+                      'Please check your Wi-Fi or mobile data.'.tr,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3),
+                      style: const TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3),
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
@@ -99,7 +99,7 @@ class NetworkService extends GetxService {
                           }
                         },
                         icon: const Icon(Iconsax.refresh_copy, size: 18),
-                        label: const Text('Retry'),
+                        label: Text('Retry'.tr),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
