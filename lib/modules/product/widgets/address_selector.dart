@@ -57,18 +57,19 @@ class _AddressSelectorState extends State<AddressSelector> {
   }
 
   List<String> _defaultLines(CustomerAddress a) {
-    final locationParts = [
-      a.city?.name ?? '',
-      a.state?.name ?? '',
-      a.country?.name ?? '',
-    ].where((e) => e.trim().isNotEmpty).toList();
+  final locationParts = [
+    a.city?.name ?? '',
+    a.state?.name ?? '',
+    a.country?.name ?? '',
+  ].where((e) => e.trim().isNotEmpty).toList();
 
-    return [
-      '${'Name'.tr}: ${a.name}',
-if (a.address.trim().isNotEmpty) '${'Address'.tr}: ${a.address}',
-if (a.phone.trim().isNotEmpty) '${'Phone'.tr}: ${a.phone}',
-if (a.postalCode.trim().isNotEmpty) '${'Postal Code'.tr}: ${a.postalCode}',
-    ];
+  return [
+    '${'Name'.tr}: ${a.name}',
+    if (a.address.trim().isNotEmpty) '${'Address'.tr}: ${a.address}',
+    if (a.phone.trim().isNotEmpty) '${'Phone'.tr}: ${a.phone}',
+    if (a.postalCode.trim().isNotEmpty) '${'Postal Code'.tr}: ${a.postalCode}',
+    if (locationParts.isNotEmpty) locationParts.join(' , '),
+  ];
   }
 
   List<String> _linesOf(CustomerAddress a) =>
