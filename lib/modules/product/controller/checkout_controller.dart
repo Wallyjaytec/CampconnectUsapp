@@ -610,7 +610,7 @@ class CheckoutController extends GetxController {
         if (def != null) selectedMethodByUid[uid] = def.id;
       }
     } catch (e) {
-      optionsError.value = 'Failed to get shipping options';
+      optionsError.value = 'Failed to get shipping options'.tr;
       _clearOptionsState();
     } finally {
       isLoadingOptions.value = false;
@@ -650,7 +650,7 @@ class CheckoutController extends GetxController {
       }
       activePaymentMethods.assignAll(resp.data);
     } catch (e) {
-      paymentError.value = 'Failed to load payment methods';
+      paymentError.value = 'Failed to load payment methods'.tr;
     } finally {
       isLoadingPayments.value = false;
     }
@@ -666,7 +666,7 @@ class CheckoutController extends GetxController {
 
       walletAvailable.value = summary.totalAvailable.toDouble();
     } catch (e) {
-      walletError.value = 'Failed to load wallet balance';
+      walletError.value = 'Failed to load wallet balance'.tr;
       walletAvailable.value = null;
     } finally {
       isLoadingWallet.value = false;
