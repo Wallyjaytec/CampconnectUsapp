@@ -124,7 +124,39 @@ class _SearchResultsListViewState extends State<SearchResultsListView> {
               !controller.isLoading.value &&
               controller.error.isEmpty &&
               controller.products.isEmpty) {
-            return Center(child: Text('There is no item to show'.tr));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Iconsax.search_normal_1_copy,
+                      size: 80,
+                      color: AppColors.primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '${'No product found for'.tr} "${controller.titleRx.value}"',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Try searching with different keywords'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           return RefreshIndicator(
