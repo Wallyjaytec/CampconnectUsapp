@@ -64,11 +64,10 @@ class _AddressSelectorState extends State<AddressSelector> {
     ].where((e) => e.trim().isNotEmpty).toList();
 
     return [
-      'Name: ${a.name}',
-      if (a.address.trim().isNotEmpty) 'Address: ${a.address}',
-      if (a.phone.trim().isNotEmpty) 'Phone: ${a.phone}',
-      if (a.postalCode.trim().isNotEmpty) 'Postal Code: ${a.postalCode}',
-      if (locationParts.isNotEmpty) locationParts.join(' , '),
+      '${'Name'.tr}: ${a.name}',
+if (a.address.trim().isNotEmpty) '${'Address'.tr}: ${a.address}',
+if (a.phone.trim().isNotEmpty) '${'Phone'.tr}: ${a.phone}',
+if (a.postalCode.trim().isNotEmpty) '${'Postal Code'.tr}: ${a.postalCode}',
     ];
   }
 
