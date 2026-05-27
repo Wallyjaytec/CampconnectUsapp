@@ -64,7 +64,7 @@ class LanguageSelectView extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.search_off, size: 64, color: Colors.grey),
+                          const Icon(Icons.search_off, size: 64, color: AppColors.primaryColor),
                           const SizedBox(height: 16),
                           Text(
                             'No language found'.tr,
