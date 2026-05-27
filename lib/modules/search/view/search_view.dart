@@ -330,8 +330,47 @@ class _RecentSearchesSection extends StatelessWidget {
         ? Colors.white.withValues(alpha: .08)
         : Colors.black.withValues(alpha: .06);
     final controller = Get.find<SearchInputController>();
+    final input = Get.find<SearchInputController>();
 
     return Obx(() {
+      final query = input.query.value.trim();
+
+      if (controller.history.isEmpty && query.isEmpty) {
+        return SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Iconsax.search_normal_1_copy,
+                  size: 80,
+                  color: AppColors.primaryColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Search product across all categories'.tr,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Find your favorite products by searching above'.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
       if (controller.history.isEmpty) {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
