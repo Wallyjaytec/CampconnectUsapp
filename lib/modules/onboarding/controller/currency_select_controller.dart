@@ -44,6 +44,9 @@ class CurrencySelectController extends GetxController {
       _box.write('currency_selected', true);
       _box.write('onboarding_done', true);
       
+      // APPLY CURRENCY GLOBALLY
+      _currencyController.select(currency);
+      
       Get.offAllNamed('/bottom_navbar_view');
       
       isSaving.value = false;
