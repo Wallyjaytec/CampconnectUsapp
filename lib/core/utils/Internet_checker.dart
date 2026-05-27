@@ -60,13 +60,13 @@ class InternetChecker {
               const Icon(Icons.wifi_off, color: Colors.red),
               const SizedBox(width: 10),
               Text(
-                'No Internet',
+                'No Internet'.tr,
                 style: TextStyle(color: isDark ? Colors.white : Colors.black),
               ),
             ],
           ),
           content: Text(
-            'Please check your connection and try again.',
+            'Please check your connection and try again.'.tr,
             style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
           ),
           actions: [
@@ -76,11 +76,11 @@ class InternetChecker {
                 if (hasInternet) {
                   _hideNoInternetDialog();
                 } else {
-                  Get.snackbar('No Internet', 'Still no connection',
+                  Get.snackbar('No Internet'.tr, 'Still no connection'.tr,
                       backgroundColor: Colors.red, colorText: Colors.white);
                 }
               },
-              child: const Text('Retry'),
+              child: Text('Retry'.tr),
             ),
           ],
         ),
