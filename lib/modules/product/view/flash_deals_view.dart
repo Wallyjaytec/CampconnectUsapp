@@ -178,7 +178,7 @@ class _DealBlockState extends State<_DealBlock> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.deal.title.isNotEmpty ? widget.deal.title : 'Flash Sales'.tr,
+                    widget.deal.title.isNotEmpty ? widget.deal.title.tr : 'Flash Sales'.tr,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
