@@ -159,11 +159,36 @@ class WalletRechargeController extends GetxController {
   }
 
   String _extractServerMessage(dynamic err) {
-    if (err is ApiValidationError) { String msg = err.message.isNotEmpty ? err.message : (_firstFieldErrorMsg(err.fieldErrors) ?? 'Validation error'.tr); return _unescapeUnicode(msg); }
-    final raw = err.toString();
-    try { final decoded = json.decode(raw); if (decoded is Map) { final m = decoded['message']; if (m is String && m.trim().isNotEmpty) return _unescapeUnicode(m.trim()); final f = _firstFieldErrorMsg(decoded['errors']); if (f != null) return _unescapeUnicode(f); } } catch (_) {}
-    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(raw); if (match != null && match.groupCount >= 1) return _unescapeUnicode(match.group(1)!.trim());
-    return _unescapeUnicode(raw);
+    String msg;
+    if (err is ApiValidationError) { 
+      msg = err.message.isNotEmpty ? err.message : (_firstFieldErrorMsg(err.fieldErrors) ?? 'Validation error'.tr); 
+    } else {
+      final raw = err.toString();
+      try { 
+        final decoded = json.decode(raw); 
+        if (decoded is Map) { 
+          final m = decoded['message']; 
+          if (m is String && m.trim().isNotEmpty) {
+            msg = m.trim();
+          } else {
+            final f = _firstFieldErrorMsg(decoded['errors']); 
+            msg = f ?? raw;
+          }
+        } else {
+          msg = raw;
+        }
+      } catch (_) {
+        final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(raw); 
+        msg = (match != null && match.groupCount >= 1) ? match.group(1)!.trim() : raw;
+      }
+    }
+    
+    // Translate known static parts of server messages
+    msg = msg
+        .replaceAll('The minimum recharge amount must be at least', 'The minimum recharge amount must be at least'.tr)
+        .replaceAll('The maximum recharge amount must be at most', 'The maximum recharge amount must be at most'.tr);
+    
+    return _unescapeUnicode(msg);
   }
 
   String _unescapeUnicode(String s) {
