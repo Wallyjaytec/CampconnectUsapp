@@ -81,9 +81,9 @@ class _WebPayViewState extends State<WebPayView> {
             final code = err.response?.statusCode ?? 0;
             if (code >= 400) {
               await _closeWithErrorUI(
-                title: (code == 404) ? 'Page not found' : 'Payment Failed',
-                subtitle: 'Error: HTTP $code',
-                note: 'Payment Unsuccessful. Please wait… Redirecting',
+                title: (code == 404) ? 'Page not found'.tr : 'Payment Failed'.tr,
+                subtitle: '${'Error'.tr}: HTTP $code',
+                note: 'Payment Unsuccessful. Please wait… Redirecting'.tr,
                 forceLoadHtml: true,
                 delay: _autoRedirectDelay,
               );
@@ -94,9 +94,9 @@ class _WebPayViewState extends State<WebPayView> {
             final isMainFrame = err.isForMainFrame ?? true;
             if (!isMainFrame) return;
             await _closeWithErrorUI(
-              title: 'Network Error',
-              subtitle: (err.description.isNotEmpty ? err.description : 'Unable to load payment page'),
-              note: 'Payment Unsuccessful. Please wait… Redirecting',
+              title: 'Network Error'.tr,
+              subtitle: (err.description.isNotEmpty ? err.description : 'Unable to load payment page'.tr),
+              note: 'Payment Unsuccessful. Please wait… Redirecting'.tr,
               forceLoadHtml: true,
               delay: _autoRedirectDelay,
             );
@@ -112,9 +112,9 @@ class _WebPayViewState extends State<WebPayView> {
     _hardTimeoutTimer = Timer(widget.timeout, () async {
       if (!_completed && mounted) {
         await _closeWithErrorUI(
-          title: 'Timed out',
-          subtitle: 'Payment page did not respond',
-          note: 'Payment Unsuccessful. Please wait… Redirecting',
+          title: 'Timed out'.tr,
+          subtitle: 'Payment page did not respond'.tr,
+          note: 'Payment Unsuccessful. Please wait… Redirecting'.tr,
           forceLoadHtml: true,
           delay: _autoRedirectDelay,
         );
@@ -146,11 +146,11 @@ class _WebPayViewState extends State<WebPayView> {
       return true;
     }
     if (widget.cancelUrlContains != null && u.contains(widget.cancelUrlContains!.toLowerCase())) {
-      _closeWithErrorUI(title: 'Payment Cancelled', subtitle: 'The transaction was cancelled by user or system', note: 'Payment Unsuccessful. Please wait… Redirecting', delay: _autoRedirectDelay);
+      _closeWithErrorUI(title: 'Payment Cancelled'.tr, subtitle: 'The transaction was cancelled by user or system'.tr, note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, delay: _autoRedirectDelay);
       return true;
     }
     if (widget.failedUrlContains != null && u.contains(widget.failedUrlContains!.toLowerCase())) {
-      _closeWithErrorUI(title: 'Payment Failed', subtitle: 'The transaction could not be processed', note: 'Payment Unsuccessful. Please wait… Redirecting', delay: _autoRedirectDelay);
+      _closeWithErrorUI(title: 'Payment Failed'.tr, subtitle: 'The transaction could not be processed'.tr, note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, delay: _autoRedirectDelay);
       return true;
     }
     return false;
@@ -192,11 +192,11 @@ class _WebPayViewState extends State<WebPayView> {
         if (success && status == 'SUCCESS') {
           _finishWithStatus(true, 'SUCCESS');
         } else if (status == 'FAILED' || status == 'CANCELLED') {
-          await _closeWithErrorUI(title: status == 'FAILED' ? 'Payment Failed' : 'Payment Cancelled', subtitle: (msg.isNotEmpty ? msg : 'The transaction could not be completed'), note: 'Payment Unsuccessful. Please wait… Redirecting', delay: _autoRedirectDelay);
+          await _closeWithErrorUI(title: status == 'FAILED' ? 'Payment Failed'.tr : 'Payment Cancelled'.tr, subtitle: (msg.isNotEmpty ? msg : 'The transaction could not be completed'.tr), note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, delay: _autoRedirectDelay);
         } else if (!success) {
-          await _closeWithErrorUI(title: 'Payment Error', subtitle: (msg.isNotEmpty ? msg : 'Something went wrong'), note: 'Payment Unsuccessful. Please wait… Redirecting', delay: _autoRedirectDelay);
+          await _closeWithErrorUI(title: 'Payment Error'.tr, subtitle: (msg.isNotEmpty ? msg : 'Something went wrong'.tr), note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, delay: _autoRedirectDelay);
         } else {
-          await _closeWithErrorUI(title: 'Payment Status Unknown', subtitle: 'We could not verify the payment state', note: 'Payment Unsuccessful. Please wait… Redirecting', delay: _autoRedirectDelay);
+          await _closeWithErrorUI(title: 'Payment Status Unknown'.tr, subtitle: 'We could not verify the payment state'.tr, note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, delay: _autoRedirectDelay);
         }
       }
     } catch (_) {}
@@ -232,7 +232,7 @@ class _WebPayViewState extends State<WebPayView> {
       final r = await _controller.runJavaScriptReturningResult(jsDetect);
       final s = (r is String) ? r : r.toString();
       if (s.contains('ERROR_PAGE')) {
-        await _closeWithErrorUI(title: 'Page not available', subtitle: 'The payment page returned an error', note: 'Payment Unsuccessful. Please wait… Redirecting', forceLoadHtml: true, delay: _autoRedirectDelay);
+        await _closeWithErrorUI(title: 'Page not available'.tr, subtitle: 'The payment page returned an error'.tr, note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, forceLoadHtml: true, delay: _autoRedirectDelay);
       }
     } catch (_) {}
   }
@@ -240,14 +240,14 @@ class _WebPayViewState extends State<WebPayView> {
   void _finishWithStatus(bool ok, String status) async {
     if (_completed || !mounted) return;
     if (!ok) {
-      await _closeWithErrorUI(title: (status == 'CANCELLED') ? 'Payment Cancelled' : 'Payment Failed', subtitle: 'The transaction could not be completed', note: 'Payment Unsuccessful. Please wait… Redirecting', delay: _autoRedirectDelay);
+      await _closeWithErrorUI(title: (status == 'CANCELLED') ? 'Payment Cancelled'.tr : 'Payment Failed'.tr, subtitle: 'The transaction could not be completed'.tr, note: 'Payment Unsuccessful. Please wait… Redirecting'.tr, delay: _autoRedirectDelay);
       return;
     }
     _completed = true;
     _hardTimeoutTimer?.cancel();
     _graceTimer?.cancel();
     _navigationTimer?.cancel();
-    await _showInlineRedirectPage(title: 'Thank you', subtitle: 'Payment Successful', note: 'Please wait… Redirecting');
+    await _showInlineRedirectPage(title: 'Thank you'.tr, subtitle: 'Payment Successful'.tr, note: 'Please wait… Redirecting'.tr);
     _navigationTimer = Timer(_autoRedirectDelay, () {
       if (mounted) _navigateToMyWallet();
     });
@@ -259,7 +259,7 @@ class _WebPayViewState extends State<WebPayView> {
     _hardTimeoutTimer?.cancel();
     _graceTimer?.cancel();
     _navigationTimer?.cancel();
-    await _showInlineRedirectPage(title: title, subtitle: subtitle, note: note, useLoadHtmlString: forceLoadHtml);
+    await _showInlineRedirectPage(title: title.tr, subtitle: subtitle.tr, note: note.tr, useLoadHtmlString: forceLoadHtml);
     if (mounted) await Future.delayed(const Duration(milliseconds: 100));
     _navigationTimer = Timer(delay, () { if (mounted) _navigateToMyWallet(); });
   }
