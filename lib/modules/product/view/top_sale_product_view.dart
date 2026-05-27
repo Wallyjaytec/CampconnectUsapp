@@ -36,7 +36,7 @@ class _TopSaleProductViewState extends State<TopSaleProductView> {
       final args = Get.arguments;
       final String titleOverride = (args is Map && args['title'] != null)
           ? args['title'].toString()
-          : 'Top Sales';
+          : 'Top Sales'.tr;
       final int? catId = (args is Map && args['categoryId'] != null)
           ? int.tryParse(args['categoryId'].toString())
           : null;
