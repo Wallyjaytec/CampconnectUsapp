@@ -239,7 +239,7 @@ class _TypeLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = type.toLowerCase(); final isCredited = t == 'credited'; final icon = isCredited ? Iconsax.arrow_up_3_copy : Iconsax.arrow_down_copy;
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${'Type'.tr}: ', style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14)), Row(mainAxisSize: MainAxisSize.min, children: [Text(_cap(type), style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14)), const SizedBox(width: 6), Icon(icon, size: 16, color: isCredited ? AppColors.greenColor : AppColors.redColor)])]);
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${'Type'.tr}: ', style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14)), Row(mainAxisSize: MainAxisSize.min, children: [Text(_cap(type).tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14)), const SizedBox(width: 6), Icon(icon, size: 16, color: isCredited ? AppColors.greenColor : AppColors.redColor)])]);
   }
   String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
@@ -250,9 +250,9 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = status.toLowerCase().trim(); late final Color color;
     if (s == 'accepted' || s.contains('accept')) { color = Colors.green; } else if (s == 'pending' || s.contains('pend')) { color = AppColors.primaryColor; } else if (s == 'declined' || s.contains('declin')) { color = AppColors.redColor; } else { color = const Color(0xFF5E35B1); }
-    return Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: color.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(999)), child: Text(_cap(status), style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)));
+    return Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: color.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(999)), child: Text(_cap(status).tr, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700)));
   }
-  String _cap(String s) => s.isEmpty ? 'Unknown' : s[0].toUpperCase() + s.substring(1);
+  String _cap(String s) => s.isEmpty ? 'Unknown'.tr : s[0].toUpperCase() + s.substring(1);
 }
 
 class _ErrorView extends StatelessWidget {
