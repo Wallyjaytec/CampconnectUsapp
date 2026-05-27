@@ -115,6 +115,16 @@ class LanguageService {
         }
       }
     } catch (_) {
+      // FALLBACK: Load cached translations when offline
+      final cachedStr = _box.read<String>(_cacheKey(code));
+      if (cachedStr != null) {
+        try {
+          final cachedMap = Map<String, String>.from(json.decode(cachedStr));
+          _memCache[code] = cachedMap;
+          _memCacheTime[code] = DateTime.now();
+          _applyToGetX(code, cachedMap);
+        } catch (_) {}
+      }
     } finally {
       _inflight.remove(code);
     }
