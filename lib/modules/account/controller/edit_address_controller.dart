@@ -142,14 +142,14 @@ class EditAddressController extends GetxController {
   Future<void> submitUpdate() async {
     final v = fieldVisibility.value;
     final misses = <String>[];
-    if (nameC.text.trim().isEmpty) misses.add('Name');
-    if (phoneC.text.trim().isEmpty) misses.add('Phone');
-    if (postalC.text.trim().isEmpty) misses.add('Postal Code');
-    if (addressC.text.trim().isEmpty) misses.add('Address');
+    if (nameC.text.trim().isEmpty) misses.add('Name'.tr);
+    if (phoneC.text.trim().isEmpty) misses.add('Phone'.tr);
+    if (postalC.text.trim().isEmpty) misses.add('Postal Code'.tr);
+    if (addressC.text.trim().isEmpty) misses.add('Address'.tr);
     if (v.showLocation) {
-      if (selectedCountry.value == null) misses.add('Country');
-      if (selectedState.value == null) misses.add('State');
-      if (selectedCity.value == null) misses.add('City');
+      if (selectedCountry.value == null) misses.add('Country'.tr);
+      if (selectedState.value == null) misses.add('State'.tr);
+      if (selectedCity.value == null) misses.add('City'.tr);
     }
     if (misses.isNotEmpty) {
       _showSnack((misses.length == 1) ? '${misses.first} ${'is required'.tr}' : '${misses.join(', ')} ${'is required'.tr}');
