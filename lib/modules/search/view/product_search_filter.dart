@@ -573,7 +573,7 @@ class _PriceInputsNoLimit extends StatelessWidget {
           child: TextField(
             controller: controller.minPriceCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: deco('Min'),
+            decoration: deco('Min'.tr),
           ),
         ),
         const SizedBox(width: 8),
@@ -586,7 +586,7 @@ class _PriceInputsNoLimit extends StatelessWidget {
           child: TextField(
             controller: controller.maxPriceCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: deco('Max'),
+            decoration: deco('Max'.tr),
           ),
         ),
       ],
