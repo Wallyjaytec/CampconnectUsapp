@@ -226,7 +226,7 @@ class TopSaleProductController extends GetxController {
       this.categoryId = categoryId;
     }
     if (titleOverride != null && titleOverride.trim().isNotEmpty) {
-      title.value = titleOverride.trim();
+      title.value = titleOverride.trim().tr;
     }
 
     _page = 1;
