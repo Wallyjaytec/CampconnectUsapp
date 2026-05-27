@@ -158,8 +158,44 @@ class _SuggestionsSection extends StatelessWidget {
       final s = res.suggestions.value;
       final q = input.query.value.trim();
 
-      if (q.isEmpty || s == null) {
+      if (q.isEmpty) {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+
+      if (s == null || (s.categories.isEmpty && s.tags.isEmpty && s.products.isEmpty)) {
+        return SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Iconsax.search_normal_1_copy,
+                  size: 80,
+                  color: AppColors.primaryColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${'No product found for'.tr} "$q"',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Try searching with different keywords'.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       }
 
       final catList = s.categories.take(8).toList();
