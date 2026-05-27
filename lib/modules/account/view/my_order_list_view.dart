@@ -373,7 +373,7 @@ class _MyOrderListViewState extends State<MyOrderListView> {
             const SizedBox(height: 24),
             Text('No order ID found'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Text('No order ID found for "$query"'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            Text('${'No order ID found for'.tr} "$query"', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
             const SizedBox(height: 24),
             SizedBox(width: double.infinity, height: 44, child: ElevatedButton(onPressed: () => Get.offAllNamed(AppRoutes.bottomNavbarView), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text('Continue Shopping'.tr, style: const TextStyle(fontSize: 15)))),
           ],
