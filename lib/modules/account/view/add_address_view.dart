@@ -49,7 +49,7 @@ class AddAddressView extends StatelessWidget {
   List<Widget> _buildRealForm(BuildContext context, AddressController c) {
     final v = c.fieldVisibility.value;
     final widgets = <Widget>[];
-    if (v.showName) { widgets.addAll([Obx(() => CustomTextField(controller: c.nameC, hint: 'Name'.tr, icon: Iconsax.user_copy, errorText: c.nameError.value.isNotEmpty ? c.nameError.value : null, onChanged: (_) { if (c.nameError.value.isNotEmpty) c.nameError.value = ''; })), const SizedBox(height: 10)]); }
+    if (v.showName) { widgets.addAll([Obx(() => CustomTextField(controller: c.nameC, hint: 'Full Name'.tr, icon: Iconsax.user_copy, errorText: c.nameError.value.isNotEmpty ? c.nameError.value : null, onChanged: (_) { if (c.nameError.value.isNotEmpty) c.nameError.value = ''; })), const SizedBox(height: 10)]); }
     if (v.showPhone) { widgets.addAll([Obx(() => CustomTextField(controller: c.phoneC, hint: 'Phone Number'.tr, icon: Iconsax.call_copy, keyboardType: TextInputType.phone, errorText: c.phoneError.value.isNotEmpty ? c.phoneError.value : null, onChanged: (_) { if (c.phoneError.value.isNotEmpty) c.phoneError.value = ''; })), const SizedBox(height: 10)]); }
     if (v.showLocation) {
       widgets.addAll([
