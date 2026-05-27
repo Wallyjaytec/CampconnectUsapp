@@ -72,7 +72,7 @@ class _FlashDealsViewState extends State<FlashDealsView> {
           centerTitle: false,
           titleSpacing: 0,
           title: Text(
-            'Flash Deals'.tr,
+            'Flash Sales'.tr,
             style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
           ),
           actionsPadding: const EdgeInsetsDirectional.only(end: 10),
@@ -178,7 +178,7 @@ class _DealBlockState extends State<_DealBlock> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.deal.title.isNotEmpty ? widget.deal.title : 'Flash Deal'.tr,
+                    widget.deal.title.isNotEmpty ? widget.deal.title : 'Flash Sales'.tr,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
