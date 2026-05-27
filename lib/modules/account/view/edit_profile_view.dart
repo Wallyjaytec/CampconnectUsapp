@@ -67,7 +67,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       final arguments = Get.arguments;
       if (arguments is String && arguments.isNotEmpty) {
         Get.snackbar(
-          'Success',
+          'Success'.tr,
           arguments,
           backgroundColor: AppColors.primaryColor,
           colorText: Colors.white,
