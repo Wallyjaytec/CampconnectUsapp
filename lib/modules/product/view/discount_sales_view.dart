@@ -81,6 +81,18 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                       ),
                     ),
                   ),
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text(
+                        'Discount Sales',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     sliver: SliverGrid(
@@ -134,6 +146,18 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                     ),
                   ),
                   const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text(
+                        'Discount Sales',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
                         padding: EdgeInsets.all(40),
@@ -145,7 +169,6 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
               );
             }
 
-            // Banner scrolls with products, full width
             return CustomScrollView(
               controller: _scrollCtrl,
               slivers: [
@@ -165,6 +188,18 @@ class _DiscountSalesViewState extends State<DiscountSalesView> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
+                      ),
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text(
+                      'Discount Sales',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
