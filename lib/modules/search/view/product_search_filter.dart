@@ -194,15 +194,12 @@ class ProductSearchFilter extends StatelessWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          leadingWidth: 20,
+          leadingWidth: 44,
           leading: InkWell(
             onTap: () => safeBack(),
-            splashColor: AppColors.transparentColor,
-            radius: 0,
-            highlightColor: AppColors.transparentColor,
-            hoverColor: AppColors.transparentColor,
+            borderRadius: BorderRadius.circular(20),
             child: const Padding(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(12),
               child: Icon(Iconsax.arrow_left_2_copy, size: 20),
             ),
           ),
