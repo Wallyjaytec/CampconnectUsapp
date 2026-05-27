@@ -12,6 +12,7 @@ import 'package:kartly_e_commerce/modules/account/view/report_seller_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/settings_view.dart';
 import 'package:kartly_e_commerce/modules/account/view/terms_conditions_view.dart';
 import 'package:kartly_e_commerce/modules/onboarding/view/country_select_view.dart';
+import 'package:kartly_e_commerce/modules/onboarding/view/currency_select_view.dart';
 import 'package:kartly_e_commerce/modules/onboarding/view/language_select_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/featured_items_view.dart';
@@ -62,8 +63,9 @@ class AppPages {
 
   static final pages = [
     GetPage(name: AppRoutes.splashView, page: () => const SplashScreen()),
-    GetPage(name: AppRoutes.languageSelect, page: () => const LanguageSelectView()),  // ADD THIS
+    GetPage(name: AppRoutes.languageSelect, page: () => const LanguageSelectView()),
     GetPage(name: AppRoutes.countrySelect, page: () => const CountrySelectView()),
+    GetPage(name: AppRoutes.currencySelect, page: () => const CurrencySelectView()),
     GetPage(
       name: AppRoutes.bottomNavbarView,
       page: () => const BottomNavbarView(),
