@@ -35,26 +35,35 @@ class NotificationsView extends StatelessWidget {
           Obx(() {
             if (controller.isSelectionMode.value) {
               return Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.select_all),
-                    onPressed: controller.selectAll,
-                    tooltip: 'Select all',
+                  InkWell(
+                    onTap: controller.selectAll,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      child: Icon(Icons.select_all, color: Colors.white),
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.done_all, color: Colors.green),
-                    onPressed: controller.markSelectedAsRead,
-                    tooltip: 'Mark as read',
+                  InkWell(
+                    onTap: controller.markSelectedAsRead,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      child: Icon(Icons.done_all, color: Colors.green),
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.mark_chat_unread, color: Colors.orange),
-                    onPressed: controller.markSelectedAsUnread,
-                    tooltip: 'Mark as unread',
+                  InkWell(
+                    onTap: controller.markSelectedAsUnread,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      child: Icon(Icons.mark_chat_unread, color: Colors.orange),
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: controller.deleteSelected,
-                    tooltip: 'Delete selected',
+                  InkWell(
+                    onTap: controller.deleteSelected,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      child: Icon(Icons.delete, color: Colors.red),
+                    ),
                   ),
                 ],
               );
