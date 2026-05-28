@@ -32,6 +32,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       Timer(const Duration(seconds: 3), () {
         if (!mounted) return;
         final box = GetStorage();
+        
+        // Handle order deep link first
+        final orderId = box.read<int>('deep_link_order_id') ?? 0;
+        if (orderId > 0) {
+          box.remove('deep_link_order_id');
+          Get.offAllNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
+          return;
+        }
+        
         final token = box.read<String>('deep_link_token') ?? '';
         final type = box.read<String>('deep_link_type') ?? '';
         if (token.isNotEmpty) {
