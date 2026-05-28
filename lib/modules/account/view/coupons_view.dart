@@ -252,7 +252,7 @@ class _CouponCard extends StatelessWidget {
                 if (coupon.maxSpend != null && coupon.maxSpend! > 0)
                   _infoRow('Max Spend'.tr, '₦${coupon.maxSpend!.toStringAsFixed(0)}'),
                 if (coupon.applicableOn != null && coupon.applicableOn!.isNotEmpty)
-                  _infoRow('Applies To'.tr, coupon.applicableOn!),
+                  _infoRow('Applies To'.tr, coupon.applicableOn!.tr),
                 if (coupon.expiryDate != null && coupon.expiryDate!.isNotEmpty)
                   _infoRow(
                     isActive ? 'Expires'.tr : 'Expired'.tr,
