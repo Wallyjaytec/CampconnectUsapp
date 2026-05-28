@@ -48,7 +48,7 @@ class ForgotPasswordController extends GetxController {
   void _applyFieldErrors(Map<String, dynamic> errors) {
     final emailErrors = errors['email'];
     if (emailErrors is List && emailErrors.isNotEmpty) {
-      emailError.value = emailErrors.first.toString();
+      emailError.value = emailErrors.first.toString().tr;
     }
   }
 
@@ -97,8 +97,8 @@ class ForgotPasswordController extends GetxController {
         clear();
       } else {
         if (res.firstEmailError != null) {
-          emailError.value = res.firstEmailError!;
-          _showSnackbar(context, 'Failed'.tr, res.firstEmailError!);
+          emailError.value = res.firstEmailError!.tr;
+          _showSnackbar(context, 'Failed'.tr, res.firstEmailError!.tr);
         } else {
           _showSnackbar(
             context,
