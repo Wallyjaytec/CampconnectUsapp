@@ -197,7 +197,7 @@ class AuthController extends GetxController {
             msg.toLowerCase().contains('does not exist') ||
             msg.toLowerCase().contains('no account') ||
             msg.toLowerCase().contains('inactive')) {
-          _showSnackbar('Account suspended'.tr, msg);
+          _showSnackbar('Account suspended'.tr, msg.tr);
         } else if (msg.toLowerCase().contains('verify') ||
             msg.toLowerCase().contains('not verified') ||
             msg.toLowerCase().contains('not active')) {
