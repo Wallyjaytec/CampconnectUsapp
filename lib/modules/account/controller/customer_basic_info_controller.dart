@@ -93,7 +93,7 @@ class CustomerBasicInfoController extends GetxController {
         await fetchBasicInfo();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Profile picture removed'),
+            content: Text('Profile picture removed'.tr),
             backgroundColor: AppColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -104,7 +104,7 @@ class CustomerBasicInfoController extends GetxController {
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Could not remove profile picture'),
+            content: Text('Could not remove profile picture'.tr),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -116,7 +116,7 @@ class CustomerBasicInfoController extends GetxController {
     } catch (e) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(
-          content: Text('Something went wrong'),
+          content: Text('Something went wrong'.tr),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -213,7 +213,7 @@ class CustomerBasicInfoController extends GetxController {
     if (newName.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(
-          content: Text('Name is required'),
+          content: Text('Name is required'.tr),
           backgroundColor: AppColors.primaryColor,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -239,7 +239,7 @@ class CustomerBasicInfoController extends GetxController {
         _originalName = nameController.text.trim();
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Profile updated successfully'),
+            content: Text('Profile updated successfully'.tr),
             backgroundColor: AppColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -250,7 +250,7 @@ class CustomerBasicInfoController extends GetxController {
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Update failed'),
+            content: Text('Update failed'.tr),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -260,7 +260,7 @@ class CustomerBasicInfoController extends GetxController {
         );
       }
     } catch (e) {
-      String msg = 'Update failed';
+      String msg = 'Update failed'.tr;
       if (e is ApiHttpException) {
         try {
           final body = json.decode(e.body);
@@ -292,7 +292,7 @@ class CustomerBasicInfoController extends GetxController {
     if (currentEmail.isEmpty) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(
-          content: Text('No email found'),
+          content: Text('No email found'.tr),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -308,7 +308,7 @@ class CustomerBasicInfoController extends GetxController {
       if (res.success) {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Password reset link sent to $currentEmail'),
+            content: Text('${'Password reset link sent to'.tr} $currentEmail'),
             backgroundColor: AppColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -319,7 +319,7 @@ class CustomerBasicInfoController extends GetxController {
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Could not send password reset link'),
+            content: Text('Could not send password reset link'.tr),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -331,7 +331,7 @@ class CustomerBasicInfoController extends GetxController {
     } catch (e) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(
-          content: Text('Request failed'),
+          content: Text('Request failed'.tr),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -351,7 +351,7 @@ class CustomerBasicInfoController extends GetxController {
       if (res.success) {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text('Reset email link sent to ${email.value}'),
+            content: Text('${'Reset email link sent to'.tr} ${email.value}'),
             backgroundColor: AppColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -362,7 +362,7 @@ class CustomerBasicInfoController extends GetxController {
       } else {
         ScaffoldMessenger.of(Get.context!).showSnackBar(
           SnackBar(
-            content: Text(res.message ?? 'Could not send reset email'),
+            content: Text(res.message ?? 'Could not send reset email'.tr),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -374,7 +374,7 @@ class CustomerBasicInfoController extends GetxController {
     } catch (e) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(
-          content: Text('Request failed'),
+          content: Text('Request failed'.tr),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
