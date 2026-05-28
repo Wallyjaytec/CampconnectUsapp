@@ -485,23 +485,27 @@ class CheckoutView extends GetView<CheckoutController> {
                 CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (hasLogo)
-                Align(
-                  alignment:
-                      Alignment.centerLeft,
-                  child: _NetLogoBox(
-                    url: normalizedLogo,
+              Row(
+                children: [
+                  if (hasLogo)
+                    _NetLogoBox(
+                      url: normalizedLogo,
+                    ),
+                  if (hasLogo)
+                    const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      (m.name).trim(),
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
-                ),
-              Text(
-                (m.name).trim(),
-                maxLines: 1,
-                overflow:
-                    TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
+                ],
               ),
               if (hasInstruction) ...[
                 const SizedBox(height: 2),
@@ -546,7 +550,7 @@ class CheckoutView extends GetView<CheckoutController> {
       ],
     ),
   ),
-); 
+);
                               }).toList(),
                               value: selectedId,
                               hint: Text(
