@@ -264,7 +264,7 @@ class _RefundRequestListViewState extends State<RefundRequestListView> {
             const SizedBox(height: 24),
             Text('No refund ID found'.tr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Text('No refund ID found for "${c.searchKey.value}"'.tr, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            Text('${'No refund ID found for'.tr} "${c.searchKey.value}"', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
           ],
         ),
       ),
@@ -464,7 +464,7 @@ class _RefundRow extends StatelessWidget {
             _kvWidget(
               '${'Payment Status'.tr}: ',
               StatusBadge(
-                text: _titleCase(paymentStatus),
+                text: _titleCase(paymentStatus).tr,
                 type: paymentType(paymentStatus),
               ),
             ),
@@ -472,7 +472,7 @@ class _RefundRow extends StatelessWidget {
             _kvWidget(
               '${'Return Status'.tr}: ',
               StatusBadge(
-                text: _titleCase(returnStatus),
+                text: _titleCase(returnStatus).tr,
                 type: returnType(returnStatus),
               ),
             ),
@@ -519,7 +519,7 @@ class _ErrorView extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+            FilledButton(onPressed: onRetry, child: Text('Retry'.tr)),
           ],
         ),
       ),
