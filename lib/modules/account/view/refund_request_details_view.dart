@@ -276,7 +276,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 8),
-                    _kvRow('Reason'.tr, d.refundReason),
+                    _kvRow('Reason'.tr, d.refundReason.tr),
                     _kvRow('Note'.tr, d.note.isEmpty ? '-' : d.note),
                     const SizedBox(height: 6),
                     Text('Attachments'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
