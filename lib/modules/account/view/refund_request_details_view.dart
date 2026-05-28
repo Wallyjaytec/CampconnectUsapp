@@ -180,7 +180,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: _kvSmall('Return'.tr, _titleCase(d.returnStatus)),
+                            child: _kvSmall('Return'.tr, _titleCase(d.returnStatus).tr),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -188,7 +188,7 @@ class RefundRequestDetailsView extends StatelessWidget {
                               alignment: Alignment.centerRight,
                               child: _kvSmall(
                                 'Payment'.tr,
-                                _titleCase(d.paymentStatus),
+                                _titleCase(d.paymentStatus).tr,
                                 color: _statusColor(d.paymentStatus),
                               ),
                             ),
@@ -359,7 +359,7 @@ class _RefundTimelineItem extends StatelessWidget {
     return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       SizedBox(width: 24, child: Column(children: [const SizedBox(height: 2), _AnimatedDot(isActive: isFirst, dotColor: _dotColor), if (!isLast) Expanded(child: Container(width: 2, color: _lineColor))])),
       const SizedBox(width: 10),
-      Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textColor)), const SizedBox(height: 4), HtmlWidget(message, textStyle: const TextStyle(fontSize: 13))]))),
+      Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textColor)), const SizedBox(height: 4), HtmlWidget(message.tr, textStyle: const TextStyle(fontSize: 13))]))),
     ]));
   }
 }
