@@ -96,6 +96,38 @@ Future<void> main() async {
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
+      // Handle order deep link
+      if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
+        final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
+        if (orderId > 0) {
+          box.write('deep_link_order_id', orderId);
+        }
+      }
+      // Handle password reset/email verification
+      else {
+        final token = uri.queryParameters['u'] ?? '';
+        if (token.isNotEmpty) {
+          box.write('deep_link_token', token);
+          String type = 'password_reset';
+          if (uri.path.contains('email-verification')) {
+            type = 'email_verify';
+          }
+          box.write('deep_link_type', type);
+        }
+      }
+    }
+  } catch (_) {}
+
+  _appLinks.uriLinkStream.listen((uri) {
+    // Handle order deep link
+    if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
+      final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
+      if (orderId > 0) {
+        box.write('deep_link_order_id', orderId);
+      }
+    }
+    // Handle password reset/email verification
+    else {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
         box.write('deep_link_token', token);
@@ -105,18 +137,6 @@ Future<void> main() async {
         }
         box.write('deep_link_type', type);
       }
-    }
-  } catch (_) {}
-
-  _appLinks.uriLinkStream.listen((uri) {
-    final token = uri.queryParameters['u'] ?? '';
-    if (token.isNotEmpty) {
-      box.write('deep_link_token', token);
-      String type = 'password_reset';
-      if (uri.path.contains('email-verification')) {
-        type = 'email_verify';
-      }
-      box.write('deep_link_type', type);
     }
   });
 
