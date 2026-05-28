@@ -44,11 +44,11 @@ class FollowSellerModel {
   String get followersText {
     if (totalFollowers >= 1000000) {
       final v = totalFollowers / 1000000;
-      return '${v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 1)}M Followers';
+      return '${v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 1)}M ${'Followers'.tr}';
     } else if (totalFollowers >= 1000) {
       final v = totalFollowers / 1000;
-      return '${v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 1)}k Followers';
+      return '${v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 1)}k ${'Followers'.tr}';
     }
-    return '$totalFollowers Followers';
+    return '$totalFollowers ${'Followers'.tr}';
   }
 }
