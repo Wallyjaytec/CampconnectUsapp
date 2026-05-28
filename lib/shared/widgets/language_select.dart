@@ -187,8 +187,14 @@ class _LanguageSelectState extends State<LanguageSelect> {
                                   ? null
                                   : () async {
                                       setSheetState(() => isSelecting = true);
-                                      await controller.setLanguage(selected);
-                                      safeBack();
+                                      try {
+                                        await controller.setLanguage(selected);
+                                        if (ctx.mounted) safeBack();
+                                      } catch (_) {
+                                        if (Get.context != null) {
+                                          Get.forceAppUpdate();
+                                        }
+                                      }
                                     },
                               child: isSelecting
                                   ? const SizedBox(
