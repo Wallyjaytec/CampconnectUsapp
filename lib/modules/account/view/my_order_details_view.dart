@@ -137,14 +137,14 @@ class MyOrderDetailsView extends StatelessWidget {
     return OutlinedButton(
       onPressed: () {},
       style: OutlinedButton.styleFrom(foregroundColor: AppColors.redColor, side: const BorderSide(color: AppColors.redColor), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-      child: Text(p.returnStatus.label),
+      child: Text(p.returnStatus.label.tr),
     );
   }
   if (statusRaw == '3') {
     return OutlinedButton(
       onPressed: () {},
       style: OutlinedButton.styleFrom(foregroundColor: AppColors.redColor, side: const BorderSide(color: AppColors.redColor), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-      child: Text(p.returnStatus.label),
+      child: Text(p.returnStatus.label.tr),
     );
   }
   if (p.canReturn == 1) {
