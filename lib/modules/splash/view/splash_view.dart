@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
-  bool get isLoggedIn => LoginService().token.isNotEmpty;
+  bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
   @override
   void initState() {
