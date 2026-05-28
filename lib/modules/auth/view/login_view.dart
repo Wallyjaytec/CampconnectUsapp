@@ -15,13 +15,13 @@ class _ErrorLine extends StatelessWidget {
   const _ErrorLine({required this.text});
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 18,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 120),
-        child: text.isEmpty
-            ? const SizedBox.shrink(key: ValueKey('no_err'))
-            : Text(
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 120),
+      child: text.isEmpty
+          ? const SizedBox.shrink(key: ValueKey('no_err'))
+          : Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 2),
+              child: Text(
                 text,
                 key: const ValueKey('err'),
                 style: const TextStyle(
@@ -30,7 +30,7 @@ class _ErrorLine extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
-      ),
+            ),
     );
   }
 }
@@ -42,7 +42,6 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
 
-    // Show success message from arguments (e.g., password/email reset success)
     final arguments = Get.arguments;
     if (arguments is String && arguments.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,7 +56,6 @@ class LoginView extends StatelessWidget {
       });
     }
 
-    // Show forgot password dialog if coming from expired reset link
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = Get.arguments;
       if (args is Map && args['show_forgot'] == true) {
