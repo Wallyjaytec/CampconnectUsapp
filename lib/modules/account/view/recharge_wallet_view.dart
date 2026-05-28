@@ -139,7 +139,7 @@ class _OnlineAmountSheet extends StatelessWidget {
   const _OnlineAmountSheet({required this.method, required this.currencyCode});
   final WalletOnlineMethod method;
   final String currencyCode;
-  String _pretty(num v) => formatCurrency(v, applyConversion: false);
+  String _pretty(num v) => formatCurrency(v, applyConversion: true);
 
   @override
   Widget build(BuildContext context) {
