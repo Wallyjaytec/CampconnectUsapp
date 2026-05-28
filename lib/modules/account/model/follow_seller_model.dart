@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 class FollowSellerModel {
   final int id;
   final String name;
