@@ -110,7 +110,7 @@ class _PendingTab extends StatelessWidget {
                       Image.asset('assets/icons/empty_review.png', width: 120, height: 120),
                       const SizedBox(height: 24),
                       Text(
-                        'You have no pending product\nrating & review',
+                        'You have no pending product\nrating & review'.tr,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
