@@ -226,7 +226,7 @@ class AccountView extends StatelessWidget {
                               } else {
                                 scaffoldMessenger.showSnackBar(
                                   SnackBar(
-                                    content: Text(resp['message']?.toString() ?? 'Invalid code'.tr),
+                                    content: Text((resp['message']?.toString() ?? 'Invalid code').tr),
                                     backgroundColor: Colors.red,
                                     behavior: SnackBarBehavior.floating,
                                     margin: const EdgeInsets.all(16),
