@@ -33,6 +33,17 @@ class MyOrderDetailsView extends StatelessWidget {
   final bool fromSummary;
   final bool fromNotification;
 
+  String _translateTrackingMessage(String msg) {
+    final contactRegExp = RegExp(r'^(.*Contact:)\s*(\+?[\d\s]+)$');
+    final match = contactRegExp.firstMatch(msg);
+    if (match != null) {
+      final prefix = match.group(1)!;
+      final number = match.group(2)!;
+      return '${prefix.tr} $number';
+    }
+    return msg.tr;
+  }
+
   Future<void> _copy(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(Get.context!).showSnackBar(
@@ -349,10 +360,12 @@ class _TimelineItem extends StatelessWidget {
   Color get _textColor { if (isFirst) return AppColors.primaryColor.withValues(alpha: 0.7); return AppColors.primaryColor; }
   @override
   Widget build(BuildContext context) {
+    final view = context.findAncestorWidgetOfExactType<MyOrderDetailsView>();
+    final displayMessage = view != null ? view._translateTrackingMessage(message) : message.tr;
     return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       SizedBox(width: 24, child: Column(children: [const SizedBox(height: 2), _AnimatedDot(isActive: isFirst, dotColor: _dotColor), if (!isLast) Expanded(child: Container(width: 2, color: _lineColor))])),
       const SizedBox(width: 10),
-      Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textColor)), const SizedBox(height: 4), HtmlWidget(message.tr, textStyle: const TextStyle(fontSize: 13))]))),
+      Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textColor)), const SizedBox(height: 4), HtmlWidget(displayMessage, textStyle: const TextStyle(fontSize: 13))]))),
     ]));
   }
 }
