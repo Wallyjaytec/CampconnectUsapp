@@ -33,7 +33,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (!mounted) return;
         final box = GetStorage();
         
-        // Handle order deep link first
+        // Handle refund deep link first
+        final refundId = box.read<int>('deep_link_refund_id') ?? 0;
+        if (refundId > 0) {
+          box.remove('deep_link_refund_id');
+          Get.offAllNamed(AppRoutes.bottomNavbarView);
+          Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
+          return;
+        }
+        
+        // Handle order deep link
         final orderId = box.read<int>('deep_link_order_id') ?? 0;
         if (orderId > 0) {
           box.remove('deep_link_order_id');
@@ -55,21 +64,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           return;
         }
         
-        // Check if onboarding is complete
         final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
-        
-        // Check individual steps
         final languageSelected = box.read<bool>('language_selected') ?? false;
         final countrySelected = box.read<bool>('country_selected') ?? false;
         final currencySelected = box.read<bool>('currency_selected') ?? false;
         
-        // If onboarding not complete OR missing any step, show language selection
         if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
           Get.offAllNamed(AppRoutes.languageSelect);
           return;
         }
         
-        // All onboarding done, go to homepage
         Get.offAllNamed(AppRoutes.bottomNavbarView);
       });
     });
