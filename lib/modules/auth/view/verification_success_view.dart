@@ -34,20 +34,20 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
       if (json['success'] == true) {
         setState(() {
           _success = true;
-          _message = 'Email Verified!';
+          _message = 'Email Verified!'.tr;
           _loading = false;
         });
       } else {
         setState(() {
           _success = false;
-          _message = 'Email already verified or link expired.';
+          _message = 'Email already verified or link expired.'.tr;
           _loading = false;
         });
       }
     } catch (e) {
       setState(() {
         _success = false;
-        _message = 'Something went wrong. Please try again.';
+        _message = 'Something went wrong. Please try again.'.tr;
         _loading = false;
       });
     }
@@ -55,8 +55,8 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
       final message = _success 
-          ? 'Your email has been verified. You can now login.'
-          : 'Email already verified or link expired.';
+          ? 'Your email has been verified. You can now login.'.tr
+          : 'Email already verified or link expired.'.tr;
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       Future.delayed(const Duration(milliseconds: 100), () {
         Get.toNamed(AppRoutes.loginView, arguments: message);
@@ -75,7 +75,7 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
             if (_loading) ...[
               const CircularProgressIndicator(color: Colors.white),
               const SizedBox(height: 20),
-              const Text('Verifying...', style: TextStyle(fontSize: 18, color: Colors.white70)),
+              Text('Verifying...'.tr, style: const TextStyle(fontSize: 18, color: Colors.white70)),
             ] else ...[
               Icon(
                 _success ? Icons.check_circle : Icons.info_outline,
@@ -85,7 +85,7 @@ class _VerificationSuccessViewState extends State<VerificationSuccessView> {
               const SizedBox(height: 20),
               Text(_message, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
               const SizedBox(height: 10),
-              const Text('Redirecting to login...', style: TextStyle(fontSize: 16, color: Colors.white70)),
+              Text('Redirecting to login...'.tr, style: const TextStyle(fontSize: 16, color: Colors.white70)),
             ],
           ],
         ),
