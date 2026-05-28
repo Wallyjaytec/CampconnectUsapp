@@ -287,13 +287,13 @@ class _ErrorLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 18,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 120),
-        child: text.isEmpty
-            ? const SizedBox.shrink(key: ValueKey('no_err'))
-            : Text(
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 120),
+      child: text.isEmpty
+          ? const SizedBox.shrink(key: ValueKey('no_err'))
+          : Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 2),
+              child: Text(
                 text,
                 key: const ValueKey('err'),
                 style: const TextStyle(
@@ -302,7 +302,7 @@ class _ErrorLine extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
-      ),
+            ),
     );
   }
 }
