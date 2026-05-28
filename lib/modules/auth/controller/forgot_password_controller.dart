@@ -56,11 +56,11 @@ class ForgotPasswordController extends GetxController {
     final lines = <String>[];
     final emailErrors = errors['email'];
     if (emailErrors is List && emailErrors.isNotEmpty) {
-      lines.add(emailErrors.first.toString());
+      lines.add(emailErrors.first.toString().tr);
     }
     errors.forEach((k, v) {
       if (k != 'email' && v is List && v.isNotEmpty) {
-        lines.add(v.first.toString());
+        lines.add(v.first.toString().tr);
       }
     });
     return lines.isEmpty
