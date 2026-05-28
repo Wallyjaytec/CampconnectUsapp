@@ -274,7 +274,7 @@ class CustomerBasicInfoController extends GetxController {
       }
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         SnackBar(
-          content: Text(msg),
+          content: Text(msg.tr),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
