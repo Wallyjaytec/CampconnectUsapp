@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class ReportSellerModel {
   final int id;
   final String shopName;
@@ -29,22 +31,22 @@ class ReportSellerModel {
   String get statusText {
     switch (status) {
       case 0:
-        return 'Pending';
+        return 'Pending'.tr;
       case 1:
-        return 'Reviewed';
+        return 'Reviewed'.tr;
       case 2:
-        return 'Resolved';
+        return 'Resolved'.tr;
       default:
-        return 'Unknown';
+        return 'Unknown'.tr;
     }
   }
 
   String get hardcodedFeedback {
     switch (status) {
       case 0:
-        return 'Report has been sent and waiting for review';
+        return 'Report has been sent and waiting for review'.tr;
       case 1:
-        return 'Your report has been reviewed and waiting to be resolved';
+        return 'Your report has been reviewed and waiting to be resolved'.tr;
       default:
         return '';
     }
