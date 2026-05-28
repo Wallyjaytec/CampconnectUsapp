@@ -70,6 +70,8 @@ class _LanguageSelectState extends State<LanguageSelect> {
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: isDark
           ? AppColors.darkCardColor
           : AppColors.lightCardColor,
