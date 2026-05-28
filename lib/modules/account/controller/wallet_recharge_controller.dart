@@ -7,6 +7,7 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
 import '../../../core/services/api_service.dart';
 import '../../../core/services/currency_service.dart';
+import '../../../core/utils/currency_formatters.dart';
 import '../../../data/repositories/site_settings_properties_repository.dart';
 import '../../../data/repositories/wallet_repository.dart';
 import '../model/wallet_payment_methods_model.dart';
@@ -44,19 +45,6 @@ class WalletRechargeController extends GetxController {
     super.onInit();
     loadMethods();
     _loadLimitsFromSiteSettings();
-  }
-
-  double _toDisplayCurrency(double baseValue) {
-    try {
-      if (Get.isRegistered<CurrencyService>()) {
-        final svc = Get.find<CurrencyService>();
-        final cur = svc.current;
-        if (cur != null && cur.conversionRate > 0) {
-          return baseValue * cur.conversionRate;
-        }
-      }
-    } catch (_) {}
-    return baseValue;
   }
 
   Future<void> loadMethods() async {
@@ -109,10 +97,10 @@ class WalletRechargeController extends GetxController {
       return false;
     }
     if (minAmount.value != null && amountNum < (minAmount.value!)) {
-      fieldErrors['recharge_amount'] = '${'Minimum'.tr} ${_toDisplayCurrency(minAmount.value!).toStringAsFixed(2)} ${'in selected currency'.tr}.';
+      fieldErrors['recharge_amount'] = '${'Minimum'.tr} ${formatCurrency(minAmount.value!, applyConversion: true)} ${'in selected currency'.tr}.';
     }
     if (maxAmount.value != null && amountNum > (maxAmount.value!)) {
-      fieldErrors['recharge_amount'] = '${'Maximum'.tr} ${_toDisplayCurrency(maxAmount.value!).toStringAsFixed(2)} ${'in selected currency'.tr}.';
+      fieldErrors['recharge_amount'] = '${'Maximum'.tr} ${formatCurrency(maxAmount.value!, applyConversion: true)} ${'in selected currency'.tr}.';
     }
     if (transactionId.value.trim().isEmpty) {
       fieldErrors['transaction_id'] = 'Transaction id is required'.tr;
@@ -149,8 +137,8 @@ class WalletRechargeController extends GetxController {
     final amountRaw = onlineAmount.value.trim();
     final amountNum = double.tryParse(amountRaw);
     if (amountNum == null) { onlineFieldErrors['recharge_amount'] = 'Enter a valid number'.tr; _showSnack('Validation'.tr, 'Enter a valid number'.tr); return null; }
-    if (minAmount.value != null && amountNum < (minAmount.value!)) { onlineFieldErrors['recharge_amount'] = '${'Minimum'.tr} ${_toDisplayCurrency(minAmount.value!).toStringAsFixed(2)} ${'in selected currency'.tr}.'; }
-    if (maxAmount.value != null && amountNum > (maxAmount.value!)) { onlineFieldErrors['recharge_amount'] = '${'Maximum'.tr} ${_toDisplayCurrency(maxAmount.value!).toStringAsFixed(2)} ${'in selected currency'.tr}.'; }
+    if (minAmount.value != null && amountNum < (minAmount.value!)) { onlineFieldErrors['recharge_amount'] = '${'Minimum'.tr} ${formatCurrency(minAmount.value!, applyConversion: true)} ${'in selected currency'.tr}.'; }
+    if (maxAmount.value != null && amountNum > (maxAmount.value!)) { onlineFieldErrors['recharge_amount'] = '${'Maximum'.tr} ${formatCurrency(maxAmount.value!, applyConversion: true)} ${'in selected currency'.tr}.'; }
     if (selectedOnlineMethodId.value <= 0) { onlineFieldErrors['payment_method'] = 'Select a payment method'.tr; _showSnack('Validation'.tr, 'Select a payment method'.tr); return null; }
 
     isGeneratingLink.value = true;
