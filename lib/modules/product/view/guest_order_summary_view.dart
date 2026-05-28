@@ -187,11 +187,11 @@ class _GuestOrderSummaryViewState extends State<GuestOrderSummaryView> {
     final shipping = d.shippingDetails;
     final address = _fullAddress(shipping);
     final paymentStatusText = d.paymentStatusLabel.isNotEmpty
-        ? d.paymentStatusLabel
-        : d.paymentStatus;
-    final orderStatusText = d.deliveryStatusLabel.isNotEmpty
-        ? d.deliveryStatusLabel
-        : d.deliveryStatus;
+    ? d.paymentStatusLabel.tr
+    : d.paymentStatus.tr;
+final orderStatusText = d.deliveryStatusLabel.isNotEmpty
+    ? d.deliveryStatusLabel.tr
+    : d.deliveryStatus.tr;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
