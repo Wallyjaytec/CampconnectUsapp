@@ -333,12 +333,12 @@ class _ReportSellerCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${seller.positiveRating}% Seller Ratings',
+                  '${seller.positiveRating}% ${'Seller Ratings'.tr}',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${seller.followersText}  •  Verified: ${seller.isVerified ? "Yes" : "No"}',
+                  '${seller.followersText}  •  ${'Verified'.tr}: ${seller.isVerified ? "Yes".tr : "No".tr}',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ],
