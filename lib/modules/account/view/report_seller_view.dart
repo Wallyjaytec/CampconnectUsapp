@@ -441,7 +441,7 @@ class _ReportStatusCard extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: report.reason,
+                  text: report.reason.tr,
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
               ],
@@ -460,7 +460,7 @@ class _ReportStatusCard extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: report.statusText,
+                  text: report.statusText.tr,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _statusColor),
                 ),
               ],
