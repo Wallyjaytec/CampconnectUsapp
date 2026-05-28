@@ -175,17 +175,17 @@ class _OrderSummaryViewState extends State<OrderSummaryView> {
   }
 
   Widget _buildOrderSummaryCard(ThemeData theme, OrderDetailsData d) {
-    const labelStyle = TextStyle(fontSize: 13);
-    const valueStyle = TextStyle(fontSize: 13);
+  const labelStyle = TextStyle(fontSize: 13);
+  const valueStyle = TextStyle(fontSize: 13);
 
-    final shipping = d.shippingDetails;
-    final address = _fullAddress(shipping);
-    final paymentStatusText = d.paymentStatusLabel.isNotEmpty
-        ? d.paymentStatusLabel
-        : d.paymentStatus;
-    final orderStatusText = d.deliveryStatusLabel.isNotEmpty
-        ? d.deliveryStatusLabel
-        : d.deliveryStatus;
+  final shipping = d.shippingDetails;
+  final address = _fullAddress(shipping);
+  final paymentStatusText = d.paymentStatusLabel.isNotEmpty
+      ? d.paymentStatusLabel.tr
+      : d.paymentStatus.tr;
+  final orderStatusText = d.deliveryStatusLabel.isNotEmpty
+      ? d.deliveryStatusLabel.tr
+      : d.deliveryStatus.tr;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
