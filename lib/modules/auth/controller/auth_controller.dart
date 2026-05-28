@@ -217,11 +217,20 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       _showSnackbar('Success'.tr, 'Login successful'.tr);
-      final redirect = Get.arguments is Map ? (Get.arguments['redirect'] as String?) : null;
+      final args = Get.arguments is Map ? Get.arguments as Map : null;
+      final redirect = args?['redirect'] as String?;
       if (redirect != null && redirect.isNotEmpty) {
         Get.offAllNamed(AppRoutes.bottomNavbarView);
         Future.delayed(const Duration(milliseconds: 100), () {
-          Get.toNamed(redirect);
+          if (redirect == AppRoutes.myOrderDetailsView) {
+            final orderId = args?['order_id'];
+            Get.toNamed(redirect, arguments: {'order_id': orderId});
+          } else if (redirect == AppRoutes.refundRequestDetailsView) {
+            final refundId = args?['refund_id'];
+            Get.toNamed(redirect, arguments: refundId);
+          } else {
+            Get.toNamed(redirect);
+          }
         });
       } else {
         Get.offAllNamed(AppRoutes.bottomNavbarView);
