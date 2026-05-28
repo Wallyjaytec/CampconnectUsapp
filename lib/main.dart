@@ -1,4 +1,3 @@
-
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -49,7 +48,6 @@ Future<void> main() async {
     }
   });
   
-  // Initialize NetworkService with timeout so it doesn't block forever
   try {
     await initServices().timeout(const Duration(seconds: 5));
   } catch (_) {}
@@ -59,10 +57,8 @@ Future<void> main() async {
   
   final box = GetStorage();
   
-  // Register connectivity service for language sync when online
   await Get.putAsync<ConnectivityService>(() => ConnectivityService().init());
   
-  // Load saved language from onboarding
   final savedLanguage = box.read<String>('selected_language_api_code');
   if (savedLanguage != null && savedLanguage.isNotEmpty) {
     try {
@@ -104,6 +100,13 @@ Future<void> main() async {
           box.write('deep_link_order_id', orderId);
         }
       }
+      // Handle refund deep link
+      else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
+        final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
+        if (refundId > 0) {
+          box.write('deep_link_refund_id', refundId);
+        }
+      }
       // Handle password reset/email verification
       else {
         final token = uri.queryParameters['u'] ?? '';
@@ -127,6 +130,13 @@ Future<void> main() async {
         box.write('deep_link_order_id', orderId);
       }
     }
+    // Handle refund deep link
+    else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
+      final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
+      if (refundId > 0) {
+        box.write('deep_link_refund_id', refundId);
+      }
+    }
     // Handle password reset/email verification
     else {
       final token = uri.queryParameters['u'] ?? '';
@@ -141,13 +151,11 @@ Future<void> main() async {
     }
   });
 
-  // Ensure native splash shows for consistent time
   final elapsed = DateTime.now().difference(startTime);
   if (elapsed < const Duration(seconds: 2)) {
     await Future.delayed(const Duration(seconds: 2) - elapsed);
   }
 
-  // Force network check after everything is ready
   if (Get.isRegistered<NetworkService>()) {
     Get.find<NetworkService>().isConnected.refresh();
   }
