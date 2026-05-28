@@ -74,11 +74,11 @@ class AuthController extends GetxController {
     final lines = <String>[];
     for (final k in order) {
       final v = errors[k];
-      if (v is List && v.isNotEmpty) lines.add(v.first.toString());
+      if (v is List && v.isNotEmpty) lines.add(v.first.toString().tr);
     }
     errors.forEach((k, v) {
       if (!order.contains(k) && v is List && v.isNotEmpty) {
-        lines.add(v.first.toString());
+        lines.add(v.first.toString().tr);
       }
     });
     return lines.isEmpty ? '${'Validation failed'.tr}. ${'Please check your inputs'.tr}.' : lines.join('\n');
