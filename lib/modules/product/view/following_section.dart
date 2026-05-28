@@ -68,7 +68,7 @@ class _FollowingSectionState extends State<FollowingSection> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Iconsax.heart_circle_copy, size: 48, color: Colors.grey.shade400),
+                const Icon(Iconsax.heart_circle_copy, size: 48, color: AppColors.primaryColor),
                 const SizedBox(height: 12),
                 Text(
                   'Follow a seller to see products under this section'.tr,
