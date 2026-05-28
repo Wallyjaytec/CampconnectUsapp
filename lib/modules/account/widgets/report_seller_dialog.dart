@@ -105,7 +105,7 @@ class ReportSellerDialog extends StatelessWidget {
                     items: controller.reasons
                         .map((r) => DropdownMenuItem<String>(
                               value: r,
-                              child: Text(r, overflow: TextOverflow.ellipsis),
+                              child: Text(r.tr, overflow: TextOverflow.ellipsis),
                             ))
                         .toList(),
                     onChanged: (v) => controller.selectedReason.value = v,
