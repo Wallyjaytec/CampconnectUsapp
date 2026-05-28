@@ -3,6 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
@@ -19,6 +20,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
+  bool get isLoggedIn => LoginService().token.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -33,10 +36,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (!mounted) return;
         final box = GetStorage();
         
-        // Handle refund deep link first
+        // Handle refund deep link
         final refundId = box.read<int>('deep_link_refund_id') ?? 0;
         if (refundId > 0) {
           box.remove('deep_link_refund_id');
+          if (!isLoggedIn) {
+            Get.offAllNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.refundRequestDetailsView, 'refund_id': refundId});
+            return;
+          }
           Get.offAllNamed(AppRoutes.bottomNavbarView);
           Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
           return;
@@ -46,6 +53,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         final orderId = box.read<int>('deep_link_order_id') ?? 0;
         if (orderId > 0) {
           box.remove('deep_link_order_id');
+          if (!isLoggedIn) {
+            Get.offAllNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.myOrderDetailsView, 'order_id': orderId});
+            return;
+          }
           Get.offAllNamed(AppRoutes.bottomNavbarView);
           Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
           return;
