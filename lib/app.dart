@@ -34,13 +34,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     
-    // Get saved language from storage
     final box = GetStorage();
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
     
-    // Reload translations after app is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
       LanguageService.load(localeCode);
     });
@@ -59,6 +57,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _lastBrightness = newBrightness;
       if (Get.isRegistered<ThemeController>()) {
         Get.find<ThemeController>().setMode(ThemeMode.system);
+      }
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final box = GetStorage();
+      final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
+      LanguageService.load(savedLang);
+      final locale = LocaleMapper.fromApiCode(savedLang);
+      if (Get.locale?.languageCode != locale.languageCode) {
+        Get.updateLocale(locale);
       }
     }
   }
