@@ -124,6 +124,7 @@ Future<void> main() async {
       final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
       if (orderId > 0) {
         box.write('deep_link_order_id', orderId);
+        Get.toNamed('/my_order_details_view', arguments: {'order_id': orderId});
       }
     }
     // Handle password reset/email verification
