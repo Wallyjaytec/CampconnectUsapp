@@ -198,7 +198,7 @@ class _PasswordResetViewState extends State<PasswordResetView> {
       } else {
         setState(() {
           _loading = false;
-          _errorMessage = response['message'] ?? 'Invalid or expired code'.tr;
+          _errorMessage = (response['message'] ?? 'Invalid or expired code'.tr;
         });
       }
     } catch (e) {
