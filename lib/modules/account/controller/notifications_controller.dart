@@ -81,7 +81,6 @@ class NotificationController extends GetxController {
         item.isRead = true;
       }
       notificationCount.value = 0;
-      // Don't call items.refresh() - let UI update naturally
       Get.snackbar(
         'Success'.tr,
         'All notifications marked as read'.tr,
@@ -106,7 +105,8 @@ class NotificationController extends GetxController {
       item.isRead = true;
       notificationCount.value = items.where((e) => !e.isRead).length;
     }
-    Get.to(() => NotificationDetailView(item: item));
+    await Get.to(() => NotificationDetailView(item: item));
+    refreshList();
   }
 
   Future<bool> deleteNotification(String id) async {
