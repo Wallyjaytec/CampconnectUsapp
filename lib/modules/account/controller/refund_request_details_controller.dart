@@ -44,6 +44,9 @@ class RefundRequestDetailsController extends GetxController {
     if (rs == 'product received') {
       return 2;
     }
+    if (rs == 'processing') {
+      return 2;
+    }
     return 1;
   }
 
