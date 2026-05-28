@@ -115,7 +115,7 @@ class ReturnDialog extends StatelessWidget {
         final dropdownItems = items
             .map((r) => DropdownMenuItem<int>(
                   value: r.id,
-                  child: Text(r.name, overflow: TextOverflow.ellipsis),
+                  child: Text(r.name.tr, overflow: TextOverflow.ellipsis),
                 ))
             .toList();
         final shimmerHint = Row(
@@ -286,10 +286,8 @@ class ReturnDialog extends StatelessWidget {
                       final ok = await rc.submit();
 
                       if (ok) {
-                        // ✅ Close dialog FIRST
                         Navigator.of(context).pop();
 
-                        // ✅ THEN show success snackbar
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (Get.context != null) {
                             ScaffoldMessenger.of(Get.context!).showSnackBar(
@@ -307,7 +305,6 @@ class ReturnDialog extends StatelessWidget {
                           }
                         });
                       } else {
-                        // ✅ Show error without closing dialog
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Could not submit return request'.tr),
