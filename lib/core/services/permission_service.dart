@@ -27,6 +27,12 @@ class PermissionService extends GetxService {
       _state.value == MediaPermissionState.granted ||
       _state.value == MediaPermissionState.limited;
 
+  @override
+  void onInit() {
+    super.onInit();
+    WidgetsBinding.instance.addObserver(_LifecycleObserver(this));
+  }
+
   Future<PermissionService> init() async {
     final sp = await SharedPreferences.getInstance();
     _askedOnce = sp.getBool(_askedKey) ?? false;
@@ -92,6 +98,48 @@ class PermissionService extends GetxService {
     await _settingsDialog(
       title: 'Permission required'.tr,
       message: 'Camera and Photos access is needed. Please allow from Settings.'.tr,
+    );
+    return false;
+  }
+
+  Future<bool> canUseCameraOrExplain() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted) return true;
+
+    if (status.isPermanentlyDenied) {
+      await _settingsDialog(
+        title: 'Camera Permission Required'.tr,
+        message: 'Camera access is permanently denied. Open Settings to enable.'.tr,
+      );
+      return false;
+    }
+
+    await _settingsDialog(
+      title: 'Camera Permission Required'.tr,
+      message: 'Camera access is needed to take photos. Please allow from Settings.'.tr,
+    );
+    return false;
+  }
+
+  Future<bool> canUseGalleryOrExplain() async {
+    PermissionStatus photos = await Permission.photos.status;
+    if (!Platform.isIOS && (photos.isDenied || photos.isRestricted)) {
+      final storage = await Permission.storage.status;
+      if (storage.isGranted) photos = PermissionStatus.granted;
+    }
+    if (photos.isGranted || photos.isLimited) return true;
+
+    if (photos.isPermanentlyDenied) {
+      await _settingsDialog(
+        title: 'Gallery Permission Required'.tr,
+        message: 'Photos access is permanently denied. Open Settings to enable.'.tr,
+      );
+      return false;
+    }
+
+    await _settingsDialog(
+      title: 'Gallery Permission Required'.tr,
+      message: 'Photos access is needed to pick images. Please allow from Settings.'.tr,
     );
     return false;
   }
@@ -239,5 +287,17 @@ class PermissionService extends GetxService {
       ),
       barrierDismissible: false,
     );
+  }
+}
+
+class _LifecycleObserver extends WidgetsBindingObserver {
+  final PermissionService _service;
+  _LifecycleObserver(this._service);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _service.refreshStatus();
+    }
   }
 }
