@@ -85,16 +85,19 @@ class NotificationController extends GetxController {
   }
 
   Future<void> refreshList() async {
-    if (!_loginService.isLoggedIn()) {
-      items.clear();
-      notificationCount.value = 0;
-      return;
-    }
+    if (!_loginService.isLoggedIn()) return;
 
     isRefreshing.value = true;
     try {
       final res = await _repo.fetchAllNotifications();
-      items.assignAll(res.notifications);
+      final newItems = res.notifications;
+      for (var newItem in newItems) {
+        final existing = items.firstWhereOrNull((e) => e.id == newItem.id);
+        if (existing != null) {
+          newItem.isRead = existing.isRead;
+        }
+      }
+      items.assignAll(newItems);
       updateCount();
     } catch (_) {
     } finally {
