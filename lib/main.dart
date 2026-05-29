@@ -25,6 +25,13 @@ import 'modules/product/controller/new_product_list_controller.dart';
 
 final _appLinks = AppLinks();
 
+class PushNotificationData {
+  static String? notificationId;
+  static String? message;
+  static String? title;
+  static String? image;
+}
+
 Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
@@ -48,10 +55,10 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        box.write('push_notification_id', notificationId);
-        box.write('push_notif_message', additionalData['notif_message']?.toString() ?? '');
-        box.write('push_notif_title', additionalData['notif_title']?.toString() ?? '');
-        box.write('push_notif_image', additionalData['notif_image']?.toString() ?? '');
+        PushNotificationData.notificationId = notificationId;
+        PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
+        PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
+        PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
         
         if (Get.isRegistered<NotificationController>()) {
           final controller = Get.find<NotificationController>();
