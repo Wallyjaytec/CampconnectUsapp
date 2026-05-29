@@ -4,6 +4,7 @@ import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
+import 'package:kartly_e_commerce/modules/account/controller/notifications_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
@@ -35,6 +36,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       Timer(const Duration(seconds: 3), () {
         if (!mounted) return;
         final box = GetStorage();
+        
+        // Handle push notification deep link
+        final pushNotificationId = box.read<String>('push_notification_id') ?? '';
+        if (pushNotificationId.isNotEmpty) {
+          box.remove('push_notification_id');
+          final notifController = Get.isRegistered<NotificationController>()
+              ? Get.find<NotificationController>()
+              : Get.put(NotificationController());
+          
+          Get.offAllNamed(AppRoutes.bottomNavbarView);
+          Future.delayed(const Duration(milliseconds: 500), () async {
+            await notifController.refreshList();
+            final item = notifController.items.firstWhereOrNull((e) => e.id == pushNotificationId);
+            if (item != null) {
+              notifController.onTapNotification(item);
+            }
+          });
+          return;
+        }
         
         // Handle refund deep link
         final refundId = box.read<int>('deep_link_refund_id') ?? 0;
