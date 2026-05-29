@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -19,9 +20,22 @@ class NotificationController extends GetxController {
 
   final items = <NotificationItem>[].obs;
   final notificationCount = 0.obs;
-  
-  final isSelectionMode = false.obs;
-  final selectedCount = 0.obs;
+
+  void _showSnackbar(String message) {
+    final context = Get.context;
+    if (context == null) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   void onInit() {
@@ -74,32 +88,6 @@ class NotificationController extends GetxController {
     }
   }
 
-  Future<void> markAllAsRead() async {
-    final ok = await _repo.markAllAsRead();
-    if (ok) {
-      for (var item in items) {
-        item.isRead = true;
-      }
-      items.refresh();
-      notificationCount.value = 0;
-      Get.snackbar(
-        'Success'.tr,
-        'All notifications marked as read'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
-    } else {
-      Get.snackbar(
-        'Failed'.tr,
-        'Could not mark all as read'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
-    }
-  }
-
   Future<void> onTapNotification(NotificationItem item) async {
     await Get.to(() => NotificationDetailView(item: item));
     final res = await _repo.markSingleAsRead(notificationId: item.id);
@@ -108,103 +96,5 @@ class NotificationController extends GetxController {
       items.refresh();
       notificationCount.value = items.where((e) => !e.isRead).length;
     }
-  }
-
-  Future<bool> deleteNotification(String id) async {
-    final success = await _repo.deleteNotification(id);
-    if (success) {
-      items.removeWhere((e) => e.id == id);
-      items.refresh();
-      notificationCount.value = items.where((e) => !e.isRead).length;
-      Get.snackbar(
-        'Deleted'.tr,
-        'Notification deleted'.tr,
-        backgroundColor: AppColors.primaryColor,
-        snackPosition: SnackPosition.TOP,
-        colorText: AppColors.whiteColor,
-      );
-    }
-    return success;
-  }
-
-  void toggleSelection(NotificationItem item) {
-    item.isSelected = !item.isSelected;
-    selectedCount.value = items.where((e) => e.isSelected).length;
-    isSelectionMode.value = selectedCount.value > 0;
-  }
-
-  void selectAll() {
-    for (var item in items) {
-      item.isSelected = true;
-    }
-    selectedCount.value = items.length;
-    isSelectionMode.value = true;
-  }
-
-  void clearSelection() {
-    for (var item in items) {
-      item.isSelected = false;
-    }
-    items.refresh();
-    selectedCount.value = 0;
-    isSelectionMode.value = false;
-  }
-
-  Future<void> deleteSelected() async {
-    final selectedIds = items.where((e) => e.isSelected).map((e) => e.id).toList();
-    for (var id in selectedIds) {
-      await _repo.deleteNotification(id);
-    }
-    items.removeWhere((e) => e.isSelected);
-    items.refresh();
-    clearSelection();
-    notificationCount.value = items.where((e) => !e.isRead).length;
-    Get.snackbar(
-      'Deleted'.tr,
-      '${selectedIds.length} notifications deleted'.tr,
-      backgroundColor: AppColors.primaryColor,
-      snackPosition: SnackPosition.TOP,
-      colorText: AppColors.whiteColor,
-    );
-  }
-
-  Future<void> markSelectedAsRead() async {
-    final selectedIds = items.where((e) => e.isSelected).map((e) => e.id).toList();
-    for (var id in selectedIds) {
-      await _repo.markSingleAsRead(notificationId: id);
-    }
-    for (var item in items) {
-      if (item.isSelected) {
-        item.isRead = true;
-      }
-    }
-    items.refresh();
-    clearSelection();
-    notificationCount.value = items.where((e) => !e.isRead).length;
-    Get.snackbar(
-      'Success'.tr,
-      '${selectedIds.length} notifications marked as read'.tr,
-      backgroundColor: AppColors.primaryColor,
-      snackPosition: SnackPosition.TOP,
-      colorText: AppColors.whiteColor,
-    );
-  }
-
-  Future<void> markSelectedAsUnread() async {
-    for (var item in items) {
-      if (item.isSelected) {
-        item.isRead = false;
-      }
-    }
-    items.refresh();
-    clearSelection();
-    notificationCount.value = items.where((e) => !e.isRead).length;
-    Get.snackbar(
-      'Success'.tr,
-      'Notifications updated'.tr,
-      backgroundColor: AppColors.primaryColor,
-      snackPosition: SnackPosition.TOP,
-      colorText: AppColors.whiteColor,
-    );
   }
 }
