@@ -80,6 +80,7 @@ class NotificationController extends GetxController {
       for (var item in items) {
         item.isRead = true;
       }
+      items.refresh();
       notificationCount.value = 0;
       Get.snackbar(
         'Success'.tr,
@@ -104,6 +105,7 @@ class NotificationController extends GetxController {
     final res = await _repo.markSingleAsRead(notificationId: item.id);
     if (res.success) {
       item.isRead = true;
+      items.refresh();
       notificationCount.value = items.where((e) => !e.isRead).length;
     }
   }
@@ -112,6 +114,7 @@ class NotificationController extends GetxController {
     final success = await _repo.deleteNotification(id);
     if (success) {
       items.removeWhere((e) => e.id == id);
+      items.refresh();
       notificationCount.value = items.where((e) => !e.isRead).length;
       Get.snackbar(
         'Deleted'.tr,
@@ -142,6 +145,7 @@ class NotificationController extends GetxController {
     for (var item in items) {
       item.isSelected = false;
     }
+    items.refresh();
     selectedCount.value = 0;
     isSelectionMode.value = false;
   }
@@ -152,6 +156,7 @@ class NotificationController extends GetxController {
       await _repo.deleteNotification(id);
     }
     items.removeWhere((e) => e.isSelected);
+    items.refresh();
     clearSelection();
     notificationCount.value = items.where((e) => !e.isRead).length;
     Get.snackbar(
@@ -173,6 +178,7 @@ class NotificationController extends GetxController {
         item.isRead = true;
       }
     }
+    items.refresh();
     clearSelection();
     notificationCount.value = items.where((e) => !e.isRead).length;
     Get.snackbar(
@@ -185,12 +191,12 @@ class NotificationController extends GetxController {
   }
 
   Future<void> markSelectedAsUnread() async {
-    final selectedIds = items.where((e) => e.isSelected).map((e) => e.id).toList();
     for (var item in items) {
       if (item.isSelected) {
         item.isRead = false;
       }
     }
+    items.refresh();
     clearSelection();
     notificationCount.value = items.where((e) => !e.isRead).length;
     Get.snackbar(
