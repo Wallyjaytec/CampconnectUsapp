@@ -290,6 +290,7 @@ class NotificationController extends GetxController {
     item.isRead = false;
     items.refresh();
     updateCount();
+    _repo.markSingleAsUnread(notificationId: item.id);
     _showSnackbar('Marked as unread'.tr);
   }
 
@@ -314,6 +315,7 @@ class NotificationController extends GetxController {
   void markAllAsUnread() {
     for (var item in items) {
       item.isRead = false;
+      _repo.markSingleAsUnread(notificationId: item.id);
     }
     items.refresh();
     updateCount();
@@ -362,6 +364,7 @@ class NotificationController extends GetxController {
     for (var item in items) {
       if (item.isSelected) {
         item.isRead = false;
+        _repo.markSingleAsUnread(notificationId: item.id);
       }
     }
     items.refresh();
