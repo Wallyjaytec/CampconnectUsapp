@@ -157,6 +157,8 @@ static const String resetPasswordPath =
       '/api/v1/ecommerce-core/guest/order/details';
   static const String unreadNotificationsPath =
       '/api/v1/ecommerce-core/customer/get/unread-notification/list';
+  static const String allNotificationsPath =
+      '/api/v1/ecommerce-core/customer/get/all-notification/list';
   static const String markSingleNotificationReadPath =
       '/api/v1/ecommerce-core/customer/mark-as-read-single-notification';
   static const String markAllNotificationsReadPath =
@@ -275,6 +277,7 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   static String guestCheckoutUrl() => '$baseUrl$guestCheckoutPath';
   static String guestOrderDetailsUrl() => '$baseUrl$guestOrderDetailsPath';
   static String unreadNotificationsUrl() => '$baseUrl$unreadNotificationsPath';
+  static String allNotificationsUrl() => '$baseUrl$allNotificationsPath';
   static String markSingleNotificationReadUrl() =>
       '$baseUrl$markSingleNotificationReadPath';
   static String markAllNotificationsReadUrl() =>
