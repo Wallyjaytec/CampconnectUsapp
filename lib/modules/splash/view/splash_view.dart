@@ -4,6 +4,7 @@ import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
+import 'package:kartly_e_commerce/main.dart';
 import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
 import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
 import 'package:flutter/material.dart';
@@ -39,25 +40,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         final box = GetStorage();
         
         // Handle push notification deep link
-        final pushNotificationId = box.read<String>('push_notification_id') ?? '';
-        if (pushNotificationId.isNotEmpty) {
-          final message = box.read<String>('push_notif_message') ?? '';
-          final title = box.read<String>('push_notif_title') ?? '';
-          final image = box.read<String>('push_notif_image') ?? '';
-          
-          box.remove('push_notification_id');
-          box.remove('push_notif_message');
-          box.remove('push_notif_title');
-          box.remove('push_notif_image');
-          
+        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
           final item = NotificationItem(
-            id: pushNotificationId,
-            message: message,
+            id: PushNotificationData.notificationId!,
+            message: PushNotificationData.message ?? '',
             link: '',
             time: 'Just now',
-            title: title.isNotEmpty ? title : null,
-            image: image.isNotEmpty ? image : null,
+            title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
+            image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
           );
+          
+          PushNotificationData.notificationId = null;
+          PushNotificationData.message = null;
+          PushNotificationData.title = null;
+          PushNotificationData.image = null;
           
           Get.offAllNamed(AppRoutes.bottomNavbarView);
           Get.to(() => NotificationDetailView(item: item));
