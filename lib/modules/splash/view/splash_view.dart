@@ -4,6 +4,8 @@ import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
+import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
+import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
@@ -39,9 +41,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // Handle push notification deep link
         final pushNotificationId = box.read<String>('push_notification_id') ?? '';
         if (pushNotificationId.isNotEmpty) {
+          box.remove('push_notification_id');
+          
           Get.offAllNamed(AppRoutes.bottomNavbarView);
           Future.delayed(const Duration(milliseconds: 300), () {
-            Get.toNamed(AppRoutes.notificationsView);
+            Get.to(() => NotificationDetailView(
+              item: NotificationItem(
+                id: pushNotificationId,
+                message: '',
+                link: '',
+                time: '',
+              ),
+              notificationId: pushNotificationId,
+            ));
           });
           return;
         }
