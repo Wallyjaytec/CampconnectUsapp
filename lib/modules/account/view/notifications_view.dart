@@ -21,7 +21,15 @@ class NotificationsView extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leadingWidth: 44,
-        leading: const BackIconWidget(),
+        leading: Obx(() {
+          if (controller.isSelectionMode.value) {
+            return IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: controller.exitSelectionMode,
+            );
+          }
+          return const BackIconWidget();
+        }),
         centerTitle: false,
         titleSpacing: 0,
         title: Obx(() {
@@ -36,6 +44,11 @@ class NotificationsView extends StatelessWidget {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.select_all, color: Colors.white),
+                    onPressed: controller.selectAll,
+                    tooltip: 'Select all'.tr,
+                  ),
                   IconButton(
                     icon: const Icon(Icons.done_all, color: Colors.green),
                     onPressed: controller.markSelectedAsRead,
@@ -79,7 +92,7 @@ class NotificationsView extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: controller.items.length,
-            separatorBuilder: (_, __) => const Divider(height: 0, indent: 16, endIndent: 16),
+            separatorBuilder: (_, __) => const Divider(height: 0, indent: 72, endIndent: 16),
             itemBuilder: (context, index) {
               final item = controller.items[index];
               return _NotificationTile(
@@ -119,10 +132,15 @@ class _NotificationTile extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: isSelectionMode
-          ? Checkbox(
-              value: item.isSelected,
-              onChanged: (_) => onTap(),
-              activeColor: AppColors.primaryColor,
+          ? SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: item.isSelected,
+                onChanged: (_) => onTap(),
+                activeColor: AppColors.primaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
             )
           : Container(
               padding: const EdgeInsets.all(8),
