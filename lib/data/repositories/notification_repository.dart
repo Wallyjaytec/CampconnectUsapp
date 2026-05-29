@@ -40,4 +40,13 @@ class NotificationRepository {
     final json = await _api.postJson(url, body: {'id': id});
     return json['success'] == true;
   }
+
+  Future<NotificationItem?> fetchNotificationById(String id) async {
+    final url = AppConfig.notificationDetailsUrl();
+    final json = await _api.postJson(url, body: {'id': id});
+    if (json['success'] == true && json['notification'] != null) {
+      return NotificationItem.fromJson(json['notification'] as Map<String, dynamic>);
+    }
+    return null;
+  }
 }
