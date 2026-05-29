@@ -20,4 +20,17 @@ class NotificationRepository {
     final json = await _api.postJson(url, body: body);
     return SingleMarkResponse.fromJson(json);
   }
+
+  Future<bool> markAllAsRead() async {
+    final url = AppConfig.markAllNotificationsReadUrl();
+    final json = await _api.getJson(url);
+    final success = json['success'] == true || json['success']?.toString() == 'true';
+    return success;
+  }
+
+  Future<bool> deleteNotification(String id) async {
+    final url = AppConfig.deleteNotificationUrl();
+    final json = await _api.postJson(url, body: {'id': id});
+    return json['success'] == true;
+  }
 }
