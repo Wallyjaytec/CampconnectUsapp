@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // Handle push notification deep link
         final pushNotificationId = box.read<String>('push_notification_id') ?? '';
         if (pushNotificationId.isNotEmpty) {
-          Get.offAllNamed(AppRoutes.notificationsView);
+          Get.offAllNamed('/notifications_view');
           return;
         }
         
