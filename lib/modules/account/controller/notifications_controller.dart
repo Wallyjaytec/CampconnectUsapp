@@ -21,7 +21,6 @@ class NotificationController extends GetxController {
   final items = <NotificationItem>[].obs;
   final notificationCount = 0.obs;
 
-  // Selection mode
   final isSelectionMode = false.obs;
   final selectedCount = 0.obs;
 
@@ -49,6 +48,15 @@ class NotificationController extends GetxController {
     }
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    // Auto-refresh every time page is opened
+    if (_loginService.isLoggedIn()) {
+      refreshList();
+    }
+  }
+
   Future<void> load() async {
     if (!_loginService.isLoggedIn()) {
       items.clear();
@@ -64,7 +72,7 @@ class NotificationController extends GetxController {
     try {
       final res = await _repo.fetchAllNotifications();
       items.assignAll(res.notifications);
-      notificationCount.value = items.where((e) => !e.isRead).length;
+      updateCount();
     } catch (e) {
       errorText.value = 'Something went wrong'.tr;
       items.clear();
@@ -85,24 +93,33 @@ class NotificationController extends GetxController {
     try {
       final res = await _repo.fetchAllNotifications();
       items.assignAll(res.notifications);
-      notificationCount.value = items.where((e) => !e.isRead).length;
+      updateCount();
     } catch (_) {
     } finally {
       isRefreshing.value = false;
     }
   }
 
-  Future<void> onTapNotification(NotificationItem item) async {
-    await Get.to(() => NotificationDetailView(item: item));
-    final res = await _repo.markSingleAsRead(notificationId: item.id);
-    if (res.success) {
-      item.isRead = true;
-      items.refresh();
-      notificationCount.value = items.where((e) => !e.isRead).length;
-    }
+  void updateCount() {
+    notificationCount.value = items.where((e) => !e.isRead).length;
   }
 
-  // Show per-notification bottom sheet
+  Future<void> onTapNotification(NotificationItem item) async {
+    await Get.to(() => NotificationDetailView(item: item));
+    // Mark as read in background
+    _repo.markSingleAsRead(notificationId: item.id).then((res) {
+      if (res.success) {
+        item.isRead = true;
+        items.refresh();
+        updateCount();
+      }
+    });
+    // Update UI immediately
+    item.isRead = true;
+    items.refresh();
+    updateCount();
+  }
+
   void showNotificationOptions(NotificationItem item) {
     Get.bottomSheet(
       Container(
@@ -116,7 +133,12 @@ class NotificationController extends GetxController {
           children: [
             Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
-            Text(item.message.length > 50 ? '${item.message.substring(0, 50)}...' : item.message, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            Text(
+              item.message.length > 50 ? '${item.message.substring(0, 50)}...' : item.message,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.done, color: Colors.green),
@@ -157,7 +179,6 @@ class NotificationController extends GetxController {
     );
   }
 
-  // Top menu options
   void showTopMenu() {
     Get.bottomSheet(
       Container(
@@ -222,6 +243,7 @@ class NotificationController extends GetxController {
     for (var item in items) {
       item.isSelected = false;
     }
+    items.refresh();
     isSelectionMode.value = true;
     selectedCount.value = 0;
   }
@@ -237,6 +259,7 @@ class NotificationController extends GetxController {
 
   void toggleSelection(NotificationItem item) {
     item.isSelected = !item.isSelected;
+    items.refresh();
     selectedCount.value = items.where((e) => e.isSelected).length;
     if (selectedCount.value == 0) {
       isSelectionMode.value = false;
@@ -244,96 +267,95 @@ class NotificationController extends GetxController {
   }
 
   void selectAll() {
+    final allSelected = items.every((e) => e.isSelected);
     for (var item in items) {
-      item.isSelected = true;
+      item.isSelected = !allSelected;
     }
-    selectedCount.value = items.length;
+    items.refresh();
+    selectedCount.value = items.where((e) => e.isSelected).length;
   }
 
-  Future<void> markSingleAsRead(NotificationItem item) async {
-    final res = await _repo.markSingleAsRead(notificationId: item.id);
-    if (res.success) {
-      item.isRead = true;
-      items.refresh();
-      notificationCount.value = items.where((e) => !e.isRead).length;
-      _showSnackbar('Marked as read'.tr);
-    }
+  void markSingleAsRead(NotificationItem item) {
+    item.isRead = true;
+    items.refresh();
+    updateCount();
+    _repo.markSingleAsRead(notificationId: item.id);
+    _showSnackbar('Marked as read'.tr);
   }
 
-  Future<void> markSingleAsUnread(NotificationItem item) async {
+  void markSingleAsUnread(NotificationItem item) {
     item.isRead = false;
     items.refresh();
-    notificationCount.value = items.where((e) => !e.isRead).length;
+    updateCount();
     _showSnackbar('Marked as unread'.tr);
   }
 
-  Future<void> deleteSingle(NotificationItem item) async {
-    final success = await _repo.deleteNotification(item.id);
-    if (success) {
-      items.removeWhere((e) => e.id == item.id);
-      items.refresh();
-      notificationCount.value = items.where((e) => !e.isRead).length;
-      _showSnackbar('Notification deleted'.tr);
-    }
+  void deleteSingle(NotificationItem item) {
+    items.removeWhere((e) => e.id == item.id);
+    items.refresh();
+    updateCount();
+    _repo.deleteNotification(item.id);
+    _showSnackbar('Notification deleted'.tr);
   }
 
-  Future<void> markAllAsRead() async {
-    final ok = await _repo.markAllAsRead();
-    if (ok) {
-      for (var item in items) {
-        item.isRead = true;
-      }
-      items.refresh();
-      notificationCount.value = 0;
-      _showSnackbar('All marked as read'.tr);
+  void markAllAsRead() {
+    for (var item in items) {
+      item.isRead = true;
     }
+    items.refresh();
+    updateCount();
+    _repo.markAllAsRead();
+    _showSnackbar('All marked as read'.tr);
   }
 
-  Future<void> markAllAsUnread() async {
+  void markAllAsUnread() {
     for (var item in items) {
       item.isRead = false;
     }
     items.refresh();
-    notificationCount.value = items.length;
+    updateCount();
     _showSnackbar('All marked as unread'.tr);
   }
 
-  Future<void> deleteAll() async {
-    for (var item in items.toList()) {
-      await _repo.deleteNotification(item.id);
-    }
+  void deleteAll() {
+    final count = items.length;
+    final ids = items.map((e) => e.id).toList();
     items.clear();
     items.refresh();
-    notificationCount.value = 0;
-    _showSnackbar('All notifications deleted'.tr);
+    updateCount();
+    for (var id in ids) {
+      _repo.deleteNotification(id);
+    }
+    _showSnackbar('$count notifications deleted'.tr);
   }
 
-  Future<void> deleteSelected() async {
+  void deleteSelected() {
     final selectedItems = items.where((e) => e.isSelected).toList();
+    final count = selectedItems.length;
     for (var item in selectedItems) {
-      await _repo.deleteNotification(item.id);
+      _repo.deleteNotification(item.id);
     }
     items.removeWhere((e) => e.isSelected);
     items.refresh();
     exitSelectionMode();
-    notificationCount.value = items.where((e) => !e.isRead).length;
-    _showSnackbar('${selectedItems.length} deleted'.tr);
+    updateCount();
+    _showSnackbar('$count deleted'.tr);
   }
 
-  Future<void> markSelectedAsRead() async {
+  void markSelectedAsRead() {
     for (var item in items) {
       if (item.isSelected) {
-        await _repo.markSingleAsRead(notificationId: item.id);
         item.isRead = true;
+        _repo.markSingleAsRead(notificationId: item.id);
       }
     }
     items.refresh();
     exitSelectionMode();
-    notificationCount.value = items.where((e) => !e.isRead).length;
+    updateCount();
     _showSnackbar('Marked as read'.tr);
   }
 
-  Future<void> markSelectedAsUnread() async {
+  void markSelectedAsUnread() {
     for (var item in items) {
       if (item.isSelected) {
         item.isRead = false;
@@ -341,7 +363,7 @@ class NotificationController extends GetxController {
     }
     items.refresh();
     exitSelectionMode();
-    notificationCount.value = items.where((e) => !e.isRead).length;
+    updateCount();
     _showSnackbar('Marked as unread'.tr);
   }
 }
