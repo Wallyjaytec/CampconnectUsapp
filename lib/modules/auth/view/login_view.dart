@@ -15,22 +15,19 @@ class _ErrorLine extends StatelessWidget {
   const _ErrorLine({required this.text});
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 120),
-      child: text.isEmpty
-          ? const SizedBox.shrink(key: ValueKey('no_err'))
-          : Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 2),
-              child: Text(
-                text,
-                key: const ValueKey('err'),
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                  height: 1.2,
-                ),
-              ),
-            ),
+    if (text.isEmpty) return const SizedBox(height: 8);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Text(
+        text,
+        maxLines: null,
+        overflow: TextOverflow.visible,
+        style: const TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.2,
+        ),
+      ),
     );
   }
 }
@@ -121,26 +118,24 @@ class LoginView extends StatelessWidget {
                   onChanged: (_) => controller.emailError.value = '',
                 ),
                 Obx(() => _ErrorLine(text: controller.emailError.value)),
-                Obx(
-                  () => CustomTextFormField(
-                    maxLines: 1,
-                    minLines: 1,
-                    controller: controller.passwordController,
-                    hint: 'Password'.tr,
-                    icon: Iconsax.lock_1_copy,
-                    suffix: IconButton(
-                      onPressed: controller.togglePasswordVisibility,
-                      icon: Icon(
-                        controller.passwordObscure.value
-                            ? controller.eyeClosedIcon
-                            : controller.eyeOpenIcon,
-                        size: 18,
-                      ),
+                CustomTextFormField(
+                  maxLines: 1,
+                  minLines: 1,
+                  controller: controller.passwordController,
+                  hint: 'Password'.tr,
+                  icon: Iconsax.lock_1_copy,
+                  suffix: IconButton(
+                    onPressed: controller.togglePasswordVisibility,
+                    icon: Icon(
+                      controller.passwordObscure.value
+                          ? controller.eyeClosedIcon
+                          : controller.eyeOpenIcon,
+                      size: 18,
                     ),
-                    obscure: controller.passwordObscure.value,
-                    onTap: () => controller.passwordError.value = '',
-                    onChanged: (_) => controller.passwordError.value = '',
                   ),
+                  obscure: controller.passwordObscure.value,
+                  onTap: () => controller.passwordError.value = '',
+                  onChanged: (_) => controller.passwordError.value = '',
                 ),
                 Obx(() => _ErrorLine(text: controller.passwordError.value)),
                 Row(
