@@ -43,21 +43,12 @@ Future<void> main() async {
   });
   
   OneSignal.Notifications.addClickListener((event) {
-    if (Get.isRegistered<NotificationController>()) {
-      Get.find<NotificationController>().refreshList();
-    }
-    
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        final controller = Get.find<NotificationController>();
-        final item = controller.items.firstWhereOrNull((e) => e.id == notificationId);
-        if (item != null) {
-          controller.onTapNotification(item);
-        } else {
-          Get.toNamed('/notifications_view');
-        }
+        final box = GetStorage();
+        box.write('push_notification_id', notificationId);
       }
     }
   });
@@ -107,21 +98,18 @@ Future<void> main() async {
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
-      // Handle order deep link
       if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
         final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
         if (orderId > 0) {
           box.write('deep_link_order_id', orderId);
         }
       }
-      // Handle refund deep link
       else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
         final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
         if (refundId > 0) {
           box.write('deep_link_refund_id', refundId);
         }
       }
-      // Handle password reset/email verification
       else {
         final token = uri.queryParameters['u'] ?? '';
         if (token.isNotEmpty) {
@@ -137,21 +125,18 @@ Future<void> main() async {
   } catch (_) {}
 
   _appLinks.uriLinkStream.listen((uri) {
-    // Handle order deep link
     if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
       final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
       if (orderId > 0) {
         box.write('deep_link_order_id', orderId);
       }
     }
-    // Handle refund deep link
     else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
       final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
       if (refundId > 0) {
         box.write('deep_link_refund_id', refundId);
       }
     }
-    // Handle password reset/email verification
     else {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
