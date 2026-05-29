@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/modules/account/controller/notifications_controller.dart';
@@ -16,6 +17,21 @@ class NotificationsView extends StatelessWidget {
     final controller = Get.isRegistered<NotificationController>()
         ? Get.find<NotificationController>()
         : Get.put(NotificationController());
+
+    // Check for push notification deep link
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final box = GetStorage();
+      final pushId = box.read<String>('push_notification_id') ?? '';
+      if (pushId.isNotEmpty) {
+        box.remove('push_notification_id');
+        Future.delayed(const Duration(milliseconds: 500), () {
+          final item = controller.items.firstWhereOrNull((e) => e.id == pushId);
+          if (item != null) {
+            controller.onTapNotification(item);
+          }
+        });
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
