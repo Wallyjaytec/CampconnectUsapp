@@ -10,6 +10,28 @@ import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import '../../../core/routes/app_routes.dart';
 import '../controller/auth_controller.dart';
 
+class _ErrorLine extends StatelessWidget {
+  final String text;
+  const _ErrorLine({required this.text});
+  @override
+  Widget build(BuildContext context) {
+    if (text.isEmpty) return const SizedBox(height: 8);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Text(
+        text,
+        maxLines: null,
+        overflow: TextOverflow.visible,
+        style: const TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.2,
+        ),
+      ),
+    );
+  }
+}
+
 class SignupView extends StatelessWidget {
   const SignupView({super.key});
 
@@ -134,7 +156,6 @@ class SignupView extends StatelessWidget {
                               ),
                             ),
                             style: const TextStyle(fontSize: 16, height: 1.2),
-
                             onChanged: (p) {
                               controller.phoneError.value = '';
                               controller.setPhoneFromPicker(
@@ -150,47 +171,43 @@ class SignupView extends StatelessWidget {
                     Obx(() => _ErrorLine(text: controller.phoneError.value)),
                   ],
                 ),
-                Obx(
-                  () => CustomTextFormField(
-                    maxLines: 1,
-                    controller: controller.passwordController,
-                    hint: "Password".tr,
-                    icon: Iconsax.lock_1_copy,
-                    suffix: IconButton(
-                      onPressed: controller.togglePasswordVisibility,
-                      icon: Icon(
-                        controller.passwordObscure.value
-                            ? controller.eyeClosedIcon
-                            : controller.eyeOpenIcon,
-                        size: 18,
-                      ),
+                CustomTextFormField(
+                  maxLines: 1,
+                  controller: controller.passwordController,
+                  hint: "Password".tr,
+                  icon: Iconsax.lock_1_copy,
+                  suffix: IconButton(
+                    onPressed: controller.togglePasswordVisibility,
+                    icon: Icon(
+                      controller.passwordObscure.value
+                          ? controller.eyeClosedIcon
+                          : controller.eyeOpenIcon,
+                      size: 18,
                     ),
-                    obscure: controller.passwordObscure.value,
-                    onTap: () => controller.passwordError.value = '',
-                    onChanged: (_) => controller.passwordError.value = '',
                   ),
+                  obscure: controller.passwordObscure.value,
+                  onTap: () => controller.passwordError.value = '',
+                  onChanged: (_) => controller.passwordError.value = '',
                 ),
                 Obx(() => _ErrorLine(text: controller.passwordError.value)),
-                Obx(
-                  () => CustomTextFormField(
-                    maxLines: 1,
-                    controller: controller.confirmPasswordController,
-                    hint: "Confirm password".tr,
-                    icon: Iconsax.lock_1_copy,
-                    suffix: IconButton(
-                      onPressed: controller.toggleConfirmPasswordVisibility,
-                      icon: Icon(
-                        controller.confirmPasswordObscure.value
-                            ? controller.eyeClosedIcon
-                            : controller.eyeOpenIcon,
-                        size: 18,
-                      ),
+                CustomTextFormField(
+                  maxLines: 1,
+                  controller: controller.confirmPasswordController,
+                  hint: "Confirm password".tr,
+                  icon: Iconsax.lock_1_copy,
+                  suffix: IconButton(
+                    onPressed: controller.toggleConfirmPasswordVisibility,
+                    icon: Icon(
+                      controller.confirmPasswordObscure.value
+                          ? controller.eyeClosedIcon
+                          : controller.eyeOpenIcon,
+                      size: 18,
                     ),
-                    obscure: controller.confirmPasswordObscure.value,
-                    onTap: () => controller.confirmPasswordError.value = '',
-                    onChanged: (_) =>
-                        controller.confirmPasswordError.value = '',
                   ),
+                  obscure: controller.confirmPasswordObscure.value,
+                  onTap: () => controller.confirmPasswordError.value = '',
+                  onChanged: (_) =>
+                      controller.confirmPasswordError.value = '',
                 ),
                 Obx(
                   () => _ErrorLine(text: controller.confirmPasswordError.value),
@@ -277,32 +294,6 @@ class SignupView extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ErrorLine extends StatelessWidget {
-  final String text;
-  const _ErrorLine({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 120),
-      child: text.isEmpty
-          ? const SizedBox.shrink(key: ValueKey('no_err'))
-          : Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 2),
-              child: Text(
-                text,
-                key: const ValueKey('err'),
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                  height: 1.2,
-                ),
-              ),
-            ),
     );
   }
 }
