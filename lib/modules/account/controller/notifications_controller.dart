@@ -56,12 +56,12 @@ class NotificationController extends GetxController {
       isLoading.value = true;
       refreshList().then((_) {
         isLoading.value = false;
-        _checkPushNotification();
+        checkPushNotification();
       });
     }
   }
 
-  void _checkPushNotification() {
+  void checkPushNotification() {
     final box = GetStorage();
     final pushId = box.read<String>('push_notification_id') ?? '';
     if (pushId.isNotEmpty) {
