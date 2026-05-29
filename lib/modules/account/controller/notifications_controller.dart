@@ -51,9 +51,11 @@ class NotificationController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    // Auto-refresh every time page is opened
     if (_loginService.isLoggedIn()) {
-      refreshList();
+      isLoading.value = true;
+      refreshList().then((_) {
+        isLoading.value = false;
+      });
     }
   }
 
@@ -106,7 +108,6 @@ class NotificationController extends GetxController {
 
   Future<void> onTapNotification(NotificationItem item) async {
     await Get.to(() => NotificationDetailView(item: item));
-    // Mark as read in background
     _repo.markSingleAsRead(notificationId: item.id).then((res) {
       if (res.success) {
         item.isRead = true;
@@ -114,7 +115,6 @@ class NotificationController extends GetxController {
         updateCount();
       }
     });
-    // Update UI immediately
     item.isRead = true;
     items.refresh();
     updateCount();
