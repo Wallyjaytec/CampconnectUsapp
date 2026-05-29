@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 class ThemeController extends GetxController {
   final _box = GetStorage();
   final themeMode = ThemeMode.system.obs;
+  final isDarkMode = false.obs;
 
   static const _key = 'theme_mode';
 
@@ -23,13 +24,16 @@ class ThemeController extends GetxController {
         themeMode.value = ThemeMode.system;
     }
 
+    isDarkMode.value = themeMode.value == ThemeMode.dark || 
+        (themeMode.value == ThemeMode.system && WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
+
     Get.changeThemeMode(themeMode.value);
 
-    // Listen to system brightness changes for system theme mode
     if (themeMode.value == ThemeMode.system) {
       WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
         if (themeMode.value == ThemeMode.system) {
-          update(); // Triggers GetBuilder rebuild when system theme changes
+          isDarkMode.value = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+          update();
         }
       };
     }
@@ -37,6 +41,8 @@ class ThemeController extends GetxController {
 
   void setMode(ThemeMode mode) {
     themeMode.value = mode;
+    isDarkMode.value = mode == ThemeMode.dark || 
+        (mode == ThemeMode.system && WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
 
     _box.write(_key, switch (mode) {
       ThemeMode.light => 'light',
@@ -46,10 +52,10 @@ class ThemeController extends GetxController {
 
     Get.changeThemeMode(mode);
 
-    // Re-register listener if switching back to system mode
     if (mode == ThemeMode.system) {
       WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
         if (themeMode.value == ThemeMode.system) {
+          isDarkMode.value = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
           update();
         }
       };
