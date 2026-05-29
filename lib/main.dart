@@ -54,16 +54,6 @@ Future<void> main() async {
         box.write('push_notif_image', additionalData['notif_image']?.toString() ?? '');
       }
     }
-    
-    final controller = Get.isRegistered<NotificationController>()
-        ? Get.find<NotificationController>()
-        : Get.put(NotificationController());
-    
-    Get.toNamed('/notifications_view');
-    
-    controller.refreshList().then((_) {
-      controller.checkPushNotification();
-    });
   });
   
   try {
