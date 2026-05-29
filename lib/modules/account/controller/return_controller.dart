@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/services/permission_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../data/repositories/my_order_repository.dart';
