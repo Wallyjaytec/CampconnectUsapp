@@ -47,7 +47,11 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        GetStorage().write('push_notification_id', notificationId);
+        final box = GetStorage();
+        box.write('push_notification_id', notificationId);
+        box.write('push_notif_message', additionalData['notif_message']?.toString() ?? '');
+        box.write('push_notif_title', additionalData['notif_title']?.toString() ?? '');
+        box.write('push_notif_image', additionalData['notif_image']?.toString() ?? '');
       }
     }
     
