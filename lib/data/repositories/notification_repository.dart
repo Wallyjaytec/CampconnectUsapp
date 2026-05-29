@@ -21,6 +21,13 @@ class NotificationRepository {
     return SingleMarkResponse.fromJson(json);
   }
 
+  Future<bool> markSingleAsUnread({required String notificationId}) async {
+    final url = AppConfig.markSingleNotificationUnreadUrl();
+    final body = {'id': notificationId};
+    final json = await _api.postJson(url, body: body);
+    return json['success'] == true;
+  }
+
   Future<bool> markAllAsRead() async {
     final url = AppConfig.markAllNotificationsReadUrl();
     final json = await _api.getJson(url);
