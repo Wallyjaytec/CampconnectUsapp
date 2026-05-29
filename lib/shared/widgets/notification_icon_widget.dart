@@ -34,7 +34,10 @@ class NotificationIconWidget extends StatelessWidget {
         icon: Iconsax.notification_copy,
         size: 20,
         count: controller.notificationCount.value,
-        onTap: () => Get.toNamed(AppRoutes.notificationsView),
+        onTap: () {
+          controller.refreshList();
+          Get.toNamed(AppRoutes.notificationsView);
+        },
         iconColor: AppColors.whiteColor,
       ),
     );
