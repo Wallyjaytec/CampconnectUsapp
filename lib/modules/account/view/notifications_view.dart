@@ -7,7 +7,6 @@ import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../model/notification_model.dart';
 
 class NotificationsView extends StatelessWidget {
   const NotificationsView({super.key});
@@ -25,7 +24,42 @@ class NotificationsView extends StatelessWidget {
         leading: const BackIconWidget(),
         centerTitle: false,
         titleSpacing: 0,
-        title: Text('Notification'.tr),
+        title: Obx(() {
+          if (controller.isSelectionMode.value) {
+            return Text('${'Selected'.tr}: ${controller.selectedCount.value}');
+          }
+          return Text('Notification'.tr);
+        }),
+        actions: [
+          Obx(() {
+            if (controller.isSelectionMode.value) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.done_all, color: Colors.green),
+                    onPressed: controller.markSelectedAsRead,
+                    tooltip: 'Mark as read'.tr,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.mark_chat_unread, color: Colors.white),
+                    onPressed: controller.markSelectedAsUnread,
+                    tooltip: 'Mark as unread'.tr,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: controller.deleteSelected,
+                    tooltip: 'Delete'.tr,
+                  ),
+                ],
+              );
+            }
+            return IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onPressed: controller.showTopMenu,
+            );
+          }),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) return const _ShimmerList();
@@ -45,41 +79,20 @@ class NotificationsView extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: controller.items.length,
-            separatorBuilder: (_, __) => const Divider(height: 0),
+            separatorBuilder: (_, __) => const Divider(height: 0, indent: 16, endIndent: 16),
             itemBuilder: (context, index) {
               final item = controller.items[index];
-              return ListTile(
-                onTap: () => controller.onTapNotification(item),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Iconsax.notification_bing_copy,
-                    size: 18,
-                    color: AppColors.whiteColor,
-                  ),
-                ),
-                title: Text(
-                  htmlToPlainText(item.message),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: item.isRead ? FontWeight.normal : FontWeight.bold,
-                  ),
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    item.time,
-                    style: const TextStyle(color: AppColors.greyColor, fontSize: 12),
-                  ),
-                ),
-                trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              return _NotificationTile(
+                item: item,
+                isSelectionMode: controller.isSelectionMode.value,
+                onTap: () {
+                  if (controller.isSelectionMode.value) {
+                    controller.toggleSelection(item);
+                  } else {
+                    controller.onTapNotification(item);
+                  }
+                },
+                onOptionsTap: () => controller.showNotificationOptions(item),
               );
             },
           ),
@@ -89,20 +102,104 @@ class NotificationsView extends StatelessWidget {
   }
 }
 
+class _NotificationTile extends StatelessWidget {
+  const _NotificationTile({
+    required this.item,
+    required this.isSelectionMode,
+    required this.onTap,
+    required this.onOptionsTap,
+  });
+  final dynamic item;
+  final bool isSelectionMode;
+  final VoidCallback onTap;
+  final VoidCallback onOptionsTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: isSelectionMode
+          ? Checkbox(
+              value: item.isSelected,
+              onChanged: (_) => onTap(),
+              activeColor: AppColors.primaryColor,
+            )
+          : Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: item.isRead ? AppColors.primaryColor.withValues(alpha: 0.5) : AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Iconsax.notification_bing_copy,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+      title: Text(
+        htmlToPlainText(item.message),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: item.isRead ? FontWeight.normal : FontWeight.bold,
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(
+          item.time,
+          style: const TextStyle(color: AppColors.greyColor, fontSize: 12),
+        ),
+      ),
+      trailing: isSelectionMode
+          ? null
+          : Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.more_vert, size: 16, color: AppColors.primaryColor),
+                onPressed: onOptionsTap,
+                padding: EdgeInsets.zero,
+                splashRadius: 16,
+              ),
+            ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return RefreshIndicator(
+      onRefresh: () async {
+        if (Get.isRegistered<NotificationController>()) {
+          await Get.find<NotificationController>().refreshList();
+        }
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          Icon(Icons.notifications_off_outlined, size: 64, color: AppColors.primaryColor),
-          const SizedBox(height: 16),
-          Text(
-            'No notifications yet'.tr,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.notifications_off_outlined, size: 64, color: AppColors.primaryColor),
+                const SizedBox(height: 16),
+                Text(
+                  'No notifications yet'.tr,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+                ),
+              ],
+            ),
           ),
         ],
       ),
