@@ -152,131 +152,137 @@ class NotificationController extends GetxController {
   }
 
   void showNotificationOptions(NotificationItem item) {
-    final context = Get.context;
-    final isDark = context != null ? Theme.of(context).brightness == Brightness.dark : false;
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCardColor : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 20),
-            Text(
-              item.message.length > 50 ? '${item.message.substring(0, 50)}...' : item.message,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+      StatefulBuilder(
+        builder: (context, setState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCardColor : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            Divider(color: isDark ? Colors.white24 : Colors.grey[300]),
-            ListTile(
-              leading: const Icon(Icons.done_all, color: Colors.green),
-              title: Text('Mark as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              onTap: () {
-                Get.back();
-                markSingleAsRead(item);
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 20),
+                Text(
+                  item.message.length > 50 ? '${item.message.substring(0, 50)}...' : item.message,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Divider(color: isDark ? Colors.white24 : Colors.grey[300]),
+                ListTile(
+                  leading: const Icon(Icons.done_all, color: Colors.green),
+                  title: Text('Mark as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    markSingleAsRead(item);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.mark_chat_unread, color: AppColors.primaryColor),
+                  title: Text('Mark as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    markSingleAsUnread(item);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: Text('Delete this notification'.tr, style: const TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Get.back();
+                    deleteSingle(item);
+                  },
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Get.back(),
+                    child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
+                  ),
+                ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.mark_chat_unread, color: AppColors.primaryColor),
-              title: Text('Mark as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              onTap: () {
-                Get.back();
-                markSingleAsUnread(item);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: Text('Delete this notification'.tr, style: const TextStyle(color: Colors.red)),
-              onTap: () {
-                Get.back();
-                deleteSingle(item);
-              },
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Get.back(),
-                child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
       isScrollControlled: false,
-      backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
+      backgroundColor: Colors.transparent,
     );
   }
 
   void showTopMenu() {
-    final context = Get.context;
-    final isDark = context != null ? Theme.of(context).brightness == Brightness.dark : false;
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCardColor : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.checklist, color: AppColors.primaryColor),
-              title: Text('Select'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              onTap: () {
-                Get.back();
-                enterSelectionMode();
-              },
+      StatefulBuilder(
+        builder: (context, setState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCardColor : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            ListTile(
-              leading: const Icon(Icons.done_all, color: Colors.green),
-              title: Text('Mark all as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              onTap: () {
-                Get.back();
-                markAllAsRead();
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: const Icon(Icons.checklist, color: AppColors.primaryColor),
+                  title: Text('Select'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    enterSelectionMode();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.done_all, color: Colors.green),
+                  title: Text('Mark all as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    markAllAsRead();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.mark_chat_unread, color: AppColors.primaryColor),
+                  title: Text('Mark all as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    markAllAsUnread();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_sweep, color: Colors.red),
+                  title: Text('Delete all'.tr, style: const TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Get.back();
+                    deleteAll();
+                  },
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Get.back(),
+                    child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
+                  ),
+                ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.mark_chat_unread, color: AppColors.primaryColor),
-              title: Text('Mark all as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              onTap: () {
-                Get.back();
-                markAllAsUnread();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_sweep, color: Colors.red),
-              title: Text('Delete all'.tr, style: const TextStyle(color: Colors.red)),
-              onTap: () {
-                Get.back();
-                deleteAll();
-              },
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Get.back(),
-                child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
       isScrollControlled: false,
-      backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
+      backgroundColor: Colors.transparent,
     );
   }
 
