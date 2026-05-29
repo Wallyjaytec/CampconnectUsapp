@@ -41,7 +41,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (refundId > 0) {
           box.remove('deep_link_refund_id');
           if (!isLoggedIn) {
-            Get.offAllNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.refundRequestDetailsView, 'refund_id': refundId});
+            Get.offAllNamed(AppRoutes.bottomNavbarView);
+            Future.delayed(const Duration(milliseconds: 200), () {
+              Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.refundRequestDetailsView, 'refund_id': refundId});
+            });
             return;
           }
           Get.offAllNamed(AppRoutes.bottomNavbarView);
@@ -54,7 +57,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (orderId > 0) {
           box.remove('deep_link_order_id');
           if (!isLoggedIn) {
-            Get.offAllNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.myOrderDetailsView, 'order_id': orderId});
+            Get.offAllNamed(AppRoutes.bottomNavbarView);
+            Future.delayed(const Duration(milliseconds: 200), () {
+              Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.myOrderDetailsView, 'order_id': orderId});
+            });
             return;
           }
           Get.offAllNamed(AppRoutes.bottomNavbarView);
