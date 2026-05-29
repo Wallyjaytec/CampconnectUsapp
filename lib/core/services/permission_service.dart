@@ -187,7 +187,7 @@ class PermissionService extends GetxService {
     return await Get.dialog<bool>(
       GetBuilder<ThemeController>(
         builder: (ctrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+          final isDark = ctrl.isDarkMode.value;
           return Dialog(
             backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -242,7 +242,7 @@ class PermissionService extends GetxService {
     await Get.dialog(
       GetBuilder<ThemeController>(
         builder: (ctrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+          final isDark = ctrl.isDarkMode.value;
           return Dialog(
             backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24),
