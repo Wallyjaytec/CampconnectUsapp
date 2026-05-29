@@ -46,6 +46,20 @@ Future<void> main() async {
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshList();
     }
+    
+    final additionalData = event.notification.additionalData;
+    if (additionalData != null) {
+      final notificationId = additionalData['notification_id']?.toString();
+      if (notificationId != null && notificationId.isNotEmpty) {
+        final controller = Get.find<NotificationController>();
+        final item = controller.items.firstWhereOrNull((e) => e.id == notificationId);
+        if (item != null) {
+          controller.onTapNotification(item);
+        } else {
+          Get.toNamed('/notifications_view');
+        }
+      }
+    }
   });
   
   try {
