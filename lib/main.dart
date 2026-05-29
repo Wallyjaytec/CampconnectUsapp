@@ -50,7 +50,16 @@ Future<void> main() async {
         GetStorage().write('push_notification_id', notificationId);
       }
     }
+    
+    final controller = Get.isRegistered<NotificationController>()
+        ? Get.find<NotificationController>()
+        : Get.put(NotificationController());
+    
     Get.toNamed('/notifications_view');
+    
+    controller.refreshList().then((_) {
+      controller.checkPushNotification();
+    });
   });
   
   try {
