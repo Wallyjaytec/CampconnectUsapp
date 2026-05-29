@@ -49,6 +49,17 @@ Future<void> main() async {
       if (notificationId != null && notificationId.isNotEmpty) {
         final box = GetStorage();
         box.write('push_notification_id', notificationId);
+        
+        final controller = Get.isRegistered<NotificationController>()
+            ? Get.find<NotificationController>()
+            : Get.put(NotificationController());
+        
+        controller.refreshList().then((_) {
+          final item = controller.items.firstWhereOrNull((e) => e.id == notificationId);
+          if (item != null) {
+            controller.onTapNotification(item);
+          }
+        });
       }
     }
   });
