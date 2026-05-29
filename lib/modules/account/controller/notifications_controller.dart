@@ -65,21 +65,25 @@ class NotificationController extends GetxController {
     final box = GetStorage();
     final pushId = box.read<String>('push_notification_id') ?? '';
     if (pushId.isNotEmpty) {
+      final message = box.read<String>('push_notif_message') ?? '';
+      final title = box.read<String>('push_notif_title') ?? '';
+      final image = box.read<String>('push_notif_image') ?? '';
+      
       box.remove('push_notification_id');
-      final item = items.firstWhereOrNull((e) => e.id == pushId);
-      if (item != null) {
-        onTapNotification(item);
-      } else {
-        Get.to(() => NotificationDetailView(
-          item: NotificationItem(
-            id: pushId,
-            message: '',
-            link: '',
-            time: '',
-          ),
-          notificationId: pushId,
-        ));
-      }
+      box.remove('push_notif_message');
+      box.remove('push_notif_title');
+      box.remove('push_notif_image');
+      
+      final item = NotificationItem(
+        id: pushId,
+        message: message,
+        link: '',
+        time: 'Just now',
+        title: title.isNotEmpty ? title : null,
+        image: image.isNotEmpty ? image : null,
+      );
+      
+      Get.to(() => NotificationDetailView(item: item));
     }
   }
 
