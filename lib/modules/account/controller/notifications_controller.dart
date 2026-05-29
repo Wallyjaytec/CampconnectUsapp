@@ -156,7 +156,7 @@ class NotificationController extends GetxController {
     Get.bottomSheet(
       GetBuilder<ThemeController>(
         builder: (ctrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+          final isDark = ctrl.isDarkMode.value;
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -225,7 +225,7 @@ class NotificationController extends GetxController {
     Get.bottomSheet(
       GetBuilder<ThemeController>(
         builder: (ctrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+          final isDark = ctrl.isDarkMode.value;
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
