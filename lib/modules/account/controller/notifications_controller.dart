@@ -344,7 +344,7 @@ class NotificationController extends GetxController {
     items.refresh();
     updateCount();
     _repo.deleteNotification(item.id);
-    _showSnackbar('Notification deleted'.tr);
+    _showSnackbar('${'Notification'.tr} ${'deleted'.tr}');
   }
 
   void markAllAsRead() {
@@ -376,7 +376,7 @@ class NotificationController extends GetxController {
     for (var id in ids) {
       _repo.deleteNotification(id);
     }
-    _showSnackbar('$count notifications deleted'.tr);
+    _showSnackbar('$count ${'deleted'.tr}');
   }
 
   void deleteSelected() {
@@ -389,7 +389,7 @@ class NotificationController extends GetxController {
     items.refresh();
     exitSelectionMode();
     updateCount();
-    _showSnackbar('$count deleted'.tr);
+    _showSnackbar('$count ${'deleted'.tr}');
   }
 
   void markSelectedAsRead() {
