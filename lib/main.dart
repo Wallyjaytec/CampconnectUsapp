@@ -32,7 +32,8 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  final startTime = DateTime.now();
+  await GetStorage.init();
+  final box = GetStorage();
   
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
@@ -47,7 +48,6 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        final box = GetStorage();
         box.write('push_notification_id', notificationId);
         box.write('push_notif_message', additionalData['notif_message']?.toString() ?? '');
         box.write('push_notif_title', additionalData['notif_title']?.toString() ?? '');
@@ -56,14 +56,13 @@ Future<void> main() async {
     }
   });
   
+  final startTime = DateTime.now();
+  
   try {
     await initServices().timeout(const Duration(seconds: 5));
   } catch (_) {}
   
-  await GetStorage.init();
   Get.put(ThemeController(), permanent: true);
-  
-  final box = GetStorage();
   
   await Get.putAsync<ConnectivityService>(() => ConnectivityService().init());
   
