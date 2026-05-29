@@ -69,6 +69,16 @@ class NotificationController extends GetxController {
       final item = items.firstWhereOrNull((e) => e.id == pushId);
       if (item != null) {
         onTapNotification(item);
+      } else {
+        Get.to(() => NotificationDetailView(
+          item: NotificationItem(
+            id: pushId,
+            message: '',
+            link: '',
+            time: '',
+          ),
+          notificationId: pushId,
+        ));
       }
     }
   }
