@@ -25,63 +25,7 @@ class NotificationsView extends StatelessWidget {
         leading: const BackIconWidget(),
         centerTitle: false,
         titleSpacing: 0,
-        title: Obx(() {
-          if (controller.isSelectionMode.value) {
-            return Text('Selected: ${controller.selectedCount.value}'.tr);
-          }
-          return Text('Notification'.tr);
-        }),
-        actions: [
-          Obx(() {
-            if (controller.isSelectionMode.value) {
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: controller.selectAll,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      child: Icon(Icons.select_all, color: Colors.white),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: controller.markSelectedAsRead,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      child: Icon(Icons.done_all, color: Colors.green),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: controller.markSelectedAsUnread,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      child: Icon(Icons.mark_chat_unread, color: Colors.orange),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: controller.deleteSelected,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      child: Icon(Icons.delete, color: Colors.red),
-                    ),
-                  ),
-                ],
-              );
-            }
-            return controller.items.isEmpty
-                ? const SizedBox.shrink()
-                : TextButton(
-                    onPressed: controller.markAllAsRead,
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.whiteColor,
-                    ),
-                    child: Text(
-                      'Mark all as read'.tr,
-                      style: const TextStyle(fontWeight: FontWeight.normal),
-                    ),
-                  );
-          }),
-        ],
+        title: Text('Notification'.tr),
       ),
       body: Obx(() {
         if (controller.isLoading.value) return const _ShimmerList();
@@ -104,76 +48,43 @@ class NotificationsView extends StatelessWidget {
             separatorBuilder: (_, __) => const Divider(height: 0),
             itemBuilder: (context, index) {
               final item = controller.items[index];
-              return _NotificationTile(
-                item: item,
+              return ListTile(
                 onTap: () => controller.onTapNotification(item),
-                onLongPress: () => controller.toggleSelection(item),
-                isSelectionMode: controller.isSelectionMode.value,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Iconsax.notification_bing_copy,
+                    size: 18,
+                    color: AppColors.whiteColor,
+                  ),
+                ),
+                title: Text(
+                  htmlToPlainText(item.message),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: item.isRead ? FontWeight.normal : FontWeight.bold,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    item.time,
+                    style: const TextStyle(color: AppColors.greyColor, fontSize: 12),
+                  ),
+                ),
+                trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               );
             },
           ),
         );
       }),
-    );
-  }
-}
-
-class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({
-    required this.item,
-    required this.onTap,
-    required this.onLongPress,
-    required this.isSelectionMode,
-  });
-  final NotificationItem item;
-  final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  final bool isSelectionMode;
-
-  @override
-  Widget build(BuildContext context) {
-    final message = item.message;
-    final plainText = htmlToPlainText(message);
-
-    return ListTile(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      leading: isSelectionMode
-          ? Checkbox(
-              value: item.isSelected,
-              onChanged: (_) => onLongPress(),
-              activeColor: AppColors.primaryColor,
-            )
-          : Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.notification_bing_copy,
-                size: 18,
-                color: AppColors.whiteColor,
-              ),
-            ),
-      title: Text(
-        plainText,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: item.isRead ? FontWeight.normal : FontWeight.bold,
-        ),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(
-          item.time,
-          style: const TextStyle(color: AppColors.greyColor, fontSize: 12),
-        ),
-      ),
-      trailing: isSelectionMode ? null : const Icon(Iconsax.arrow_right_3_copy, size: 18),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 }
@@ -187,17 +98,11 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.notifications_off_outlined,
-            size: 64,
-            color: AppColors.primaryColor,
-          ),
+          Icon(Icons.notifications_off_outlined, size: 64, color: AppColors.primaryColor),
           const SizedBox(height: 16),
           Text(
             'No notifications yet'.tr,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -220,22 +125,11 @@ class _ErrorState extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
             const SizedBox(height: 16),
-            Text(
-              'Failed to load notifications'.tr,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Failed to load notifications'.tr, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey),
-            ),
+            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text('Retry'.tr),
-            ),
+            FilledButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: Text('Retry'.tr)),
           ],
         ),
       ),
@@ -258,24 +152,13 @@ class _ShimmerList extends StatelessWidget {
           highlightColor: Colors.grey.shade100,
           child: Row(
             children: [
-              Container(
-                height: 40,
-                width: 40,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
+              Container(height: 40, width: 40, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: 12,
-                      width: double.infinity,
-                      color: Colors.white,
-                    ),
+                    Container(height: 12, width: double.infinity, color: Colors.white),
                     const SizedBox(height: 8),
                     Container(width: 120, height: 10, color: Colors.white),
                   ],
