@@ -24,6 +24,7 @@ class NotificationDetailView extends StatefulWidget {
 class _NotificationDetailViewState extends State<NotificationDetailView> {
   late NotificationItem _item;
   bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -35,35 +36,36 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
   }
 
   Future<void> _loadFromApi() async {
-    setState(() => _isLoading = true);
-    final repo = NotificationRepository();
-    final fetched = await repo.fetchNotificationById(widget.notificationId!);
-    if (fetched != null && mounted) {
-      setState(() {
-        _item = fetched;
-        _isLoading = false;
-      });
-    } else if (mounted) {
-      setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final repo = NotificationRepository();
+      final fetched = await repo.fetchNotificationById(widget.notificationId!);
+      if (mounted) {
+        setState(() {
+          if (fetched != null) {
+            _item = fetched;
+          } else {
+            _error = 'Notification not found'.tr;
+          }
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load notification'.tr;
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leadingWidth: 44,
-          leading: const BackIconWidget(),
-          title: Text('Notification Details'.tr),
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final plainMessage = _htmlToPlainText(_item.message);
 
     return Scaffold(
       appBar: AppBar(
@@ -75,65 +77,83 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
           style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_item.title != null && _item.title!.isNotEmpty)
-              Text(
-                _item.title!,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            if (_item.title != null && _item.title!.isNotEmpty)
-              const SizedBox(height: 10),
-            if (_item.image != null && _item.image!.isNotEmpty)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: isDark ? Colors.grey[800] : Colors.grey[200],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: _item.image!,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      height: 200,
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      height: 200,
-                      child: const Icon(Icons.broken_image, size: 50),
-                    ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+                      const SizedBox(height: 16),
+                      Text(_error!),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadFromApi,
+                        child: Text('Retry'.tr),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_item.title != null && _item.title!.isNotEmpty)
+                        Text(
+                          _item.title!,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      if (_item.title != null && _item.title!.isNotEmpty)
+                        const SizedBox(height: 10),
+                      if (_item.image != null && _item.image!.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedNetworkImage(
+                              imageUrl: _item.image!,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                height: 200,
+                                child: const Center(child: CircularProgressIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                height: 200,
+                                child: const Icon(Icons.broken_image, size: 50),
+                              ),
+                            ),
+                          ),
+                        ),
+                      Text(
+                        _htmlToPlainText(_item.message),
+                        style: TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        _item.time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[500] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            Text(
-              plainMessage,
-              style: TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              _item.time,
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[500] : Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
