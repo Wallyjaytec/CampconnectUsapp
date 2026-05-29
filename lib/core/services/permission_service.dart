@@ -81,34 +81,17 @@ class PermissionService extends GetxService {
 
     if (isAllowed) return true;
 
-    if (_state.value == MediaPermissionState.denied) {
-      Get.snackbar(
-        'Permission blocked'.tr,
-        'Please allow Camera and Photos from Home or App Settings to continue'
-            .tr,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: AppColors.whiteColor,
-      );
-      return false;
-    }
-
     if (_state.value == MediaPermissionState.permanentlyDenied) {
       await _settingsDialog(
         title: 'Permission required'.tr,
-        message:
-            'Camera or Photos permission is permanently denied Open Settings to enable'
-                .tr,
+        message: 'Camera or Photos permission is permanently denied. Open Settings to enable.'.tr,
       );
       return false;
     }
 
-    Get.snackbar(
-      'Permission not granted'.tr,
-      'Please allow permissions on Home to continue'.tr,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: AppColors.primaryColor,
-      colorText: AppColors.whiteColor,
+    await _settingsDialog(
+      title: 'Permission required'.tr,
+      message: 'Camera and Photos access is needed. Please allow from Settings.'.tr,
     );
     return false;
   }
