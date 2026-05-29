@@ -21,7 +21,7 @@ class ReviewController extends GetxController {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> pickFromCamera() async {
-    final allowed = await PermissionService.I.canUseMediaOrExplain();
+    final allowed = await PermissionService.I.canUseCameraOrExplain();
     if (!allowed) return;
 
     final x = await _picker.pickImage(
@@ -32,7 +32,7 @@ class ReviewController extends GetxController {
   }
 
   Future<void> pickFromGallery() async {
-    final allowed = await PermissionService.I.canUseMediaOrExplain();
+    final allowed = await PermissionService.I.canUseGalleryOrExplain();
     if (!allowed) return;
 
     final xs = await _picker.pickMultiImage(imageQuality: 85);
