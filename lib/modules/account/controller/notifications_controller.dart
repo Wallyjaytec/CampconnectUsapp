@@ -155,12 +155,12 @@ class NotificationController extends GetxController {
   void showNotificationOptions(NotificationItem item) {
     Get.bottomSheet(
       GetBuilder<ThemeController>(
-        builder: (themeCtrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+        builder: (ctrl) {
+          final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCardColor : Colors.white,
+              color: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Column(
@@ -173,7 +173,7 @@ class NotificationController extends GetxController {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -181,7 +181,7 @@ class NotificationController extends GetxController {
                 Divider(color: isDark ? Colors.white24 : Colors.grey[300]),
                 ListTile(
                   leading: const Icon(Icons.done_all, color: Colors.green),
-                  title: Text('Mark as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('Mark as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   onTap: () {
                     Get.back();
                     markSingleAsRead(item);
@@ -189,7 +189,7 @@ class NotificationController extends GetxController {
                 ),
                 ListTile(
                   leading: const Icon(Icons.mark_chat_unread, color: AppColors.primaryColor),
-                  title: Text('Mark as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('Mark as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   onTap: () {
                     Get.back();
                     markSingleAsUnread(item);
@@ -224,12 +224,12 @@ class NotificationController extends GetxController {
   void showTopMenu() {
     Get.bottomSheet(
       GetBuilder<ThemeController>(
-        builder: (themeCtrl) {
-          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+        builder: (ctrl) {
+          final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCardColor : Colors.white,
+              color: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Column(
@@ -239,7 +239,7 @@ class NotificationController extends GetxController {
                 const SizedBox(height: 20),
                 ListTile(
                   leading: const Icon(Icons.checklist, color: AppColors.primaryColor),
-                  title: Text('Select'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('Select'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   onTap: () {
                     Get.back();
                     enterSelectionMode();
@@ -247,7 +247,7 @@ class NotificationController extends GetxController {
                 ),
                 ListTile(
                   leading: const Icon(Icons.done_all, color: Colors.green),
-                  title: Text('Mark all as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('Mark all as read'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   onTap: () {
                     Get.back();
                     markAllAsRead();
@@ -255,7 +255,7 @@ class NotificationController extends GetxController {
                 ),
                 ListTile(
                   leading: const Icon(Icons.mark_chat_unread, color: AppColors.primaryColor),
-                  title: Text('Mark all as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('Mark all as unread'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   onTap: () {
                     Get.back();
                     markAllAsUnread();
