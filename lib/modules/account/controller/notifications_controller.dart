@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/controllers/theme_controller.dart';
 import '../../../core/services/login_service.dart';
 import '../../../data/repositories/notification_repository.dart';
 import '../model/notification_model.dart';
@@ -153,9 +154,9 @@ class NotificationController extends GetxController {
 
   void showNotificationOptions(NotificationItem item) {
     Get.bottomSheet(
-      StatefulBuilder(
-        builder: (context, setState) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
+      GetBuilder<ThemeController>(
+        builder: (themeCtrl) {
+          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -222,9 +223,9 @@ class NotificationController extends GetxController {
 
   void showTopMenu() {
     Get.bottomSheet(
-      StatefulBuilder(
-        builder: (context, setState) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
+      GetBuilder<ThemeController>(
+        builder: (themeCtrl) {
+          final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
