@@ -21,22 +21,6 @@ class NotificationController extends GetxController {
   final items = <NotificationItem>[].obs;
   final notificationCount = 0.obs;
 
-  void _showSnackbar(String message) {
-    final context = Get.context;
-    if (context == null) return;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        backgroundColor: AppColors.primaryColor,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   @override
   void onInit() {
     super.onInit();
@@ -58,9 +42,9 @@ class NotificationController extends GetxController {
     errorText.value = null;
 
     try {
-      final res = await _repo.fetchUnreadNotifications();
+      final res = await _repo.fetchAllNotifications();
       items.assignAll(res.notifications);
-      notificationCount.value = items.length;
+      notificationCount.value = items.where((e) => !e.isRead).length;
     } catch (e) {
       errorText.value = 'Something went wrong'.tr;
       items.clear();
@@ -79,9 +63,9 @@ class NotificationController extends GetxController {
 
     isRefreshing.value = true;
     try {
-      final res = await _repo.fetchUnreadNotifications();
+      final res = await _repo.fetchAllNotifications();
       items.assignAll(res.notifications);
-      notificationCount.value = items.length;
+      notificationCount.value = items.where((e) => !e.isRead).length;
     } catch (_) {
     } finally {
       isRefreshing.value = false;
