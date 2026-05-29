@@ -171,43 +171,47 @@ class SignupView extends StatelessWidget {
                     Obx(() => _ErrorLine(text: controller.phoneError.value)),
                   ],
                 ),
-                CustomTextFormField(
-                  maxLines: 1,
-                  controller: controller.passwordController,
-                  hint: "Password".tr,
-                  icon: Iconsax.lock_1_copy,
-                  suffix: IconButton(
-                    onPressed: controller.togglePasswordVisibility,
-                    icon: Icon(
-                      controller.passwordObscure.value
-                          ? controller.eyeClosedIcon
-                          : controller.eyeOpenIcon,
-                      size: 18,
+                Obx(
+                  () => CustomTextFormField(
+                    maxLines: 1,
+                    controller: controller.passwordController,
+                    hint: "Password".tr,
+                    icon: Iconsax.lock_1_copy,
+                    suffix: IconButton(
+                      onPressed: controller.togglePasswordVisibility,
+                      icon: Icon(
+                        controller.passwordObscure.value
+                            ? controller.eyeClosedIcon
+                            : controller.eyeOpenIcon,
+                        size: 18,
+                      ),
                     ),
+                    obscure: controller.passwordObscure.value,
+                    onTap: () => controller.passwordError.value = '',
+                    onChanged: (_) => controller.passwordError.value = '',
                   ),
-                  obscure: controller.passwordObscure.value,
-                  onTap: () => controller.passwordError.value = '',
-                  onChanged: (_) => controller.passwordError.value = '',
                 ),
                 Obx(() => _ErrorLine(text: controller.passwordError.value)),
-                CustomTextFormField(
-                  maxLines: 1,
-                  controller: controller.confirmPasswordController,
-                  hint: "Confirm password".tr,
-                  icon: Iconsax.lock_1_copy,
-                  suffix: IconButton(
-                    onPressed: controller.toggleConfirmPasswordVisibility,
-                    icon: Icon(
-                      controller.confirmPasswordObscure.value
-                          ? controller.eyeClosedIcon
-                          : controller.eyeOpenIcon,
-                      size: 18,
+                Obx(
+                  () => CustomTextFormField(
+                    maxLines: 1,
+                    controller: controller.confirmPasswordController,
+                    hint: "Confirm password".tr,
+                    icon: Iconsax.lock_1_copy,
+                    suffix: IconButton(
+                      onPressed: controller.toggleConfirmPasswordVisibility,
+                      icon: Icon(
+                        controller.confirmPasswordObscure.value
+                            ? controller.eyeClosedIcon
+                            : controller.eyeOpenIcon,
+                        size: 18,
+                      ),
                     ),
+                    obscure: controller.confirmPasswordObscure.value,
+                    onTap: () => controller.confirmPasswordError.value = '',
+                    onChanged: (_) =>
+                        controller.confirmPasswordError.value = '',
                   ),
-                  obscure: controller.confirmPasswordObscure.value,
-                  onTap: () => controller.confirmPasswordError.value = '',
-                  onChanged: (_) =>
-                      controller.confirmPasswordError.value = '',
                 ),
                 Obx(
                   () => _ErrorLine(text: controller.confirmPasswordError.value),
