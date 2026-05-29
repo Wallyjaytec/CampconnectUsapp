@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/controllers/theme_controller.dart';
 import '../../../core/services/login_service.dart';
 import '../../../data/repositories/notification_repository.dart';
+import '../../../../main.dart';
 import '../model/notification_model.dart';
 import '../view/notification_detail_view.dart';
 
@@ -63,6 +64,25 @@ class NotificationController extends GetxController {
   }
 
   void checkPushNotification() {
+    if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+      final item = NotificationItem(
+        id: PushNotificationData.notificationId!,
+        message: PushNotificationData.message ?? '',
+        link: '',
+        time: 'Just now',
+        title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
+        image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
+      );
+      
+      PushNotificationData.notificationId = null;
+      PushNotificationData.message = null;
+      PushNotificationData.title = null;
+      PushNotificationData.image = null;
+      
+      Get.to(() => NotificationDetailView(item: item));
+      return;
+    }
+    
     final box = GetStorage();
     final pushId = box.read<String>('push_notification_id') ?? '';
     if (pushId.isNotEmpty) {
