@@ -100,13 +100,12 @@ class NotificationController extends GetxController {
   }
 
   Future<void> onTapNotification(NotificationItem item) async {
+    await Get.to(() => NotificationDetailView(item: item));
     final res = await _repo.markSingleAsRead(notificationId: item.id);
     if (res.success) {
       item.isRead = true;
       notificationCount.value = items.where((e) => !e.isRead).length;
     }
-    await Get.to(() => NotificationDetailView(item: item));
-    refreshList();
   }
 
   Future<bool> deleteNotification(String id) async {
