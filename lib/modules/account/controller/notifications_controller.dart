@@ -51,7 +51,7 @@ class NotificationController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    if (_loginService.isLoggedIn()) {
+    if (_loginService.isLoggedIn() && items.isEmpty) {
       isLoading.value = true;
       refreshList().then((_) {
         isLoading.value = false;
