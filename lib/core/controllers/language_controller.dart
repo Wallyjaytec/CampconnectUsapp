@@ -58,6 +58,7 @@ class LanguageController extends GetxController {
 
     if (persist) {
       box.write(AppConfig.kLangCode, apiCode);
+      box.write('selected_language_api_code', apiCode);
     }
 
     if (Get.isRegistered<CompareController>()) {
@@ -70,7 +71,7 @@ class LanguageController extends GetxController {
   }
 
   void _loadPersistedLang() {
-    final saved = box.read<String>(AppConfig.kLangCode);
+    final saved = box.read<String>('selected_language_api_code') ?? box.read<String>(AppConfig.kLangCode);
     if (saved != null && saved.isNotEmpty) {
       selectedApiCode.value = saved;
       LanguageService.load(saved);
