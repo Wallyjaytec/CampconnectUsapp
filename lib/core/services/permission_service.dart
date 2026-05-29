@@ -1,303 +1,134 @@
-import 'dart:io';
+import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-enum MediaPermissionState {
-  unknown,
-  granted,
-  limited,
-  denied,
-  permanentlyDenied,
-}
+import '../constants/app_colors.dart';
+import '../controllers/theme_controller.dart';
 
-class PermissionService extends GetxService {
-  static PermissionService get I => Get.find<PermissionService>();
+class NetworkService extends GetxService {
+  final Connectivity _connectivity = Connectivity();
 
-  static const _askedKey = 'perm_home_asked_once_v1';
-  final _state = MediaPermissionState.unknown.obs;
-  bool _askedOnce = false;
+  final RxBool isConnected = true.obs;
 
-  MediaPermissionState get state => _state.value;
-  bool get isAllowed =>
-      _state.value == MediaPermissionState.granted ||
-      _state.value == MediaPermissionState.limited;
+  StreamSubscription<List<ConnectivityResult>>? _subscription;
 
-  @override
-  void onInit() {
-    super.onInit();
-    WidgetsBinding.instance.addObserver(_LifecycleObserver(this));
-  }
+  Future<NetworkService> init() async {
+    final List<ConnectivityResult> results = await _connectivity
+        .checkConnectivity();
 
-  Future<PermissionService> init() async {
-    final sp = await SharedPreferences.getInstance();
-    _askedOnce = sp.getBool(_askedKey) ?? false;
-    await refreshStatus();
+    _updateConnectionStatus(results);
+
+    _subscription = _connectivity.onConnectivityChanged.listen(
+      _updateConnectionStatus,
+    );
+
     return this;
   }
 
-  Future<void> requestOnceOnHome() async {
-    if (_askedOnce) return;
-    _askedOnce = true;
-    (await SharedPreferences.getInstance()).setBool(_askedKey, true);
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    final bool nowConnected = results.any((r) => r != ConnectivityResult.none);
 
-    final proceed = await _preAskDialog();
-    if (proceed != true) {
-      await refreshStatus();
-      return;
-    }
+    isConnected.value = nowConnected;
 
-    final cam = await Permission.camera.request();
-    PermissionStatus photos = await Permission.photos.request();
-    if (!Platform.isIOS && (photos.isDenied || photos.isRestricted)) {
-      final storage = await Permission.storage.request();
-      if (storage.isGranted) photos = PermissionStatus.granted;
-    }
-
-    _updateFromStatuses(cam, photos);
-
-    if (_state.value == MediaPermissionState.permanentlyDenied) {
-      await _settingsDialog(
-        title: 'Permission required'.tr,
-        message:
-            'Camera or Photos permission is set to Do not ask again Open Settings to enable'
-                .tr,
-      );
+    if (!nowConnected) {
+      _showNoInternetDialog();
+    } else {
+      _hideNoInternetDialog();
+      Get.forceAppUpdate();
     }
   }
 
-  Future<void> refreshStatus() async {
-    final cam = await Permission.camera.status;
-    PermissionStatus photos = await Permission.photos.status;
-    if (!Platform.isIOS && (photos.isDenied || photos.isRestricted)) {
-      final storage = await Permission.storage.status;
-      if (storage.isGranted) photos = PermissionStatus.granted;
-    }
-    _updateFromStatuses(cam, photos);
-  }
+  void _showNoInternetDialog() {
+    if (Get.isDialogOpen == true) return;
 
-  Future<bool> canUseMediaOrExplain() async {
-    if (_state.value == MediaPermissionState.unknown) {
-      await refreshStatus();
-    }
-
-    if (isAllowed) return true;
-
-    if (_state.value == MediaPermissionState.permanentlyDenied) {
-      await _settingsDialog(
-        title: 'Permission required'.tr,
-        message: 'Camera or Photos permission is permanently denied. Open Settings to enable.'.tr,
-      );
-      return false;
-    }
-
-    await _settingsDialog(
-      title: 'Permission required'.tr,
-      message: 'Camera and Photos access is needed. Please allow from Settings.'.tr,
-    );
-    return false;
-  }
-
-  Future<bool> canUseCameraOrExplain() async {
-    final status = await Permission.camera.status;
-    if (status.isGranted) return true;
-
-    if (status.isPermanentlyDenied) {
-      await _settingsDialog(
-        title: 'Camera Permission Required'.tr,
-        message: 'Camera access is permanently denied. Open Settings to enable.'.tr,
-      );
-      return false;
-    }
-
-    await _settingsDialog(
-      title: 'Camera Permission Required'.tr,
-      message: 'Camera access is needed to take photos. Please allow from Settings.'.tr,
-    );
-    return false;
-  }
-
-  Future<bool> canUseGalleryOrExplain() async {
-    PermissionStatus photos = await Permission.photos.status;
-    if (!Platform.isIOS && (photos.isDenied || photos.isRestricted)) {
-      final storage = await Permission.storage.status;
-      if (storage.isGranted) photos = PermissionStatus.granted;
-    }
-    if (photos.isGranted || photos.isLimited) return true;
-
-    if (photos.isPermanentlyDenied) {
-      await _settingsDialog(
-        title: 'Gallery Permission Required'.tr,
-        message: 'Photos access is permanently denied. Open Settings to enable.'.tr,
-      );
-      return false;
-    }
-
-    await _settingsDialog(
-      title: 'Gallery Permission Required'.tr,
-      message: 'Photos access is needed to pick images. Please allow from Settings.'.tr,
-    );
-    return false;
-  }
-
-  Future<void> askAgainFromSettingsLikeEntry() async {
-    final cam = await Permission.camera.request();
-    PermissionStatus photos = await Permission.photos.request();
-    if (!Platform.isIOS && (photos.isDenied || photos.isRestricted)) {
-      final storage = await Permission.storage.request();
-      if (storage.isGranted) photos = PermissionStatus.granted;
-    }
-    _updateFromStatuses(cam, photos);
-
-    if (_state.value == MediaPermissionState.permanentlyDenied) {
-      await _settingsDialog(
-        title: 'Permission required'.tr,
-        message:
-            'Permission is set to Do not ask again Open Settings to enable'.tr,
-      );
-    }
-  }
-
-  void _updateFromStatuses(PermissionStatus cam, PermissionStatus photos) {
-    if (cam.isPermanentlyDenied || photos.isPermanentlyDenied) {
-      _state.value = MediaPermissionState.permanentlyDenied;
-      return;
-    }
-    if (cam.isGranted && (photos.isGranted || photos.isLimited)) {
-      _state.value = photos.isLimited
-          ? MediaPermissionState.limited
-          : MediaPermissionState.granted;
-      return;
-    }
-    if (cam.isDenied ||
-        photos.isDenied ||
-        cam.isRestricted ||
-        photos.isRestricted) {
-      _state.value = MediaPermissionState.denied;
-      return;
-    }
-    _state.value = MediaPermissionState.unknown;
-  }
-
-  Future<bool?> _preAskDialog() async {
-    return await Get.dialog<bool>(
-      GetBuilder<ThemeController>(
-        builder: (ctrl) {
-          final isDark = ctrl.isDarkMode.value;
-          return Dialog(
-            backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${'Allow camera and gallery'.tr}?',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
+    Get.dialog(
+      PopScope(
+        canPop: false,
+        child: GetBuilder<ThemeController>(
+          builder: (ctrl) {
+            final isDark = ctrl.isDarkMode.value;
+            return Dialog(
+              backgroundColor: isDark
+                  ? AppColors.darkProductCardColor
+                  : AppColors.lightBackgroundColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryColor.withValues(alpha: 0.08),
+                      ),
+                      child: const Icon(Icons.wifi_off_rounded, size: 38, color: AppColors.primaryColor),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'We use your camera and photo library so you can take or pick photos while shopping'
-                        .tr,
-                    style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Get.back(result: false),
-                        child: Text('Not now'.tr),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Internet Connection'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: () => Get.back(result: true),
-                        child: Text('Continue'.tr),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-      barrierDismissible: false,
-    );
-  }
-
-  Future<void> _settingsDialog({
-    required String title,
-    required String message,
-  }) async {
-    await Get.dialog(
-      GetBuilder<ThemeController>(
-        builder: (ctrl) {
-          final isDark = ctrl.isDarkMode.value;
-          return Dialog(
-            backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(message, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Get.back(),
-                        child: Text('Later'.tr),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please check your Wi-Fi or mobile data.'.tr,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14, color: AppColors.greyColor, height: 1.3),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton.icon(
                         onPressed: () async {
-                          await openAppSettings();
-                          Get.back();
+                          final List<ConnectivityResult> results =
+                              await Connectivity().checkConnectivity();
+                          final nowConnected = results.any((r) => r != ConnectivityResult.none);
+                          if (nowConnected && Get.isDialogOpen == true) {
+                            Get.back();
+                          }
                         },
-                        child: Text('Open Settings'.tr),
+                        icon: const Icon(Iconsax.refresh_copy, size: 18),
+                        label: Text('Retry'.tr),
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
       barrierDismissible: false,
     );
   }
-}
 
-class _LifecycleObserver extends WidgetsBindingObserver {
-  final PermissionService _service;
-  _LifecycleObserver(this._service);
+  void _hideNoInternetDialog() {
+    if (Get.isDialogOpen == true) {
+      Get.back();
+    }
+  }
+
+  void showNoInternetDialog() {
+    _showNoInternetDialog();
+  }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _service.refreshStatus();
-    }
+  void onClose() {
+    _subscription?.cancel();
+    super.onClose();
   }
 }
