@@ -14,6 +14,11 @@
         <!-- OneSignal Notification Icon -->
         <meta-data android:name="com.onesignal.NotificationIcon" android:value="ic_stat_onesignal_default" />
         
+        <!-- OneSignal heads-up channel -->
+        <meta-data
+            android:name="com.onesignal.NotificationChannelGroup"
+            android:value="campconnectus" />
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
