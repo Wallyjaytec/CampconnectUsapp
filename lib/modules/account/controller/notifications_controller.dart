@@ -52,11 +52,24 @@ class NotificationController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    if (_loginService.isLoggedIn() && items.isEmpty) {
+    if (_loginService.isLoggedIn()) {
       isLoading.value = true;
       refreshList().then((_) {
         isLoading.value = false;
+        _checkPushNotification();
       });
+    }
+  }
+
+  void _checkPushNotification() {
+    final box = GetStorage();
+    final pushId = box.read<String>('push_notification_id') ?? '';
+    if (pushId.isNotEmpty) {
+      box.remove('push_notification_id');
+      final item = items.firstWhereOrNull((e) => e.id == pushId);
+      if (item != null) {
+        onTapNotification(item);
+      }
     }
   }
 
@@ -76,17 +89,6 @@ class NotificationController extends GetxController {
       final res = await _repo.fetchAllNotifications();
       items.assignAll(res.notifications);
       updateCount();
-      
-      // Check for push notification deep link
-      final box = GetStorage();
-      final pushId = box.read<String>('push_notification_id') ?? '';
-      if (pushId.isNotEmpty) {
-        box.remove('push_notification_id');
-        final item = items.firstWhereOrNull((e) => e.id == pushId);
-        if (item != null) {
-          onTapNotification(item);
-        }
-      }
     } catch (e) {
       errorText.value = 'Something went wrong'.tr;
       items.clear();
