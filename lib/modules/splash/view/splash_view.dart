@@ -41,7 +41,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // Handle push notification deep link
         final pushNotificationId = box.read<String>('push_notification_id') ?? '';
         if (pushNotificationId.isNotEmpty) {
-          Get.offAllNamed('/notifications_view');
+          final message = box.read<String>('push_notif_message') ?? '';
+          final title = box.read<String>('push_notif_title') ?? '';
+          final image = box.read<String>('push_notif_image') ?? '';
+          
+          box.remove('push_notification_id');
+          box.remove('push_notif_message');
+          box.remove('push_notif_title');
+          box.remove('push_notif_image');
+          
+          final item = NotificationItem(
+            id: pushNotificationId,
+            message: message,
+            link: '',
+            time: 'Just now',
+            title: title.isNotEmpty ? title : null,
+            image: image.isNotEmpty ? image : null,
+          );
+          
+          Get.offAllNamed(AppRoutes.bottomNavbarView);
+          Get.to(() => NotificationDetailView(item: item));
           return;
         }
         
