@@ -47,8 +47,7 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        final box = GetStorage();
-        box.write('push_notification_id', notificationId);
+        GetStorage().write('push_notification_id', notificationId);
       }
     }
     Get.toNamed('/notifications_view');
