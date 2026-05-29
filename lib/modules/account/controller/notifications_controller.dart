@@ -201,7 +201,7 @@ class NotificationController extends GetxController {
     notificationCount.value = items.where((e) => !e.isRead).length;
     Get.snackbar(
       'Success'.tr,
-      '${selectedIds.length} notifications marked as unread'.tr,
+      'Notifications updated'.tr,
       backgroundColor: AppColors.primaryColor,
       snackPosition: SnackPosition.TOP,
       colorText: AppColors.whiteColor,
