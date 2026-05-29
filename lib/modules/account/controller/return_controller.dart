@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/permission_service.dart';
 import '../../../data/repositories/my_order_repository.dart';
 import '../model/refund_reason_model.dart';
 
@@ -91,6 +92,8 @@ class ReturnController extends GetxController {
   }
 
   Future<void> pickFromCamera() async {
+    final allowed = await PermissionService.I.canUseCameraOrExplain();
+    if (!allowed) return;
     final x = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 85,
@@ -99,6 +102,8 @@ class ReturnController extends GetxController {
   }
 
   Future<void> pickFromGallery() async {
+    final allowed = await PermissionService.I.canUseGalleryOrExplain();
+    if (!allowed) return;
     final xs = await _picker.pickMultiImage(imageQuality: 85);
     if (xs.isNotEmpty) images.addAll(xs);
   }
@@ -118,7 +123,6 @@ class ReturnController extends GetxController {
 
     final reason = selectedReason.value;
     if (reason == null) {
-      // Don't show snackbar here - dialog handles UI feedback
       return false;
     }
 
@@ -136,10 +140,8 @@ class ReturnController extends GetxController {
         images: files,
       );
 
-      // ✅ Return result without showing snackbar - dialog handles UI feedback
       return ok;
     } catch (e) {
-      // ✅ Return false without showing snackbar - dialog handles UI feedback
       return false;
     } finally {
       submitting.value = false;
