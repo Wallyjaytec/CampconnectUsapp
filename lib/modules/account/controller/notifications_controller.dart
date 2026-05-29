@@ -152,7 +152,8 @@ class NotificationController extends GetxController {
   }
 
   void showNotificationOptions(NotificationItem item) {
-    final isDark = Get.theme.brightness == Brightness.dark;
+    final context = Get.context;
+    final isDark = context != null ? Theme.of(context).brightness == Brightness.dark : false;
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(20),
@@ -217,7 +218,8 @@ class NotificationController extends GetxController {
   }
 
   void showTopMenu() {
-    final isDark = Get.theme.brightness == Brightness.dark;
+    final context = Get.context;
+    final isDark = context != null ? Theme.of(context).brightness == Brightness.dark : false;
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(20),
