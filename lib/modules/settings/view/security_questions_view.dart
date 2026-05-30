@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 
 class SecurityQuestionsView extends StatefulWidget {
   const SecurityQuestionsView({super.key});
@@ -21,43 +23,62 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
     'What is your favorite movie?',
   ];
 
+  int _step = 1;
   String? _selectedQuestion1;
   String? _selectedQuestion2;
-  final TextEditingController _answer1Controller = TextEditingController();
-  final TextEditingController _answer2Controller = TextEditingController();
+  final TextEditingController _answerController = TextEditingController();
   String? _errorMessage;
-
-  List<String> get _availableForQuestion2 {
-    return _questions.where((q) => q != _selectedQuestion1).toList();
-  }
 
   @override
   void dispose() {
-    _answer1Controller.dispose();
-    _answer2Controller.dispose();
+    _answerController.dispose();
     super.dispose();
   }
 
-  void _save() {
-    if (_selectedQuestion1 == null || _selectedQuestion2 == null) {
-      setState(() => _errorMessage = 'Please select both security questions.'.tr);
-      return;
-    }
-    if (_answer1Controller.text.trim().isEmpty || _answer2Controller.text.trim().isEmpty) {
-      setState(() => _errorMessage = 'Please answer both security questions.'.tr);
-      return;
-    }
-    if (_selectedQuestion1 == _selectedQuestion2) {
-      setState(() => _errorMessage = 'Please select two different questions.'.tr);
-      return;
-    }
+  void _nextStep() {
+    if (_step == 1) {
+      if (_selectedQuestion1 == null) {
+        setState(() => _errorMessage = 'Please select a question'.tr);
+        return;
+      }
+      if (_answerController.text.trim().isEmpty) {
+        setState(() => _errorMessage = 'Please enter an answer'.tr);
+        return;
+      }
+      setState(() {
+        _step = 2;
+        _errorMessage = null;
+        _answerController.clear();
+      });
+    } else {
+      if (_selectedQuestion2 == null) {
+        setState(() => _errorMessage = 'Please select a question'.tr);
+        return;
+      }
+      if (_answerController.text.trim().isEmpty) {
+        setState(() => _errorMessage = 'Please enter an answer'.tr);
+        return;
+      }
+      if (_selectedQuestion1 == _selectedQuestion2) {
+        setState(() => _errorMessage = 'Please select two different questions'.tr);
+        return;
+      }
 
-    Get.back(result: {
-      'question1': _selectedQuestion1,
-      'answer1': _answer1Controller.text.trim(),
-      'question2': _selectedQuestion2,
-      'answer2': _answer2Controller.text.trim(),
-    });
+      // All good, return data
+      Get.back(result: {
+        'question1': _selectedQuestion1,
+        'answer1': _answerController.text.trim(),
+        'question2': _selectedQuestion2,
+        'answer2': _answerController.text.trim(),
+      });
+    }
+  }
+
+  List<String> get _availableQuestions {
+    if (_step == 2) {
+      return _questions.where((q) => q != _selectedQuestion1).toList();
+    }
+    return _questions;
   }
 
   @override
@@ -66,11 +87,32 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
-        title: Text('Security Questions'.tr),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+        automaticallyImplyLeading: false,
+        leadingWidth: 44,
+        leading: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            onPressed: () {
+              final nav = Navigator.of(context);
+              if (nav.canPop()) {
+                nav.pop();
+                return;
+              }
+              if (Get.key.currentState?.canPop() ?? false) {
+                Get.back();
+                return;
+              }
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
+            },
+            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20),
+            splashRadius: 20,
+          ),
         ),
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Text('Security Questions'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -78,21 +120,33 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Set up recovery questions.\nYou\'ll need these if you forget your passcode.'.tr,
+              '${'Step'.tr} $_step ${'of'.tr} 2',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Set up recovery questions. You\'ll need these if you forget your passcode.'.tr,
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 30),
-            Text('Question 1'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              '${'Question'.tr} $_step',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedQuestion1,
+              value: _step == 1 ? _selectedQuestion1 : _selectedQuestion2,
               hint: Text('Select a question'.tr),
-              items: _questions.map((q) {
+              items: _availableQuestions.map((q) {
                 return DropdownMenuItem(value: q, child: Text(q, style: const TextStyle(fontSize: 14)));
               }).toList(),
               onChanged: (value) {
                 setState(() {
-                  _selectedQuestion1 = value;
+                  if (_step == 1) {
+                    _selectedQuestion1 = value;
+                  } else {
+                    _selectedQuestion2 = value;
+                  }
                   _errorMessage = null;
                 });
               },
@@ -100,38 +154,13 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _answer1Controller,
+              controller: _answerController,
               decoration: InputDecoration(
                 hintText: 'Your answer'.tr,
                 border: const OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() => _errorMessage = null),
-            ),
-            const SizedBox(height: 25),
-            Text('Question 2'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _selectedQuestion2,
-              hint: Text('Select a question'.tr),
-              items: _availableForQuestion2.map((q) {
-                return DropdownMenuItem(value: q, child: Text(q, style: const TextStyle(fontSize: 14)));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedQuestion2 = value;
-                  _errorMessage = null;
-                });
-              },
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _answer2Controller,
-              decoration: InputDecoration(
-                hintText: 'Your answer'.tr,
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (_) => setState(() => _errorMessage = null),
+              onSubmitted: (_) => _nextStep(),
             ),
             const SizedBox(height: 20),
             if (_errorMessage != null)
@@ -142,14 +171,17 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _save,
+                onPressed: _nextStep,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text('Save & Enable'.tr, style: const TextStyle(fontSize: 16)),
+                child: Text(
+                  _step == 2 ? 'Save & Enable'.tr : 'Next'.tr,
+                  style: const TextStyle(fontSize: 16),
+                ),
               ),
             ),
           ],
