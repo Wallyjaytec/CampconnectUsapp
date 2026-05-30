@@ -4,7 +4,6 @@ import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
-import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/main.dart';
 import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
 import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
@@ -46,14 +45,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
-
-    // Don't navigate if lock screen is showing
-    if (isLockScreenShowing) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _checkPushAndNavigate(attempts: attempts);
-      });
-      return;
-    }
 
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
