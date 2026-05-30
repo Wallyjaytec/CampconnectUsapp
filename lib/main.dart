@@ -39,23 +39,8 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize OneSignal and register listeners FIRST
+  // Initialize OneSignal and register listeners FIRST - before any async work
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
-  
-  // Handle the notification that launched the app (cold start)
-  final initialNotification = await OneSignal.Notifications.getInitialNotification();
-  if (initialNotification != null) {
-    final additionalData = initialNotification.additionalData;
-    if (additionalData != null) {
-      final notificationId = additionalData['notification_id']?.toString();
-      if (notificationId != null && notificationId.isNotEmpty) {
-        PushNotificationData.notificationId = notificationId;
-        PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
-        PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
-        PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
-      }
-    }
-  }
   
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
     if (Get.isRegistered<NotificationController>()) {
