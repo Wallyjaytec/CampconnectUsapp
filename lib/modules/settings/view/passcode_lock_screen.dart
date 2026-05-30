@@ -82,7 +82,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   void _startLockout() {
     _isLockedOut = true;
     _lockoutSeconds = 60;
-    
+
     _lockoutTimer?.cancel();
     _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -153,10 +153,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkCardColor : Colors.white;
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -271,6 +270,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   Widget _buildKey(String value, {String? text, bool isAction = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: InkWell(
@@ -281,12 +281,25 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           height: 70,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.shade300, width: 1),
+            border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300, width: 1),
           ),
           child: Center(
             child: text != null
-                ? Text(text, style: TextStyle(fontSize: isAction ? 16 : 22, color: isAction ? AppColors.primaryColor : Colors.black))
-                : Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500)),
+                ? Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: isAction ? 16 : 22,
+                      color: isAction ? AppColors.primaryColor : (isDark ? Colors.white : Colors.black),
+                    ),
+                  )
+                : Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
           ),
         ),
       ),
