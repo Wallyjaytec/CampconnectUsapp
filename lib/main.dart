@@ -1,5 +1,6 @@
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -44,6 +45,25 @@ Future<void> main() async {
 
   // Initialize OneSignal immediately
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
+
+  // Check native cold start notification data
+  try {
+    const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
+    final result = await channel.invokeMethod('getColdStartNotification');
+    if (result != null && result is Map) {
+      final notificationId = result['notification_id']?.toString();
+      if (notificationId != null && notificationId.isNotEmpty) {
+        pendingNotificationData = {
+          'notification_id': notificationId,
+          'notif_message': result['notif_message']?.toString() ?? '',
+          'notif_title': result['notif_title']?.toString() ?? '',
+          'notif_image': result['notif_image']?.toString() ?? '',
+        };
+      }
+    }
+  } catch (e) {
+    // Ignore
+  }
 
   // Register click listener globally - fires for warm starts, 
   // and cold starts when Flutter engine is ready
