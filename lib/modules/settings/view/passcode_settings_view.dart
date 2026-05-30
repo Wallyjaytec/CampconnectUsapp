@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
 class PasscodeSettingsView extends StatefulWidget {
   const PasscodeSettingsView({super.key});
@@ -15,7 +16,9 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Passcode Lock'),
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        title: Text('Passcode Lock'.tr),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -24,10 +27,10 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       body: ListView(
         children: [
           const SizedBox(height: 10),
-          // Passcode Lock Toggle
           SwitchListTile(
-            secondary: const Icon(Icons.lock_outline),
-            title: const Text('Passcode Lock'),
+            secondary: const Icon(Icons.lock_outline, color: AppColors.primaryColor),
+            title: Text('Passcode Lock'.tr),
+            activeColor: AppColors.primaryColor,
             value: _passcodeEnabled,
             onChanged: (value) {
               setState(() {
@@ -36,41 +39,33 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
             },
           ),
           const Divider(),
-          // Other options (only visible when passcode is ON)
           if (_passcodeEnabled) ...[
             ListTile(
-              leading: const Icon(Icons.key),
-              title: const Text('Change Passcode'),
+              leading: const Icon(Icons.key, color: AppColors.primaryColor),
+              title: Text('Change Passcode'.tr),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                // TODO: Navigate to change passcode screen
-              },
+              onTap: () {},
             ),
             SwitchListTile(
-              secondary: const Icon(Icons.fingerprint),
-              title: const Text('Unlock with Fingerprint'),
+              secondary: const Icon(Icons.fingerprint, color: AppColors.primaryColor),
+              title: Text('Unlock with Fingerprint'.tr),
+              activeColor: AppColors.primaryColor,
               value: false,
-              onChanged: (value) {
-                // TODO: Enable fingerprint
-              },
+              onChanged: (value) {},
             ),
             ListTile(
-              leading: const Icon(Icons.timer_outlined),
-              title: const Text('Auto-lock'),
-              subtitle: const Text('1 min'),
+              leading: const Icon(Icons.timer_outlined, color: AppColors.primaryColor),
+              title: Text('Auto-lock'.tr),
+              subtitle: Text('1 min'.tr),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                // TODO: Show auto-lock options
-              },
+              onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Icons.preview),
-              title: const Text('App in Task Switcher'),
-              subtitle: const Text('Show'),
+              leading: const Icon(Icons.preview, color: AppColors.primaryColor),
+              title: Text('App in Task Switcher'.tr),
+              subtitle: Text('Show'.tr),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                // TODO: Show task switcher options
-              },
+              onTap: () {},
             ),
           ],
         ],
