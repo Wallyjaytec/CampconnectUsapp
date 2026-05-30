@@ -24,6 +24,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   bool _isLockedOut = false;
   int _lockoutSeconds = 0;
   Timer? _lockoutTimer;
+  bool _unlocking = false;
 
   @override
   void dispose() {
@@ -32,7 +33,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _onKeyPressed(String value) {
-    if (_isLockedOut) return;
+    if (_isLockedOut || _unlocking) return;
     if (value == 'delete') {
       if (_passcode.isNotEmpty) {
         setState(() {
@@ -60,7 +61,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _verifyPasscode() {
+    if (_unlocking) return;
     if (_passcode == PasscodeService.passcode) {
+      _unlocking = true;
       _lockoutTimer?.cancel();
       widget.onUnlocked();
     } else {
@@ -112,7 +115,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _forgotPasscode() {
-    if (_isLockedOut) return;
+    if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
       onReset: (newPasscode) {
         Get.back();
@@ -135,46 +138,20 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useFingerprint() async {
-    if (_isLockedOut) return;
+    if (_isLockedOut || _unlocking) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
-      if (!canCheck) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('No biometrics enrolled on this device'.tr),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-        return;
-      }
+      if (!canCheck) return;
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
-      if (authenticated && mounted) {
+      if (authenticated && mounted && !_unlocking) {
+        _unlocking = true;
         _lockoutTimer?.cancel();
         widget.onUnlocked();
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Fingerprint failed. Use passcode instead.'.tr),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    }
+    } catch (_) {}
   }
 
   @override
@@ -334,7 +311,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 }
 
-// Forgot passcode — one question at a time
 class _ForgotPasscodeScreen extends StatefulWidget {
   final Function(String) onReset;
 
