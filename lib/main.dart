@@ -39,15 +39,12 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize OneSignal and register listeners FIRST - before any async work
+  // Initialize OneSignal without await - must be done early
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
+  OneSignal.Notifications.requestPermission(true);
   
-  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    if (Get.isRegistered<NotificationController>()) {
-      Get.find<NotificationController>().refreshList();
-    }
-  });
-  
+  // Register click listener - fires for background AND cold start
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
@@ -68,7 +65,6 @@ Future<void> main() async {
     }
   });
   
-  // NOW init storage and everything else
   await GetStorage.init();
   final box = GetStorage();
   
