@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 
 class PasscodeInputView extends StatefulWidget {
   final String title;
@@ -66,17 +68,38 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
-        title: Text(widget.title),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+        automaticallyImplyLeading: false,
+        leadingWidth: 44,
+        leading: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            onPressed: () {
+              final nav = Navigator.of(context);
+              if (nav.canPop()) {
+                nav.pop();
+                return;
+              }
+              if (Get.key.currentState?.canPop() ?? false) {
+                Get.back();
+                return;
+              }
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
+            },
+            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20),
+            splashRadius: 20,
+          ),
         ),
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Text('Passcode Lock'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            widget.confirmPasscode != null ? 'Confirm your passcode'.tr : 'Create a passcode'.tr,
+            widget.confirmPasscode != null ? 'Confirm your passcode'.tr : 'Create a new passcode'.tr,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 30),
