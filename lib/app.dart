@@ -13,8 +13,10 @@ import 'core/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
+import 'core/services/passcode_service.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
+import 'modules/settings/view/passcode_lock_screen.dart';
 
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
@@ -27,12 +29,15 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
+  int _lastActiveTime = 0;
+  bool _showingLockScreen = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
     
     final box = GetStorage();
     final savedLangCode = box.read<String>('selected_language_api_code');
@@ -71,6 +76,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (Get.locale?.languageCode != locale.languageCode) {
         Get.updateLocale(locale);
       }
+
+      // Check passcode lock
+      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final elapsedMinutes = (now - _lastActiveTime) ~/ 60000;
+        if (elapsedMinutes >= PasscodeService.autoLockMinutes) {
+          _showingLockScreen = true;
+          Get.to(() => PasscodeLockScreen(
+            onUnlocked: () {
+              _showingLockScreen = false;
+              Get.back();
+            },
+          ));
+        }
+      }
+    } else if (state == AppLifecycleState.paused) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
     }
   }
 
@@ -95,7 +117,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: child!,
+          body: _showingLockScreen ? const SizedBox.shrink() : child!,
         );
       },
       initialBinding: InitialBindings(),
