@@ -27,6 +27,7 @@ import 'package:kartly_e_commerce/modules/product/view/product_filter_view.dart'
 import 'package:kartly_e_commerce/modules/product/view/recently_viewed_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/top_sale_product_view.dart';
 import 'package:kartly_e_commerce/modules/seller/view/seller_view.dart';
+import 'package:kartly_e_commerce/modules/settings/view/passcode_settings_view.dart';
 import 'package:kartly_e_commerce/modules/splash/view/splash_view.dart';
 
 import '../../modules/account/model/my_order_model.dart';
@@ -226,5 +227,6 @@ class AppPages {
         return PasswordResetView(token: token);
       },
     ),
+    GetPage(name: AppRoutes.passcodeSettingsView, page: () => const PasscodeSettingsView()),
   ];
 }
