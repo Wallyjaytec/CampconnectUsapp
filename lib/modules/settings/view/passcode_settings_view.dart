@@ -57,7 +57,20 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
           setState(() => _useFingerprint = true);
           PasscodeService.setUseFingerprint(true);
         }
-      } catch (_) {}
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Biometric authentication failed'.tr),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
     } else {
       setState(() => _useFingerprint = false);
       PasscodeService.setUseFingerprint(false);
@@ -105,41 +118,6 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       setState(() => _autoLockMinutes = result);
       PasscodeService.setAutoLockMinutes(result);
     }
-  }
-
-  void _showTaskSwitcherPicker() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('App in Task Switcher'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              const Divider(height: 1),
-              SwitchListTile(
-                title: Text('Show content'.tr),
-                subtitle: Text('Show app preview in task switcher'.tr),
-                activeColor: AppColors.primaryColor,
-                value: _taskSwitcherShow,
-                onChanged: (val) {
-                  setState(() => _taskSwitcherShow = val);
-                  PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide');
-                  Navigator.pop(ctx);
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _handlePasscodeToggle(bool value) async {
@@ -201,6 +179,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       final entered = await Get.to(
         () => PasscodeInputView(
           title: 'Passcode Lock'.tr,
+          hintText: 'Enter your passcode to disable'.tr,
           onCompleted: (code) => Get.back(result: code),
         ),
       );
@@ -244,6 +223,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
     final current = await Get.to(
       () => PasscodeInputView(
         title: 'Passcode Lock'.tr,
+        hintText: 'Enter your current passcode'.tr,
         onCompleted: (code) => Get.back(result: code),
       ),
     );
