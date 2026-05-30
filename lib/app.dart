@@ -64,7 +64,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
         setState(() {
           _showingLockScreen = true;
-          isLockScreenShowing = true;
         });
       }
     }
@@ -73,7 +72,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void _unlock() {
     setState(() {
       _showingLockScreen = false;
-      isLockScreenShowing = false;
     });
     _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
     GetStorage().write('_last_active_time', _lastActiveTime);
@@ -115,7 +113,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           setState(() {
             _showingLockScreen = true;
-            isLockScreenShowing = true;
           });
         }
       }
