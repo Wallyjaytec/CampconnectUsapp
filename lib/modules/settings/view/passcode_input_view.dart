@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -7,12 +8,14 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 class PasscodeInputView extends StatefulWidget {
   final String title;
   final String? confirmPasscode;
+  final String? hintText;
   final Function(String) onCompleted;
 
   const PasscodeInputView({
     super.key,
     required this.title,
     this.confirmPasscode,
+    this.hintText,
     required this.onCompleted,
   });
 
@@ -62,6 +65,12 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
     }
   }
 
+  String get _displayHint {
+    if (widget.hintText != null) return widget.hintText!;
+    if (widget.confirmPasscode != null) return 'Confirm your passcode'.tr;
+    return 'Create a new passcode'.tr;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,7 +108,7 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            widget.confirmPasscode != null ? 'Confirm your passcode'.tr : 'Create a new passcode'.tr,
+            _displayHint,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 30),
