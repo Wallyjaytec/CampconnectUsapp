@@ -8,6 +8,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../../../shared/widgets/theme_switch.dart';
 
@@ -90,6 +91,33 @@ class _SettingsViewState extends State<SettingsView> {
               LanguageSelect(),
               const SizedBox(height: 8),
               CurrencySelect(),
+              const SizedBox(height: 8),
+              // Passcode Lock
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    Get.toNamed(AppRoutes.passcodeSettingsView);
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.lock, color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Passcode Lock'.tr,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
               // Push Notifications
               Container(
