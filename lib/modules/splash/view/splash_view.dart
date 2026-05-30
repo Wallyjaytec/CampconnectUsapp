@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
   bool _navigated = false;
+  String _debugInfo = 'Waiting...';
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -35,6 +36,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
+      _updateDebugInfo();
 
       Timer(const Duration(seconds: 3), () {
         if (!mounted || _navigated) return;
@@ -43,8 +45,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
+  void _updateDebugInfo() {
+    setState(() {
+      _debugInfo = 'pending: ${pendingNotificationData != null ? "YES" : "null"}\n'
+          'PushData.id: ${PushNotificationData.notificationId ?? "null"}\n'
+          'Time: ${DateTime.now().second}';
+    });
+  }
+
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
+
+    _updateDebugInfo();
 
     // Check global cache from cold start first
     if (pendingNotificationData != null) {
@@ -52,6 +64,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       pendingNotificationData = null;
       
       _navigated = true;
+      setState(() { _debugInfo = 'NAVIGATING (cache)'; });
+      
       final item = NotificationItem(
         id: data['notification_id']!,
         message: data['notif_message'] ?? '',
@@ -68,6 +82,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
       _navigated = true;
+      setState(() { _debugInfo = 'NAVIGATING (PushData)'; });
+      
       final item = NotificationItem(
         id: PushNotificationData.notificationId!,
         message: PushNotificationData.message ?? '',
@@ -89,9 +105,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     if (attempts > 10) {
       _navigated = true;
+      setState(() { _debugInfo = 'No push data, normal nav'; });
       _navigateNormally();
       return;
     }
+    
+    setState(() { _debugInfo = 'Checking attempt $attempts...'; });
     
     Future.delayed(const Duration(milliseconds: 500), () {
       _checkPushAndNavigate(attempts: attempts + 1);
@@ -174,9 +193,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               child: SizedBox(width: 160, height: 160, child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain))),
             ),
             const SizedBox(height: 20),
-            Text(
-              'Push: ${pendingNotificationData?['notification_id'] ?? PushNotificationData.notificationId ?? "null"}',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _debugInfo,
+                style: const TextStyle(color: Colors.white, fontSize: 11, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
