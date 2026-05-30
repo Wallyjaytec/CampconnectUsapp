@@ -41,22 +41,17 @@ Future<void> main() async {
   
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
   
-  // OLD API - works on cold start
-  OneSignal.shared.setNotificationOpenedHandler((openedResult) {
-    final additionalData = openedResult.notification?.additionalData;
-    if (additionalData != null) {
-      final notificationId = additionalData['notification_id']?.toString();
-      if (notificationId != null && notificationId.isNotEmpty) {
-        PushNotificationData.notificationId = notificationId;
-        PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
-        PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
-        PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
-        
-        if (Get.isRegistered<NotificationController>()) {
-          final controller = Get.find<NotificationController>();
-          controller.refreshList().then((_) {
-            controller.checkPushNotification();
-          });
+  // Handle cold start - notification that launched the app
+  OneSignal.Notifications.getInitialNotification().then((notification) {
+    if (notification != null) {
+      final additionalData = notification.additionalData;
+      if (additionalData != null) {
+        final notificationId = additionalData['notification_id']?.toString();
+        if (notificationId != null && notificationId.isNotEmpty) {
+          PushNotificationData.notificationId = notificationId;
+          PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
+          PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
+          PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
         }
       }
     }
