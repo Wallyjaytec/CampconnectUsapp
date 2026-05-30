@@ -48,6 +48,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       LanguageService.load(localeCode);
     });
+
+    // Check passcode on cold start
+    if (PasscodeService.isPasscodeEnabled) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+      final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+
+      if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_showingLockScreen) {
+            _showingLockScreen = true;
+            Get.to(() => PasscodeLockScreen(
+              onUnlocked: () {
+                _showingLockScreen = false;
+                _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+                GetStorage().write('_last_active_time', _lastActiveTime);
+                Get.back();
+              },
+            ));
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -78,7 +101,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      // Check passcode lock
+      // Check passcode lock (warm start)
       if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
