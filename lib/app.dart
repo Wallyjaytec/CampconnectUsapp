@@ -37,9 +37,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
     
     final box = GetStorage();
+    _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
+    
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
@@ -89,6 +90,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             onUnlocked: () {
               _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
               Get.back();
             },
           ));
@@ -96,8 +98,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
     } else if (state == AppLifecycleState.paused) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     } else if (state == AppLifecycleState.inactive) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     }
   }
 
