@@ -31,7 +31,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -68,18 +67,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (_showingLockScreen) return;
     _showingLockScreen = true;
     
-    _navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (_) => PasscodeLockScreen(
-          onUnlocked: () {
-            _showingLockScreen = false;
-            _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-            GetStorage().write('_last_active_time', _lastActiveTime);
-            _navigatorKey.currentState?.pop();
-          },
-        ),
-      ),
-    );
+    Get.to(() => PasscodeLockScreen(
+      onUnlocked: () {
+        _showingLockScreen = false;
+        _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+        GetStorage().write('_last_active_time', _lastActiveTime);
+        Get.back();
+      },
+    ), fullscreenDialog: true, transition: Transition.noTransition);
   }
 
   @override
@@ -110,7 +105,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      // Check passcode lock (warm start)
       if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
@@ -132,7 +126,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Obx(() => GetMaterialApp(
-      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       scrollBehavior: AppScrollBehavior(),
       useInheritedMediaQuery: true,
