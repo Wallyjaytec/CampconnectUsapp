@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
 
-      Timer(const Duration(seconds: 10), () {
+      Timer(const Duration(seconds: 3), () {
         if (!mounted || _navigated) return;
         _checkPushAndNavigate(attempts: 0);
       });
@@ -45,6 +45,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
+
+    // Check global cache from cold start first
+    if (pendingNotificationData != null) {
+      final data = pendingNotificationData!;
+      pendingNotificationData = null;
+      
+      _navigated = true;
+      final item = NotificationItem(
+        id: data['notification_id']!,
+        message: data['notif_message'] ?? '',
+        link: '',
+        time: 'Just now',
+        title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+        image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+      );
+      
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.to(() => NotificationDetailView(item: item));
+      return;
+    }
     
     if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
       _navigated = true;
@@ -155,7 +175,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
             Text(
-              'Push: ${PushNotificationData.notificationId ?? "null"}',
+              'Push: ${pendingNotificationData?['notification_id'] ?? PushNotificationData.notificationId ?? "null"}',
               style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ],
