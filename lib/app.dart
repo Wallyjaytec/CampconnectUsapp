@@ -80,18 +80,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       // Check passcode lock
       if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedMinutes = (now - _lastActiveTime) ~/ 60000;
-        if (elapsedMinutes >= PasscodeService.autoLockMinutes) {
+        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+        
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               Get.back();
             },
           ));
         }
       }
     } else if (state == AppLifecycleState.paused) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+    } else if (state == AppLifecycleState.inactive) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
     }
   }
