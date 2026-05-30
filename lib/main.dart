@@ -25,6 +25,9 @@ import 'modules/product/controller/new_product_list_controller.dart';
 
 final _appLinks = AppLinks();
 
+// Global cache for cold start notification data
+Map<String, dynamic>? pendingNotificationData;
+
 class PushNotificationData {
   static String? notificationId;
   static String? message;
@@ -38,21 +41,32 @@ Future<void> initServices() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Initialize OneSignal immediately
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
-  
-  // Handle cold & warm start - notification clicks
+
+  // Register click listener globally - fires for warm starts, 
+  // and cold starts when Flutter engine is ready
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        PushNotificationData.notificationId = notificationId;
-        PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
-        PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
-        PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
-        
+        // Cache the data
+        pendingNotificationData = {
+          'notification_id': notificationId,
+          'notif_message': additionalData['notif_message']?.toString() ?? '',
+          'notif_title': additionalData['notif_title']?.toString() ?? '',
+          'notif_image': additionalData['notif_image']?.toString() ?? '',
+        };
+
+        // If app is already running, process immediately
         if (Get.isRegistered<NotificationController>()) {
+          PushNotificationData.notificationId = notificationId;
+          PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
+          PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
+          PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
+
           final controller = Get.find<NotificationController>();
           controller.refreshList().then((_) {
             controller.checkPushNotification();
@@ -61,38 +75,38 @@ Future<void> main() async {
       }
     }
   });
-  
+
   await GetStorage.init();
   final box = GetStorage();
-  
+
   final startTime = DateTime.now();
-  
+
   try {
     await initServices().timeout(const Duration(seconds: 5));
   } catch (_) {}
-  
+
   Get.put(ThemeController(), permanent: true);
-  
+
   await Get.putAsync<ConnectivityService>(() => ConnectivityService().init());
-  
+
   final savedLanguage = box.read<String>('selected_language_api_code');
   if (savedLanguage != null && savedLanguage.isNotEmpty) {
     try {
       await LanguageService.load(savedLanguage);
     } catch (_) {}
   }
-  
+
   try {
     Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
   } catch (_) {}
-  
+
   try {
     final siteRepo = SiteSettingsPropertiesRepository(ApiService());
     final currencyService = CurrencyService(siteRepo);
     Get.put<CurrencyService>(currencyService, permanent: true);
     Get.put<CurrencyController>(CurrencyController(siteRepo, currencyService), permanent: true);
   } catch (_) {}
-  
+
   Get.put<NotificationController>(NotificationController(), permanent: true);
   Get.put(CategoryController(CategoryRepository(ApiService())));
   Get.put<NewProductListController>(NewProductListController(ProductRepository(ApiService())), permanent: true);
@@ -101,7 +115,7 @@ Future<void> main() async {
   Get.put(AuthController(), permanent: true);
 
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
-  
+
   try {
     await LanguageService.load(savedApiCode);
   } catch (_) {}
@@ -114,14 +128,12 @@ Future<void> main() async {
         if (orderId > 0) {
           box.write('deep_link_order_id', orderId);
         }
-      }
-      else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
+      } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
         final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
         if (refundId > 0) {
           box.write('deep_link_refund_id', refundId);
         }
-      }
-      else {
+      } else {
         final token = uri.queryParameters['u'] ?? '';
         if (token.isNotEmpty) {
           box.write('deep_link_token', token);
@@ -141,14 +153,12 @@ Future<void> main() async {
       if (orderId > 0) {
         box.write('deep_link_order_id', orderId);
       }
-    }
-    else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
+    } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
       final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
       if (refundId > 0) {
         box.write('deep_link_refund_id', refundId);
       }
-    }
-    else {
+    } else {
       final token = uri.queryParameters['u'] ?? '';
       if (token.isNotEmpty) {
         box.write('deep_link_token', token);
