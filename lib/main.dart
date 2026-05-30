@@ -28,7 +28,6 @@ import 'modules/product/controller/new_product_list_controller.dart';
 final _appLinks = AppLinks();
 
 Map<String, dynamic>? pendingNotificationData;
-bool isLockScreenShowing = false;
 
 class PushNotificationData {
   static String? notificationId;
