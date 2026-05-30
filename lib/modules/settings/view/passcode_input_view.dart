@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
 class PasscodeInputView extends StatefulWidget {
   final String title;
@@ -41,20 +42,17 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
           _errorMessage = '';
         });
 
-        // Auto-check when reaching 6 digits
         if (_passcode.length == 6) {
           if (widget.confirmPasscode != null) {
-            // Confirmation mode
             if (_passcode == widget.confirmPasscode) {
               widget.onCompleted(_passcode);
             } else {
               setState(() {
-                _errorMessage = 'Passcodes do not match. Try again.';
+                _errorMessage = 'Passcodes do not match. Try again.'.tr;
                 _passcode = '';
               });
             }
           } else {
-            // First entry mode
             widget.onCompleted(_passcode);
           }
         }
@@ -66,6 +64,8 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
         title: Text(widget.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -75,14 +75,11 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Title
           Text(
-            widget.confirmPasscode != null ? 'Confirm your passcode' : 'Create a passcode',
+            widget.confirmPasscode != null ? 'Confirm your passcode'.tr : 'Create a passcode'.tr,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 30),
-
-          // Passcode dots
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(6, (index) {
@@ -93,14 +90,12 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.grey, width: 1.5),
-                  color: index < _passcode.length ? Theme.of(context).primaryColor : Colors.transparent,
+                  color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
                 ),
               );
             }),
           ),
           const SizedBox(height: 10),
-
-          // Error message
           if (_errorMessage.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10),
@@ -110,8 +105,6 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
               ),
             ),
           const SizedBox(height: 40),
-
-          // Keypad
           _buildKeypad(),
         ],
       ),
@@ -148,7 +141,7 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildKey('clear', text: 'Clear', isAction: true),
+            _buildKey('clear', text: 'Clear'.tr, isAction: true),
             _buildKey('0'),
             _buildKey('delete', text: '⌫', isAction: true),
           ],
@@ -172,7 +165,7 @@ class _PasscodeInputViewState extends State<PasscodeInputView> {
           ),
           child: Center(
             child: text != null
-                ? Text(text, style: TextStyle(fontSize: isAction ? 16 : 22, color: isAction ? Colors.grey.shade600 : Colors.black))
+                ? Text(text, style: TextStyle(fontSize: isAction ? 16 : 22, color: isAction ? AppColors.primaryColor : Colors.black))
                 : Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500)),
           ),
         ),
