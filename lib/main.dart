@@ -27,8 +27,8 @@ import 'modules/product/controller/new_product_list_controller.dart';
 
 final _appLinks = AppLinks();
 
-// Global cache for cold start notification data
 Map<String, dynamic>? pendingNotificationData;
+bool isLockScreenShowing = false;
 
 class PushNotificationData {
   static String? notificationId;
@@ -44,10 +44,8 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize OneSignal immediately
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
-  // Check native cold start notification data
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
     final result = await channel.invokeMethod('getColdStartNotification');
@@ -62,11 +60,8 @@ Future<void> main() async {
         };
       }
     }
-  } catch (e) {
-    // Ignore
-  }
+  } catch (e) {}
 
-  // Register click listener globally
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
@@ -97,7 +92,6 @@ Future<void> main() async {
   await GetStorage.init();
   final box = GetStorage();
 
-  // Track app lifecycle for passcode auto-lock
   if (PasscodeService.isPasscodeEnabled) {
     box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
   }
