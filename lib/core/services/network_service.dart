@@ -42,8 +42,6 @@ class NetworkService extends GetxService {
   }
 
   void _showNoInternetDialog() {
-    if (Get.isDialogOpen == true) return;
-
     Get.dialog(
       PopScope(
         canPop: false,
