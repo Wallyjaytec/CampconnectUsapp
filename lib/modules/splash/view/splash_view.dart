@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
 
-      Timer(const Duration(seconds: 3), () {
+      Timer(const Duration(seconds: 10), () {
         if (!mounted || _navigated) return;
         _checkPushAndNavigate(attempts: 0);
       });
