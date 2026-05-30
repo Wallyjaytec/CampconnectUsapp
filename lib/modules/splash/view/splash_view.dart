@@ -47,10 +47,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
 
-    // Wait for passcode lock check on cold start
-    if (PasscodeService.isPasscodeEnabled && attempts < 8) {
+    // Don't navigate if lock screen is showing
+    if (isLockScreenShowing) {
       Future.delayed(const Duration(milliseconds: 500), () {
-        _checkPushAndNavigate(attempts: attempts + 1);
+        _checkPushAndNavigate(attempts: attempts);
       });
       return;
     }
