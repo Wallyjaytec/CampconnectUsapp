@@ -56,17 +56,30 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         if (authenticated) {
           setState(() => _useFingerprint = true);
           PasscodeService.setUseFingerprint(true);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Authentication failed. Try again.'.tr),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Biometric authentication failed'.tr),
+              content: Text('Biometric error: ${e.toString()}'.tr),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 2),
+              duration: const Duration(seconds: 3),
             ),
           );
         }
