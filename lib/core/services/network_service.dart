@@ -49,7 +49,7 @@ class NetworkService extends GetxService {
         canPop: false,
         child: GetBuilder<ThemeController>(
           builder: (ctrl) {
-            final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+            final isDark = ctrl.isDarkMode.value;
             return Dialog(
               backgroundColor: isDark
                   ? AppColors.darkProductCardColor
