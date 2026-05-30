@@ -9,6 +9,7 @@ import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
 import 'package:kartly_e_commerce/core/services/connectivity_service.dart';
+import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -65,14 +66,12 @@ Future<void> main() async {
     // Ignore
   }
 
-  // Register click listener globally - fires for warm starts, 
-  // and cold starts when Flutter engine is ready
+  // Register click listener globally
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        // Cache the data
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -80,7 +79,6 @@ Future<void> main() async {
           'notif_image': additionalData['notif_image']?.toString() ?? '',
         };
 
-        // If app is already running, process immediately
         if (Get.isRegistered<NotificationController>()) {
           PushNotificationData.notificationId = notificationId;
           PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
@@ -98,6 +96,11 @@ Future<void> main() async {
 
   await GetStorage.init();
   final box = GetStorage();
+
+  // Track app lifecycle for passcode auto-lock
+  if (PasscodeService.isPasscodeEnabled) {
+    box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+  }
 
   final startTime = DateTime.now();
 
