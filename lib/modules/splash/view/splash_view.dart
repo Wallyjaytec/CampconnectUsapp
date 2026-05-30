@@ -46,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
 
-    // Check global cache from cold start first
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
       pendingNotificationData = null;
@@ -87,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
     
-    if (attempts > 10) {
+    if (attempts > 3) {
       _navigated = true;
       _navigateNormally();
       return;
