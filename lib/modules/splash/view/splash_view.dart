@@ -22,6 +22,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  bool _navigated = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -36,88 +37,104 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       _controller.forward();
 
       Timer(const Duration(seconds: 3), () {
-        if (!mounted) return;
-        final box = GetStorage();
-        
-        // Handle push notification deep link
-        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-          final item = NotificationItem(
-            id: PushNotificationData.notificationId!,
-            message: PushNotificationData.message ?? '',
-            link: '',
-            time: 'Just now',
-            title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
-            image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
-          );
-          
-          PushNotificationData.notificationId = null;
-          PushNotificationData.message = null;
-          PushNotificationData.title = null;
-          PushNotificationData.image = null;
-          
-          Get.offAllNamed(AppRoutes.bottomNavbarView);
-          Get.to(() => NotificationDetailView(item: item));
-          return;
-        }
-        
-        // Handle refund deep link
-        final refundId = box.read<int>('deep_link_refund_id') ?? 0;
-        if (refundId > 0) {
-          box.remove('deep_link_refund_id');
-          if (!isLoggedIn) {
-            Get.offAllNamed(AppRoutes.bottomNavbarView);
-            Future.delayed(const Duration(milliseconds: 200), () {
-              Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.refundRequestDetailsView, 'refund_id': refundId});
-            });
-            return;
-          }
-          Get.offAllNamed(AppRoutes.bottomNavbarView);
-          Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
-          return;
-        }
-        
-        // Handle order deep link
-        final orderId = box.read<int>('deep_link_order_id') ?? 0;
-        if (orderId > 0) {
-          box.remove('deep_link_order_id');
-          if (!isLoggedIn) {
-            Get.offAllNamed(AppRoutes.bottomNavbarView);
-            Future.delayed(const Duration(milliseconds: 200), () {
-              Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.myOrderDetailsView, 'order_id': orderId});
-            });
-            return;
-          }
-          Get.offAllNamed(AppRoutes.bottomNavbarView);
-          Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
-          return;
-        }
-        
-        final token = box.read<String>('deep_link_token') ?? '';
-        final type = box.read<String>('deep_link_type') ?? '';
-        if (token.isNotEmpty) {
-          box.remove('deep_link_token');
-          box.remove('deep_link_type');
-          if (type == 'email_verify') {
-            Get.offAll(() => VerificationSuccessView(code: token));
-          } else {
-            Get.offAll(() => PasswordResetView(token: token));
-          }
-          return;
-        }
-        
-        final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
-        final languageSelected = box.read<bool>('language_selected') ?? false;
-        final countrySelected = box.read<bool>('country_selected') ?? false;
-        final currencySelected = box.read<bool>('currency_selected') ?? false;
-        
-        if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
-          Get.offAllNamed(AppRoutes.languageSelect);
-          return;
-        }
-        
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        if (!mounted || _navigated) return;
+        _checkPushAndNavigate(attempts: 0);
       });
     });
+  }
+
+  void _checkPushAndNavigate({int attempts = 0}) {
+    if (!mounted || _navigated) return;
+    
+    if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+      _navigated = true;
+      final item = NotificationItem(
+        id: PushNotificationData.notificationId!,
+        message: PushNotificationData.message ?? '',
+        link: '',
+        time: 'Just now',
+        title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
+        image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
+      );
+      
+      PushNotificationData.notificationId = null;
+      PushNotificationData.message = null;
+      PushNotificationData.title = null;
+      PushNotificationData.image = null;
+      
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.to(() => NotificationDetailView(item: item));
+      return;
+    }
+    
+    if (attempts > 10) {
+      _navigated = true;
+      _navigateNormally();
+      return;
+    }
+    
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _checkPushAndNavigate(attempts: attempts + 1);
+    });
+  }
+
+  void _navigateNormally() {
+    final box = GetStorage();
+    
+    final refundId = box.read<int>('deep_link_refund_id') ?? 0;
+    if (refundId > 0) {
+      box.remove('deep_link_refund_id');
+      if (!isLoggedIn) {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Future.delayed(const Duration(milliseconds: 200), () {
+          Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.refundRequestDetailsView, 'refund_id': refundId});
+        });
+        return;
+      }
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
+      return;
+    }
+    
+    final orderId = box.read<int>('deep_link_order_id') ?? 0;
+    if (orderId > 0) {
+      box.remove('deep_link_order_id');
+      if (!isLoggedIn) {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Future.delayed(const Duration(milliseconds: 200), () {
+          Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.myOrderDetailsView, 'order_id': orderId});
+        });
+        return;
+      }
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
+      return;
+    }
+    
+    final token = box.read<String>('deep_link_token') ?? '';
+    final type = box.read<String>('deep_link_type') ?? '';
+    if (token.isNotEmpty) {
+      box.remove('deep_link_token');
+      box.remove('deep_link_type');
+      if (type == 'email_verify') {
+        Get.offAll(() => VerificationSuccessView(code: token));
+      } else {
+        Get.offAll(() => PasswordResetView(token: token));
+      }
+      return;
+    }
+    
+    final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
+    final languageSelected = box.read<bool>('language_selected') ?? false;
+    final countrySelected = box.read<bool>('country_selected') ?? false;
+    final currencySelected = box.read<bool>('currency_selected') ?? false;
+    
+    if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
+      Get.offAllNamed(AppRoutes.languageSelect);
+      return;
+    }
+    
+    Get.offAllNamed(AppRoutes.bottomNavbarView);
   }
 
   @override
@@ -140,10 +157,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             Text(
               'Push: ${PushNotificationData.notificationId ?? "null"}',
               style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-            Text(
-              'Msg: ${(PushNotificationData.message ?? "null").length > 30 ? "${PushNotificationData.message!.substring(0, 30)}..." : PushNotificationData.message ?? "null"}',
-              style: const TextStyle(color: Colors.white, fontSize: 10),
             ),
           ],
         ),
