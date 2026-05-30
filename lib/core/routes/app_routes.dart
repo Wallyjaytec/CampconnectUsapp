@@ -51,4 +51,5 @@ class AppRoutes {
   static const refundRequestDetailsView = '/refund_request_details_view';
   static const followingProductsView = '/following_products_view';
   static const recentlyViewedView = '/recently_viewed_view';
+  static const passcodeSettingsView = '/passcode_settings_view';
 }
