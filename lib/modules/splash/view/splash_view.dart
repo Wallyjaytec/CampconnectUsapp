@@ -128,10 +128,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) => Transform.translate(offset: Offset(_slideAnimation.value, 0), child: Opacity(opacity: _fadeAnimation.value, child: child)),
-          child: SizedBox(width: 160, height: 160, child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain))),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) => Transform.translate(offset: Offset(_slideAnimation.value, 0), child: Opacity(opacity: _fadeAnimation.value, child: child)),
+              child: SizedBox(width: 160, height: 160, child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain))),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Push: ${PushNotificationData.notificationId ?? "null"}',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+            Text(
+              'Msg: ${(PushNotificationData.message ?? "null").length > 30 ? "${PushNotificationData.message!.substring(0, 30)}..." : PushNotificationData.message ?? "null"}',
+              style: const TextStyle(color: Colors.white, fontSize: 10),
+            ),
+          ],
         ),
       ),
     );
