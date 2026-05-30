@@ -31,6 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
+  bool _lockCheckDone = false;
 
   @override
   void initState() {
@@ -50,23 +51,34 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     });
 
     // Check passcode on cold start
-    if (PasscodeService.isPasscodeEnabled) {
+    _checkLockOnStart();
+  }
+
+  void _checkLockOnStart() {
+    if (PasscodeService.isPasscodeEnabled && !_lockCheckDone) {
       final now = DateTime.now().millisecondsSinceEpoch;
       final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
       final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
 
       if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+        _lockCheckDone = true;
+        _showingLockScreen = true;
+        
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_showingLockScreen) {
-            _showingLockScreen = true;
-            Get.to(() => PasscodeLockScreen(
-              onUnlocked: () {
-                _showingLockScreen = false;
-                _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-                GetStorage().write('_last_active_time', _lastActiveTime);
-                Get.back();
-              },
-            ));
+          if (mounted) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              barrierColor: Colors.black,
+              builder: (_) => PasscodeLockScreen(
+                onUnlocked: () {
+                  _showingLockScreen = false;
+                  _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+                  GetStorage().write('_last_active_time', _lastActiveTime);
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
           }
         });
       }
@@ -109,14 +121,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
-          Get.to(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _showingLockScreen = false;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
-            },
-          ));
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            barrierColor: Colors.black,
+            builder: (_) => PasscodeLockScreen(
+              onUnlocked: () {
+                _showingLockScreen = false;
+                _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+                GetStorage().write('_last_active_time', _lastActiveTime);
+                Navigator.of(context).pop();
+              },
+            ),
+          );
         }
       }
     } else if (state == AppLifecycleState.paused) {
@@ -146,12 +163,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       theme: AppTheme.lightFor(_locale.value),
       darkTheme: AppTheme.darkFor(_locale.value),
       themeMode: ThemeMode.system,
-      builder: (context, child) {
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: _showingLockScreen ? const SizedBox.shrink() : child!,
-        );
-      },
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
       getPages: AppPages.pages,
