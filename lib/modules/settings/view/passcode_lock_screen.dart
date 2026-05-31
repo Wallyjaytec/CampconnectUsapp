@@ -48,7 +48,11 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (!mounted || _unlocking) return;
     _unlocking = true;
     _lockoutTimer?.cancel();
-    widget.onUnlocked();
+    Future.microtask(() {
+      if (mounted) {
+        widget.onUnlocked();
+      }
+    });
   }
 
   void _onKeyPressed(String value) {
@@ -152,8 +156,15 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   void _forgotPasscode() {
     if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
-      onReset: (newPasscode) {
+      onReset: (newPasscode) async {
         Get.back();
+        await PasscodeService.setPasscodeOnServer(
+          passcode: newPasscode,
+          question1: PasscodeService.securityQuestion1 ?? '',
+          answer1: PasscodeService.securityAnswer1 ?? '',
+          question2: PasscodeService.securityQuestion2 ?? '',
+          answer2: PasscodeService.securityAnswer2 ?? '',
+        );
         PasscodeService.setPasscode(newPasscode);
         _lockoutTimer?.cancel();
         if (mounted) {
