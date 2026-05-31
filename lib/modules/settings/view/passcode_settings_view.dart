@@ -361,7 +361,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
             activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
             inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
             inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
-            value: _useFingerprint,
+            value: _passcodeEnabled ? _useFingerprint : false,
             onChanged: _passcodeEnabled ? _handleFingerprintToggle : null,
           ),
           ListTile(
@@ -378,7 +378,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
             activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
             inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
             inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
-            value: _taskSwitcherShow,
+            value: _passcodeEnabled ? _taskSwitcherShow : false,
             onChanged: _passcodeEnabled ? (val) {
               setState(() => _taskSwitcherShow = val);
               PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide');
