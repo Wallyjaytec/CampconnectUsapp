@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:local_auth/local_auth.dart';
@@ -161,12 +162,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _forgotPasscode() {
-    _debugText = 'forgot tapped, lockedOut=$_isLockedOut, unlocking=$_unlocking';
+    _debugText = 'forgot tapped';
     setState(() {});
     if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
       onReset: (newPasscode) async {
-        _debugText = 'Reset callback, newPasscode=$newPasscode';
+        _debugText = 'Reset done';
         setState(() {});
         await PasscodeService.setPasscodeOnServer(
           passcode: newPasscode,
@@ -184,7 +185,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           _passcode = '';
           _errorMessage = '';
           _isLockedOut = false;
-          _debugText = 'Reset done, staying locked';
         });
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
@@ -204,25 +204,34 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    _debugText = 'Biometric tapped, lockedOut=$_isLockedOut';
+    _debugText = 'Biometric tapped';
     setState(() {});
     if (_isLockedOut) return;
     try {
       final localAuth = LocalAuthentication();
+
       final canCheck = await localAuth.canCheckBiometrics;
       _debugText = 'canCheck=$canCheck';
       setState(() {});
+
       if (!canCheck) return;
-      final authenticated = await localAuth.authenticate(
-        localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
-      );
-      _debugText = 'authenticated=$authenticated';
-      setState(() {});
-      if (authenticated && mounted) {
-        _doUnlock();
+
+      try {
+        final authenticated = await localAuth.authenticate(
+          localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
+        );
+        _debugText = 'auth=$authenticated';
+        setState(() {});
+
+        if (authenticated && mounted) {
+          _doUnlock();
+        }
+      } on PlatformException catch (e) {
+        _debugText = 'PlatformErr: ${e.code}';
+        setState(() {});
       }
     } catch (e) {
-      _debugText = 'Biometric error: $e';
+      _debugText = 'Error: $e';
       setState(() {});
     }
   }
