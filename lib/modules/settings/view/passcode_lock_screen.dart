@@ -73,9 +73,11 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     }
   }
 
-  void _verifyPasscode() async {
+  Future<void> _verifyPasscode() async {
     if (_unlocking) return;
+    
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+
     if (verified) {
       _doUnlock();
     } else {
@@ -149,7 +151,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     ));
   }
 
-  void _useFingerprint() async {
+  void _useBiometric() async {
     if (_isLockedOut || _unlocking) return;
     try {
       final localAuth = LocalAuthentication();
@@ -220,12 +222,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
 
           if (PasscodeService.useFingerprint)
             InkWell(
-              onTap: _useFingerprint,
+              onTap: _useBiometric,
               child: Column(
                 children: [
                   Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
                   const SizedBox(height: 8),
-                  Text('Use Fingerprint'.tr, style: TextStyle(color: AppColors.primaryColor)),
+                  Text('Use Biometric'.tr, style: TextStyle(color: AppColors.primaryColor)),
                 ],
               ),
             ),
@@ -329,19 +331,24 @@ class _ForgotPasscodeScreen extends StatefulWidget {
 }
 
 class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
-  final _answerController = TextEditingController();
+  final _answer1Controller = TextEditingController();
+  final _answer2Controller = TextEditingController();
   int _step = 1;
   int _attemptsLeft = 3;
   String? _errorMessage;
 
   @override
   void dispose() {
-    _answerController.dispose();
+    _answer1Controller.dispose();
+    _answer2Controller.dispose();
     super.dispose();
   }
 
   void _submitAnswer() {
-    final answer = _answerController.text.trim();
+    final answer = _step == 1
+        ? _answer1Controller.text.trim()
+        : _answer2Controller.text.trim();
+
     if (answer.isEmpty) {
       setState(() => _errorMessage = 'Please enter an answer'.tr);
       return;
@@ -356,7 +363,6 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
         setState(() {
           _step = 2;
           _errorMessage = null;
-          _answerController.clear();
         });
       } else {
         Get.back();
@@ -379,7 +385,6 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
       } else {
         setState(() {
           _errorMessage = '${'Wrong answer'.tr}. $_attemptsLeft ${'tries remaining'.tr}.';
-          _answerController.clear();
         });
       }
     }
@@ -456,7 +461,7 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
             ),
             const SizedBox(height: 10),
             TextField(
-              controller: _answerController,
+              controller: _step == 1 ? _answer1Controller : _answer2Controller,
               decoration: InputDecoration(
                 hintText: 'Your answer'.tr,
                 border: const OutlineInputBorder(),
