@@ -75,6 +75,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     });
     _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
     GetStorage().write('_last_active_time', _lastActiveTime);
+    Get.offAllNamed(AppRoutes.bottomNavbarView);
   }
 
   @override
