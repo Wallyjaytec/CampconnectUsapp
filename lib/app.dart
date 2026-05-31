@@ -37,14 +37,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    
+
     final box = GetStorage();
     _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
-    
+
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       LanguageService.load(localeCode);
     });
@@ -82,20 +82,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        
+
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _showingLockScreen = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _showingLockScreen) {
-              Get.to(() => PasscodeLockScreen(
-                onUnlocked: () {
-                  _showingLockScreen = false;
-                  _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-                  GetStorage().write('_last_active_time', _lastActiveTime);
-                  Get.back();
-                },
-              ));
-            }
+          setState(() {
+            _showingLockScreen = true;
           });
         }
       }
@@ -103,6 +93,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
+  }
+
+  void _unlock() {
+    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+    GetStorage().write('_last_active_time', _lastActiveTime);
+    setState(() {
+      _showingLockScreen = false;
+    });
   }
 
   @override
@@ -124,10 +122,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       darkTheme: AppTheme.darkFor(_locale.value),
       themeMode: ThemeMode.system,
       builder: (context, child) {
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: child!,
-        );
+        if (_showingLockScreen) {
+          return PasscodeLockScreen(
+            onUnlocked: _unlock,
+          );
+        }
+        return child!;
       },
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
@@ -135,12 +135,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       onGenerateRoute: (settings) {
         final rawPath = settings.name ?? '';
         final uri = Uri.tryParse(rawPath);
-        
+
         if (uri != null) {
           if (rawPath.contains('/password/reset')) {
             var token = uri.queryParameters['u'] ?? '';
             var isEmail = false;
-            
+
             if (token.contains('type=email')) {
               isEmail = true;
               token = token.replaceAll('&type=email', '').replaceAll('%26type%3Demail', '');
@@ -148,7 +148,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             if ((uri.queryParameters['type'] ?? '') == 'email') {
               isEmail = true;
             }
-            
+
             return GetPageRoute(
               page: () => PasswordResetView(token: token, isEmailReset: isEmail),
               routeName: '/password-reset',
