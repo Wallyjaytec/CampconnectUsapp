@@ -187,7 +187,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    if (_isLockedOut) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
