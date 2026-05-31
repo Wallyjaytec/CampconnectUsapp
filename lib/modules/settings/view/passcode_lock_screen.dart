@@ -27,6 +27,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   bool _unlocking = false;
 
   @override
+  void initState() {
+    super.initState();
+    _unlocking = false;
+  }
+
+  @override
   void dispose() {
     _lockoutTimer?.cancel();
     super.dispose();
