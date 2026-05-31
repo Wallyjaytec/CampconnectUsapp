@@ -9,7 +9,6 @@ import 'package:kartly_e_commerce/main.dart';
 import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
 import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
 import 'package:kartly_e_commerce/modules/settings/view/passcode_lock_screen.dart';
-import 'package:kartly_e_commerce/app.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
@@ -46,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkLockAndNavigate() {
     if (_navigated) return;
 
-    if (PasscodeService.isPasscodeEnabled && !_lockChecked && !isLockScreenShowing) {
+    if (PasscodeService.isPasscodeEnabled && !_lockChecked) {
       _lockChecked = true;
       
       final box = GetStorage();
@@ -57,10 +56,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
       if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
         _navigated = true;
-        isLockScreenShowing = true;
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
-            isLockScreenShowing = false;
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             _navigateNormally();
@@ -78,14 +75,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
-
-    // Don't navigate if lock screen is showing
-    if (isLockScreenShowing) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _checkPushAndNavigate(attempts: attempts);
-      });
-      return;
-    }
 
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
