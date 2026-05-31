@@ -14,6 +14,7 @@ import '../../../core/services/login_service.dart';
 import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../modules/settings/view/passcode_lock_screen.dart';
+import '../../../app.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();
@@ -249,8 +250,10 @@ class AuthController extends GetxController {
       final redirect = args?['redirect'] as String?;
       
       if (PasscodeService.isPasscodeEnabled) {
+        isLockScreenShowing = true;
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
+            isLockScreenShowing = false;
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
