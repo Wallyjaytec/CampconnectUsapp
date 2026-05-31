@@ -49,7 +49,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _doUnlock() {
-    _debugText = '_doUnlock called, _unlocking=$_unlocking';
+    _debugText = '_doUnlock, unlocking=$_unlocking';
     if (!mounted || _unlocking) return;
     _unlocking = true;
     _debugText = 'unlocking...';
@@ -95,7 +95,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
 
     _checkingPasscode = false;
-    _debugText = verified ? 'Verified OK' : 'Wrong passcode';
+    _debugText = verified ? 'OK' : 'Wrong';
     setState(() {});
 
     if (verified) {
@@ -162,12 +162,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _forgotPasscode() {
-    _debugText = 'forgot tapped';
+    _debugText = 'forgot';
     setState(() {});
     if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
       onReset: (newPasscode) async {
-        _debugText = 'Reset done';
+        _debugText = 'reset done';
         setState(() {});
         await PasscodeService.setPasscodeOnServer(
           passcode: newPasscode,
@@ -204,16 +204,14 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    _debugText = 'Biometric tapped';
+    _debugText = 'bio tap';
     setState(() {});
     if (_isLockedOut) return;
     try {
       final localAuth = LocalAuthentication();
-
       final canCheck = await localAuth.canCheckBiometrics;
-      _debugText = 'canCheck=$canCheck';
+      _debugText = 'can=$canCheck';
       setState(() {});
-
       if (!canCheck) return;
 
       try {
@@ -222,16 +220,15 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         );
         _debugText = 'auth=$authenticated';
         setState(() {});
-
         if (authenticated && mounted) {
           _doUnlock();
         }
       } on PlatformException catch (e) {
-        _debugText = 'PlatformErr: ${e.code}';
+        _debugText = 'PE:${e.code}';
         setState(() {});
       }
     } catch (e) {
-      _debugText = 'Error: $e';
+      _debugText = 'E:$e';
       setState(() {});
     }
   }
@@ -240,89 +237,86 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
-            const SizedBox(height: 20),
-            Text(
-              'CampConnectUs Marketplace',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Enter Passcode'.tr,
-              style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey),
-            ),
-            const SizedBox(height: 30),
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(),
+          Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
+          const SizedBox(height: 20),
+          Text(
+            'CampConnectUs Marketplace',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Enter Passcode'.tr,
+            style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey),
+          ),
+          const SizedBox(height: 30),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(6, (index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey, width: 1.5),
-                    color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 10),
-
-            if (_errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                child: Text(
-                  _errorMessage,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
-                  textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(6, (index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey, width: 1.5),
+                  color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
                 ),
-              ),
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
 
+          if (_errorMessage.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 5),
+              padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
               child: Text(
-                _debugText,
-                style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38),
+                _errorMessage,
+                style: const TextStyle(color: Colors.red, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
             ),
 
-            const SizedBox(height: 30),
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+              _debugText,
+              style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38),
+              textAlign: TextAlign.center,
+            ),
+          ),
 
-            _buildKeypad(),
-            const SizedBox(height: 20),
+          const SizedBox(height: 30),
 
-            if (PasscodeService.useFingerprint)
-              InkWell(
-                onTap: _useBiometric,
-                child: Column(
-                  children: [
-                    Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
-                    const SizedBox(height: 8),
-                    Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor)),
-                  ],
-                ),
+          _buildKeypad(),
+          const SizedBox(height: 20),
+
+          if (PasscodeService.useFingerprint)
+            InkWell(
+              onTap: _useBiometric,
+              child: Column(
+                children: [
+                  Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
+                  const SizedBox(height: 8),
+                  Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor)),
+                ],
               ),
-            const SizedBox(height: 20),
+            ),
+          const SizedBox(height: 20),
 
-            if (!_isLockedOut)
-              TextButton(
-                onPressed: _forgotPasscode,
-                child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey)),
-              ),
-            const Spacer(),
-          ],
-        ),
+          if (!_isLockedOut)
+            TextButton(
+              onPressed: _forgotPasscode,
+              child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey)),
+            ),
+          const Spacer(),
+        ],
       ),
     );
   }
