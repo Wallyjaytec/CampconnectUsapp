@@ -51,7 +51,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
           return;
         }
         final authenticated = await _localAuth.authenticate(
-          localizedReason: 'Authenticate to enable fingerprint unlock'.tr,
+          localizedReason: 'Authenticate to enable biometric unlock'.tr,
         );
         if (authenticated) {
           setState(() => _useFingerprint = true);
@@ -186,7 +186,11 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       }
 
       if (mounted) {
-        setState(() => _passcodeEnabled = true);
+        setState(() {
+          _passcodeEnabled = true;
+          _taskSwitcherShow = false;
+        });
+        PasscodeService.setTaskSwitcherPreview('hide');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Passcode enabled successfully'.tr),
@@ -353,8 +357,10 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
           ),
           SwitchListTile(
             secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
-            title: Text('Unlock with Fingerprint'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            activeColor: AppColors.primaryColor,
+            title: Text('Unlock with Biometric'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
+            inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
+            inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
             value: _useFingerprint,
             onChanged: _passcodeEnabled ? _handleFingerprintToggle : null,
           ),
@@ -369,7 +375,9 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
             secondary: Icon(Iconsax.eye, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
             title: Text('App in Task Switcher'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
             subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            activeColor: AppColors.primaryColor,
+            activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
+            inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
+            inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
             value: _taskSwitcherShow,
             onChanged: _passcodeEnabled ? (val) {
               setState(() => _taskSwitcherShow = val);
