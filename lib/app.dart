@@ -18,6 +18,8 @@ import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
 
+bool isLockScreenShowing = false;
+
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
   const MyApp({super.key, required this.initialLocaleCode});
@@ -78,7 +80,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
+      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen && !isLockScreenShowing) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
@@ -86,6 +88,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           setState(() {
             _showingLockScreen = true;
+            isLockScreenShowing = true;
           });
         }
       }
@@ -100,6 +103,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     GetStorage().write('_last_active_time', _lastActiveTime);
     setState(() {
       _showingLockScreen = false;
+      isLockScreenShowing = false;
     });
   }
 
@@ -127,7 +131,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             onUnlocked: _unlock,
           );
         }
-        return child!;
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: child!,
+        );
       },
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
