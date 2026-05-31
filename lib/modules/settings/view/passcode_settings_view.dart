@@ -263,6 +263,13 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
     );
 
     if (confirmed != null) {
+      await PasscodeService.setPasscodeOnServer(
+        passcode: newPasscode.toString(),
+        question1: PasscodeService.securityQuestion1 ?? '',
+        answer1: PasscodeService.securityAnswer1 ?? '',
+        question2: PasscodeService.securityQuestion2 ?? '',
+        answer2: PasscodeService.securityAnswer2 ?? '',
+      );
       await PasscodeService.setPasscode(newPasscode.toString());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
