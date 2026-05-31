@@ -11,6 +11,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
+import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class AuthController extends GetxController {
@@ -128,11 +129,9 @@ class AuthController extends GetxController {
       final api = ApiService();
       final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
       if (resp['success'] == true && resp['has_passcode'] == true) {
-        final box = GetStorage();
-        box.write('passcode_data', {'passcode': 'server'});
+        await PasscodeService.setPasscode('server');
       } else {
-        final box = GetStorage();
-        box.remove('passcode_data');
+        await PasscodeService.disablePasscode();
       }
     } catch (_) {}
   }
@@ -233,7 +232,6 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
-      // Fetch passcode status from server
       _syncPasscodeStatus();
       
       _showSnackbar('Success'.tr, 'Login successful'.tr);
@@ -265,6 +263,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      await PasscodeService.disablePasscode();
       final box = GetStorage();
       box.remove('passcode_data');
       final followStore = FollowStore();
