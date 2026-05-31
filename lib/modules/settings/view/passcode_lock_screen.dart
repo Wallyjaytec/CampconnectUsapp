@@ -202,76 +202,79 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(),
-          Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
-          const SizedBox(height: 20),
-          Text(
-            'CampConnectUs Marketplace',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Enter Passcode'.tr,
-            style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey),
-          ),
-          const SizedBox(height: 30),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
+            const SizedBox(height: 20),
+            Text(
+              'CampConnectUs Marketplace',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Enter Passcode'.tr,
+              style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey),
+            ),
+            const SizedBox(height: 30),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(6, (index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey, width: 1.5),
-                  color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(6, (index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey, width: 1.5),
+                    color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 10),
+
+            if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+                child: Text(
+                  _errorMessage,
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                  textAlign: TextAlign.center,
                 ),
-              );
-            }),
-          ),
-          const SizedBox(height: 10),
-
-          if (_errorMessage.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-              child: Text(
-                _errorMessage,
-                style: const TextStyle(color: Colors.red, fontSize: 14),
-                textAlign: TextAlign.center,
               ),
-            ),
-          const SizedBox(height: 40),
+            const SizedBox(height: 40),
 
-          _buildKeypad(),
-          const SizedBox(height: 20),
+            _buildKeypad(),
+            const SizedBox(height: 20),
 
-          if (PasscodeService.useFingerprint)
-            InkWell(
-              onTap: _useBiometric,
-              child: Column(
-                children: [
-                  Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
-                  const SizedBox(height: 8),
-                  Text('Use Biometric'.tr, style: TextStyle(color: AppColors.primaryColor)),
-                ],
+            if (PasscodeService.useFingerprint)
+              InkWell(
+                onTap: _useBiometric,
+                child: Column(
+                  children: [
+                    Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
+                    const SizedBox(height: 8),
+                    Text('Use Biometric'.tr, style: TextStyle(color: AppColors.primaryColor)),
+                  ],
+                ),
               ),
-            ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          if (!_isLockedOut)
-            TextButton(
-              onPressed: _forgotPasscode,
-              child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey)),
-            ),
-          const Spacer(),
-        ],
+            if (!_isLockedOut)
+              TextButton(
+                onPressed: _forgotPasscode,
+                child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey)),
+              ),
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }
