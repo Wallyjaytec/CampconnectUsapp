@@ -35,8 +35,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   @override
   void initState() {
     super.initState();
-    _unlocking = false;
-    _checkingPasscode = false;
   }
 
   @override
@@ -198,7 +196,8 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
       if (authenticated && mounted) {
-        _doUnlock();
+        _lockoutTimer?.cancel();
+        widget.onUnlocked();
       }
     } catch (_) {}
   }
@@ -442,7 +441,8 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
     );
   }
 
-  @override  Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final question = _step == 1
         ? PasscodeService.securityQuestion1 ?? ''
         : PasscodeService.securityQuestion2 ?? '';
