@@ -222,7 +222,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
               onTap: _useFingerprint,
               child: Column(
                 children: [
-                  Icon(Iconsax.finger_scan, size: 40, color: AppColors.primaryColor),
+                  Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
                   const SizedBox(height: 8),
                   Text('Use Fingerprint'.tr, style: TextStyle(color: AppColors.primaryColor)),
                 ],
