@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
             },
           ));
         }
