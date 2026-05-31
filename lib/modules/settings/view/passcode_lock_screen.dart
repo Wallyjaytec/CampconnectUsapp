@@ -36,6 +36,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   void initState() {
     super.initState();
     _unlocking = false;
+    _checkingPasscode = false;
   }
 
   @override
@@ -86,9 +87,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Future<void> _verifyPasscode() async {
     if (_unlocking || _checkingPasscode) return;
     _checkingPasscode = true;
-    
+
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
-    
+
     _checkingPasscode = false;
 
     if (verified) {
@@ -105,7 +106,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           }
         } catch (_) {}
       }
-      
+
       _failedAttempts++;
       setState(() {
         _passcode = '';
@@ -157,7 +158,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
       onReset: (newPasscode) async {
-        Get.back();
         await PasscodeService.setPasscodeOnServer(
           passcode: newPasscode,
           question1: PasscodeService.securityQuestion1 ?? '',
@@ -167,10 +167,17 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         );
         PasscodeService.setPasscode(newPasscode);
         _lockoutTimer?.cancel();
+        _failedAttempts = 0;
+        setState(() {
+          _passcode = '';
+          _errorMessage = '';
+          _isLockedOut = false;
+        });
         if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Passcode reset successfully'.tr),
+              content: Text('Passcode reset successfully. Enter your new passcode.'.tr),
               backgroundColor: AppColors.primaryColor,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
@@ -184,7 +191,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    if (_isLockedOut || _unlocking) return;
+    if (_isLockedOut) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -192,7 +199,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
-      if (authenticated && mounted && !_unlocking) {
+      if (authenticated && mounted) {
         _doUnlock();
       }
     } catch (_) {}
@@ -433,6 +440,7 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
         hintText: 'Create a new passcode'.tr,
         onCompleted: (code) {
           widget.onReset(code);
+          Get.back();
           Get.back();
         },
       ),
