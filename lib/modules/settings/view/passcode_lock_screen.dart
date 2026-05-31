@@ -32,6 +32,13 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     super.dispose();
   }
 
+  void _doUnlock() {
+    if (!mounted || _unlocking) return;
+    _unlocking = true;
+    _lockoutTimer?.cancel();
+    widget.onUnlocked();
+  }
+
   void _onKeyPressed(String value) {
     if (_isLockedOut || _unlocking) return;
     if (value == 'delete') {
@@ -63,9 +70,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   void _verifyPasscode() {
     if (_unlocking) return;
     if (_passcode == PasscodeService.passcode) {
-      _unlocking = true;
-      _lockoutTimer?.cancel();
-      widget.onUnlocked();
+      _doUnlock();
     } else {
       _failedAttempts++;
       setState(() {
@@ -147,9 +152,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
       if (authenticated && mounted && !_unlocking) {
-        _unlocking = true;
-        _lockoutTimer?.cancel();
-        widget.onUnlocked();
+        _doUnlock();
       }
     } catch (_) {}
   }
@@ -160,76 +163,74 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
-            const SizedBox(height: 20),
-            Text(
-              'CampConnectUs Marketplace',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Enter Passcode'.tr,
-              style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey),
-            ),
-            const SizedBox(height: 30),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(),
+          Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
+          const SizedBox(height: 20),
+          Text(
+            'CampConnectUs Marketplace',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Enter Passcode'.tr,
+            style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey),
+          ),
+          const SizedBox(height: 30),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(6, (index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey, width: 1.5),
-                    color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 10),
-
-            if (_errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                child: Text(
-                  _errorMessage,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
-                  textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(6, (index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey, width: 1.5),
+                  color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent,
                 ),
-              ),
-            const SizedBox(height: 40),
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
 
-            _buildKeypad(),
-            const SizedBox(height: 20),
-
-            if (PasscodeService.useFingerprint)
-              InkWell(
-                onTap: _useFingerprint,
-                child: Column(
-                  children: [
-                    Icon(Iconsax.finger_scan, size: 40, color: AppColors.primaryColor),
-                    const SizedBox(height: 8),
-                    Text('Use Fingerprint'.tr, style: TextStyle(color: AppColors.primaryColor)),
-                  ],
-                ),
+          if (_errorMessage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+              child: Text(
+                _errorMessage,
+                style: const TextStyle(color: Colors.red, fontSize: 14),
+                textAlign: TextAlign.center,
               ),
-            const SizedBox(height: 20),
+            ),
+          const SizedBox(height: 40),
 
-            if (!_isLockedOut)
-              TextButton(
-                onPressed: _forgotPasscode,
-                child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey)),
+          _buildKeypad(),
+          const SizedBox(height: 20),
+
+          if (PasscodeService.useFingerprint)
+            InkWell(
+              onTap: _useFingerprint,
+              child: Column(
+                children: [
+                  Icon(Iconsax.finger_scan, size: 40, color: AppColors.primaryColor),
+                  const SizedBox(height: 8),
+                  Text('Use Fingerprint'.tr, style: TextStyle(color: AppColors.primaryColor)),
+                ],
               ),
-            const Spacer(),
-          ],
-        ),
+            ),
+          const SizedBox(height: 20),
+
+          if (!_isLockedOut)
+            TextButton(
+              onPressed: _forgotPasscode,
+              child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey)),
+            ),
+          const Spacer(),
+        ],
       ),
     );
   }
