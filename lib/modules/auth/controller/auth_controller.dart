@@ -141,7 +141,7 @@ class AuthController extends GetxController {
           );
         }
       } else {
-        await PasscodeService.disablePasscode();
+        await PasscodeService.removePasscode();
       }
     } catch (_) {}
   }
@@ -251,6 +251,8 @@ class AuthController extends GetxController {
       if (PasscodeService.isPasscodeEnabled) {
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
+            final box = GetStorage();
+            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
             if (redirect != null && redirect.isNotEmpty) {
               Future.delayed(const Duration(milliseconds: 100), () {
@@ -296,9 +298,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
-      await PasscodeService.disablePasscode();
-      final box = GetStorage();
-      box.remove('passcode_data');
+      await PasscodeService.removePasscode();
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
