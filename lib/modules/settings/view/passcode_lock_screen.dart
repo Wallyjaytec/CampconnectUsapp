@@ -49,11 +49,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (!mounted || _unlocking) return;
     _unlocking = true;
     _lockoutTimer?.cancel();
-    Future.microtask(() {
-      if (mounted) {
-        widget.onUnlocked();
-      }
-    });
+    widget.onUnlocked();
   }
 
   void _onKeyPressed(String value) {
@@ -268,7 +264,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
                   children: [
                     Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
                     const SizedBox(height: 8),
-                    Text('Use Biometric'.tr, style: TextStyle(color: AppColors.primaryColor)),
+                    Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor)),
                   ],
                 ),
               ),
