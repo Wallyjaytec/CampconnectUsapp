@@ -156,7 +156,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    if (_isLockedOut || _unlocking || _checkingPasscode) return;
+    if (_isLockedOut || _unlocking) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -164,7 +164,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
-      if (authenticated && mounted && !_unlocking && !_checkingPasscode) {
+      if (authenticated && mounted && !_unlocking) {
         _doUnlock();
       }
     } catch (_) {}
