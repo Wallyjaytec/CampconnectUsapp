@@ -4,9 +4,11 @@ import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
+import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/main.dart';
 import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
 import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
+import 'package:kartly_e_commerce/modules/settings/view/passcode_lock_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
@@ -23,6 +25,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
   bool _navigated = false;
+  bool _lockChecked = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -35,11 +38,37 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
+      _checkLockAndNavigate();
+    });
+  }
 
-      Timer(const Duration(seconds: 3), () {
-        if (!mounted || _navigated) return;
-        _checkPushAndNavigate(attempts: 0);
-      });
+  void _checkLockAndNavigate() {
+    if (_navigated) return;
+
+    if (PasscodeService.isPasscodeEnabled && !_lockChecked) {
+      _lockChecked = true;
+      final box = GetStorage();
+      final lastActive = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final elapsedSeconds = (now - lastActive) ~/ 1000;
+      final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+
+      if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+        _navigated = true;
+        Get.offAll(() => PasscodeLockScreen(
+          onUnlocked: () {
+            final box = GetStorage();
+            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+            _navigateNormally();
+          },
+        ));
+        return;
+      }
+    }
+
+    Timer(const Duration(seconds: 3), () {
+      if (!mounted || _navigated) return;
+      _checkPushAndNavigate(attempts: 0);
     });
   }
 
@@ -49,7 +78,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
       pendingNotificationData = null;
-      
       _navigated = true;
       final item = NotificationItem(
         id: data['notification_id']!,
@@ -59,7 +87,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
         image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
       );
-      
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       Get.to(() => NotificationDetailView(item: item));
       return;
@@ -75,12 +102,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
         image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
       );
-      
       PushNotificationData.notificationId = null;
       PushNotificationData.message = null;
       PushNotificationData.title = null;
       PushNotificationData.image = null;
-      
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       Get.to(() => NotificationDetailView(item: item));
       return;
