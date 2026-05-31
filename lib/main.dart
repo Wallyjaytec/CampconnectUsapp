@@ -9,7 +9,6 @@ import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
 import 'package:kartly_e_commerce/core/services/connectivity_service.dart';
-import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -90,10 +89,6 @@ Future<void> main() async {
 
   await GetStorage.init();
   final box = GetStorage();
-
-  if (PasscodeService.isPasscodeEnabled) {
-    box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-  }
 
   final startTime = DateTime.now();
 
