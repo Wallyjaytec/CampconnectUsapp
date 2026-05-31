@@ -25,6 +25,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   int _lockoutSeconds = 0;
   Timer? _lockoutTimer;
   bool _unlocking = false;
+  bool _checkingPasscode = false;
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _onKeyPressed(String value) {
-    if (_isLockedOut || _unlocking) return;
+    if (_isLockedOut || _unlocking || _checkingPasscode) return;
     if (value == 'delete') {
       if (_passcode.isNotEmpty) {
         setState(() {
@@ -74,9 +75,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   Future<void> _verifyPasscode() async {
-    if (_unlocking) return;
+    if (_unlocking || _checkingPasscode) return;
+    _checkingPasscode = true;
     
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+    
+    _checkingPasscode = false;
 
     if (verified) {
       _doUnlock();
@@ -152,7 +156,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    if (_isLockedOut || _unlocking) return;
+    if (_isLockedOut || _unlocking || _checkingPasscode) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -160,7 +164,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
-      if (authenticated && mounted && !_unlocking) {
+      if (authenticated && mounted && !_unlocking && !_checkingPasscode) {
         _doUnlock();
       }
     } catch (_) {}
