@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:kartly_e_commerce/core/services/api_service.dart';
+import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'passcode_input_view.dart';
 
@@ -26,6 +29,8 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Timer? _lockoutTimer;
   bool _unlocking = false;
   bool _checkingPasscode = false;
+
+  bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
   @override
   void initState() {
@@ -85,6 +90,19 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (verified) {
       _doUnlock();
     } else {
+      // Check if passcode was removed from server (admin cleared it)
+      if (isLoggedIn) {
+        try {
+          final api = ApiService();
+          final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
+          if (resp['success'] == true && resp['has_passcode'] != true) {
+            await PasscodeService.disablePasscode();
+            _doUnlock();
+            return;
+          }
+        } catch (_) {}
+      }
+      
       _failedAttempts++;
       setState(() {
         _passcode = '';
