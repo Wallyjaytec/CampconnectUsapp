@@ -3,9 +3,11 @@ import 'dart:convert';
 import '../../../core/services/follow_store_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
@@ -121,6 +123,20 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> _syncPasscodeStatus() async {
+    try {
+      final api = ApiService();
+      final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
+      if (resp['success'] == true && resp['has_passcode'] == true) {
+        final box = GetStorage();
+        box.write('passcode_data', {'passcode': 'server'});
+      } else {
+        final box = GetStorage();
+        box.remove('passcode_data');
+      }
+    } catch (_) {}
+  }
+
   Future<void> register() async {
     if (!isRemember.value) {
       _showSnackbar('Terms'.tr, 'You must accept the terms and conditions'.tr);
@@ -216,6 +232,10 @@ class AuthController extends GetxController {
       }
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
+      
+      // Fetch passcode status from server
+      _syncPasscodeStatus();
+      
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
@@ -245,6 +265,8 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      final box = GetStorage();
+      box.remove('passcode_data');
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
