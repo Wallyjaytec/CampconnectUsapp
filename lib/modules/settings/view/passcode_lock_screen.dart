@@ -29,6 +29,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Timer? _lockoutTimer;
   bool _unlocking = false;
   bool _checkingPasscode = false;
+  String _debugText = 'Ready';
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -37,6 +38,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     super.initState();
     _unlocking = false;
     _checkingPasscode = false;
+    _debugText = 'init';
   }
 
   @override
@@ -46,9 +48,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _doUnlock() {
+    _debugText = '_doUnlock called, _unlocking=$_unlocking';
     if (!mounted || _unlocking) return;
     _unlocking = true;
+    _debugText = 'unlocking...';
     _lockoutTimer?.cancel();
+    setState(() {});
     widget.onUnlocked();
   }
 
@@ -83,10 +88,14 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Future<void> _verifyPasscode() async {
     if (_unlocking || _checkingPasscode) return;
     _checkingPasscode = true;
+    _debugText = 'Verifying...';
+    setState(() {});
 
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
 
     _checkingPasscode = false;
+    _debugText = verified ? 'Verified OK' : 'Wrong passcode';
+    setState(() {});
 
     if (verified) {
       _doUnlock();
@@ -96,6 +105,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           final api = ApiService();
           final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
           if (resp['success'] == true && resp['has_passcode'] != true) {
+            _debugText = 'Admin cleared';
             await PasscodeService.disablePasscode();
             _doUnlock();
             return;
@@ -151,9 +161,13 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _forgotPasscode() {
+    _debugText = 'forgot tapped, lockedOut=$_isLockedOut, unlocking=$_unlocking';
+    setState(() {});
     if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
       onReset: (newPasscode) async {
+        _debugText = 'Reset callback, newPasscode=$newPasscode';
+        setState(() {});
         await PasscodeService.setPasscodeOnServer(
           passcode: newPasscode,
           question1: PasscodeService.securityQuestion1 ?? '',
@@ -168,6 +182,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           _passcode = '';
           _errorMessage = '';
           _isLockedOut = false;
+          _debugText = 'Reset done, staying locked';
         });
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
@@ -187,18 +202,27 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
+    _debugText = 'Biometric tapped, lockedOut=$_isLockedOut';
+    setState(() {});
     if (_isLockedOut) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
+      _debugText = 'canCheck=$canCheck';
+      setState(() {});
       if (!canCheck) return;
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
       );
+      _debugText = 'authenticated=$authenticated';
+      setState(() {});
       if (authenticated && mounted) {
         _doUnlock();
       }
-    } catch (_) {}
+    } catch (e) {
+      _debugText = 'Biometric error: $e';
+      setState(() {});
+    }
   }
 
   @override
@@ -252,7 +276,18 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
                   textAlign: TextAlign.center,
                 ),
               ),
-            const SizedBox(height: 40),
+
+            // DEBUG
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text(
+                _debugText,
+                style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            const SizedBox(height: 30),
 
             _buildKeypad(),
             const SizedBox(height: 20),
