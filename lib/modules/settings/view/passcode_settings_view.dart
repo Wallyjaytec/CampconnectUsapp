@@ -167,13 +167,23 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         return;
       }
 
-      await PasscodeService.setPasscode(passcode.toString());
-      await PasscodeService.setSecurityQuestions(
+      final success = await PasscodeService.setPasscodeOnServer(
+        passcode: passcode.toString(),
         question1: questionsData['question1'],
         answer1: questionsData['answer1'],
         question2: questionsData['question2'],
         answer2: questionsData['answer2'],
       );
+
+      if (!success) {
+        await PasscodeService.setPasscode(passcode.toString());
+        await PasscodeService.setSecurityQuestions(
+          question1: questionsData['question1'],
+          answer1: questionsData['answer1'],
+          question2: questionsData['question2'],
+          answer2: questionsData['answer2'],
+        );
+      }
 
       if (mounted) {
         setState(() => _passcodeEnabled = true);
