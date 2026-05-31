@@ -85,7 +85,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
-          Get.to(() => PasscodeLockScreen(
+          Get.offAll(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
