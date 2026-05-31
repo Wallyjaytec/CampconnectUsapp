@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:local_auth/local_auth.dart';
@@ -30,7 +29,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Timer? _lockoutTimer;
   bool _unlocking = false;
   bool _checkingPasscode = false;
-  String _debugText = 'Ready';
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -39,7 +37,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     super.initState();
     _unlocking = false;
     _checkingPasscode = false;
-    _debugText = 'init';
   }
 
   @override
@@ -49,12 +46,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _doUnlock() {
-    _debugText = '_doUnlock, unlocking=$_unlocking';
     if (!mounted || _unlocking) return;
     _unlocking = true;
-    _debugText = 'unlocking...';
     _lockoutTimer?.cancel();
-    setState(() {});
     widget.onUnlocked();
   }
 
@@ -89,14 +83,10 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Future<void> _verifyPasscode() async {
     if (_unlocking || _checkingPasscode) return;
     _checkingPasscode = true;
-    _debugText = 'Verifying...';
-    setState(() {});
 
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
 
     _checkingPasscode = false;
-    _debugText = verified ? 'OK' : 'Wrong';
-    setState(() {});
 
     if (verified) {
       _doUnlock();
@@ -106,7 +96,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           final api = ApiService();
           final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
           if (resp['success'] == true && resp['has_passcode'] != true) {
-            _debugText = 'Admin cleared';
             await PasscodeService.disablePasscode();
             _doUnlock();
             return;
@@ -162,13 +151,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _forgotPasscode() {
-    _debugText = 'forgot';
-    setState(() {});
     if (_isLockedOut || _unlocking) return;
     Get.to(() => _ForgotPasscodeScreen(
       onReset: (newPasscode) async {
-        _debugText = 'reset done';
-        setState(() {});
         await PasscodeService.setPasscodeOnServer(
           passcode: newPasscode,
           question1: PasscodeService.securityQuestion1 ?? '',
@@ -204,33 +189,18 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    _debugText = 'bio tap';
-    setState(() {});
     if (_isLockedOut) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
-      _debugText = 'can=$canCheck';
-      setState(() {});
       if (!canCheck) return;
-
-      try {
-        final authenticated = await localAuth.authenticate(
-          localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
-        );
-        _debugText = 'auth=$authenticated';
-        setState(() {});
-        if (authenticated && mounted) {
-          _doUnlock();
-        }
-      } on PlatformException catch (e) {
-        _debugText = 'PE:${e.code}';
-        setState(() {});
+      final authenticated = await localAuth.authenticate(
+        localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
+      );
+      if (authenticated && mounted) {
+        _doUnlock();
       }
-    } catch (e) {
-      _debugText = 'E:$e';
-      setState(() {});
-    }
+    } catch (_) {}
   }
 
   @override
@@ -282,17 +252,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
                 textAlign: TextAlign.center,
               ),
             ),
-
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              _debugText,
-              style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38),
-              textAlign: TextAlign.center,
-            ),
-          ),
-
-          const SizedBox(height: 30),
+          const SizedBox(height: 40),
 
           _buildKeypad(),
           const SizedBox(height: 20),
@@ -483,94 +443,3 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final question = _step == 1
-        ? PasscodeService.securityQuestion1 ?? ''
-        : PasscodeService.securityQuestion2 ?? '';
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        leadingWidth: 44,
-        leading: Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: IconButton(
-            onPressed: () {
-              final nav = Navigator.of(context);
-              if (nav.canPop()) {
-                nav.pop();
-                return;
-              }
-              if (Get.key.currentState?.canPop() ?? false) {
-                Get.back();
-                return;
-              }
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
-            },
-            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20),
-            splashRadius: 20,
-          ),
-        ),
-        centerTitle: false,
-        titleSpacing: 0,
-        title: Text('Forgot Passcode'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${'Step'.tr} $_step ${'of'.tr} 2',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Answer your security question to reset your passcode.'.tr,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 30),
-            Text(
-              question,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _step == 1 ? _answer1Controller : _answer2Controller,
-              decoration: InputDecoration(
-                hintText: 'Your answer'.tr,
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _submitAnswer(),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submitAnswer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text('Submit'.tr),
-              ),
-            ),
-            if (_errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
