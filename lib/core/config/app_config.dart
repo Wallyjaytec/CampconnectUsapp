@@ -173,6 +173,10 @@ static const String resetPasswordPath =
       '/api/v1/ecommerce-core/customer/delete-notification';
   static const String notificationDetailsPath =
       '/api/v1/ecommerce-core/customer/get-notification-details';
+  static const String customerSetPasscodePath = '/api/v1/ecommerce-core/customer/set-passcode';
+  static const String customerVerifyPasscodePath = '/api/v1/ecommerce-core/customer/verify-passcode';
+  static const String customerResetPasscodePath = '/api/v1/ecommerce-core/customer/reset-passcode';
+  static const String customerGetPasscodeStatusPath = '/api/v1/ecommerce-core/customer/get-passcode-status';
 
   //base url + api endpoint
   static String sitePropertiesUrl() => '$baseUrl$sitePropertiesPath';
@@ -293,8 +297,12 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
       '$baseUrl$uploadOrderAttachmentPath';
   static String deleteNotificationUrl() => '$baseUrl$deleteNotificationPath';
   static String notificationDetailsUrl() => '$baseUrl$notificationDetailsPath';
+  static String customerSetPasscodeUrl() => '$baseUrl$customerSetPasscodePath';
+  static String customerVerifyPasscodeUrl() => '$baseUrl$customerVerifyPasscodePath';
+  static String customerResetPasscodeUrl() => '$baseUrl$customerResetPasscodePath';
+  static String customerGetPasscodeStatusUrl() => '$baseUrl$customerGetPasscodeStatusPath';
   
-  // Email verification code endpoints - UPDATED URLs
+  // Email verification code endpoints
   static String sendEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/send-email-verification-code';
   static String verifyEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/verify-email-code';
 
