@@ -60,7 +60,6 @@ class PasscodeService {
       final resp = await _repo.verifyPasscode(code);
       return resp['success'] == true;
     } catch (_) {
-      // Fallback to local
       return code == passcode;
     }
   }
@@ -96,24 +95,21 @@ class PasscodeService {
     await box.remove(_answer1Key);
     await box.remove(_question2Key);
     await box.remove(_answer2Key);
-    await box.remove(_fingerprintKey);
-    await box.remove(_autoLockKey);
-    await box.remove(_taskSwitcherKey);
   }
 
   // Fingerprint
   static bool get useFingerprint => box.read(_fingerprintKey) ?? false;
   static Future<void> setUseFingerprint(bool value) => box.write(_fingerprintKey, value);
 
-  // Auto-lock
-  static int get autoLockMinutes => box.read(_autoLockKey) ?? 1;
+  // Auto-lock (default Immediately = 0)
+  static int get autoLockMinutes => box.read(_autoLockKey) ?? 0;
   static Future<void> setAutoLockMinutes(int minutes) => box.write(_autoLockKey, minutes);
 
   // Task switcher
   static String get taskSwitcherPreview => box.read(_taskSwitcherKey) ?? 'show';
   static Future<void> setTaskSwitcherPreview(String value) => box.write(_taskSwitcherKey, value);
 
-  // Security questions (local cache)
+  // Security questions
   static String? get securityQuestion1 => box.read(_question1Key);
   static String? get securityAnswer1 => box.read(_answer1Key);
   static String? get securityQuestion2 => box.read(_question2Key);
@@ -133,6 +129,9 @@ class PasscodeService {
 
   static Future<void> disablePasscode() async {
     await removePasscode();
+    await box.remove(_fingerprintKey);
+    await box.remove(_autoLockKey);
+    await box.remove(_taskSwitcherKey);
   }
 
   static bool verifySecurityAnswers(String answer1, String answer2) {
