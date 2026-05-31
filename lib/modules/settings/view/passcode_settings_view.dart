@@ -335,39 +335,37 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
             onChanged: _handlePasscodeToggle,
           ),
           const Divider(),
-          if (_passcodeEnabled) ...[
-            ListTile(
-              leading: const Icon(Iconsax.key, color: AppColors.primaryColor, size: 20),
-              title: Text('Change Passcode'.tr),
-              trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
-              onTap: _changePasscode,
-            ),
-            SwitchListTile(
-              secondary: const Icon(Iconsax.finger_scan, color: AppColors.primaryColor, size: 20),
-              title: Text('Unlock with Fingerprint'.tr),
-              activeColor: AppColors.primaryColor,
-              value: _useFingerprint,
-              onChanged: _handleFingerprintToggle,
-            ),
-            ListTile(
-              leading: const Icon(Iconsax.timer_1, color: AppColors.primaryColor, size: 20),
-              title: Text('Auto-lock'.tr),
-              subtitle: Text(_autoLockMinutes == 0 ? 'Immediately'.tr : '$_autoLockMinutes min'),
-              trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
-              onTap: _showAutoLockPicker,
-            ),
-            SwitchListTile(
-              secondary: const Icon(Iconsax.eye, color: AppColors.primaryColor, size: 20),
-              title: Text('App in Task Switcher'.tr),
-              subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr),
-              activeColor: AppColors.primaryColor,
-              value: _taskSwitcherShow,
-              onChanged: (val) {
-                setState(() => _taskSwitcherShow = val);
-                PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide');
-              },
-            ),
-          ],
+          ListTile(
+            leading: Icon(Iconsax.key, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
+            title: Text('Change Passcode'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey),
+            onTap: _passcodeEnabled ? _changePasscode : null,
+          ),
+          SwitchListTile(
+            secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
+            title: Text('Unlock with Fingerprint'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            activeColor: AppColors.primaryColor,
+            value: _useFingerprint,
+            onChanged: _passcodeEnabled ? _handleFingerprintToggle : null,
+          ),
+          ListTile(
+            leading: Icon(Iconsax.timer_1, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
+            title: Text('Auto-lock'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            subtitle: Text(_autoLockMinutes == 0 ? 'Immediately'.tr : '$_autoLockMinutes min', style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey),
+            onTap: _passcodeEnabled ? _showAutoLockPicker : null,
+          ),
+          SwitchListTile(
+            secondary: Icon(Iconsax.eye, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
+            title: Text('App in Task Switcher'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            activeColor: AppColors.primaryColor,
+            value: _taskSwitcherShow,
+            onChanged: _passcodeEnabled ? (val) {
+              setState(() => _taskSwitcherShow = val);
+              PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide');
+            } : null,
+          ),
         ],
       ),
     );
