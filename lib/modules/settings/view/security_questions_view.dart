@@ -13,25 +13,27 @@ class SecurityQuestionsView extends StatefulWidget {
 
 class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
   final List<String> _questions = [
-    'What is your mother\'s maiden name?',
-    'What city were you born in?',
-    'What is the name of your first pet?',
-    'What was your childhood nickname?',
-    'What is your favorite food?',
-    'What year were you born?',
-    'Where did you go to school?',
-    'What is your favorite movie?',
+    'What is your mother\'s maiden name?'.tr,
+    'What city were you born in?'.tr,
+    'What is the name of your first pet?'.tr,
+    'What was your childhood nickname?'.tr,
+    'What is your favorite food?'.tr,
+    'What year were you born?'.tr,
+    'Where did you go to school?'.tr,
+    'What is your favorite movie?'.tr,
   ];
 
   int _step = 1;
   String? _selectedQuestion1;
   String? _selectedQuestion2;
-  final TextEditingController _answerController = TextEditingController();
+  final TextEditingController _answer1Controller = TextEditingController();
+  final TextEditingController _answer2Controller = TextEditingController();
   String? _errorMessage;
 
   @override
   void dispose() {
-    _answerController.dispose();
+    _answer1Controller.dispose();
+    _answer2Controller.dispose();
     super.dispose();
   }
 
@@ -41,21 +43,21 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
         setState(() => _errorMessage = 'Please select a question'.tr);
         return;
       }
-      if (_answerController.text.trim().isEmpty) {
+      if (_answer1Controller.text.trim().isEmpty) {
         setState(() => _errorMessage = 'Please enter an answer'.tr);
         return;
       }
       setState(() {
         _step = 2;
         _errorMessage = null;
-        _answerController.clear();
+        _answer2Controller.clear();
       });
     } else {
       if (_selectedQuestion2 == null) {
         setState(() => _errorMessage = 'Please select a question'.tr);
         return;
       }
-      if (_answerController.text.trim().isEmpty) {
+      if (_answer2Controller.text.trim().isEmpty) {
         setState(() => _errorMessage = 'Please enter an answer'.tr);
         return;
       }
@@ -64,12 +66,11 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
         return;
       }
 
-      // All good, return data
       Get.back(result: {
         'question1': _selectedQuestion1,
-        'answer1': _answerController.text.trim(),
+        'answer1': _answer1Controller.text.trim(),
         'question2': _selectedQuestion2,
-        'answer2': _answerController.text.trim(),
+        'answer2': _answer2Controller.text.trim(),
       });
     }
   }
@@ -154,7 +155,7 @@ class _SecurityQuestionsViewState extends State<SecurityQuestionsView> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _answerController,
+              controller: _step == 1 ? _answer1Controller : _answer2Controller,
               decoration: InputDecoration(
                 hintText: 'Your answer'.tr,
                 border: const OutlineInputBorder(),
