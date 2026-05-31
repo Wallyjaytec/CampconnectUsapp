@@ -79,6 +79,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
 
+    // Don't navigate if lock screen is showing
+    if (isLockScreenShowing) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _checkPushAndNavigate(attempts: attempts);
+      });
+      return;
+    }
+
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
       pendingNotificationData = null;
