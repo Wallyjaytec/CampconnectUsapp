@@ -13,6 +13,7 @@ import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
 import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../modules/settings/view/passcode_lock_screen.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();
@@ -128,7 +129,8 @@ class AuthController extends GetxController {
     try {
       final api = ApiService();
       final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
-      if (resp['success'] == true && resp['has_passcode'] == true) {
+      final hasPasscode = resp['has_passcode'];
+      if (resp['success'] == true && (hasPasscode == true || hasPasscode == '1' || hasPasscode == 1)) {
         await PasscodeService.setPasscode('server');
       } else {
         await PasscodeService.disablePasscode();
@@ -232,11 +234,34 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
-      _syncPasscodeStatus();
+      await _syncPasscodeStatus();
       
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
+      
+      if (PasscodeService.isPasscodeEnabled) {
+        Get.offAll(() => PasscodeLockScreen(
+          onUnlocked: () {
+            Get.offAllNamed(AppRoutes.bottomNavbarView);
+            if (redirect != null && redirect.isNotEmpty) {
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (redirect == AppRoutes.myOrderDetailsView) {
+                  final orderId = args?['order_id'];
+                  Get.toNamed(redirect, arguments: {'order_id': orderId});
+                } else if (redirect == AppRoutes.refundRequestDetailsView) {
+                  final refundId = args?['refund_id'];
+                  Get.toNamed(redirect, arguments: refundId);
+                } else {
+                  Get.toNamed(redirect);
+                }
+              });
+            }
+          },
+        ));
+        return;
+      }
+      
       if (redirect != null && redirect.isNotEmpty) {
         Get.offAllNamed(AppRoutes.bottomNavbarView);
         Future.delayed(const Duration(milliseconds: 100), () {
