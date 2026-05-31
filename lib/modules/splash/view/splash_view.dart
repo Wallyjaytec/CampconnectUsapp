@@ -75,6 +75,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
+    
+    // Don't process notifications while locked
+    if (_lockChecked && PasscodeService.isPasscodeEnabled) {
+      return;
+    }
 
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
