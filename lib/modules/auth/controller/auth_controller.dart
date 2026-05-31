@@ -132,6 +132,14 @@ class AuthController extends GetxController {
       final hasPasscode = resp['has_passcode'];
       if (resp['success'] == true && (hasPasscode == true || hasPasscode == '1' || hasPasscode == 1)) {
         await PasscodeService.setPasscode('server');
+        if (resp['security_question_1'] != null) {
+          await PasscodeService.setSecurityQuestions(
+            question1: resp['security_question_1']?.toString() ?? '',
+            answer1: resp['security_answer_1']?.toString() ?? '',
+            question2: resp['security_question_2']?.toString() ?? '',
+            answer2: resp['security_answer_2']?.toString() ?? '',
+          );
+        }
       } else {
         await PasscodeService.disablePasscode();
       }
