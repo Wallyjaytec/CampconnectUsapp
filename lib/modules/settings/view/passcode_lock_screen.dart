@@ -442,4 +442,94 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
     );
   }
 
-  @override
+  @override  Widget build(BuildContext context) {
+    final question = _step == 1
+        ? PasscodeService.securityQuestion1 ?? ''
+        : PasscodeService.securityQuestion2 ?? '';
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        leadingWidth: 44,
+        leading: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            onPressed: () {
+              final nav = Navigator.of(context);
+              if (nav.canPop()) {
+                nav.pop();
+                return;
+              }
+              if (Get.key.currentState?.canPop() ?? false) {
+                Get.back();
+                return;
+              }
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
+            },
+            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20),
+            splashRadius: 20,
+          ),
+        ),
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Text('Forgot Passcode'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${'Step'.tr} $_step ${'of'.tr} 2',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Answer your security question to reset your passcode.'.tr,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              question,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _step == 1 ? _answer1Controller : _answer2Controller,
+              decoration: InputDecoration(
+                hintText: 'Your answer'.tr,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => _submitAnswer(),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submitAnswer,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text('Submit'.tr),
+              ),
+            ),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
