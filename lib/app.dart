@@ -13,8 +13,10 @@ import 'core/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
+import 'core/services/passcode_service.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
+import 'modules/settings/view/passcode_lock_screen.dart';
 
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
@@ -27,6 +29,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
+  int _lastActiveTime = 0;
 
   @override
   void initState() {
@@ -35,6 +38,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     
     final box = GetStorage();
+    _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
+    
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
@@ -71,6 +76,28 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (Get.locale?.languageCode != locale.languageCode) {
         Get.updateLocale(locale);
       }
+
+      if (PasscodeService.isPasscodeEnabled) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+        
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+          Get.to(() => PasscodeLockScreen(
+            onUnlocked: () {
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
+              Get.back();
+            },
+          ));
+        }
+      }
+    } else if (state == AppLifecycleState.paused) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.inactive) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     }
   }
 
