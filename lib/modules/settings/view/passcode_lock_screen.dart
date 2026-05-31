@@ -178,6 +178,8 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         PasscodeService.setPasscode(newPasscode);
         _lockoutTimer?.cancel();
         _failedAttempts = 0;
+        _unlocking = false;
+        _checkingPasscode = false;
         setState(() {
           _passcode = '';
           _errorMessage = '';
@@ -277,7 +279,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
                 ),
               ),
 
-            // DEBUG
             Padding(
               padding: const EdgeInsets.only(top: 5),
               child: Text(
