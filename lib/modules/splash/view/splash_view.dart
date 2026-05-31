@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'package:get_storage/get_storage.dart';
-import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/main.dart';
 import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
 import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
 import 'package:kartly_e_commerce/modules/settings/view/passcode_lock_screen.dart';
+import 'package:kartly_e_commerce/app.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/view/password_reset_view.dart';
@@ -44,43 +43,30 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
-  Future<void> _checkLockAndNavigate() async {
+  void _checkLockAndNavigate() {
     if (_navigated) return;
 
-    if (PasscodeService.isPasscodeEnabled && !_lockChecked) {
+    if (PasscodeService.isPasscodeEnabled && !_lockChecked && !isLockScreenShowing) {
       _lockChecked = true;
       
-      // Sync with server first
-      if (isLoggedIn) {
-        try {
-          final api = ApiService();
-          final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
-          if (resp['success'] != true || resp['has_passcode'] != true) {
-            // Server says no passcode, disable locally
-            await PasscodeService.disablePasscode();
-          }
-        } catch (_) {}
-      }
+      final box = GetStorage();
+      final lastActive = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final elapsedSeconds = (now - lastActive) ~/ 1000;
+      final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
 
-      // Check if still enabled after sync
-      if (PasscodeService.isPasscodeEnabled) {
-        final box = GetStorage();
-        final lastActive = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSeconds = (now - lastActive) ~/ 1000;
-        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _navigated = true;
-          Get.offAll(() => PasscodeLockScreen(
-            onUnlocked: () {
-              final box = GetStorage();
-              box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-              _navigateNormally();
-            },
-          ));
-          return;
-        }
+      if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+        _navigated = true;
+        isLockScreenShowing = true;
+        Get.offAll(() => PasscodeLockScreen(
+          onUnlocked: () {
+            isLockScreenShowing = false;
+            final box = GetStorage();
+            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+            _navigateNormally();
+          },
+        ));
+        return;
       }
     }
 
