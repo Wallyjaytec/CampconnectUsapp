@@ -18,8 +18,6 @@ import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
 
-bool isLockScreenShowing = false;
-
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
   const MyApp({super.key, required this.initialLocaleCode});
@@ -80,31 +78,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen && !isLockScreenShowing) {
+      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
 
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          setState(() {
-            _showingLockScreen = true;
-            isLockScreenShowing = true;
-          });
+          _showingLockScreen = true;
+          Get.to(() => PasscodeLockScreen(
+            onUnlocked: () {
+              _showingLockScreen = false;
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
+              Get.back();
+            },
+          ));
         }
       }
     } else if (state == AppLifecycleState.paused) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
-  }
-
-  void _unlock() {
-    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-    GetStorage().write('_last_active_time', _lastActiveTime);
-    setState(() {
-      _showingLockScreen = false;
-      isLockScreenShowing = false;
-    });
   }
 
   @override
@@ -126,11 +120,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       darkTheme: AppTheme.darkFor(_locale.value),
       themeMode: ThemeMode.system,
       builder: (context, child) {
-        if (_showingLockScreen) {
-          return PasscodeLockScreen(
-            onUnlocked: _unlock,
-          );
-        }
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: child!,
