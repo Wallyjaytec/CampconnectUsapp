@@ -73,9 +73,10 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     }
   }
 
-  void _verifyPasscode() {
+  void _verifyPasscode() async {
     if (_unlocking) return;
-    if (_passcode == PasscodeService.passcode) {
+    final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+    if (verified) {
       _doUnlock();
     } else {
       _failedAttempts++;
