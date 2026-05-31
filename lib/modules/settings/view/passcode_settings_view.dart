@@ -56,34 +56,8 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         if (authenticated) {
           setState(() => _useFingerprint = true);
           PasscodeService.setUseFingerprint(true);
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Authentication failed. Try again.'.tr),
-                backgroundColor: Colors.red,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
         }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Biometric error: ${e.toString()}'.tr),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      }
+      } catch (_) {}
     } else {
       setState(() => _useFingerprint = false);
       PasscodeService.setUseFingerprint(false);
@@ -217,7 +191,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
           setState(() {
             _passcodeEnabled = false;
             _useFingerprint = false;
-            _autoLockMinutes = 1;
+            _autoLockMinutes = 0;
             _taskSwitcherShow = true;
           });
           ScaffoldMessenger.of(context).showSnackBar(
@@ -357,7 +331,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
           ),
           SwitchListTile(
             secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
-            title: Text('Unlock with Biometric'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
+            title: Text('Unlock with Biometrics'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
             activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
             inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
             inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
