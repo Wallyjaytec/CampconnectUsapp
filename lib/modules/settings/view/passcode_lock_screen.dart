@@ -90,7 +90,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (verified) {
       _doUnlock();
     } else {
-      // Check if passcode was removed from server (admin cleared it)
       if (isLoggedIn) {
         try {
           final api = ApiService();
@@ -386,6 +385,7 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
           _step = 2;
           _errorMessage = null;
         });
+        _answer2Controller.clear();
       } else {
         Get.back();
         _showResetPasscode();
