@@ -98,6 +98,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.paused) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.hidden) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     }
   }
 
