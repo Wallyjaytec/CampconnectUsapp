@@ -70,12 +70,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   void _unlock() {
+    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+    GetStorage().write('_last_active_time', _lastActiveTime);
     setState(() {
       _showingLockScreen = false;
     });
-    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-    GetStorage().write('_last_active_time', _lastActiveTime);
-    Get.offAllNamed(AppRoutes.bottomNavbarView);
   }
 
   @override
@@ -150,7 +149,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             onUnlocked: _unlock,
           );
         }
-        return child!;
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: child!,
+        );
       },
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.splashView,
