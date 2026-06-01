@@ -13,7 +13,6 @@ import '../../../core/services/api_service.dart';
 import '../../../core/services/login_service.dart';
 import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
-import '../../../modules/settings/view/passcode_lock_screen.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();
@@ -227,32 +226,10 @@ class AuthController extends GetxController {
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
       
-      if (PasscodeService.isPasscodeEnabled()) {
-        Get.offAll(() => PasscodeLockScreen(
-          onUnlocked: () {
-            final box = GetStorage();
-            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-            Get.offAllNamed(AppRoutes.bottomNavbarView);
-            if (redirect != null && redirect.isNotEmpty) {
-              Future.delayed(const Duration(milliseconds: 100), () {
-                if (redirect == AppRoutes.myOrderDetailsView) {
-                  final orderId = args?['order_id'];
-                  Get.toNamed(redirect, arguments: {'order_id': orderId});
-                } else if (redirect == AppRoutes.refundRequestDetailsView) {
-                  final refundId = args?['refund_id'];
-                  Get.toNamed(redirect, arguments: refundId);
-                } else {
-                  Get.toNamed(redirect);
-                }
-              });
-            }
-          },
-        ));
-        return;
-      }
+      // Always go to bottom nav - app.dart will handle lock screen on warm start
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
       
       if (redirect != null && redirect.isNotEmpty) {
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
         Future.delayed(const Duration(milliseconds: 100), () {
           if (redirect == AppRoutes.myOrderDetailsView) {
             final orderId = args?['order_id'];
@@ -264,8 +241,6 @@ class AuthController extends GetxController {
             Get.toNamed(redirect);
           }
         });
-      } else {
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
       }
     } catch (e) {
       if (Get.context == null) return;
