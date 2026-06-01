@@ -68,6 +68,12 @@ class PermissionService extends GetxService {
                 .tr,
       );
     }
+
+    // Request notification permission after gallery/camera is done
+    final notifStatus = await Permission.notification.status;
+    if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
+      await Permission.notification.request();
+    }
   }
 
   Future<void> refreshStatus() async {
