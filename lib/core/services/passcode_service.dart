@@ -19,14 +19,32 @@ class PasscodeService {
   static final PasscodeRepository _repo = PasscodeRepository(ApiService());
   static final ApiService _api = ApiService();
 
+  static bool? _cachedPasscodeEnabled;
+  static DateTime? _cacheTime;
+
   static Future<bool> checkPasscodeEnabled() async {
+    if (_cachedPasscodeEnabled != null && _cacheTime != null) {
+      final diff = DateTime.now().difference(_cacheTime!);
+      if (diff.inSeconds < 30) return _cachedPasscodeEnabled!;
+    }
     try {
       final resp = await _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
-      if (resp['success'] == true && (resp['has_passcode'] == true || resp['has_passcode'] == '1' || resp['has_passcode'] == 1)) {
-        return true;
+      final hasPasscode = resp['has_passcode'];
+      if (resp['success'] == true && (hasPasscode == true || hasPasscode == '1' || hasPasscode == 1)) {
+        _cachedPasscodeEnabled = true;
+      } else {
+        _cachedPasscodeEnabled = false;
       }
-    } catch (_) {}
-    return false;
+      _cacheTime = DateTime.now();
+      return _cachedPasscodeEnabled!;
+    } catch (_) {
+      return _cachedPasscodeEnabled ?? false;
+    }
+  }
+
+  static void clearCache() {
+    _cachedPasscodeEnabled = null;
+    _cacheTime = null;
   }
 
   static Future<bool> setPasscodeOnServer({
@@ -44,7 +62,12 @@ class PasscodeService {
         question2: question2,
         answer2: answer2,
       );
-      return resp['success'] == true;
+      if (resp['success'] == true) {
+        _cachedPasscodeEnabled = true;
+        _cacheTime = DateTime.now();
+        return true;
+      }
+      return false;
     } catch (_) {
       return false;
     }
@@ -70,7 +93,12 @@ class PasscodeService {
         answer2: answer2,
         newPasscode: newPasscode,
       );
-      return resp['success'] == true;
+      if (resp['success'] == true) {
+        _cachedPasscodeEnabled = true;
+        _cacheTime = DateTime.now();
+        return true;
+      }
+      return false;
     } catch (_) {
       return false;
     }
@@ -79,7 +107,12 @@ class PasscodeService {
   static Future<bool> disablePasscodeOnServer() async {
     try {
       final resp = await _repo.disablePasscode();
-      return resp['success'] == true;
+      if (resp['success'] == true) {
+        _cachedPasscodeEnabled = false;
+        _cacheTime = DateTime.now();
+        return true;
+      }
+      return false;
     } catch (_) {
       return false;
     }
