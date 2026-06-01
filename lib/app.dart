@@ -12,6 +12,9 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
 import 'core/services/passcode_service.dart';
+import 'main.dart';
+import 'modules/account/model/notification_model.dart';
+import 'modules/account/view/notification_detail_view.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
@@ -29,6 +32,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
   bool _justUnlocked = false;
+  bool _hideForTaskSwitcher = false;
 
   @override
   void initState() {
@@ -58,6 +62,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      _hideForTaskSwitcher = false;
+      
       if (_justUnlocked) {
         _justUnlocked = false;
         return;
@@ -75,20 +81,67 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
+          
+          Map<String, dynamic>? savedNotification;
+          if (pendingNotificationData != null) {
+            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
+            pendingNotificationData = null;
+          }
+          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+            savedNotification = {
+              'notification_id': PushNotificationData.notificationId,
+              'notif_message': PushNotificationData.message ?? '',
+              'notif_title': PushNotificationData.title ?? '',
+              'notif_image': PushNotificationData.image ?? '',
+            };
+            PushNotificationData.notificationId = null;
+            PushNotificationData.message = null;
+            PushNotificationData.title = null;
+            PushNotificationData.image = null;
+          }
+          
           Get.offAll(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
               _justUnlocked = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
+              
+              if (savedNotification != null) {
+                final data = savedNotification;
+                final item = NotificationItem(
+                  id: data['notification_id']!,
+                  message: data['notif_message'] ?? '',
+                  link: '',
+                  time: 'Just now',
+                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+                );
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  Get.to(() => NotificationDetailView(item: item));
+                });
+              } else {
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+              }
             },
           ));
         }
       }
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+    } else if (state == AppLifecycleState.paused) {
+      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
+        _hideForTaskSwitcher = true;
+        setState(() {});
+      }
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.inactive) {
+      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
+        _hideForTaskSwitcher = true;
+        setState(() {});
+      }
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_lastActiveTime', _lastActiveTime);
     }
   }
 
@@ -101,7 +154,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       supportedLocales: const [Locale('en'), Locale('de'), Locale('zh'), Locale('es'), Locale('ar'), Locale('fr'), Locale('ru'), Locale('ja'), Locale('ko'), Locale('pt'), Locale('it'), Locale('hi')],
       onGenerateTitle: (_) => 'app_title'.tr,
       theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
-      builder: (context, child) => Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!),
+      builder: (context, child) {
+        if (_hideForTaskSwitcher) {
+          return Container(color: AppColors.primaryColor);
+        }
+        return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!);
+      },
       initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
       onGenerateRoute: (settings) {
         final rawPath = settings.name ?? ''; final uri = Uri.tryParse(rawPath);
