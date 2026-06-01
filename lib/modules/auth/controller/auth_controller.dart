@@ -221,13 +221,13 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
+      await PasscodeService.checkPasscodeOnServer();
+      
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
       
-      final hasPasscode = await PasscodeService.checkPasscodeEnabled();
-      
-      if (hasPasscode) {
+      if (PasscodeService.isPasscodeEnabled()) {
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
             final box = GetStorage();
@@ -277,6 +277,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      await PasscodeService.setPasscodeEnabled(false);
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
