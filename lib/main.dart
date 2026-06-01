@@ -50,6 +50,7 @@ Future<void> main() async {
     if (result != null && result is Map) {
       final notificationId = result['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
+        debugPrint('🟣 COLD START NOTIFICATION: $notificationId');
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': result['notif_message']?.toString() ?? '',
@@ -65,6 +66,7 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
+        debugPrint('🟣 ONESIGNAL CLICK - notificationId: $notificationId');
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -86,7 +88,11 @@ Future<void> main() async {
   });
 
   await GetStorage.init();
+  debugPrint('🟢 MAIN STORAGE INIT COMPLETE');
+  
   final box = GetStorage();
+  final psBox = GetStorage('passcode_settings');
+  debugPrint('🟢 PASSCODE BOX: fingerprint=${psBox.read('use_fingerprint')}, task=${psBox.read('task_switcher_preview')}, enabled=${psBox.read('passcode_enabled')}');
 
   final startTime = DateTime.now();
 
