@@ -27,6 +27,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   bool _navigated = false;
   bool _lockChecked = false;
   bool _isLocked = false;
+  Map<String, dynamic>? _pendingNotificationData; // Store notification for after unlock
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -54,25 +55,67 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final storedTime = box.read<int>('_last_active_time');
       final now = DateTime.now().millisecondsSinceEpoch;
       
-      if (storedTime != null) {
+      bool shouldLock = false;
+      
+      if (storedTime == null) {
+        shouldLock = PasscodeService.autoLockMinutes == 0;
+      } else {
         final elapsedSeconds = (now - storedTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+        shouldLock = (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
+      }
 
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _navigated = true;
-          Get.offAll(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _isLocked = false;
-              final box = GetStorage();
-              box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-              _navigateNormally();
-            },
-          ));
-          return;
+      if (shouldLock) {
+        _navigated = true;
+        
+        // Save any pending notification for after unlock
+        if (pendingNotificationData != null) {
+          _pendingNotificationData = pendingNotificationData;
+          pendingNotificationData = null;
         }
+        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+          _pendingNotificationData = {
+            'notification_id': PushNotificationData.notificationId,
+            'notif_message': PushNotificationData.message ?? '',
+            'notif_title': PushNotificationData.title ?? '',
+            'notif_image': PushNotificationData.image ?? '',
+          };
+          PushNotificationData.notificationId = null;
+          PushNotificationData.message = null;
+          PushNotificationData.title = null;
+          PushNotificationData.image = null;
+        }
+        
+        Get.offAll(() => PasscodeLockScreen(
+          onUnlocked: () {
+            _isLocked = false;
+            final box = GetStorage();
+            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+            
+            // After unlock, process any pending notification
+            if (_pendingNotificationData != null) {
+              final data = _pendingNotificationData!;
+              _pendingNotificationData = null;
+              final item = NotificationItem(
+                id: data['notification_id']!,
+                message: data['notif_message'] ?? '',
+                link: '',
+                time: 'Just now',
+                title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+                image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+              );
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                Get.to(() => NotificationDetailView(item: item));
+              });
+            } else {
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
+            }
+          },
+        ));
+        return;
       }
       
-      // If we get here, passcode exists but auto-lock time hasn't elapsed
       _isLocked = false;
     }
 
