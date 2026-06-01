@@ -125,27 +125,6 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> _syncPasscodeStatus() async {
-    try {
-      final api = ApiService();
-      final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
-      final hasPasscode = resp['has_passcode'];
-      if (resp['success'] == true && (hasPasscode == true || hasPasscode == '1' || hasPasscode == 1)) {
-        // Don't overwrite passcode - only sync security questions if they exist
-        if (resp['security_question_1'] != null) {
-          await PasscodeService.setSecurityQuestions(
-            question1: resp['security_question_1']?.toString() ?? '',
-            answer1: resp['security_answer_1']?.toString() ?? '',
-            question2: resp['security_question_2']?.toString() ?? '',
-            answer2: resp['security_answer_2']?.toString() ?? '',
-          );
-        }
-      } else {
-        await PasscodeService.removePasscode();
-      }
-    } catch (_) {}
-  }
-
   Future<void> register() async {
     if (!isRemember.value) {
       _showSnackbar('Terms'.tr, 'You must accept the terms and conditions'.tr);
@@ -242,13 +221,13 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
-      await _syncPasscodeStatus();
-      
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
       
-      if (PasscodeService.isPasscodeEnabled) {
+      final hasPasscode = await PasscodeService.checkPasscodeEnabled();
+      
+      if (hasPasscode) {
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
             final box = GetStorage();
