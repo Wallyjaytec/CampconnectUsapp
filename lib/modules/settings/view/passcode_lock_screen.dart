@@ -28,13 +28,46 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Timer? _lockoutTimer;
   bool _unlocking = false;
   bool _checkingPasscode = false;
+  bool _biometricAvailable = false;
+  bool _biometricChecked = false;
+  bool _biometricTriggered = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
 
   @override
   void dispose() {
     _lockoutTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    if (!PasscodeService.useFingerprint) {
+      setState(() => _biometricChecked = true);
+      return;
+    }
+    try {
+      final localAuth = LocalAuthentication();
+      final canCheck = await localAuth.canCheckBiometrics;
+      final availableBiometrics = await localAuth.getAvailableBiometrics();
+      if (mounted) {
+        setState(() {
+          _biometricAvailable = canCheck && availableBiometrics.isNotEmpty;
+          _biometricChecked = true;
+        });
+        if (_biometricAvailable && !_unlocking && !_biometricTriggered) {
+          _biometricTriggered = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) => _useBiometric());
+        }
+      }
+    } catch (_) {
+      if (mounted) setState(() => _biometricChecked = true);
+    }
   }
 
   void _doUnlock() {
@@ -126,6 +159,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
+    if (_unlocking) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -134,7 +168,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
-      if (authenticated && mounted) {
+      if (authenticated && mounted && !_unlocking) {
         _lockoutTimer?.cancel();
         _doUnlock();
       }
@@ -162,7 +196,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           const SizedBox(height: 40),
           _buildKeypad(),
           const SizedBox(height: 20),
-          if (PasscodeService.useFingerprint)
+          if (PasscodeService.useFingerprint && _biometricChecked && _biometricAvailable)
             InkWell(onTap: _useBiometric, child: Column(children: [Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor), const SizedBox(height: 8), Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor))])),
           const SizedBox(height: 20),
           if (!_isLockedOut) TextButton(onPressed: _forgotPasscode, child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey))),
