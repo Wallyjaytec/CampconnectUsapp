@@ -28,49 +28,13 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   Timer? _lockoutTimer;
   bool _unlocking = false;
   bool _checkingPasscode = false;
-  bool _biometricAvailable = false;
-  bool _biometricChecked = false;
-  bool _biometricTriggered = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkBiometricAvailability();
-  }
 
   @override
   void dispose() {
     _lockoutTimer?.cancel();
     super.dispose();
-  }
-
-  Future<void> _checkBiometricAvailability() async {
-    if (!PasscodeService.useFingerprint) {
-      setState(() => _biometricChecked = true);
-      return;
-    }
-    try {
-      final localAuth = LocalAuthentication();
-      final canCheck = await localAuth.canCheckBiometrics;
-      final availableBiometrics = await localAuth.getAvailableBiometrics();
-      if (mounted) {
-        final available = canCheck && availableBiometrics.isNotEmpty;
-        setState(() {
-          _biometricAvailable = available;
-          _biometricChecked = true;
-        });
-        if (available && !_unlocking && !_biometricTriggered) {
-          _biometricTriggered = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && !_unlocking) _useBiometric();
-          });
-        }
-      }
-    } catch (_) {
-      if (mounted) setState(() => _biometricChecked = true);
-    }
   }
 
   void _doUnlock() {
@@ -85,25 +49,14 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (_isLockedOut || _unlocking || _checkingPasscode) return;
     if (value == 'delete') {
       if (_passcode.isNotEmpty) {
-        setState(() {
-          _passcode = _passcode.substring(0, _passcode.length - 1);
-          _errorMessage = '';
-        });
+        setState(() { _passcode = _passcode.substring(0, _passcode.length - 1); _errorMessage = ''; });
       }
     } else if (value == 'clear') {
-      setState(() {
-        _passcode = '';
-        _errorMessage = '';
-      });
+      setState(() { _passcode = ''; _errorMessage = ''; });
     } else {
       if (_passcode.length < 6) {
-        setState(() {
-          _passcode += value;
-          _errorMessage = '';
-        });
-        if (_passcode.length == 6) {
-          _verifyPasscode();
-        }
+        setState(() { _passcode += value; _errorMessage = ''; });
+        if (_passcode.length == 6) _verifyPasscode();
       }
     }
   }
@@ -116,24 +69,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (verified) {
       _doUnlock();
     } else {
-      if (isLoggedIn) {
-        try {
-          final api = ApiService();
-          final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
-          if (resp['success'] == true && resp['has_passcode'] != true) {
-            _doUnlock();
-            return;
-          }
-        } catch (_) {}
-      }
       _failedAttempts++;
       setState(() => _passcode = '');
       if (_failedAttempts >= 5) {
         _startLockout();
       } else {
-        setState(() {
-          _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.';
-        });
+        setState(() { _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; });
       }
     }
   }
@@ -163,36 +104,28 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
 
   void _forgotPasscode() {
     if (_isLockedOut || _unlocking) return;
-    Get.to(() => _ForgotPasscodeScreen(
-      onReset: (newPasscode) async {
-        final questions = await PasscodeService.fetchSecurityQuestions();
-        await PasscodeService.setPasscodeOnServer(
-          passcode: newPasscode,
-          question1: questions?['question1'] ?? '',
-          answer1: questions?['answer1'] ?? '',
-          question2: questions?['question2'] ?? '',
-          answer2: questions?['answer2'] ?? '',
-        );
-        _lockoutTimer?.cancel();
-        _failedAttempts = 0;
-        _unlocking = false;
-        _checkingPasscode = false;
-        setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
-        if (mounted) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Passcode reset successfully. Enter your new passcode.'.tr),
-                backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                duration: const Duration(seconds: 2)),
-          );
-        }
-      },
-    ));
+    Get.to(() => _ForgotPasscodeScreen(onReset: (newPasscode) async {
+      final questions = await PasscodeService.fetchSecurityQuestions();
+      await PasscodeService.setPasscodeOnServer(
+        passcode: newPasscode,
+        question1: questions?['question1'] ?? '',
+        answer1: questions?['answer1'] ?? '',
+        question2: questions?['question2'] ?? '',
+        answer2: questions?['answer2'] ?? '',
+      );
+      _lockoutTimer?.cancel();
+      _failedAttempts = 0;
+      _unlocking = false;
+      _checkingPasscode = false;
+      setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Passcode reset successfully. Enter your new passcode.'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
+      }
+    }));
   }
 
   void _useBiometric() async {
-    if (_unlocking) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -201,7 +134,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
-      if (authenticated && mounted && !_unlocking) {
+      if (authenticated && mounted) {
         _lockoutTimer?.cancel();
         _doUnlock();
       }
@@ -223,22 +156,14 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           const SizedBox(height: 10),
           Text('Enter Passcode'.tr, style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey)),
           const SizedBox(height: 30),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) {
-            return Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16,
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5),
-                  color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent));
-          })),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5), color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent)))),
           const SizedBox(height: 10),
           if (_errorMessage.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20), child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center)),
           const SizedBox(height: 40),
           _buildKeypad(),
           const SizedBox(height: 20),
-          if (PasscodeService.useFingerprint && _biometricChecked && _biometricAvailable)
-            InkWell(onTap: _useBiometric, child: Column(children: [
-              Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
-              const SizedBox(height: 8),
-              Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor)),
-            ])),
+          if (PasscodeService.useFingerprint)
+            InkWell(onTap: _useBiometric, child: Column(children: [Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor), const SizedBox(height: 8), Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor))])),
           const SizedBox(height: 20),
           if (!_isLockedOut) TextButton(onPressed: _forgotPasscode, child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey))),
           const Spacer(),
@@ -278,10 +203,7 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
   Map<String, dynamic>? _questions;
 
   @override
-  void initState() {
-    super.initState();
-    _loadQuestions();
-  }
+  void initState() { super.initState(); _loadQuestions(); }
 
   Future<void> _loadQuestions() async {
     final q = await PasscodeService.fetchSecurityQuestions();
@@ -289,11 +211,7 @@ class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
   }
 
   @override
-  void dispose() {
-    _answer1Controller.dispose();
-    _answer2Controller.dispose();
-    super.dispose();
-  }
+  void dispose() { _answer1Controller.dispose(); _answer2Controller.dispose(); super.dispose(); }
 
   void _submitAnswer() {
     final answer = _step == 1 ? _answer1Controller.text.trim() : _answer2Controller.text.trim();
