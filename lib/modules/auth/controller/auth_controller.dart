@@ -277,7 +277,6 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
-      await PasscodeService.setPasscodeEnabled(false);
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
