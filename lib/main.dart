@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
@@ -44,6 +45,17 @@ Future<void> main() async {
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
+  // Suppress OneSignal's custom notification dialog (has black bar issue)
+  OneSignal.Notifications.requestPermission(false);
+
+  // Use native Android notification permission dialog instead
+  Future.delayed(const Duration(seconds: 1), () async {
+    final status = await Permission.notification.status;
+    if (!status.isGranted && !status.isPermanentlyDenied) {
+      await Permission.notification.request();
+    }
+  });
+
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
     final result = await channel.invokeMethod('getColdStartNotification');
@@ -65,7 +77,6 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        // Always save to pendingNotificationData - splash/lock screen will handle it
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -73,13 +84,11 @@ Future<void> main() async {
           'notif_image': additionalData['notif_image']?.toString() ?? '',
         };
 
-        // Also set PushNotificationData for splash screen fallback
         PushNotificationData.notificationId = notificationId;
         PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
         PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
         PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
 
-        // Only refresh the notifications list, don't navigate
         if (Get.isRegistered<NotificationController>()) {
           final controller = Get.find<NotificationController>();
           controller.refreshList();
