@@ -30,6 +30,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
   bool _showingLockScreen = false;
+  bool _justUnlocked = false; // NEW: prevent re-lock after unlock
 
   @override
   void initState() {
@@ -66,6 +67,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Skip lock check if we just unlocked to prevent loop
+      if (_justUnlocked) {
+        _justUnlocked = false;
+        return;
+      }
+
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
@@ -74,7 +81,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      // Don't process anything if lock screen is already showing
+      // Don't show lock screen if already showing
       if (_showingLockScreen) {
         return;
       }
@@ -84,30 +91,44 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final storedTime = box.read<int>('_last_active_time');
         final now = DateTime.now().millisecondsSinceEpoch;
         
-        if (storedTime != null) {
+        bool shouldLock = false;
+        
+        if (storedTime == null) {
+          // First time or no stored time - lock immediately if set to "Immediately"
+          shouldLock = PasscodeService.autoLockMinutes == 0;
+        } else {
           final elapsedSeconds = (now - storedTime) ~/ 1000;
           final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+          shouldLock = (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
+        }
 
-          if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-            _showingLockScreen = true;
-            Get.offAll(() => PasscodeLockScreen(
-              onUnlocked: () {
-                _showingLockScreen = false;
-                GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-                Get.offAllNamed(AppRoutes.bottomNavbarView);
-              },
-            ));
-            return;
-          }
+        if (shouldLock) {
+          _showingLockScreen = true;
+          // Use a small delay to avoid race conditions with GetX navigation
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (_showingLockScreen) {
+              Get.offAll(() => PasscodeLockScreen(
+                onUnlocked: () {
+                  _showingLockScreen = false;
+                  _justUnlocked = true; // Prevent re-lock
+                  GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+                  Get.offAllNamed(AppRoutes.bottomNavbarView);
+                },
+              ));
+            }
+          });
+          return;
         }
       }
       
-      // Update last active time when resumed without locking
+      // Update last active time
       GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
       
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
-      // Store the time when going to background
-      GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+      // Only store time if we're not showing lock screen (to prevent loop)
+      if (!_showingLockScreen) {
+        GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+      }
     }
   }
 
