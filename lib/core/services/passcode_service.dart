@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
@@ -18,13 +19,22 @@ class PasscodeService {
   static final PasscodeRepository _repo = PasscodeRepository(ApiService());
   static final ApiService _api = ApiService();
 
-  static bool isPasscodeEnabled() => box.read(_passcodeEnabledKey) ?? false;
-  static Future<void> setPasscodeEnabled(bool value) => box.write(_passcodeEnabledKey, value);
+  static bool isPasscodeEnabled() {
+    final val = box.read(_passcodeEnabledKey) ?? false;
+    debugPrint('🔵 PASSCODE ENABLED READ: $val');
+    return val;
+  }
+  
+  static Future<void> setPasscodeEnabled(bool value) async {
+    debugPrint('🔵 PASSCODE ENABLED WRITE: $value');
+    await box.write(_passcodeEnabledKey, value);
+  }
 
   static Future<bool> checkPasscodeOnServer() async {
     try {
       final resp = await _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
       final has = resp['has_passcode'];
+      debugPrint('🔵 CHECK SERVER: has_passcode=$has');
       if (resp['success'] == true && (has == true || has == '1' || has == 1)) {
         await setPasscodeEnabled(true);
         return true;
@@ -43,7 +53,11 @@ class PasscodeService {
   }
 
   static Future<bool> verifyPasscodeOnServer(String code) async {
-    try { final resp = await _repo.verifyPasscode(code); return resp['success'] == true; } catch (_) { return false; }
+    try { 
+      final resp = await _repo.verifyPasscode(code);
+      debugPrint('🔵 VERIFY PASSCODE: ${resp['success']}');
+      return resp['success'] == true; 
+    } catch (_) { return false; }
   }
 
   static Future<bool> resetPasscodeOnServer({required String answer1, required String answer2, required String newPasscode}) async {
@@ -66,10 +80,36 @@ class PasscodeService {
     return null;
   }
 
-  static bool get useFingerprint => box.read(_fingerprintKey) ?? false;
-  static Future<void> setUseFingerprint(bool v) => box.write(_fingerprintKey, v);
-  static int get autoLockMinutes => box.read(_autoLockKey) ?? 0;
-  static Future<void> setAutoLockMinutes(int v) => box.write(_autoLockKey, v);
-  static String get taskSwitcherPreview => box.read(_taskSwitcherKey) ?? 'show';
-  static Future<void> setTaskSwitcherPreview(String v) => box.write(_taskSwitcherKey, v);
+  static bool get useFingerprint {
+    final val = box.read(_fingerprintKey) ?? false;
+    debugPrint('🔵 FINGERPRINT READ: $val');
+    return val;
+  }
+  
+  static Future<void> setUseFingerprint(bool v) async {
+    debugPrint('🔵 FINGERPRINT WRITE: $v');
+    await box.write(_fingerprintKey, v);
+  }
+  
+  static int get autoLockMinutes {
+    final val = box.read(_autoLockKey) ?? 0;
+    debugPrint('🔵 AUTO LOCK READ: $val');
+    return val;
+  }
+  
+  static Future<void> setAutoLockMinutes(int v) async {
+    debugPrint('🔵 AUTO LOCK WRITE: $v');
+    await box.write(_autoLockKey, v);
+  }
+  
+  static String get taskSwitcherPreview {
+    final val = box.read(_taskSwitcherKey) ?? 'show';
+    debugPrint('🟠 TASK SWITCHER READ: $val');
+    return val;
+  }
+  
+  static Future<void> setTaskSwitcherPreview(String v) async {
+    debugPrint('🟠 TASK SWITCHER WRITE: $v');
+    await box.write(_taskSwitcherKey, v);
+  }
 }
