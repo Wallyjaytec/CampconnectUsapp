@@ -84,11 +84,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     _unlocking = true;
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-    Future.microtask(() {
-      if (mounted) {
-        widget.onUnlocked();
-      }
-    });
+    widget.onUnlocked();
   }
 
   void _onKeyPressed(String value) {
