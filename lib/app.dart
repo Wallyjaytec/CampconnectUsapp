@@ -32,7 +32,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
-  bool _showingLockScreen = false;
+  static bool isLockScreenShowing = false;
 
   @override
   void initState() {
@@ -77,26 +77,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      if (_showingLockScreen) {
+      if (isLockScreenShowing) {
         return;
       }
 
       if (PasscodeService.isPasscodeEnabled) {
         final storedTime = box.read<int>('_last_active_time');
         final now = DateTime.now().millisecondsSinceEpoch;
+        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
         
-        bool shouldLock = false;
-        
+        bool shouldLock;
         if (storedTime == null) {
-          shouldLock = (PasscodeService.autoLockMinutes == 0);
+          shouldLock = (autoLockSeconds == 0);
         } else {
           final elapsedSeconds = (now - storedTime) ~/ 1000;
-          final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
           shouldLock = (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
         }
 
         if (shouldLock) {
-          _showingLockScreen = true;
+          isLockScreenShowing = true;
           
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
@@ -116,11 +115,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             PushNotificationData.image = null;
           }
           
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (_showingLockScreen) {
+          Future.delayed(const Duration(milliseconds: 200), () {
+            if (isLockScreenShowing) {
               Get.offAll(() => PasscodeLockScreen(
                 onUnlocked: () {
-                  _showingLockScreen = false;
+                  isLockScreenShowing = false;
+                  GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
                   
                   if (savedNotification != null) {
                     final data = savedNotification;
@@ -143,12 +143,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               ));
             }
           });
-          return;
         }
       }
       
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
-      if (!_showingLockScreen) {
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (!isLockScreenShowing) {
         GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
       }
     }
