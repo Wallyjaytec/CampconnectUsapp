@@ -25,6 +25,10 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
   @override
   void initState() {
     super.initState();
+    _refreshState();
+  }
+  
+  void _refreshState() {
     _passcodeEnabled = PasscodeService.isPasscodeEnabled;
     _useFingerprint = PasscodeService.useFingerprint;
     _autoLockMinutes = PasscodeService.autoLockMinutes;
@@ -109,6 +113,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
 
   Future<void> _handlePasscodeToggle(bool value) async {
     if (value) {
+      // ENABLE passcode
       final passcode = await Get.to(
         () => PasscodeInputView(
           title: 'Passcode Lock'.tr,
@@ -141,7 +146,8 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         return;
       }
 
-      final success = await PasscodeService.setPasscodeOnServer(
+      // Try server first
+      final serverSuccess = await PasscodeService.setPasscodeOnServer(
         passcode: passcode.toString(),
         question1: questionsData['question1'],
         answer1: questionsData['answer1'],
@@ -149,7 +155,8 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         answer2: questionsData['answer2'],
       );
 
-      if (!success) {
+      // Always save locally regardless of server result
+      if (!serverSuccess) {
         await PasscodeService.setPasscode(passcode.toString());
         await PasscodeService.setSecurityQuestions(
           question1: questionsData['question1'],
@@ -158,6 +165,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
           answer2: questionsData['answer2'],
         );
       }
+      // If server succeeded, setPasscodeOnServer already saved locally
 
       if (mounted) {
         setState(() {
@@ -177,6 +185,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         );
       }
     } else {
+      // DISABLE passcode - verify using local check first, fallback to server
       final entered = await Get.to(
         () => PasscodeInputView(
           title: 'Passcode Lock'.tr,
@@ -185,7 +194,17 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         ),
       );
 
-      if (entered != null && entered.toString() == PasscodeService.passcode) {
+      if (entered == null) return;
+
+      // Check locally first
+      bool isCorrect = (entered.toString() == PasscodeService.passcode);
+      
+      // If local check fails, try server verification
+      if (!isCorrect) {
+        isCorrect = await PasscodeService.verifyPasscodeOnServer(entered.toString());
+      }
+
+      if (isCorrect) {
         await PasscodeService.disablePasscode();
         if (mounted) {
           setState(() {
@@ -205,7 +224,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
             ),
           );
         }
-      } else if (entered != null) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Wrong passcode'.tr),
@@ -229,8 +248,16 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       ),
     );
 
-    if (current == null || current.toString() != PasscodeService.passcode) {
-      if (current != null && mounted) {
+    if (current == null) return;
+
+    // Check locally first, then server
+    bool isCorrect = (current.toString() == PasscodeService.passcode);
+    if (!isCorrect) {
+      isCorrect = await PasscodeService.verifyPasscodeOnServer(current.toString());
+    }
+
+    if (!isCorrect) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Wrong passcode'.tr),
@@ -263,6 +290,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
     );
 
     if (confirmed != null) {
+      // Try server first
       await PasscodeService.setPasscodeOnServer(
         passcode: newPasscode.toString(),
         question1: PasscodeService.securityQuestion1 ?? '',
@@ -270,7 +298,9 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         question2: PasscodeService.securityQuestion2 ?? '',
         answer2: PasscodeService.securityAnswer2 ?? '',
       );
+      // Always save locally
       await PasscodeService.setPasscode(newPasscode.toString());
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
