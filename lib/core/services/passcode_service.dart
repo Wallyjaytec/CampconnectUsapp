@@ -3,15 +3,10 @@ import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/passcode_repository.dart';
 
 class PasscodeService {
-  static const String _boxName = 'passcode_data';
-  static const String _passcodeKey = 'passcode';
+  static const String _boxName = 'passcode_settings';
   static const String _fingerprintKey = 'use_fingerprint';
   static const String _autoLockKey = 'auto_lock_minutes';
   static const String _taskSwitcherKey = 'task_switcher_preview';
-  static const String _question1Key = 'security_question_1';
-  static const String _answer1Key = 'security_answer_1';
-  static const String _question2Key = 'security_question_2';
-  static const String _answer2Key = 'security_answer_2';
 
   static GetStorage? _box;
 
@@ -21,9 +16,18 @@ class PasscodeService {
   }
 
   static final PasscodeRepository _repo = PasscodeRepository(ApiService());
+  static final ApiService _api = ApiService();
 
-  static bool get isPasscodeEnabled => box.read(_passcodeKey) != null;
-  static String? get passcode => box.read(_passcodeKey);
+  // Server-only passcode check - no local storage
+  static Future<bool> checkPasscodeEnabled() async {
+    try {
+      final resp = await _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
+      if (resp['success'] == true && (resp['has_passcode'] == true || resp['has_passcode'] == '1' || resp['has_passcode'] == 1)) {
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
 
   static Future<bool> setPasscodeOnServer({
     required String passcode,
@@ -40,15 +44,7 @@ class PasscodeService {
         question2: question2,
         answer2: answer2,
       );
-      if (resp['success'] == true) {
-        await box.write(_passcodeKey, passcode);
-        await box.write(_question1Key, question1);
-        await box.write(_answer1Key, answer1.toLowerCase().trim());
-        await box.write(_question2Key, question2);
-        await box.write(_answer2Key, answer2.toLowerCase().trim());
-        return true;
-      }
-      return false;
+      return resp['success'] == true;
     } catch (_) {
       return false;
     }
@@ -59,7 +55,7 @@ class PasscodeService {
       final resp = await _repo.verifyPasscode(code);
       return resp['success'] == true;
     } catch (_) {
-      return code == passcode;
+      return false;
     }
   }
 
@@ -74,28 +70,28 @@ class PasscodeService {
         answer2: answer2,
         newPasscode: newPasscode,
       );
-      if (resp['success'] == true) {
-        await box.write(_passcodeKey, newPasscode);
-        return true;
-      }
-      return false;
+      return resp['success'] == true;
     } catch (_) {
       return false;
     }
   }
 
-  static Future<void> setPasscode(String code) async {
-    await box.write(_passcodeKey, code);
+  static Future<Map<String, dynamic>?> fetchSecurityQuestions() async {
+    try {
+      final resp = await _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
+      if (resp['success'] == true) {
+        return {
+          'question1': resp['security_question_1']?.toString(),
+          'answer1': resp['security_answer_1']?.toString(),
+          'question2': resp['security_question_2']?.toString(),
+          'answer2': resp['security_answer_2']?.toString(),
+        };
+      }
+    } catch (_) {}
+    return null;
   }
 
-  static Future<void> removePasscode() async {
-    await box.remove(_passcodeKey);
-    await box.remove(_question1Key);
-    await box.remove(_answer1Key);
-    await box.remove(_question2Key);
-    await box.remove(_answer2Key);
-  }
-
+  // Settings - stored locally (not sensitive)
   static bool get useFingerprint => box.read(_fingerprintKey) ?? false;
   static Future<void> setUseFingerprint(bool value) => box.write(_fingerprintKey, value);
 
@@ -104,35 +100,4 @@ class PasscodeService {
 
   static String get taskSwitcherPreview => box.read(_taskSwitcherKey) ?? 'show';
   static Future<void> setTaskSwitcherPreview(String value) => box.write(_taskSwitcherKey, value);
-
-  static String? get securityQuestion1 => box.read(_question1Key);
-  static String? get securityAnswer1 => box.read(_answer1Key);
-  static String? get securityQuestion2 => box.read(_question2Key);
-  static String? get securityAnswer2 => box.read(_answer2Key);
-
-  static Future<void> setSecurityQuestions({
-    required String question1,
-    required String answer1,
-    required String question2,
-    required String answer2,
-  }) async {
-    await box.write(_question1Key, question1);
-    await box.write(_answer1Key, answer1.toLowerCase().trim());
-    await box.write(_question2Key, question2);
-    await box.write(_answer2Key, answer2.toLowerCase().trim());
-  }
-
-  static Future<void> disablePasscode() async {
-    await removePasscode();
-    await box.remove(_fingerprintKey);
-    await box.remove(_autoLockKey);
-    await box.remove(_taskSwitcherKey);
-  }
-
-  static bool verifySecurityAnswers(String answer1, String answer2) {
-    final storedAnswer1 = box.read(_answer1Key)?.toString().toLowerCase().trim();
-    final storedAnswer2 = box.read(_answer2Key)?.toString().toLowerCase().trim();
-    return answer1.toLowerCase().trim() == storedAnswer1 &&
-           answer2.toLowerCase().trim() == storedAnswer2;
-  }
 }
