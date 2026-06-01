@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
@@ -45,11 +44,11 @@ Future<void> main() async {
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
-  // Suppress OneSignal's custom dialog with black bar
+  // Suppress OneSignal's custom notification dialog (has black bar issue)
   OneSignal.Notifications.requestPermission(false);
 
-  // Request notification permission AFTER onboarding is done (not on splash)
-  // This will be triggered from the app after splash completes
+  // Notification permission will be requested after gallery/camera permission
+  // via PermissionService to ensure correct order and native dialog
 
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
