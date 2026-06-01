@@ -11,9 +11,6 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
 import 'core/services/passcode_service.dart';
-import 'main.dart';
-import 'modules/account/model/notification_model.dart';
-import 'modules/account/view/notification_detail_view.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
@@ -30,8 +27,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
-  bool _justUnlocked = false;
-  bool _checkingLock = false;
 
   @override
   void initState() {
@@ -47,89 +42,48 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  void dispose() { WidgetsBinding.instance.removeObserver(this); super.dispose(); }
 
   @override
   void didChangePlatformBrightness() {
     final newBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    if (_lastBrightness != newBrightness) {
+    if (_lastBrightness != newBrightness && Get.isRegistered<ThemeController>()) {
       _lastBrightness = newBrightness;
-      if (Get.isRegistered<ThemeController>()) Get.find<ThemeController>().setMode(ThemeMode.system);
+      Get.find<ThemeController>().setMode(ThemeMode.system);
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (_justUnlocked) { _justUnlocked = false; return; }
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
-      _checkLockAndShow();
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+
+      if (PasscodeService.isPasscodeEnabled() && !_showingLockScreen) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+          _showingLockScreen = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _showingLockScreen) {
+              Get.to(() => PasscodeLockScreen(onUnlocked: () {
+                _showingLockScreen = false;
+                _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+                GetStorage().write('_last_active_time', _lastActiveTime);
+                Get.back();
+              }));
+            }
+          });
+        }
+      }
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden || state == AppLifecycleState.inactive) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
-  }
-
-  void _checkLockAndShow() {
-    if (_checkingLock || _showingLockScreen) return;
-    _checkingLock = true;
-    PasscodeService.checkPasscodeEnabled().then((hasPasscode) {
-      _checkingLock = false;
-      if (!mounted || !hasPasscode || _showingLockScreen) return;
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
-      final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-      if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-        _showingLockScreen = true;
-        Map<String, dynamic>? savedNotification;
-        if (pendingNotificationData != null) {
-          savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-          pendingNotificationData = null;
-        }
-        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-          savedNotification = {
-            'notification_id': PushNotificationData.notificationId,
-            'notif_message': PushNotificationData.message ?? '',
-            'notif_title': PushNotificationData.title ?? '',
-            'notif_image': PushNotificationData.image ?? '',
-          };
-          PushNotificationData.notificationId = null;
-          PushNotificationData.message = null;
-          PushNotificationData.title = null;
-          PushNotificationData.image = null;
-        }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _showingLockScreen) {
-            Get.to(() => PasscodeLockScreen(onUnlocked: () {
-              _showingLockScreen = false;
-              _justUnlocked = true;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
-              if (savedNotification != null) {
-                final data = savedNotification;
-                final item = NotificationItem(
-                  id: data['notification_id']!,
-                  message: data['notif_message'] ?? '',
-                  link: '',
-                  time: 'Just now',
-                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                );
-                Future.delayed(const Duration(milliseconds: 300), () => Get.to(() => NotificationDetailView(item: item)));
-              }
-            }));
-          }
-        });
-      }
-    });
   }
 
   @override
@@ -153,8 +107,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             return GetPageRoute(page: () => PasswordResetView(token: token, isEmailReset: isEmail), routeName: '/password-reset');
           }
           if (uri.path.contains('email-verification')) {
-            final code = uri.queryParameters['u'] ?? '';
-            return GetPageRoute(page: () => VerificationSuccessView(code: code), routeName: '/verify-email');
+            return GetPageRoute(page: () => VerificationSuccessView(code: uri.queryParameters['u'] ?? ''), routeName: '/verify-email');
           }
         }
         return null;
