@@ -31,7 +31,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
-  bool _skipNextResume = false;
   bool _taskSwitcherHidden = false;
   bool _appWasActive = false;
   String _debugText = '';
@@ -67,17 +66,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _debug('STATE: $state | lock=$_showingLockScreen | active=$_appWasActive');
+    
     if (state == AppLifecycleState.resumed) {
       _appWasActive = true;
       _taskSwitcherHidden = false;
-      
-      // Only skip if we just unlocked (not on initial lock screen push)
-      if (_skipNextResume) {
-        _skipNextResume = false;
-        _debug('SKIP: just unlocked');
-        setState(() {});
-        return;
-      }
 
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
@@ -86,24 +79,32 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
       if (_showingLockScreen) {
+        _debug('RESUME: already showing lock');
         setState(() {});
         return;
       }
 
       if (PasscodeService.isPasscodeEnabled()) {
         final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+        final elapsedMs = now - _lastActiveTime;
+        final elapsedSeconds = elapsedMs ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
         
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+        // Always lock if immediately, or if enough time passed
+        // AND not just unlocked (within last 500ms)
+        final justUnlocked = elapsedMs < 500;
+        final shouldLock = !justUnlocked && (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
+        
+        _debug('CHECK: elapsed=${elapsedMs}ms | justUnlocked=$justUnlocked | shouldLock=$shouldLock');
+        
+        if (shouldLock) {
           _showingLockScreen = true;
-          // Don't set skipNextResume here - only on actual unlock
           
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
             pendingNotificationData = null;
-            _debug('NOTIF SAVED: ${savedNotification?['notification_id']}');
+            _debug('NOTIF: ${savedNotification?['notification_id']}');
           }
           if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
             savedNotification = {
@@ -116,14 +117,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             PushNotificationData.message = null;
             PushNotificationData.title = null;
             PushNotificationData.image = null;
-            _debug('PUSH SAVED: ${savedNotification?['notification_id']}');
+            _debug('PUSH: ${savedNotification?['notification_id']}');
           }
           
           _debug('LOCKING');
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
-              _skipNextResume = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
               Get.back();
@@ -142,7 +142,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 );
                 Future.delayed(const Duration(milliseconds: 700), () {
                   if (mounted) {
-                    _debug('NAV NOTIF: ${item.id}');
+                    _debug('NAV NOTIF');
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
@@ -153,12 +153,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
       setState(() {});
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      _skipNextResume = false;
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
       
       if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
         _taskSwitcherHidden = true;
+        _debug('TASK HIDE');
         setState(() {});
       }
     }
