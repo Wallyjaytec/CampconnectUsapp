@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:get_storage/get_storage.dart';
+import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/main.dart';
@@ -42,14 +44,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
-  void _checkLockAndNavigate() {
+  void _checkLockAndNavigate() async {
     if (_navigated) return;
 
-    // COLD START: Always lock if passcode is enabled (splash only runs on cold start)
-    if (PasscodeService.isPasscodeEnabled) {
+    bool hasPasscode = false;
+
+    if (isLoggedIn) {
+      try {
+        final api = ApiService();
+        final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
+        if (resp['success'] == true && (resp['has_passcode'] == true || resp['has_passcode'] == '1' || resp['has_passcode'] == 1)) {
+          hasPasscode = true;
+        }
+      } catch (_) {
+        hasPasscode = PasscodeService.isPasscodeEnabled;
+      }
+    } else {
+      hasPasscode = PasscodeService.isPasscodeEnabled;
+    }
+
+    if (hasPasscode) {
       _navigated = true;
       
-      // Save any pending notification for after unlock
       if (pendingNotificationData != null) {
         _pendingNotificationData = Map<String, dynamic>.from(pendingNotificationData!);
         pendingNotificationData = null;
@@ -72,7 +88,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           final box = GetStorage();
           box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
           
-          // After unlock, process any pending notification
           if (_pendingNotificationData != null) {
             final data = _pendingNotificationData!;
             _pendingNotificationData = null;
@@ -96,7 +111,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
 
-    // No passcode enabled - proceed normally
     Timer(const Duration(seconds: 3), () {
       if (!mounted || _navigated) return;
       _checkPushAndNavigate(attempts: 0);
