@@ -31,6 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
+  bool _skipNextResume = false;
   bool _taskSwitcherHidden = false;
 
   @override
@@ -61,11 +62,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void _showLockScreen({Map<String, dynamic>? savedNotification}) {
     if (_showingLockScreen) return;
     _showingLockScreen = true;
-    _taskSwitcherHidden = false; // Remove overlay immediately
+    _taskSwitcherHidden = false;
     
     Get.to(() => PasscodeLockScreen(
       onUnlocked: () {
         _showingLockScreen = false;
+        _skipNextResume = true;
         _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
         GetStorage().write('_last_active_time', _lastActiveTime);
         Get.back();
@@ -92,6 +94,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _taskSwitcherHidden = false;
+
+      // Skip if just unlocked to prevent fingerprint loop
+      if (_skipNextResume) {
+        _skipNextResume = false;
+        setState(() {});
+        return;
+      }
 
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
@@ -128,18 +137,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             PushNotificationData.image = null;
           }
           
-          // Small delay to ensure overlay is removed first
           Future.delayed(const Duration(milliseconds: 50), () {
-            if (mounted) {
-              _showLockScreen(savedNotification: savedNotification);
-            }
+            if (mounted) _showLockScreen(savedNotification: savedNotification);
           });
           setState(() {});
           return;
         }
       }
       setState(() {});
-    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    } else if (state == AppLifecycleState.inactive) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.paused) {
+      // Show task switcher overlay only when fully minimized (paused)
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
       
