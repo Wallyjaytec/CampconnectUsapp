@@ -33,6 +33,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool _showingLockScreen = false;
   bool _skipNextResume = false;
   bool _taskSwitcherHidden = false;
+  bool _appWasActive = false;
   String _debugText = '';
 
   @override
@@ -46,7 +47,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
     WidgetsBinding.instance.addPostFrameCallback((_) => LanguageService.load(localeCode));
-    _debug('INIT: lastActive=$_lastActiveTime');
   }
 
   void _debug(String msg) {
@@ -67,14 +67,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    _debug('STATE: $state | skip=$_skipNextResume | lock=$_showingLockScreen | task=$_taskSwitcherHidden');
-    
     if (state == AppLifecycleState.resumed) {
+      _appWasActive = true;
       _taskSwitcherHidden = false;
       
       if (_skipNextResume) {
         _skipNextResume = false;
-        _debug('SKIP: just unlocked');
+        _debug('🔴 SKIP: just unlocked (prevents double)');
         setState(() {});
         return;
       }
@@ -86,7 +85,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
       if (_showingLockScreen) {
-        _debug('SKIP: already locked');
         setState(() {});
         return;
       }
@@ -95,17 +93,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        final shouldLock = autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds;
         
-        _debug('CHECK: elapsed=${elapsedSeconds}s | auto=$autoLockSeconds | lock=$shouldLock');
-        
-        if (shouldLock) {
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
           
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
             pendingNotificationData = null;
+            _debug('🟣 NOTIF SAVED: ${savedNotification?['notification_id']}');
           }
           if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
             savedNotification = {
@@ -114,16 +110,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               'notif_title': PushNotificationData.title ?? '',
               'notif_image': PushNotificationData.image ?? '',
             };
+            _debug('🟣 PUSH SAVED: ${savedNotification?['notification_id']}');
             PushNotificationData.notificationId = null;
             PushNotificationData.message = null;
             PushNotificationData.title = null;
             PushNotificationData.image = null;
           }
           
-          _debug('LOCK: notif=${savedNotification != null}');
+          _debug('🔒 LOCKING');
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
-              _debug('UNLOCK: notif=${savedNotification != null}');
               _showingLockScreen = false;
               _skipNextResume = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
@@ -131,6 +127,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               Get.back();
               
               if (savedNotification != null) {
+                _debug('🟣 OPENING NOTIF: ${savedNotification?['notification_id']}');
                 final data = savedNotification;
                 final item = NotificationItem(
                   id: data['notification_id']!,
@@ -140,9 +137,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  Get.to(() => NotificationDetailView(item: item));
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted) {
+                    _debug('🟣 NAVIGATING TO NOTIF');
+                    Get.to(() => NotificationDetailView(item: item));
+                  }
                 });
+              } else {
+                _debug('✅ UNLOCKED (no notif)');
               }
             },
           ));
@@ -150,15 +152,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
       setState(() {});
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      // Reset skip flag when app goes to background - ensures next resume will lock
       _skipNextResume = false;
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
       
-      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
+      if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
         _taskSwitcherHidden = true;
-        _debug('TASK HIDE');
+        _debug('🟠 TASK HIDE (appWasActive=$_appWasActive)');
         setState(() {});
+      } else {
+        _debug('🟠 NO TASK HIDE (active=$_appWasActive, enabled=${PasscodeService.isPasscodeEnabled()}, hide=${PasscodeService.taskSwitcherPreview == 'hide'}, locked=$_showingLockScreen)');
       }
     }
   }
@@ -188,7 +191,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               ),
             if (_debugText.isNotEmpty)
               Positioned(
-                top: 100, left: 10, right: 10,
+                top: 120, left: 10, right: 10,
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   color: Colors.black87,
