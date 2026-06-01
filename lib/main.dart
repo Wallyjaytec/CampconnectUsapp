@@ -45,16 +45,11 @@ Future<void> main() async {
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
-  // Suppress OneSignal's custom notification dialog (has black bar issue)
+  // Suppress OneSignal's custom dialog with black bar
   OneSignal.Notifications.requestPermission(false);
 
-  // Use native Android notification permission dialog instead
-  Future.delayed(const Duration(seconds: 1), () async {
-    final status = await Permission.notification.status;
-    if (!status.isGranted && !status.isPermanentlyDenied) {
-      await Permission.notification.request();
-    }
-  });
+  // Request notification permission AFTER onboarding is done (not on splash)
+  // This will be triggered from the app after splash completes
 
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
