@@ -10,7 +10,6 @@ import 'package:kartly_e_commerce/modules/settings/view/security_questions_view.
 
 class PasscodeSettingsView extends StatefulWidget {
   const PasscodeSettingsView({super.key});
-
   @override
   State<PasscodeSettingsView> createState() => _PasscodeSettingsViewState();
 }
@@ -29,7 +28,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
   }
 
   void _refreshState() async {
-    final enabled = await PasscodeService.checkPasscodeEnabled();
+    final enabled = await PasscodeService.checkPasscodeOnServer();
     if (mounted) {
       setState(() {
         _passcodeEnabled = enabled;
@@ -45,27 +44,11 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       try {
         final canCheck = await _localAuth.canCheckBiometrics;
         if (!canCheck) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('No biometrics available on this device'.tr),
-                backgroundColor: Colors.red,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No biometrics available on this device'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
           return;
         }
-        final authenticated = await _localAuth.authenticate(
-          localizedReason: 'Authenticate to enable biometric unlock'.tr,
-        );
-        if (authenticated) {
-          setState(() => _useFingerprint = true);
-          PasscodeService.setUseFingerprint(true);
-        }
+        final authenticated = await _localAuth.authenticate(localizedReason: 'Authenticate to enable biometric unlock'.tr);
+        if (authenticated) { setState(() => _useFingerprint = true); PasscodeService.setUseFingerprint(true); }
       } catch (_) {}
     } else {
       setState(() => _useFingerprint = false);
@@ -82,300 +65,68 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       {'label': '30 min'.tr, 'value': 30},
       {'label': '1 hour'.tr, 'value': 60},
     ];
-
-    final result = await showModalBottomSheet<int>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Auto-lock'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              const Divider(height: 1),
-              ...options.map((opt) => ListTile(
-                title: Text(opt['label'] as String),
-                trailing: _autoLockMinutes == opt['value'] ? const Icon(Icons.check, color: AppColors.primaryColor) : null,
-                onTap: () => Navigator.pop(ctx, opt['value'] as int),
-              )),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (result != null) {
-      setState(() => _autoLockMinutes = result);
-      PasscodeService.setAutoLockMinutes(result);
-    }
+    final result = await showModalBottomSheet<int>(context: context, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))), builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [Padding(padding: const EdgeInsets.all(16), child: Text('Auto-lock'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), const Divider(height: 1), ...options.map((opt) => ListTile(title: Text(opt['label'] as String), trailing: _autoLockMinutes == opt['value'] ? const Icon(Icons.check, color: AppColors.primaryColor) : null, onTap: () => Navigator.pop(ctx, opt['value'] as int))), const SizedBox(height: 8)]))));
+    if (result != null) { setState(() => _autoLockMinutes = result); PasscodeService.setAutoLockMinutes(result); }
   }
 
   Future<void> _handlePasscodeToggle(bool value) async {
     if (value) {
-      // ENABLE
-      final passcode = await Get.to(
-        () => PasscodeInputView(
-          title: 'Passcode Lock'.tr,
-          onCompleted: (code) => Get.back(result: code),
-        ),
-      );
-
-      if (passcode == null || passcode.toString().isEmpty) {
-        if (mounted) setState(() => _passcodeEnabled = false);
-        return;
-      }
-
-      final confirmed = await Get.to(
-        () => PasscodeInputView(
-          title: 'Passcode Lock'.tr,
-          confirmPasscode: passcode.toString(),
-          onCompleted: (code) => Get.back(result: code),
-        ),
-      );
-
-      if (confirmed == null) {
-        if (mounted) setState(() => _passcodeEnabled = false);
-        return;
-      }
-
+      final passcode = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, onCompleted: (code) => Get.back(result: code)));
+      if (passcode == null || passcode.toString().isEmpty) { if (mounted) setState(() => _passcodeEnabled = false); return; }
+      final confirmed = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, confirmPasscode: passcode.toString(), onCompleted: (code) => Get.back(result: code)));
+      if (confirmed == null) { if (mounted) setState(() => _passcodeEnabled = false); return; }
       final questionsData = await Get.to(() => const SecurityQuestionsView());
-
-      if (questionsData == null) {
-        if (mounted) setState(() => _passcodeEnabled = false);
-        return;
-      }
-
-      final success = await PasscodeService.setPasscodeOnServer(
-        passcode: passcode.toString(),
-        question1: questionsData['question1'],
-        answer1: questionsData['answer1'],
-        question2: questionsData['question2'],
-        answer2: questionsData['answer2'],
-      );
-
+      if (questionsData == null) { if (mounted) setState(() => _passcodeEnabled = false); return; }
+      final success = await PasscodeService.setPasscodeOnServer(passcode: passcode.toString(), question1: questionsData['question1'], answer1: questionsData['answer1'], question2: questionsData['question2'], answer2: questionsData['answer2']);
       if (mounted) {
-        setState(() {
-          _passcodeEnabled = success;
-          _taskSwitcherShow = false;
-        });
+        setState(() { _passcodeEnabled = success; _taskSwitcherShow = false; });
         PasscodeService.setTaskSwitcherPreview('hide');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? 'Passcode enabled successfully'.tr : 'Failed to enable passcode'.tr),
-            backgroundColor: success ? AppColors.primaryColor : Colors.red,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Passcode enabled successfully'.tr : 'Failed to enable passcode'.tr), backgroundColor: success ? AppColors.primaryColor : Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
       }
     } else {
-      // DISABLE
-      final entered = await Get.to(
-        () => PasscodeInputView(
-          title: 'Passcode Lock'.tr,
-          hintText: 'Enter your passcode to disable'.tr,
-          onCompleted: (code) => Get.back(result: code),
-        ),
-      );
-
+      final entered = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, hintText: 'Enter your passcode to disable'.tr, onCompleted: (code) => Get.back(result: code)));
       if (entered == null) return;
-
       final isCorrect = await PasscodeService.verifyPasscodeOnServer(entered.toString());
-
       if (isCorrect) {
         final disabled = await PasscodeService.disablePasscodeOnServer();
         if (mounted) {
-          setState(() {
-            _passcodeEnabled = !disabled;
-            _useFingerprint = false;
-            _autoLockMinutes = 0;
-            _taskSwitcherShow = true;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(disabled ? 'Passcode disabled'.tr : 'Failed to disable'.tr),
-              backgroundColor: disabled ? AppColors.primaryColor : Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          setState(() { _passcodeEnabled = !disabled; _useFingerprint = false; _autoLockMinutes = 0; _taskSwitcherShow = true; });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(disabled ? 'Passcode disabled'.tr : 'Failed to disable'.tr), backgroundColor: disabled ? AppColors.primaryColor : Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Wrong passcode'.tr),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Wrong passcode'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
       }
     }
   }
 
   Future<void> _changePasscode() async {
-    final current = await Get.to(
-      () => PasscodeInputView(
-        title: 'Passcode Lock'.tr,
-        hintText: 'Enter your current passcode'.tr,
-        onCompleted: (code) => Get.back(result: code),
-      ),
-    );
-
+    final current = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, hintText: 'Enter your current passcode'.tr, onCompleted: (code) => Get.back(result: code)));
     if (current == null) return;
-
     final isCorrect = await PasscodeService.verifyPasscodeOnServer(current.toString());
-
-    if (!isCorrect) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Wrong passcode'.tr),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-      return;
-    }
-
-    final newPasscode = await Get.to(
-      () => PasscodeInputView(
-        title: 'Passcode Lock'.tr,
-        onCompleted: (code) => Get.back(result: code),
-      ),
-    );
-
+    if (!isCorrect) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Wrong passcode'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2))); return; }
+    final newPasscode = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, onCompleted: (code) => Get.back(result: code)));
     if (newPasscode == null) return;
-
-    final confirmed = await Get.to(
-      () => PasscodeInputView(
-        title: 'Passcode Lock'.tr,
-        confirmPasscode: newPasscode.toString(),
-        onCompleted: (code) => Get.back(result: code),
-      ),
-    );
-
+    final confirmed = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, confirmPasscode: newPasscode.toString(), onCompleted: (code) => Get.back(result: code)));
     if (confirmed != null) {
       final questions = await PasscodeService.fetchSecurityQuestions();
-      await PasscodeService.setPasscodeOnServer(
-        passcode: newPasscode.toString(),
-        question1: questions?['question1'] ?? '',
-        answer1: questions?['answer1'] ?? '',
-        question2: questions?['question2'] ?? '',
-        answer2: questions?['answer2'] ?? '',
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Passcode changed successfully'.tr),
-            backgroundColor: AppColors.primaryColor,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
+      await PasscodeService.setPasscodeOnServer(passcode: newPasscode.toString(), question1: questions?['question1'] ?? '', answer1: questions?['answer1'] ?? '', question2: questions?['question2'] ?? '', answer2: questions?['answer2'] ?? '');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Passcode changed successfully'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        leadingWidth: 44,
-        leading: Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: IconButton(
-            onPressed: () {
-              final nav = Navigator.of(context);
-              if (nav.canPop()) {
-                nav.pop();
-                return;
-              }
-              if (Get.key.currentState?.canPop() ?? false) {
-                Get.back();
-                return;
-              }
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
-            },
-            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20),
-            splashRadius: 20,
-          ),
-        ),
-        centerTitle: false,
-        titleSpacing: 0,
-        title: Text('Passcode Lock'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
-      ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 10),
-          SwitchListTile(
-            secondary: const Icon(Iconsax.lock, color: AppColors.primaryColor, size: 20),
-            title: Text('Passcode Lock'.tr),
-            activeColor: AppColors.primaryColor,
-            value: _passcodeEnabled,
-            onChanged: _handlePasscodeToggle,
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(Iconsax.key, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
-            title: Text('Change Passcode'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey),
-            onTap: _passcodeEnabled ? _changePasscode : null,
-          ),
-          SwitchListTile(
-            secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
-            title: Text('Unlock with Biometrics'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
-            inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
-            inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
-            value: _passcodeEnabled ? _useFingerprint : false,
-            onChanged: _passcodeEnabled ? _handleFingerprintToggle : null,
-          ),
-          ListTile(
-            leading: Icon(Iconsax.timer_1, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
-            title: Text('Auto-lock'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            subtitle: Text(_autoLockMinutes == 0 ? 'Immediately'.tr : '$_autoLockMinutes min', style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey),
-            onTap: _passcodeEnabled ? _showAutoLockPicker : null,
-          ),
-          SwitchListTile(
-            secondary: Icon(Iconsax.eye, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20),
-            title: Text('App in Task Switcher'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)),
-            activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey,
-            inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400,
-            inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300,
-            value: _passcodeEnabled ? _taskSwitcherShow : false,
-            onChanged: _passcodeEnabled ? (val) {
-              setState(() => _taskSwitcherShow = val);
-              PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide');
-            } : null,
-          ),
-        ],
-      ),
+      appBar: AppBar(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, automaticallyImplyLeading: false, leadingWidth: 44, leading: Material(color: Colors.transparent, shape: const CircleBorder(), clipBehavior: Clip.antiAlias, child: IconButton(onPressed: () { final nav = Navigator.of(context); if (nav.canPop()) { nav.pop(); return; } if (Get.key.currentState?.canPop() ?? false) { Get.back(); return; } Get.offAllNamed(AppRoutes.bottomNavbarView); }, icon: const Icon(Iconsax.arrow_left_2_copy, size: 20), splashRadius: 20)), centerTitle: false, titleSpacing: 0, title: Text('Passcode Lock'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18))),
+      body: ListView(children: [
+        const SizedBox(height: 10),
+        SwitchListTile(secondary: const Icon(Iconsax.lock, color: AppColors.primaryColor, size: 20), title: Text('Passcode Lock'.tr), activeColor: AppColors.primaryColor, value: _passcodeEnabled, onChanged: _handlePasscodeToggle),
+        const Divider(),
+        ListTile(leading: Icon(Iconsax.key, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Change Passcode'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey), onTap: _passcodeEnabled ? _changePasscode : null),
+        SwitchListTile(secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Unlock with Biometrics'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400, inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300, value: _passcodeEnabled ? _useFingerprint : false, onChanged: _passcodeEnabled ? _handleFingerprintToggle : null),
+        ListTile(leading: Icon(Iconsax.timer_1, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Auto-lock'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), subtitle: Text(_autoLockMinutes == 0 ? 'Immediately'.tr : '$_autoLockMinutes min', style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey), onTap: _passcodeEnabled ? _showAutoLockPicker : null),
+        SwitchListTile(secondary: Icon(Iconsax.eye, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('App in Task Switcher'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400, inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300, value: _passcodeEnabled ? _taskSwitcherShow : false, onChanged: _passcodeEnabled ? (val) { setState(() => _taskSwitcherShow = val); PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide'); } : null),
+      ]),
     );
   }
 }
