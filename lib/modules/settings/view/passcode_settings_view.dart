@@ -65,7 +65,23 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       {'label': '30 min'.tr, 'value': 30},
       {'label': '1 hour'.tr, 'value': 60},
     ];
-    final result = await showModalBottomSheet<int>(context: context, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))), builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [Padding(padding: const EdgeInsets.all(16), child: Text('Auto-lock'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), const Divider(height: 1), ...options.map((opt) => ListTile(title: Text(opt['label'] as String), trailing: _autoLockMinutes == opt['value'] ? const Icon(Icons.check, color: AppColors.primaryColor) : null, onTap: () => Navigator.pop(ctx, opt['value'] as int))), const SizedBox(height: 8)]))));
+
+    final result = await showModalBottomSheet<int>(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(padding: const EdgeInsets.all(16), child: Text('Auto-lock'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            const Divider(height: 1),
+            ...options.map((opt) => ListTile(title: Text(opt['label'] as String), trailing: _autoLockMinutes == opt['value'] ? const Icon(Icons.check, color: AppColors.primaryColor) : null, onTap: () => Navigator.pop(ctx, opt['value'] as int))),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
     if (result != null) { setState(() => _autoLockMinutes = result); PasscodeService.setAutoLockMinutes(result); }
   }
 
