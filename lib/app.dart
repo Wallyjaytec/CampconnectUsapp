@@ -77,12 +77,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      // Don't show lock screen if already showing
       if (_showingLockScreen) {
         return;
       }
 
-      // Check if we need to show lock screen
       if (PasscodeService.isPasscodeEnabled) {
         final storedTime = box.read<int>('_last_active_time');
         final now = DateTime.now().millisecondsSinceEpoch;
@@ -90,7 +88,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         bool shouldLock = false;
         
         if (storedTime == null) {
-          // No stored time - lock if set to Immediately
           shouldLock = (PasscodeService.autoLockMinutes == 0);
         } else {
           final elapsedSeconds = (now - storedTime) ~/ 1000;
@@ -101,7 +98,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         if (shouldLock) {
           _showingLockScreen = true;
           
-          // Save any pending notification
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
@@ -125,7 +121,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               Get.offAll(() => PasscodeLockScreen(
                 onUnlocked: () {
                   _showingLockScreen = false;
-                  GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
                   
                   if (savedNotification != null) {
                     final data = savedNotification;
@@ -152,11 +147,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       }
       
-      // Update last active time
-      GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-      
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
-      // Store time when going to background
       if (!_showingLockScreen) {
         GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
       }
