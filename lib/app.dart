@@ -31,7 +31,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
-  bool _skipNextResume = false;
   bool _taskSwitcherHidden = false;
 
   @override
@@ -59,17 +58,40 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
+  void _showLockScreen({Map<String, dynamic>? savedNotification}) {
+    if (_showingLockScreen) return;
+    _showingLockScreen = true;
+    _taskSwitcherHidden = false; // Remove overlay immediately
+    
+    Get.to(() => PasscodeLockScreen(
+      onUnlocked: () {
+        _showingLockScreen = false;
+        _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+        GetStorage().write('_last_active_time', _lastActiveTime);
+        Get.back();
+        
+        if (savedNotification != null) {
+          final data = savedNotification;
+          final item = NotificationItem(
+            id: data['notification_id']!,
+            message: data['notif_message'] ?? '',
+            link: '',
+            time: 'Just now',
+            title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+            image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+          );
+          Future.delayed(const Duration(milliseconds: 500), () {
+            Get.to(() => NotificationDetailView(item: item));
+          });
+        }
+      },
+    ));
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Hide task switcher overlay immediately
       _taskSwitcherHidden = false;
-      
-      if (_skipNextResume) {
-        _skipNextResume = false;
-        setState(() {});
-        return;
-      }
 
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
@@ -88,8 +110,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
         
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _showingLockScreen = true;
-          
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
@@ -108,44 +128,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             PushNotificationData.image = null;
           }
           
-          Get.to(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _showingLockScreen = false;
-              _skipNextResume = true;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
-              
-              if (savedNotification != null) {
-                final data = savedNotification;
-                final item = NotificationItem(
-                  id: data['notification_id']!,
-                  message: data['notif_message'] ?? '',
-                  link: '',
-                  time: 'Just now',
-                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  Get.to(() => NotificationDetailView(item: item));
-                });
-              }
-            },
-          ));
+          // Small delay to ensure overlay is removed first
+          Future.delayed(const Duration(milliseconds: 50), () {
+            if (mounted) {
+              _showLockScreen(savedNotification: savedNotification);
+            }
+          });
+          setState(() {});
+          return;
         }
       }
       setState(() {});
-    } else if (state == AppLifecycleState.inactive) {
-      // Task switcher hide - overlay a security screen immediately
-      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
+    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
+      
+      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
         _taskSwitcherHidden = true;
+        setState(() {});
       }
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-      setState(() {});
-    } else if (state == AppLifecycleState.paused) {
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
     }
   }
 
@@ -161,12 +162,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       builder: (context, child) {
         return Stack(
           children: [
-            // Main app content
             Scaffold(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
               body: child!
             ),
-            // Task switcher security overlay - doesn't rebuild the app
             if (_taskSwitcherHidden)
               Container(
                 color: AppColors.primaryColor,
