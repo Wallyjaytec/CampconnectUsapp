@@ -73,7 +73,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       
       if (_skipNextResume) {
         _skipNextResume = false;
-        _debug('🔴 SKIP: just unlocked (prevents double)');
+        _debug('SKIP: just unlocked');
         setState(() {});
         return;
       }
@@ -101,7 +101,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
             pendingNotificationData = null;
-            _debug('🟣 NOTIF SAVED: ${savedNotification?['notification_id']}');
           }
           if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
             savedNotification = {
@@ -110,24 +109,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               'notif_title': PushNotificationData.title ?? '',
               'notif_image': PushNotificationData.image ?? '',
             };
-            _debug('🟣 PUSH SAVED: ${savedNotification?['notification_id']}');
             PushNotificationData.notificationId = null;
             PushNotificationData.message = null;
             PushNotificationData.title = null;
             PushNotificationData.image = null;
           }
           
-          _debug('🔒 LOCKING');
+          _debug('LOCK: notif=${savedNotification != null}');
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
+              // Set skip BEFORE Get.back() to prevent lifecycle re-lock
               _skipNextResume = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
               
+              _debug('UNLOCK: notif=${savedNotification != null}');
+              
+              // Process notification BEFORE Get.back() to avoid race condition
               if (savedNotification != null) {
-                _debug('🟣 OPENING NOTIF: ${savedNotification?['notification_id']}');
                 final data = savedNotification;
                 final item = NotificationItem(
                   id: data['notification_id']!,
@@ -137,14 +137,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 800), () {
+                // Pop lock screen first, then navigate to notification
+                Get.back();
+                Future.delayed(const Duration(milliseconds: 300), () {
                   if (mounted) {
-                    _debug('🟣 NAVIGATING TO NOTIF');
+                    _debug('NAV TO NOTIF: ${item.id}');
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
               } else {
-                _debug('✅ UNLOCKED (no notif)');
+                Get.back();
               }
             },
           ));
@@ -158,10 +160,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       
       if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
         _taskSwitcherHidden = true;
-        _debug('🟠 TASK HIDE (appWasActive=$_appWasActive)');
         setState(() {});
-      } else {
-        _debug('🟠 NO TASK HIDE (active=$_appWasActive, enabled=${PasscodeService.isPasscodeEnabled()}, hide=${PasscodeService.taskSwitcherPreview == 'hide'}, locked=$_showingLockScreen)');
       }
     }
   }
