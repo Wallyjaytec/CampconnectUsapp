@@ -14,6 +14,9 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
 import 'core/services/passcode_service.dart';
+import 'main.dart';
+import 'modules/account/model/notification_model.dart';
+import 'modules/account/view/notification_detail_view.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
@@ -30,7 +33,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
   bool _showingLockScreen = false;
-  bool _justUnlocked = false; // NEW: prevent re-lock after unlock
 
   @override
   void initState() {
@@ -67,12 +69,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Skip lock check if we just unlocked to prevent loop
-      if (_justUnlocked) {
-        _justUnlocked = false;
-        return;
-      }
-
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
@@ -94,8 +90,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         bool shouldLock = false;
         
         if (storedTime == null) {
-          // First time or no stored time - lock immediately if set to "Immediately"
-          shouldLock = PasscodeService.autoLockMinutes == 0;
+          // No stored time - lock if set to Immediately
+          shouldLock = (PasscodeService.autoLockMinutes == 0);
         } else {
           final elapsedSeconds = (now - storedTime) ~/ 1000;
           final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
@@ -104,15 +100,50 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         if (shouldLock) {
           _showingLockScreen = true;
-          // Use a small delay to avoid race conditions with GetX navigation
+          
+          // Save any pending notification
+          Map<String, dynamic>? savedNotification;
+          if (pendingNotificationData != null) {
+            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
+            pendingNotificationData = null;
+          }
+          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+            savedNotification = {
+              'notification_id': PushNotificationData.notificationId,
+              'notif_message': PushNotificationData.message ?? '',
+              'notif_title': PushNotificationData.title ?? '',
+              'notif_image': PushNotificationData.image ?? '',
+            };
+            PushNotificationData.notificationId = null;
+            PushNotificationData.message = null;
+            PushNotificationData.title = null;
+            PushNotificationData.image = null;
+          }
+          
           Future.delayed(const Duration(milliseconds: 100), () {
             if (_showingLockScreen) {
               Get.offAll(() => PasscodeLockScreen(
                 onUnlocked: () {
                   _showingLockScreen = false;
-                  _justUnlocked = true; // Prevent re-lock
                   GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-                  Get.offAllNamed(AppRoutes.bottomNavbarView);
+                  
+                  if (savedNotification != null) {
+                    final data = savedNotification;
+                    final item = NotificationItem(
+                      id: data['notification_id']!,
+                      message: data['notif_message'] ?? '',
+                      link: '',
+                      time: 'Just now',
+                      title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+                      image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+                    );
+                    Get.offAllNamed(AppRoutes.bottomNavbarView);
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      Get.to(() => NotificationDetailView(item: item));
+                    });
+                  } else {
+                    Get.offAllNamed(AppRoutes.bottomNavbarView);
+                  }
                 },
               ));
             }
@@ -125,7 +156,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
       
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
-      // Only store time if we're not showing lock screen (to prevent loop)
+      // Store time when going to background
       if (!_showingLockScreen) {
         GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
       }
