@@ -71,6 +71,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _appWasActive = true;
       _taskSwitcherHidden = false;
       
+      // Only skip if we just unlocked (not on initial lock screen push)
       if (_skipNextResume) {
         _skipNextResume = false;
         _debug('SKIP: just unlocked');
@@ -96,11 +97,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
+          // Don't set skipNextResume here - only on actual unlock
           
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
             pendingNotificationData = null;
+            _debug('NOTIF SAVED: ${savedNotification?['notification_id']}');
           }
           if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
             savedNotification = {
@@ -113,20 +116,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             PushNotificationData.message = null;
             PushNotificationData.title = null;
             PushNotificationData.image = null;
+            _debug('PUSH SAVED: ${savedNotification?['notification_id']}');
           }
           
-          _debug('LOCK: notif=${savedNotification != null}');
+          _debug('LOCKING');
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
-              // Set skip BEFORE Get.back() to prevent lifecycle re-lock
               _skipNextResume = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
+              Get.back();
               
-              _debug('UNLOCK: notif=${savedNotification != null}');
+              _debug('UNLOCKED: notif=${savedNotification != null}');
               
-              // Process notification BEFORE Get.back() to avoid race condition
               if (savedNotification != null) {
                 final data = savedNotification;
                 final item = NotificationItem(
@@ -137,16 +140,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                // Pop lock screen first, then navigate to notification
-                Get.back();
-                Future.delayed(const Duration(milliseconds: 300), () {
+                Future.delayed(const Duration(milliseconds: 700), () {
                   if (mounted) {
-                    _debug('NAV TO NOTIF: ${item.id}');
+                    _debug('NAV NOTIF: ${item.id}');
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
-              } else {
-                Get.back();
               }
             },
           ));
