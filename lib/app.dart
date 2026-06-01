@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
-  bool _justUnlocked = false;
+  bool _skipNextResume = false;
 
   @override
   void initState() {
@@ -61,6 +61,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      if (_skipNextResume) {
+        _skipNextResume = false;
+        return;
+      }
+
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
@@ -98,6 +103,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
+              _skipNextResume = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
               Get.back();
@@ -129,8 +135,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final isHidden = PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide';
-    
     return Obx(() => GetMaterialApp(
       debugShowCheckedModeBanner: false, scrollBehavior: AppScrollBehavior(), useInheritedMediaQuery: true,
       locale: _locale.value, fallbackLocale: const Locale('en'),
