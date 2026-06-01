@@ -32,7 +32,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
   bool _justUnlocked = false;
-  bool _hideForTaskSwitcher = false;
 
   @override
   void initState() {
@@ -41,7 +40,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     final box = GetStorage();
     _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
-    debugPrint('🟡 INIT: _lastActiveTime=$_lastActiveTime');
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
@@ -62,29 +60,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('🟡 LIFECYCLE: $state');
     if (state == AppLifecycleState.resumed) {
-      debugPrint('🟡 RESUMED: hideForTaskSwitcher=$_hideForTaskSwitcher, showingLock=$_showingLockScreen, justUnlocked=$_justUnlocked');
-      _hideForTaskSwitcher = false;
-      
-      if (_justUnlocked) {
-        debugPrint('🟡 RESUMED: just unlocked, skipping');
-        _justUnlocked = false;
-        setState(() {});
-        return;
-      }
-
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
-      if (PasscodeService.isPasscodeEnabled() && !_showingLockScreen) {
+      if (_showingLockScreen) return;
+
+      if (PasscodeService.isPasscodeEnabled()) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        debugPrint('🟡 LOCK CHECK: elapsed=${elapsedSeconds}s, autoLock=${autoLockSeconds}s, shouldLock=${autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds}');
+        
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
           
@@ -92,7 +81,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           if (pendingNotificationData != null) {
             savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
             pendingNotificationData = null;
-            debugPrint('🔴 SAVED NOTIFICATION: ${savedNotification?['notification_id']}');
           }
           if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
             savedNotification = {
@@ -101,19 +89,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               'notif_title': PushNotificationData.title ?? '',
               'notif_image': PushNotificationData.image ?? '',
             };
-            debugPrint('🔴 SAVED PUSH NOTIFICATION: ${savedNotification?['notification_id']}');
             PushNotificationData.notificationId = null;
             PushNotificationData.message = null;
             PushNotificationData.title = null;
             PushNotificationData.image = null;
           }
           
-          debugPrint('🟡 SHOWING LOCK SCREEN');
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
-              debugPrint('🔴 UNLOCKED: savedNotification=${savedNotification != null}');
               _showingLockScreen = false;
-              _justUnlocked = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
               Get.back();
@@ -128,8 +112,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                debugPrint('🔴 OPENING NOTIFICATION: ${item.id}');
-                Future.delayed(const Duration(milliseconds: 700), () {
+                Future.delayed(const Duration(milliseconds: 500), () {
                   Get.to(() => NotificationDetailView(item: item));
                 });
               }
@@ -138,24 +121,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       }
       setState(() {});
-    } else if (state == AppLifecycleState.inactive) {
-      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
-        debugPrint('🟡 INACTIVE: hiding for task switcher');
-        _hideForTaskSwitcher = true;
-        setState(() {});
-      }
+    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
-      debugPrint('🟡 INACTIVE: stored _lastActiveTime=$_lastActiveTime');
-    } else if (state == AppLifecycleState.paused) {
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-      debugPrint('🟡 PAUSED: stored _lastActiveTime=$_lastActiveTime');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isHidden = PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide';
+    
     return Obx(() => GetMaterialApp(
       debugShowCheckedModeBanner: false, scrollBehavior: AppScrollBehavior(), useInheritedMediaQuery: true,
       locale: _locale.value, fallbackLocale: const Locale('en'),
@@ -164,10 +139,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       onGenerateTitle: (_) => 'app_title'.tr,
       theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
       builder: (context, child) {
-        if (_hideForTaskSwitcher) {
-          return Container(color: AppColors.primaryColor);
-        }
-        return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!);
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
+          body: child!
+        );
       },
       initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
       onGenerateRoute: (settings) {
