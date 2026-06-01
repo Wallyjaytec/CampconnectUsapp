@@ -32,6 +32,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
   bool _skipNextResume = false;
+  bool _taskSwitcherHidden = false;
 
   @override
   void initState() {
@@ -61,8 +62,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Hide task switcher overlay immediately
+      _taskSwitcherHidden = false;
+      
       if (_skipNextResume) {
         _skipNextResume = false;
+        setState(() {});
         return;
       }
 
@@ -72,7 +77,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
-      if (_showingLockScreen) return;
+      if (_showingLockScreen) {
+        setState(() {});
+        return;
+      }
 
       if (PasscodeService.isPasscodeEnabled()) {
         final now = DateTime.now().millisecondsSinceEpoch;
@@ -127,7 +135,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       }
       setState(() {});
-    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    } else if (state == AppLifecycleState.inactive) {
+      // Task switcher hide - overlay a security screen immediately
+      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
+        _taskSwitcherHidden = true;
+      }
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
+      setState(() {});
+    } else if (state == AppLifecycleState.paused) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
@@ -143,9 +159,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       onGenerateTitle: (_) => 'app_title'.tr,
       theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
       builder: (context, child) {
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
-          body: child!
+        return Stack(
+          children: [
+            // Main app content
+            Scaffold(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
+              body: child!
+            ),
+            // Task switcher security overlay - doesn't rebuild the app
+            if (_taskSwitcherHidden)
+              Container(
+                color: AppColors.primaryColor,
+                child: const Center(
+                  child: Icon(Icons.lock_outline, size: 60, color: Colors.white),
+                ),
+              ),
+          ],
         );
       },
       initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
