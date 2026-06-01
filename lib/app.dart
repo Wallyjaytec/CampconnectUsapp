@@ -119,8 +119,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  Get.to(() => NotificationDetailView(item: item));
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (Get.currentRoute != AppRoutes.notificationsView) {
+                    Get.to(() => NotificationDetailView(item: item));
+                  }
                 });
               }
             },
@@ -128,15 +130,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       }
     } else if (state == AppLifecycleState.inactive) {
-      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
-        _hideForTaskSwitcher = true;
-        setState(() {});
+      if (!_showingLockScreen) {
+        _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+        GetStorage().write('_last_active_time', _lastActiveTime);
+        if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
+          _hideForTaskSwitcher = true;
+          setState(() {});
+        }
       }
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.paused) {
+      if (!_showingLockScreen) {
+        _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+        GetStorage().write('_last_active_time', _lastActiveTime);
+      }
     }
   }
 
