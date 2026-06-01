@@ -50,4 +50,11 @@ class PasscodeRepository {
   Future<Map<String, dynamic>> getPasscodeStatus() {
     return _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
   }
+
+  Future<Map<String, dynamic>> disablePasscode() {
+    return _api.postJson(
+      AppConfig.customerSetPasscodeUrl(),
+      body: {'disable': true},
+    );
+  }
 }
