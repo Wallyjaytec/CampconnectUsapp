@@ -65,6 +65,7 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
+        // Always save to pendingNotificationData - splash/lock screen will handle it
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -72,16 +73,16 @@ Future<void> main() async {
           'notif_image': additionalData['notif_image']?.toString() ?? '',
         };
 
-        if (Get.isRegistered<NotificationController>()) {
-          PushNotificationData.notificationId = notificationId;
-          PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
-          PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
-          PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
+        // Also set PushNotificationData for splash screen fallback
+        PushNotificationData.notificationId = notificationId;
+        PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
+        PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
+        PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
 
+        // Only refresh the notifications list, don't navigate
+        if (Get.isRegistered<NotificationController>()) {
           final controller = Get.find<NotificationController>();
-          controller.refreshList().then((_) {
-            controller.checkPushNotification();
-          });
+          controller.refreshList();
         }
       }
     }
