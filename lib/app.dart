@@ -85,65 +85,67 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
-        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+      // Check server for passcode
+      PasscodeService.checkPasscodeEnabled().then((hasPasscode) {
+        if (hasPasscode && !_showingLockScreen && mounted) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+          final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
 
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _showingLockScreen = true;
-          
-          // Save pending notifications for after unlock
-          Map<String, dynamic>? savedNotification;
-          if (pendingNotificationData != null) {
-            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-            pendingNotificationData = null;
-          }
-          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-            savedNotification = {
-              'notification_id': PushNotificationData.notificationId,
-              'notif_message': PushNotificationData.message ?? '',
-              'notif_title': PushNotificationData.title ?? '',
-              'notif_image': PushNotificationData.image ?? '',
-            };
-            PushNotificationData.notificationId = null;
-            PushNotificationData.message = null;
-            PushNotificationData.title = null;
-            PushNotificationData.image = null;
-          }
-          
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _showingLockScreen) {
-              Get.offAll(() => PasscodeLockScreen(
-                onUnlocked: () {
-                  _showingLockScreen = false;
-                  _justUnlocked = true;
-                  _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-                  GetStorage().write('_last_active_time', _lastActiveTime);
-                  
-                  if (savedNotification != null) {
-                    final data = savedNotification;
-                    final item = NotificationItem(
-                      id: data['notification_id']!,
-                      message: data['notif_message'] ?? '',
-                      link: '',
-                      time: 'Just now',
-                      title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                      image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                    );
-                    Get.offAllNamed(AppRoutes.bottomNavbarView);
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      Get.to(() => NotificationDetailView(item: item));
-                    });
-                  } else {
-                    Get.offAllNamed(AppRoutes.bottomNavbarView);
-                  }
-                },
-              ));
+          if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+            _showingLockScreen = true;
+            
+            Map<String, dynamic>? savedNotification;
+            if (pendingNotificationData != null) {
+              savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
+              pendingNotificationData = null;
             }
-          });
+            if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+              savedNotification = {
+                'notification_id': PushNotificationData.notificationId,
+                'notif_message': PushNotificationData.message ?? '',
+                'notif_title': PushNotificationData.title ?? '',
+                'notif_image': PushNotificationData.image ?? '',
+              };
+              PushNotificationData.notificationId = null;
+              PushNotificationData.message = null;
+              PushNotificationData.title = null;
+              PushNotificationData.image = null;
+            }
+            
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _showingLockScreen) {
+                Get.offAll(() => PasscodeLockScreen(
+                  onUnlocked: () {
+                    _showingLockScreen = false;
+                    _justUnlocked = true;
+                    _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+                    GetStorage().write('_last_active_time', _lastActiveTime);
+                    
+                    if (savedNotification != null) {
+                      final data = savedNotification;
+                      final item = NotificationItem(
+                        id: data['notification_id']!,
+                        message: data['notif_message'] ?? '',
+                        link: '',
+                        time: 'Just now',
+                        title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+                        image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+                      );
+                      Get.offAllNamed(AppRoutes.bottomNavbarView);
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        Get.to(() => NotificationDetailView(item: item));
+                      });
+                    } else {
+                      Get.offAllNamed(AppRoutes.bottomNavbarView);
+                    }
+                  },
+                ));
+              }
+            });
+          }
         }
-      }
+      });
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
