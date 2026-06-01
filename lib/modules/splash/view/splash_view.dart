@@ -48,19 +48,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (_navigated) return;
 
     bool hasPasscode = false;
-
     if (isLoggedIn) {
-      try {
-        final api = ApiService();
-        final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
-        if (resp['success'] == true && (resp['has_passcode'] == true || resp['has_passcode'] == '1' || resp['has_passcode'] == 1)) {
-          hasPasscode = true;
-        }
-      } catch (_) {
-        hasPasscode = PasscodeService.isPasscodeEnabled;
-      }
-    } else {
-      hasPasscode = PasscodeService.isPasscodeEnabled;
+      hasPasscode = await PasscodeService.checkPasscodeEnabled();
     }
 
     if (hasPasscode) {
