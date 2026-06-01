@@ -221,15 +221,18 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
-      await PasscodeService.checkPasscodeOnServer();
+      final hasPasscode = await PasscodeService.checkPasscodeOnServer();
+      debugPrint('🟤 LOGIN: checkPasscodeOnServer=$hasPasscode, isPasscodeEnabled=${PasscodeService.isPasscodeEnabled()}');
       
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
-      
-      if (PasscodeService.isPasscodeEnabled()) {
+
+      if (hasPasscode) {
+        debugPrint('🟤 LOGIN: showing lock screen');
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
+            debugPrint('🟤 LOGIN UNLOCKED');
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
@@ -250,7 +253,8 @@ class AuthController extends GetxController {
         ));
         return;
       }
-      
+
+      debugPrint('🟤 LOGIN: no passcode, going to home');
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       
       if (redirect != null && redirect.isNotEmpty) {
@@ -276,6 +280,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      debugPrint('🟤 LOGOUT');
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
