@@ -11,12 +11,22 @@ class PasscodeService {
   static const String _passcodeEnabledKey = 'passcode_enabled';
 
   static GetStorage? _box;
-  static GetStorage get box { _box ??= GetStorage(_boxName); return _box!; }
+  static GetStorage get box { 
+    _box ??= GetStorage(_boxName);
+    return _box!;
+  }
   static final PasscodeRepository _repo = PasscodeRepository(ApiService());
   static final ApiService _api = ApiService();
 
-  static bool isPasscodeEnabled() => box.read(_passcodeEnabledKey) ?? false;
-  static Future<void> setPasscodeEnabled(bool value) => box.write(_passcodeEnabledKey, value);
+  static bool isPasscodeEnabled() {
+    if (_box == null) return false;
+    return box.read(_passcodeEnabledKey) ?? false;
+  }
+  
+  static Future<void> setPasscodeEnabled(bool value) async {
+    if (_box == null) return;
+    await box.write(_passcodeEnabledKey, value);
+  }
 
   static Future<bool> checkPasscodeOnServer() async {
     try {
@@ -63,10 +73,33 @@ class PasscodeService {
     return null;
   }
 
-  static bool get useFingerprint => box.read(_fingerprintKey) ?? false;
-  static Future<void> setUseFingerprint(bool v) => box.write(_fingerprintKey, v);
-  static int get autoLockMinutes => box.read(_autoLockKey) ?? 0;
-  static Future<void> setAutoLockMinutes(int v) => box.write(_autoLockKey, v);
-  static String get taskSwitcherPreview => box.read(_taskSwitcherKey) ?? 'show';
-  static Future<void> setTaskSwitcherPreview(String v) => box.write(_taskSwitcherKey, v);
+  static bool get useFingerprint {
+    if (_box == null) return false;
+    return box.read(_fingerprintKey) ?? false;
+  }
+  
+  static Future<void> setUseFingerprint(bool v) async {
+    if (_box == null) return;
+    await box.write(_fingerprintKey, v);
+  }
+  
+  static int get autoLockMinutes {
+    if (_box == null) return 0;
+    return box.read(_autoLockKey) ?? 0;
+  }
+  
+  static Future<void> setAutoLockMinutes(int v) async {
+    if (_box == null) return;
+    await box.write(_autoLockKey, v);
+  }
+  
+  static String get taskSwitcherPreview {
+    if (_box == null) return 'show';
+    return box.read(_taskSwitcherKey) ?? 'show';
+  }
+  
+  static Future<void> setTaskSwitcherPreview(String v) async {
+    if (_box == null) return;
+    await box.write(_taskSwitcherKey, v);
+  }
 }
