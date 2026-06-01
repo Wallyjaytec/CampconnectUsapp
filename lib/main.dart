@@ -42,13 +42,14 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Fix black bar on notification permission dialog
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ));
+
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
-
-  // Suppress OneSignal's custom notification dialog (has black bar issue)
-  OneSignal.Notifications.requestPermission(false);
-
-  // Notification permission will be requested after gallery/camera permission
-  // via PermissionService to ensure correct order and native dialog
+  OneSignal.Notifications.requestPermission(true);
 
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
@@ -92,6 +93,9 @@ Future<void> main() async {
   });
 
   await GetStorage.init();
+  // Initialize passcode storage box eagerly to prevent settings reset
+  await GetStorage('passcode_settings').initStorage;
+  
   final box = GetStorage();
 
   final startTime = DateTime.now();
