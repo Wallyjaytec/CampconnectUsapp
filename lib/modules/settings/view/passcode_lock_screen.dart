@@ -32,7 +32,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   bool _checkingPasscode = false;
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
-  bool _biometricTriggered = false; // NEW: prevent multiple biometric triggers
+  bool _biometricTriggered = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -65,7 +65,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           _biometricChecked = true;
         });
         
-        // Auto-trigger biometric only once
         if (_biometricAvailable && !_unlocking && !_biometricTriggered) {
           _biometricTriggered = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -84,9 +83,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
     if (!mounted || _unlocking) return;
     _unlocking = true;
     _lockoutTimer?.cancel();
-    // Store active time BEFORE calling onUnlocked
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-    widget.onUnlocked();
+    Future.microtask(() {
+      if (mounted) {
+        widget.onUnlocked();
+      }
+    });
   }
 
   void _onKeyPressed(String value) {
