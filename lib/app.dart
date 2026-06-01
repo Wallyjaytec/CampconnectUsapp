@@ -21,7 +21,6 @@ import 'modules/settings/view/passcode_lock_screen.dart';
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
   const MyApp({super.key, required this.initialLocaleCode});
-
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -32,6 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
   bool _justUnlocked = false;
+  bool _checkingLock = false;
 
   @override
   void initState() {
@@ -43,9 +43,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      LanguageService.load(localeCode);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => LanguageService.load(localeCode));
   }
 
   @override
@@ -59,9 +57,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final newBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     if (_lastBrightness != newBrightness) {
       _lastBrightness = newBrightness;
-      if (Get.isRegistered<ThemeController>()) {
-        Get.find<ThemeController>().setMode(ThemeMode.system);
-      }
+      if (Get.isRegistered<ThemeController>()) Get.find<ThemeController>().setMode(ThemeMode.system);
     }
   }
 
@@ -74,47 +70,53 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       LanguageService.load(savedLang);
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
-
-      PasscodeService.checkPasscodeEnabled().then((hasPasscode) {
-        if (hasPasscode && !_showingLockScreen && mounted) {
-          final now = DateTime.now().millisecondsSinceEpoch;
-          final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
-          final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-          if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-            _showingLockScreen = true;
-            Map<String, dynamic>? savedNotification;
-            if (pendingNotificationData != null) {
-              savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-              pendingNotificationData = null;
-            }
-            if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-              savedNotification = {'notification_id': PushNotificationData.notificationId, 'notif_message': PushNotificationData.message ?? '', 'notif_title': PushNotificationData.title ?? '', 'notif_image': PushNotificationData.image ?? ''};
-              PushNotificationData.notificationId = null; PushNotificationData.message = null; PushNotificationData.title = null; PushNotificationData.image = null;
-            }
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && _showingLockScreen) {
-                Get.offAll(() => PasscodeLockScreen(onUnlocked: () {
-                  _showingLockScreen = false; _justUnlocked = true;
-                  _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-                  GetStorage().write('_last_active_time', _lastActiveTime);
-                  if (savedNotification != null) {
-                    final data = savedNotification;
-                    final item = NotificationItem(id: data['notification_id']!, message: data['notif_message'] ?? '', link: '', time: 'Just now', title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null, image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null);
-                    Get.offAllNamed(AppRoutes.bottomNavbarView);
-                    Future.delayed(const Duration(milliseconds: 300), () { Get.to(() => NotificationDetailView(item: item)); });
-                  } else {
-                    Get.offAllNamed(AppRoutes.bottomNavbarView);
-                  }
-                }));
-              }
-            });
-          }
-        }
-      });
+      _checkLockAndShow();
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
+  }
+
+  void _checkLockAndShow() {
+    if (_checkingLock || _showingLockScreen) return;
+    _checkingLock = true;
+    PasscodeService.checkPasscodeEnabled().then((hasPasscode) {
+      _checkingLock = false;
+      if (!mounted || !hasPasscode || _showingLockScreen) return;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
+      final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+      if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+        _showingLockScreen = true;
+        Map<String, dynamic>? savedNotification;
+        if (pendingNotificationData != null) {
+          savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
+          pendingNotificationData = null;
+        }
+        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+          savedNotification = {'notification_id': PushNotificationData.notificationId, 'notif_message': PushNotificationData.message ?? '', 'notif_title': PushNotificationData.title ?? '', 'notif_image': PushNotificationData.image ?? ''};
+          PushNotificationData.notificationId = null; PushNotificationData.message = null; PushNotificationData.title = null; PushNotificationData.image = null;
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _showingLockScreen) {
+            Get.offAll(() => PasscodeLockScreen(onUnlocked: () {
+              _showingLockScreen = false;
+              _justUnlocked = true;
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
+              if (savedNotification != null) {
+                final data = savedNotification;
+                final item = NotificationItem(id: data['notification_id']!, message: data['notif_message'] ?? '', link: '', time: 'Just now', title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null, image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null);
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+                Future.delayed(const Duration(milliseconds: 300), () => Get.to(() => NotificationDetailView(item: item)));
+              } else {
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+              }
+            }));
+          }
+        });
+      }
+    });
   }
 
   @override
