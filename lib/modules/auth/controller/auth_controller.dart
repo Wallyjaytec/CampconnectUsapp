@@ -131,7 +131,7 @@ class AuthController extends GetxController {
       final resp = await api.getJson(AppConfig.customerGetPasscodeStatusUrl());
       final hasPasscode = resp['has_passcode'];
       if (resp['success'] == true && (hasPasscode == true || hasPasscode == '1' || hasPasscode == 1)) {
-        await PasscodeService.setPasscode('server');
+        // Don't overwrite passcode - only sync security questions if they exist
         if (resp['security_question_1'] != null) {
           await PasscodeService.setSecurityQuestions(
             question1: resp['security_question_1']?.toString() ?? '',
@@ -298,7 +298,6 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
-      await PasscodeService.removePasscode();
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
