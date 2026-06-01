@@ -89,15 +89,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
-          Get.offAll(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _showingLockScreen = false;
-              _justUnlocked = true;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
-            },
-          ));
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _showingLockScreen) {
+              Get.offAll(() => PasscodeLockScreen(
+                onUnlocked: () {
+                  _showingLockScreen = false;
+                  _justUnlocked = true;
+                  _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+                  GetStorage().write('_last_active_time', _lastActiveTime);
+                  Get.offAllNamed(AppRoutes.bottomNavbarView);
+                },
+              ));
+            }
+          });
         }
       }
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
