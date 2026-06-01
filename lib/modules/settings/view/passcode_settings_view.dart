@@ -27,7 +27,7 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
     super.initState();
     _refreshState();
   }
-  
+
   void _refreshState() async {
     final enabled = await PasscodeService.checkPasscodeEnabled();
     if (mounted) {
@@ -85,13 +85,18 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
 
     final result = await showModalBottomSheet<int>(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(padding: const EdgeInsets.all(16), child: Text('Auto-lock'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Auto-lock'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
               const Divider(height: 1),
               ...options.map((opt) => ListTile(
                 title: Text(opt['label'] as String),
@@ -113,19 +118,34 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
 
   Future<void> _handlePasscodeToggle(bool value) async {
     if (value) {
-      final passcode = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, onCompleted: (code) => Get.back(result: code)));
+      // ENABLE
+      final passcode = await Get.to(
+        () => PasscodeInputView(
+          title: 'Passcode Lock'.tr,
+          onCompleted: (code) => Get.back(result: code),
+        ),
+      );
+
       if (passcode == null || passcode.toString().isEmpty) {
         if (mounted) setState(() => _passcodeEnabled = false);
         return;
       }
 
-      final confirmed = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, confirmPasscode: passcode.toString(), onCompleted: (code) => Get.back(result: code)));
+      final confirmed = await Get.to(
+        () => PasscodeInputView(
+          title: 'Passcode Lock'.tr,
+          confirmPasscode: passcode.toString(),
+          onCompleted: (code) => Get.back(result: code),
+        ),
+      );
+
       if (confirmed == null) {
         if (mounted) setState(() => _passcodeEnabled = false);
         return;
       }
 
       final questionsData = await Get.to(() => const SecurityQuestionsView());
+
       if (questionsData == null) {
         if (mounted) setState(() => _passcodeEnabled = false);
         return;
@@ -157,19 +177,32 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         );
       }
     } else {
-      final entered = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, hintText: 'Enter your passcode to disable'.tr, onCompleted: (code) => Get.back(result: code)));
+      // DISABLE
+      final entered = await Get.to(
+        () => PasscodeInputView(
+          title: 'Passcode Lock'.tr,
+          hintText: 'Enter your passcode to disable'.tr,
+          onCompleted: (code) => Get.back(result: code),
+        ),
+      );
+
       if (entered == null) return;
 
       final isCorrect = await PasscodeService.verifyPasscodeOnServer(entered.toString());
 
       if (isCorrect) {
-        // Can't disable from app - must be done server side by admin or via API
+        final disabled = await PasscodeService.disablePasscodeOnServer();
         if (mounted) {
-          setState(() => _passcodeEnabled = true);
+          setState(() {
+            _passcodeEnabled = !disabled;
+            _useFingerprint = false;
+            _autoLockMinutes = 0;
+            _taskSwitcherShow = true;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Contact support to disable passcode'.tr),
-              backgroundColor: AppColors.primaryColor,
+              content: Text(disabled ? 'Passcode disabled'.tr : 'Failed to disable'.tr),
+              backgroundColor: disabled ? AppColors.primaryColor : Colors.red,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -179,30 +212,65 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Wrong passcode'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+          SnackBar(
+            content: Text('Wrong passcode'.tr),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     }
   }
 
   Future<void> _changePasscode() async {
-    final current = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, hintText: 'Enter your current passcode'.tr, onCompleted: (code) => Get.back(result: code)));
+    final current = await Get.to(
+      () => PasscodeInputView(
+        title: 'Passcode Lock'.tr,
+        hintText: 'Enter your current passcode'.tr,
+        onCompleted: (code) => Get.back(result: code),
+      ),
+    );
+
     if (current == null) return;
 
     final isCorrect = await PasscodeService.verifyPasscodeOnServer(current.toString());
+
     if (!isCorrect) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Wrong passcode'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+          SnackBar(
+            content: Text('Wrong passcode'.tr),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
       return;
     }
 
-    final newPasscode = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, onCompleted: (code) => Get.back(result: code)));
+    final newPasscode = await Get.to(
+      () => PasscodeInputView(
+        title: 'Passcode Lock'.tr,
+        onCompleted: (code) => Get.back(result: code),
+      ),
+    );
+
     if (newPasscode == null) return;
 
-    final confirmed = await Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, confirmPasscode: newPasscode.toString(), onCompleted: (code) => Get.back(result: code)));
+    final confirmed = await Get.to(
+      () => PasscodeInputView(
+        title: 'Passcode Lock'.tr,
+        confirmPasscode: newPasscode.toString(),
+        onCompleted: (code) => Get.back(result: code),
+      ),
+    );
+
     if (confirmed != null) {
       final questions = await PasscodeService.fetchSecurityQuestions();
       await PasscodeService.setPasscodeOnServer(
@@ -214,7 +282,14 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Passcode changed successfully'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)),
+          SnackBar(
+            content: Text('Passcode changed successfully'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     }
@@ -224,20 +299,33 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white,
-        automaticallyImplyLeading: false, leadingWidth: 44,
-        leading: Material(color: Colors.transparent, shape: const CircleBorder(), clipBehavior: Clip.antiAlias,
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        leadingWidth: 44,
+        leading: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
           child: IconButton(
             onPressed: () {
               final nav = Navigator.of(context);
-              if (nav.canPop()) { nav.pop(); return; }
-              if (Get.key.currentState?.canPop() ?? false) { Get.back(); return; }
+              if (nav.canPop()) {
+                nav.pop();
+                return;
+              }
+              if (Get.key.currentState?.canPop() ?? false) {
+                Get.back();
+                return;
+              }
               Get.offAllNamed(AppRoutes.bottomNavbarView);
             },
-            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20), splashRadius: 20,
+            icon: const Icon(Iconsax.arrow_left_2_copy, size: 20),
+            splashRadius: 20,
           ),
         ),
-        centerTitle: false, titleSpacing: 0,
+        centerTitle: false,
+        titleSpacing: 0,
         title: Text('Passcode Lock'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
       body: ListView(
