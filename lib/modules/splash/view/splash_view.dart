@@ -26,6 +26,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _fadeAnimation;
   bool _navigated = false;
   bool _lockChecked = false;
+  bool _isLocked = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -47,24 +48,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     if (PasscodeService.isPasscodeEnabled && !_lockChecked) {
       _lockChecked = true;
+      _isLocked = true;
       
       final box = GetStorage();
-      final lastActive = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
+      final storedTime = box.read<int>('_last_active_time');
       final now = DateTime.now().millisecondsSinceEpoch;
-      final elapsedSeconds = (now - lastActive) ~/ 1000;
-      final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+      
+      if (storedTime != null) {
+        final elapsedSeconds = (now - storedTime) ~/ 1000;
+        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
 
-      if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-        _navigated = true;
-        Get.offAll(() => PasscodeLockScreen(
-          onUnlocked: () {
-            final box = GetStorage();
-            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-            _navigateNormally();
-          },
-        ));
-        return;
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+          _navigated = true;
+          Get.offAll(() => PasscodeLockScreen(
+            onUnlocked: () {
+              _isLocked = false;
+              final box = GetStorage();
+              box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+              _navigateNormally();
+            },
+          ));
+          return;
+        }
       }
+      
+      // If we get here, passcode exists but auto-lock time hasn't elapsed
+      _isLocked = false;
     }
 
     Timer(const Duration(seconds: 3), () {
@@ -77,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (!mounted || _navigated) return;
     
     // Don't process notifications while locked
-    if (_lockChecked && PasscodeService.isPasscodeEnabled) {
+    if (_isLocked) {
       return;
     }
 
