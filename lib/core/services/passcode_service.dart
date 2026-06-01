@@ -1,4 +1,5 @@
 import 'package:get_storage/get_storage.dart';
+import 'package:kartly_e_commerce/core/config/app_config.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/data/repositories/passcode_repository.dart';
 
@@ -18,7 +19,6 @@ class PasscodeService {
   static final PasscodeRepository _repo = PasscodeRepository(ApiService());
   static final ApiService _api = ApiService();
 
-  // Server-only passcode check - no local storage
   static Future<bool> checkPasscodeEnabled() async {
     try {
       final resp = await _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
@@ -76,6 +76,15 @@ class PasscodeService {
     }
   }
 
+  static Future<bool> disablePasscodeOnServer() async {
+    try {
+      final resp = await _repo.disablePasscode();
+      return resp['success'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static Future<Map<String, dynamic>?> fetchSecurityQuestions() async {
     try {
       final resp = await _api.getJson(AppConfig.customerGetPasscodeStatusUrl());
@@ -91,7 +100,6 @@ class PasscodeService {
     return null;
   }
 
-  // Settings - stored locally (not sensitive)
   static bool get useFingerprint => box.read(_fingerprintKey) ?? false;
   static Future<void> setUseFingerprint(bool value) => box.write(_fingerprintKey, value);
 
