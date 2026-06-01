@@ -12,6 +12,9 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
 import 'core/services/passcode_service.dart';
+import 'main.dart';
+import 'modules/account/model/notification_model.dart';
+import 'modules/account/view/notification_detail_view.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
@@ -89,6 +92,26 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
+          
+          // Save pending notifications for after unlock
+          Map<String, dynamic>? savedNotification;
+          if (pendingNotificationData != null) {
+            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
+            pendingNotificationData = null;
+          }
+          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+            savedNotification = {
+              'notification_id': PushNotificationData.notificationId,
+              'notif_message': PushNotificationData.message ?? '',
+              'notif_title': PushNotificationData.title ?? '',
+              'notif_image': PushNotificationData.image ?? '',
+            };
+            PushNotificationData.notificationId = null;
+            PushNotificationData.message = null;
+            PushNotificationData.title = null;
+            PushNotificationData.image = null;
+          }
+          
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && _showingLockScreen) {
               Get.offAll(() => PasscodeLockScreen(
@@ -97,7 +120,24 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   _justUnlocked = true;
                   _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
                   GetStorage().write('_last_active_time', _lastActiveTime);
-                  Get.offAllNamed(AppRoutes.bottomNavbarView);
+                  
+                  if (savedNotification != null) {
+                    final data = savedNotification;
+                    final item = NotificationItem(
+                      id: data['notification_id']!,
+                      message: data['notif_message'] ?? '',
+                      link: '',
+                      time: 'Just now',
+                      title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+                      image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+                    );
+                    Get.offAllNamed(AppRoutes.bottomNavbarView);
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      Get.to(() => NotificationDetailView(item: item));
+                    });
+                  } else {
+                    Get.offAllNamed(AppRoutes.bottomNavbarView);
+                  }
                 },
               ));
             }
