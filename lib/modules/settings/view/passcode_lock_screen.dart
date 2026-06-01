@@ -32,7 +32,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   bool _checkingPasscode = false;
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
-  bool _biometricTriggered = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -40,6 +39,11 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   void initState() {
     super.initState();
     _checkBiometricAvailability();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_biometricAvailable && !_unlocking && mounted) {
+        _useBiometric();
+      }
+    });
   }
 
   @override
@@ -64,13 +68,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
           _biometricAvailable = canCheck && availableBiometrics.isNotEmpty;
           _biometricChecked = true;
         });
-        
-        if (_biometricAvailable && !_unlocking && !_biometricTriggered) {
-          _biometricTriggered = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _useBiometric();
-          });
-        }
       }
     } catch (_) {
       if (mounted) {
