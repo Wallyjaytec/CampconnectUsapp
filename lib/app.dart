@@ -28,7 +28,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
-  bool _hidingForTaskSwitcher = false;
+  bool _justUnlocked = false;
 
   @override
   void initState() {
@@ -58,28 +58,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      if (_justUnlocked) {
+        _justUnlocked = false;
+        return;
+      }
+
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
-
-      // If was hiding for task switcher, show lock screen
-      if (_hidingForTaskSwitcher) {
-        _hidingForTaskSwitcher = false;
-        _showingLockScreen = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Get.to(() => PasscodeLockScreen(onUnlocked: () {
-              _showingLockScreen = false;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
-            }));
-          }
-        });
-        return;
-      }
 
       if (PasscodeService.isPasscodeEnabled() && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
@@ -87,27 +75,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _showingLockScreen) {
-              Get.to(() => PasscodeLockScreen(onUnlocked: () {
-                _showingLockScreen = false;
-                _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-                GetStorage().write('_last_active_time', _lastActiveTime);
-                Get.back();
-              }));
-            }
-          });
+          Get.offAll(() => PasscodeLockScreen(
+            onUnlocked: () {
+              _showingLockScreen = false;
+              _justUnlocked = true;
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
+            },
+          ));
         }
       }
-    } else if (state == AppLifecycleState.paused) {
-      // Hide content in task switcher
-      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
-        _hidingForTaskSwitcher = true;
-        setState(() {});
-      }
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-    } else if (state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
@@ -122,12 +101,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       supportedLocales: const [Locale('en'), Locale('de'), Locale('zh'), Locale('es'), Locale('ar'), Locale('fr'), Locale('ru'), Locale('ja'), Locale('ko'), Locale('pt'), Locale('it'), Locale('hi')],
       onGenerateTitle: (_) => 'app_title'.tr,
       theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
-      builder: (context, child) {
-        if (_hidingForTaskSwitcher) {
-          return Container(color: AppColors.primaryColor);
-        }
-        return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!);
-      },
+      builder: (context, child) => Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!),
       initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
       onGenerateRoute: (settings) {
         final rawPath = settings.name ?? ''; final uri = Uri.tryParse(rawPath);
