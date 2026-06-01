@@ -29,7 +29,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
-  int _lastActiveTime = 0;
   bool _showingLockScreen = false;
 
   @override
@@ -38,10 +37,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-    final box = GetStorage();
-    _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
-
-    final savedLangCode = box.read<String>('selected_language_api_code');
+    final savedLangCode = GetStorage().read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
 
@@ -78,29 +74,40 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
-        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+      // Don't process anything if lock screen is already showing
+      if (_showingLockScreen) {
+        return;
+      }
 
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _showingLockScreen = true;
-          Get.offAll(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _showingLockScreen = false;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
-            },
-          ));
+      // Check if we need to show lock screen
+      if (PasscodeService.isPasscodeEnabled) {
+        final storedTime = box.read<int>('_last_active_time');
+        final now = DateTime.now().millisecondsSinceEpoch;
+        
+        if (storedTime != null) {
+          final elapsedSeconds = (now - storedTime) ~/ 1000;
+          final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
+
+          if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+            _showingLockScreen = true;
+            Get.offAll(() => PasscodeLockScreen(
+              onUnlocked: () {
+                _showingLockScreen = false;
+                GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+              },
+            ));
+            return;
+          }
         }
       }
-    } else if (state == AppLifecycleState.paused) {
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-    } else if (state == AppLifecycleState.hidden) {
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
+      
+      // Update last active time when resumed without locking
+      GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+      
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      // Store the time when going to background
+      GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
     }
   }
 
