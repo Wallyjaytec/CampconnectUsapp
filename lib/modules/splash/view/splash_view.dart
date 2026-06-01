@@ -25,9 +25,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
   bool _navigated = false;
-  bool _lockChecked = false;
-  bool _isLocked = false;
-  Map<String, dynamic>? _pendingNotificationData; // Store notification for after unlock
+  Map<String, dynamic>? _pendingNotificationData;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -47,78 +45,58 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkLockAndNavigate() {
     if (_navigated) return;
 
-    if (PasscodeService.isPasscodeEnabled && !_lockChecked) {
-      _lockChecked = true;
-      _isLocked = true;
+    // COLD START: Always lock if passcode is enabled (splash only runs on cold start)
+    if (PasscodeService.isPasscodeEnabled) {
+      _navigated = true;
       
-      final box = GetStorage();
-      final storedTime = box.read<int>('_last_active_time');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      
-      bool shouldLock = false;
-      
-      if (storedTime == null) {
-        shouldLock = PasscodeService.autoLockMinutes == 0;
-      } else {
-        final elapsedSeconds = (now - storedTime) ~/ 1000;
-        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        shouldLock = (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
+      // Save any pending notification for after unlock
+      if (pendingNotificationData != null) {
+        _pendingNotificationData = Map<String, dynamic>.from(pendingNotificationData!);
+        pendingNotificationData = null;
       }
-
-      if (shouldLock) {
-        _navigated = true;
-        
-        // Save any pending notification for after unlock
-        if (pendingNotificationData != null) {
-          _pendingNotificationData = pendingNotificationData;
-          pendingNotificationData = null;
-        }
-        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-          _pendingNotificationData = {
-            'notification_id': PushNotificationData.notificationId,
-            'notif_message': PushNotificationData.message ?? '',
-            'notif_title': PushNotificationData.title ?? '',
-            'notif_image': PushNotificationData.image ?? '',
-          };
-          PushNotificationData.notificationId = null;
-          PushNotificationData.message = null;
-          PushNotificationData.title = null;
-          PushNotificationData.image = null;
-        }
-        
-        Get.offAll(() => PasscodeLockScreen(
-          onUnlocked: () {
-            _isLocked = false;
-            final box = GetStorage();
-            box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-            
-            // After unlock, process any pending notification
-            if (_pendingNotificationData != null) {
-              final data = _pendingNotificationData!;
-              _pendingNotificationData = null;
-              final item = NotificationItem(
-                id: data['notification_id']!,
-                message: data['notif_message'] ?? '',
-                link: '',
-                time: 'Just now',
-                title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-              );
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                Get.to(() => NotificationDetailView(item: item));
-              });
-            } else {
-              Get.offAllNamed(AppRoutes.bottomNavbarView);
-            }
-          },
-        ));
-        return;
+      if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+        _pendingNotificationData = {
+          'notification_id': PushNotificationData.notificationId,
+          'notif_message': PushNotificationData.message ?? '',
+          'notif_title': PushNotificationData.title ?? '',
+          'notif_image': PushNotificationData.image ?? '',
+        };
+        PushNotificationData.notificationId = null;
+        PushNotificationData.message = null;
+        PushNotificationData.title = null;
+        PushNotificationData.image = null;
       }
       
-      _isLocked = false;
+      Get.offAll(() => PasscodeLockScreen(
+        onUnlocked: () {
+          final box = GetStorage();
+          box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+          
+          // After unlock, process any pending notification
+          if (_pendingNotificationData != null) {
+            final data = _pendingNotificationData!;
+            _pendingNotificationData = null;
+            final item = NotificationItem(
+              id: data['notification_id']!,
+              message: data['notif_message'] ?? '',
+              link: '',
+              time: 'Just now',
+              title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+              image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+            );
+            Get.offAllNamed(AppRoutes.bottomNavbarView);
+            Future.delayed(const Duration(milliseconds: 300), () {
+              Get.to(() => NotificationDetailView(item: item));
+            });
+          } else {
+            _navigateNormally();
+          }
+        },
+      ));
+      return;
     }
 
+    // No passcode enabled - proceed normally
     Timer(const Duration(seconds: 3), () {
       if (!mounted || _navigated) return;
       _checkPushAndNavigate(attempts: 0);
@@ -127,11 +105,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkPushAndNavigate({int attempts = 0}) {
     if (!mounted || _navigated) return;
-    
-    // Don't process notifications while locked
-    if (_isLocked) {
-      return;
-    }
 
     if (pendingNotificationData != null) {
       final data = pendingNotificationData!;
