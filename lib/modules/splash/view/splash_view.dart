@@ -45,11 +45,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkLockAndNavigate() async {
     if (_navigated) return;
 
+    // Only check passcode if user is logged in (has token for server verification)
     bool hasPasscode = false;
     if (isLoggedIn) {
       hasPasscode = await PasscodeService.checkPasscodeOnServer();
-    } else {
-      hasPasscode = PasscodeService.isPasscodeEnabled();
     }
 
     if (hasPasscode) {
@@ -100,6 +99,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
 
+    // No passcode or not logged in - proceed normally
     Timer(const Duration(seconds: 3), () {
       if (!mounted || _navigated) return;
       _checkPushAndNavigate(attempts: 0);
@@ -159,16 +159,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _navigateNormally() {
     final box = GetStorage();
     
+    // If not logged in, go to login
+    if (!isLoggedIn) {
+      final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
+      if (!onboardingComplete) {
+        Get.offAllNamed(AppRoutes.languageSelect);
+      } else {
+        Get.offAllNamed(AppRoutes.loginView);
+      }
+      return;
+    }
+    
     final refundId = box.read<int>('deep_link_refund_id') ?? 0;
     if (refundId > 0) {
       box.remove('deep_link_refund_id');
-      if (!isLoggedIn) {
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
-        Future.delayed(const Duration(milliseconds: 200), () {
-          Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.refundRequestDetailsView, 'refund_id': refundId});
-        });
-        return;
-      }
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
       return;
@@ -177,13 +181,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final orderId = box.read<int>('deep_link_order_id') ?? 0;
     if (orderId > 0) {
       box.remove('deep_link_order_id');
-      if (!isLoggedIn) {
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
-        Future.delayed(const Duration(milliseconds: 200), () {
-          Get.toNamed(AppRoutes.loginView, arguments: {'redirect': AppRoutes.myOrderDetailsView, 'order_id': orderId});
-        });
-        return;
-      }
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
       return;
