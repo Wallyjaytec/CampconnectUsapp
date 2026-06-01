@@ -32,7 +32,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Brightness? _lastBrightness;
   late Rx<Locale> _locale;
-  static bool isLockScreenShowing = false;
+  int _lastActiveTime = 0;
+  bool _showingLockScreen = false;
+  bool _justUnlocked = false;
 
   @override
   void initState() {
@@ -40,7 +42,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-    final savedLangCode = GetStorage().read<String>('selected_language_api_code');
+    final box = GetStorage();
+    _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
+
+    final savedLangCode = box.read<String>('selected_language_api_code');
     final localeCode = savedLangCode ?? widget.initialLocaleCode;
     _locale = LocaleMapper.fromApiCode(localeCode).obs;
 
@@ -69,6 +74,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Skip lock check if we just unlocked (prevents fingerprint loop)
+      if (_justUnlocked) {
+        _justUnlocked = false;
+        return;
+      }
+
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
       LanguageService.load(savedLang);
@@ -77,25 +88,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         Get.updateLocale(locale);
       }
 
-      if (isLockScreenShowing) {
-        return;
-      }
-
-      if (PasscodeService.isPasscodeEnabled) {
-        final storedTime = box.read<int>('_last_active_time');
+      if (PasscodeService.isPasscodeEnabled && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
+        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        
-        bool shouldLock;
-        if (storedTime == null) {
-          shouldLock = (autoLockSeconds == 0);
-        } else {
-          final elapsedSeconds = (now - storedTime) ~/ 1000;
-          shouldLock = (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
-        }
 
-        if (shouldLock) {
-          isLockScreenShowing = true;
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
+          _showingLockScreen = true;
           
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
@@ -115,41 +114,40 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             PushNotificationData.image = null;
           }
           
-          Future.delayed(const Duration(milliseconds: 200), () {
-            if (isLockScreenShowing) {
-              Get.offAll(() => PasscodeLockScreen(
-                onUnlocked: () {
-                  isLockScreenShowing = false;
-                  GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-                  
-                  if (savedNotification != null) {
-                    final data = savedNotification;
-                    final item = NotificationItem(
-                      id: data['notification_id']!,
-                      message: data['notif_message'] ?? '',
-                      link: '',
-                      time: 'Just now',
-                      title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                      image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                    );
-                    Get.offAllNamed(AppRoutes.bottomNavbarView);
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      Get.to(() => NotificationDetailView(item: item));
-                    });
-                  } else {
-                    Get.offAllNamed(AppRoutes.bottomNavbarView);
-                  }
-                },
-              ));
-            }
-          });
+          Get.offAll(() => PasscodeLockScreen(
+            onUnlocked: () {
+              _showingLockScreen = false;
+              _justUnlocked = true;
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
+              
+              if (savedNotification != null) {
+                final data = savedNotification;
+                final item = NotificationItem(
+                  id: data['notification_id']!,
+                  message: data['notif_message'] ?? '',
+                  link: '',
+                  time: 'Just now',
+                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+                );
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  Get.to(() => NotificationDetailView(item: item));
+                });
+              } else {
+                Get.offAllNamed(AppRoutes.bottomNavbarView);
+              }
+            },
+          ));
         }
       }
-      
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      if (!isLockScreenShowing) {
-        GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-      }
+    } else if (state == AppLifecycleState.paused) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.hidden) {
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     }
   }
 
