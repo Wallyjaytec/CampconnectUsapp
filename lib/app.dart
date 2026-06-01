@@ -63,10 +63,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _hideForTaskSwitcher = false;
-      setState(() {});
       
       if (_justUnlocked) {
         _justUnlocked = false;
+        setState(() {});
         return;
       }
 
@@ -119,30 +119,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (Get.currentRoute != AppRoutes.notificationsView) {
-                    Get.to(() => NotificationDetailView(item: item));
-                  }
+                Future.delayed(const Duration(milliseconds: 700), () {
+                  Get.to(() => NotificationDetailView(item: item));
                 });
               }
             },
           ));
         }
       }
+      setState(() {});
     } else if (state == AppLifecycleState.inactive) {
-      if (!_showingLockScreen) {
-        _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-        GetStorage().write('_last_active_time', _lastActiveTime);
-        if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
-          _hideForTaskSwitcher = true;
-          setState(() {});
-        }
+      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
+        _hideForTaskSwitcher = true;
+        setState(() {});
       }
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     } else if (state == AppLifecycleState.paused) {
-      if (!_showingLockScreen) {
-        _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-        GetStorage().write('_last_active_time', _lastActiveTime);
-      }
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
     }
   }
 
