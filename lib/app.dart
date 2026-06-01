@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'core/bindings/initial_bindings.dart';
 import 'core/config/app_scroll_behavior.dart';
+import 'core/constants/app_colors.dart';
 import 'core/controllers/theme_controller.dart';
 import 'core/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
@@ -27,6 +28,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
+  bool _hidingForTaskSwitcher = false;
 
   @override
   void initState() {
@@ -62,6 +64,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
+      // If was hiding for task switcher, show lock screen
+      if (_hidingForTaskSwitcher) {
+        _hidingForTaskSwitcher = false;
+        _showingLockScreen = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Get.to(() => PasscodeLockScreen(onUnlocked: () {
+              _showingLockScreen = false;
+              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+              GetStorage().write('_last_active_time', _lastActiveTime);
+              Get.back();
+            }));
+          }
+        });
+        return;
+      }
+
       if (PasscodeService.isPasscodeEnabled() && !_showingLockScreen) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
@@ -80,7 +99,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           });
         }
       }
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden || state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused) {
+      // Hide content in task switcher
+      if (PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide') {
+        _hidingForTaskSwitcher = true;
+        setState(() {});
+      }
+      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
+      GetStorage().write('_last_active_time', _lastActiveTime);
+    } else if (state == AppLifecycleState.inactive) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
@@ -95,7 +122,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       supportedLocales: const [Locale('en'), Locale('de'), Locale('zh'), Locale('es'), Locale('ar'), Locale('fr'), Locale('ru'), Locale('ja'), Locale('ko'), Locale('pt'), Locale('it'), Locale('hi')],
       onGenerateTitle: (_) => 'app_title'.tr,
       theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
-      builder: (context, child) => Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!),
+      builder: (context, child) {
+        if (_hidingForTaskSwitcher) {
+          return Container(color: AppColors.primaryColor);
+        }
+        return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor, body: child!);
+      },
       initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
       onGenerateRoute: (settings) {
         final rawPath = settings.name ?? ''; final uri = Uri.tryParse(rawPath);
