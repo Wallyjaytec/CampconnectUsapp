@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+
 import 'core/bindings/initial_bindings.dart';
 import 'core/config/app_scroll_behavior.dart';
 import 'core/controllers/theme_controller.dart';
