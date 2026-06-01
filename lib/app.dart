@@ -1,22 +1,16 @@
 import 'core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-
 import 'core/bindings/initial_bindings.dart';
 import 'core/config/app_scroll_behavior.dart';
-import 'core/constants/app_colors.dart';
 import 'core/controllers/theme_controller.dart';
 import 'core/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locale_mapper.dart';
 import 'core/services/language_service.dart';
 import 'core/services/passcode_service.dart';
-import 'main.dart';
-import 'modules/account/model/notification_model.dart';
-import 'modules/account/view/notification_detail_view.dart';
 import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
@@ -74,7 +68,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Skip lock check if we just unlocked (prevents fingerprint loop)
       if (_justUnlocked) {
         _justUnlocked = false;
         return;
@@ -95,57 +88,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
-          
-          Map<String, dynamic>? savedNotification;
-          if (pendingNotificationData != null) {
-            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-            pendingNotificationData = null;
-          }
-          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-            savedNotification = {
-              'notification_id': PushNotificationData.notificationId,
-              'notif_message': PushNotificationData.message ?? '',
-              'notif_title': PushNotificationData.title ?? '',
-              'notif_image': PushNotificationData.image ?? '',
-            };
-            PushNotificationData.notificationId = null;
-            PushNotificationData.message = null;
-            PushNotificationData.title = null;
-            PushNotificationData.image = null;
-          }
-          
           Get.offAll(() => PasscodeLockScreen(
             onUnlocked: () {
               _showingLockScreen = false;
               _justUnlocked = true;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
-              
-              if (savedNotification != null) {
-                final data = savedNotification;
-                final item = NotificationItem(
-                  id: data['notification_id']!,
-                  message: data['notif_message'] ?? '',
-                  link: '',
-                  time: 'Just now',
-                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                );
-                Get.offAllNamed(AppRoutes.bottomNavbarView);
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  Get.to(() => NotificationDetailView(item: item));
-                });
-              } else {
-                Get.offAllNamed(AppRoutes.bottomNavbarView);
-              }
+              Get.offAllNamed(AppRoutes.bottomNavbarView);
             },
           ));
         }
       }
-    } else if (state == AppLifecycleState.paused) {
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-    } else if (state == AppLifecycleState.hidden) {
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
     }
