@@ -123,8 +123,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
               _skipNextResume = true;
+              Get.back();
               
               _debug('UNLOCKED: notif=${savedNotification != null}');
               
@@ -149,7 +149,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ));
         }
       } else {
-        // Passcode disabled - process pending notification directly
         if (pendingNotificationData != null) {
           final data = Map<String, dynamic>.from(pendingNotificationData!);
           pendingNotificationData = null;
