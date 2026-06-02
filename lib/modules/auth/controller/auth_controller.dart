@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
 import '../../../core/config/app_config.dart';
@@ -15,6 +16,7 @@ import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../modules/settings/view/passcode_lock_screen.dart';
 import 'package:kartly_e_commerce/app.dart';
+import 'package:kartly_e_commerce/main.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();
@@ -221,6 +223,16 @@ class AuthController extends GetxController {
       }
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
+      
+      // Send OneSignal player ID to backend
+      final playerId = OneSignal.User.pushSubscription.id;
+      debugOneSignal = 'Login PlayerID: $playerId';
+      if (playerId != null && playerId.isNotEmpty) {
+        _showSnackbar('OneSignal ID', playerId);
+        updateOneSignalIdOnServer(playerId);
+      } else {
+        _showSnackbar('OneSignal ID', 'NULL - No player ID');
+      }
       
       final hasPasscode = await PasscodeService.checkPasscodeOnServer();
       
