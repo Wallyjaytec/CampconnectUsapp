@@ -1,237 +1,231 @@
-import 'core/routes/app_routes.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:get/get.dart';
+import 'dart:async';
 import 'package:get_storage/get_storage.dart';
-import 'core/bindings/initial_bindings.dart';
-import 'core/config/app_scroll_behavior.dart';
-import 'core/constants/app_colors.dart';
-import 'core/controllers/theme_controller.dart';
-import 'core/routes/app_pages.dart';
-import 'core/theme/app_theme.dart';
-import 'core/utils/locale_mapper.dart';
-import 'core/services/language_service.dart';
-import 'core/services/passcode_service.dart';
-import 'main.dart';
-import 'modules/account/model/notification_model.dart';
-import 'modules/account/view/notification_detail_view.dart';
-import 'modules/auth/view/password_reset_view.dart';
-import 'modules/auth/view/verification_success_view.dart';
-import 'modules/settings/view/passcode_lock_screen.dart';
+import 'package:kartly_e_commerce/core/constants/app_assets.dart';
+import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:kartly_e_commerce/core/services/login_service.dart';
+import 'package:kartly_e_commerce/core/services/passcode_service.dart';
+import 'package:kartly_e_commerce/main.dart';
+import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
+import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
+import 'package:kartly_e_commerce/modules/settings/view/passcode_lock_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:kartly_e_commerce/app.dart';
+import '../../auth/view/password_reset_view.dart';
+import '../../auth/view/verification_success_view.dart';
 
-bool isLockScreenShowing = false;
-
-class MyApp extends StatefulWidget {
-  final String initialLocaleCode;
-  const MyApp({super.key, required this.initialLocaleCode});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  Brightness? _lastBrightness;
-  late Rx<Locale> _locale;
-  int _lastActiveTime = 0;
-  bool _showingLockScreen = false;
-  bool _skipNextResume = false;
-  bool _taskSwitcherHidden = false;
-  bool _appWasActive = false;
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+  bool _navigated = false;
+  Map<String, dynamic>? _pendingNotificationData;
+
+  bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.forward();
+      _checkLockAndNavigate();
+    });
+  }
+
+  void _checkLockAndNavigate() async {
+    if (_navigated) return;
+
+    bool hasPasscode = false;
+    if (isLoggedIn) {
+      hasPasscode = await PasscodeService.checkPasscodeOnServer();
+    }
+
+    if (hasPasscode) {
+      _navigated = true;
+      isLockScreenShowing = true;
+      
+      if (pendingNotificationData != null) {
+        _pendingNotificationData = Map<String, dynamic>.from(pendingNotificationData!);
+        pendingNotificationData = null;
+      }
+      if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+        _pendingNotificationData = {
+          'notification_id': PushNotificationData.notificationId,
+          'notif_message': PushNotificationData.message ?? '',
+          'notif_title': PushNotificationData.title ?? '',
+          'notif_image': PushNotificationData.image ?? '',
+        };
+        PushNotificationData.notificationId = null;
+        PushNotificationData.message = null;
+        PushNotificationData.title = null;
+        PushNotificationData.image = null;
+      }
+      
+      Get.offAll(() => PasscodeLockScreen(
+        onUnlocked: () {
+          isLockScreenShowing = false;
+          final box = GetStorage();
+          box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+          
+          if (_pendingNotificationData != null) {
+            final data = _pendingNotificationData!;
+            _pendingNotificationData = null;
+            final item = NotificationItem(
+              id: data['notification_id']!,
+              message: data['notif_message'] ?? '',
+              link: '',
+              time: 'Just now',
+              title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+              image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+            );
+            Get.offAllNamed(AppRoutes.bottomNavbarView);
+            Future.delayed(const Duration(milliseconds: 500), () {
+              Get.to(() => NotificationDetailView(item: item));
+            });
+          } else {
+            _navigateNormally();
+          }
+        },
+      ));
+      return;
+    }
+
+    Timer(const Duration(seconds: 3), () {
+      if (!mounted || _navigated) return;
+      _checkPushAndNavigate(attempts: 0);
+    });
+  }
+
+  void _checkPushAndNavigate({int attempts = 0}) {
+    if (!mounted || _navigated) return;
+
+    if (pendingNotificationData != null) {
+      final data = pendingNotificationData!;
+      pendingNotificationData = null;
+      _navigated = true;
+      final item = NotificationItem(
+        id: data['notification_id']!,
+        message: data['notif_message'] ?? '',
+        link: '',
+        time: 'Just now',
+        title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+        image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+      );
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.to(() => NotificationDetailView(item: item));
+      return;
+    }
+    
+    if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+      _navigated = true;
+      final item = NotificationItem(
+        id: PushNotificationData.notificationId!,
+        message: PushNotificationData.message ?? '',
+        link: '',
+        time: 'Just now',
+        title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
+        image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
+      );
+      PushNotificationData.notificationId = null;
+      PushNotificationData.message = null;
+      PushNotificationData.title = null;
+      PushNotificationData.image = null;
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.to(() => NotificationDetailView(item: item));
+      return;
+    }
+    
+    if (attempts > 3) {
+      _navigated = true;
+      _navigateNormally();
+      return;
+    }
+    
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _checkPushAndNavigate(attempts: attempts + 1);
+    });
+  }
+
+  void _navigateNormally() {
     final box = GetStorage();
-    _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
-    final savedLangCode = box.read<String>('selected_language_api_code');
-    final localeCode = savedLangCode ?? widget.initialLocaleCode;
-    _locale = LocaleMapper.fromApiCode(localeCode).obs;
-    WidgetsBinding.instance.addPostFrameCallback((_) => LanguageService.load(localeCode));
-  }
-
-  @override
-  void dispose() { WidgetsBinding.instance.removeObserver(this); super.dispose(); }
-
-  @override
-  void didChangePlatformBrightness() {
-    final newBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    if (_lastBrightness != newBrightness && Get.isRegistered<ThemeController>()) {
-      _lastBrightness = newBrightness;
-      Get.find<ThemeController>().setMode(ThemeMode.system);
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _taskSwitcherHidden = false;
-      
-      if (_appWasActive && PasscodeService.isPasscodeEnabled() && !_showingLockScreen && !isLockScreenShowing) {
-        if (_skipNextResume) {
-          _skipNextResume = false;
-          setState(() {});
-          return;
-        }
-
-        final box = GetStorage();
-        final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
-        LanguageService.load(savedLang);
-        final locale = LocaleMapper.fromApiCode(savedLang);
-        if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
-
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
-        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _showingLockScreen = true;
-          isLockScreenShowing = true;
-          
-          Map<String, dynamic>? savedNotification;
-          if (pendingNotificationData != null) {
-            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-            pendingNotificationData = null;
-          }
-          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-            savedNotification = {
-              'notification_id': PushNotificationData.notificationId,
-              'notif_message': PushNotificationData.message ?? '',
-              'notif_title': PushNotificationData.title ?? '',
-              'notif_image': PushNotificationData.image ?? '',
-            };
-            PushNotificationData.notificationId = null;
-            PushNotificationData.message = null;
-            PushNotificationData.title = null;
-            PushNotificationData.image = null;
-          }
-          
-          Get.to(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              _skipNextResume = true;
-              Get.back();
-              
-              Future.delayed(const Duration(milliseconds: 300), () {
-                _showingLockScreen = false;
-                isLockScreenShowing = false;
-              });
-              
-              if (savedNotification != null) {
-                final data = savedNotification;
-                final item = NotificationItem(
-                  id: data['notification_id']!,
-                  message: data['notif_message'] ?? '',
-                  link: '',
-                  time: 'Just now',
-                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                );
-                Future.delayed(const Duration(milliseconds: 800), () {
-                  if (mounted && savedNotification != null) {
-                    Get.to(() => NotificationDetailView(item: item));
-                  }
-                });
-              }
-            },
-          ));
-        }
+    
+    if (!isLoggedIn) {
+      final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
+      if (!onboardingComplete) {
+        Get.offAllNamed(AppRoutes.languageSelect);
       } else {
-        if (pendingNotificationData != null) {
-          final data = Map<String, dynamic>.from(pendingNotificationData!);
-          pendingNotificationData = null;
-          final item = NotificationItem(
-            id: data['notification_id']!,
-            message: data['notif_message'] ?? '',
-            link: '',
-            time: 'Just now',
-            title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-            image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-          );
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) {
-              Get.to(() => NotificationDetailView(item: item));
-            }
-          });
-        }
-        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-          final item = NotificationItem(
-            id: PushNotificationData.notificationId!,
-            message: PushNotificationData.message ?? '',
-            link: '',
-            time: 'Just now',
-            title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
-            image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
-          );
-          PushNotificationData.notificationId = null;
-          PushNotificationData.message = null;
-          PushNotificationData.title = null;
-          PushNotificationData.image = null;
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) {
-              Get.to(() => NotificationDetailView(item: item));
-            }
-          });
-        }
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
       }
-      
-      _appWasActive = true;
-      setState(() {});
-    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      _skipNextResume = false;
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-      
-      if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen && !isLockScreenShowing) {
-        _taskSwitcherHidden = true;
-        setState(() {});
-      }
+      return;
     }
+    
+    final refundId = box.read<int>('deep_link_refund_id') ?? 0;
+    if (refundId > 0) {
+      box.remove('deep_link_refund_id');
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
+      return;
+    }
+    
+    final orderId = box.read<int>('deep_link_order_id') ?? 0;
+    if (orderId > 0) {
+      box.remove('deep_link_order_id');
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
+      return;
+    }
+    
+    final token = box.read<String>('deep_link_token') ?? '';
+    final type = box.read<String>('deep_link_type') ?? '';
+    if (token.isNotEmpty) {
+      box.remove('deep_link_token');
+      box.remove('deep_link_type');
+      if (type == 'email_verify') {
+        Get.offAll(() => VerificationSuccessView(code: token));
+      } else {
+        Get.offAll(() => PasswordResetView(token: token));
+      }
+      return;
+    }
+    
+    final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
+    final languageSelected = box.read<bool>('language_selected') ?? false;
+    final countrySelected = box.read<bool>('country_selected') ?? false;
+    final currencySelected = box.read<bool>('currency_selected') ?? false;
+    
+    if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
+      Get.offAllNamed(AppRoutes.languageSelect);
+      return;
+    }
+    
+    Get.offAllNamed(AppRoutes.bottomNavbarView);
   }
+
+  @override
+  void dispose() { _controller.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => GetMaterialApp(
-      debugShowCheckedModeBanner: false, scrollBehavior: AppScrollBehavior(), useInheritedMediaQuery: true,
-      locale: _locale.value, fallbackLocale: const Locale('en'),
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: const [Locale('en'), Locale('de'), Locale('zh'), Locale('es'), Locale('ar'), Locale('fr'), Locale('ru'), Locale('ja'), Locale('ko'), Locale('pt'), Locale('it'), Locale('hi')],
-      onGenerateTitle: (_) => 'app_title'.tr,
-      theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            Scaffold(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
-              body: child!
-            ),
-            if (_taskSwitcherHidden)
-              Container(
-                color: AppColors.primaryColor,
-                child: const Center(
-                  child: Icon(Icons.lock_outline, size: 60, color: Colors.white),
-                ),
-              ),
-          ],
-        );
-      },
-      initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
-      onGenerateRoute: (settings) {
-        final rawPath = settings.name ?? ''; final uri = Uri.tryParse(rawPath);
-        if (uri != null) {
-          if (rawPath.contains('/password/reset')) {
-            var token = uri.queryParameters['u'] ?? ''; var isEmail = false;
-            if (token.contains('type=email')) { isEmail = true; token = token.replaceAll('&type=email', '').replaceAll('%26type%3Demail', ''); }
-            if ((uri.queryParameters['type'] ?? '') == 'email') isEmail = true;
-            return GetPageRoute(page: () => PasswordResetView(token: token, isEmailReset: isEmail), routeName: '/password-reset');
-          }
-          if (uri.path.contains('email-verification')) {
-            return GetPageRoute(page: () => VerificationSuccessView(code: uri.queryParameters['u'] ?? ''), routeName: '/verify-email');
-          }
-        }
-        return null;
-      },
-    ));
+    return Scaffold(
+      backgroundColor: AppColors.primaryColor,
+      body: Center(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) => Transform.translate(offset: Offset(_slideAnimation.value, 0), child: Opacity(opacity: _fadeAnimation.value, child: child)),
+          child: SizedBox(width: 160, height: 160, child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain))),
+        ),
+      ),
+    );
   }
 }
