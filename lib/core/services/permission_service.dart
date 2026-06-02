@@ -203,7 +203,7 @@ class PermissionService extends GetxService {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${'Allow camera and gallery'.tr}?',
+                    '${'Allow CampConnectUs to access'.tr}?',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -212,7 +212,7 @@ class PermissionService extends GetxService {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'We use your camera and photo library so you can take or pick photos while shopping'
+                    'Camera, Photos, and Notifications are needed so you can take photos, pick images, and receive order updates while shopping.'
                         .tr,
                     style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87),
                   ),
