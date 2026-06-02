@@ -1,14 +1,17 @@
+import 'dart:convert';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
 import 'package:kartly_e_commerce/core/services/connectivity_service.dart';
+import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:kartly_e_commerce/data/repositories/site_settings_properties_repository.dart';
 import 'package:kartly_e_commerce/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -39,10 +42,37 @@ Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
+Future<void> _updateOneSignalIdOnServer(String playerId) async {
+  try {
+    final login = LoginService();
+    final token = login.token;
+    if (token == null || token.isEmpty) return;
+
+    final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-onesignal-id');
+    await http.post(
+      uri,
+      headers: {
+        'Authorization': '${login.tokenType} $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({'onesignal_id': playerId}),
+    );
+  } catch (_) {}
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
+
+  // Sync OneSignal player ID to backend when user is logged in
+  OneSignal.User.pushSubscription.addObserver((state) {
+    final playerId = state.current.id;
+    if (playerId != null && playerId.isNotEmpty) {
+      _updateOneSignalIdOnServer(playerId);
+    }
+  });
 
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
@@ -88,7 +118,7 @@ Future<void> main() async {
   });
 
   await GetStorage.init();
-  
+
   final box = GetStorage();
 
   final startTime = DateTime.now();
