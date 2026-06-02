@@ -224,14 +224,13 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
+      // Link OneSignal subscription to user ID
+      OneSignal.login(loginRes.user.id.toString());
+      
       // Send OneSignal player ID to backend
       final playerId = OneSignal.User.pushSubscription.id;
-      debugOneSignal = 'Login PlayerID: $playerId';
       if (playerId != null && playerId.isNotEmpty) {
-        _showSnackbar('OneSignal ID', playerId);
         updateOneSignalIdOnServer(playerId);
-      } else {
-        _showSnackbar('OneSignal ID', 'NULL - No player ID');
       }
       
       final hasPasscode = await PasscodeService.checkPasscodeOnServer();
@@ -293,6 +292,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      OneSignal.logout();
       await PasscodeService.setPasscodeEnabled(false);
       final followStore = FollowStore();
       followStore.clearAllFollowed();
