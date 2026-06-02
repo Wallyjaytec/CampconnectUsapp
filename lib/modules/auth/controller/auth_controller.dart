@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 
 import '../../../core/config/app_config.dart';
@@ -16,7 +15,6 @@ import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../modules/settings/view/passcode_lock_screen.dart';
 import 'package:kartly_e_commerce/app.dart';
-import 'package:kartly_e_commerce/main.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();
@@ -224,17 +222,15 @@ class AuthController extends GetxController {
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
       
-      // Link OneSignal subscription to user ID
-      final userId = loginRes.user?.id;
-      if (userId != null) {
-        OneSignal.login(userId.toString());
-      }
-      
-      // Send OneSignal player ID to backend
-      final playerId = OneSignal.User.pushSubscription.id;
-      if (playerId != null && playerId.isNotEmpty) {
-        updateOneSignalIdOnServer(playerId);
-      }
+      // OneSignal code commented out for testing
+      // final userId = loginRes.user?.id;
+      // if (userId != null) {
+      //   OneSignal.login(userId.toString());
+      // }
+      // final playerId = OneSignal.User.pushSubscription.id;
+      // if (playerId != null && playerId.isNotEmpty) {
+      //   updateOneSignalIdOnServer(playerId);
+      // }
       
       final hasPasscode = await PasscodeService.checkPasscodeOnServer();
       
@@ -295,7 +291,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
-      OneSignal.logout();
+      // OneSignal.logout();
       await PasscodeService.setPasscodeEnabled(false);
       final followStore = FollowStore();
       followStore.clearAllFollowed();
