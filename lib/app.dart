@@ -111,21 +111,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
               // Check for notifications that arrived while locked
-              if (savedNotification == null && pendingNotificationData != null) {
-                savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-                pendingNotificationData = null;
-              }
-              if (savedNotification == null && PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-                savedNotification = {
-                  'notification_id': PushNotificationData.notificationId,
-                  'notif_message': PushNotificationData.message ?? '',
-                  'notif_title': PushNotificationData.title ?? '',
-                  'notif_image': PushNotificationData.image ?? '',
-                };
-                PushNotificationData.notificationId = null;
-                PushNotificationData.message = null;
-                PushNotificationData.title = null;
-                PushNotificationData.image = null;
+              if (savedNotification == null) {
+                if (pendingNotificationData != null) {
+                  savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
+                  pendingNotificationData = null;
+                } else if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+                  savedNotification = {
+                    'notification_id': PushNotificationData.notificationId,
+                    'notif_message': PushNotificationData.message ?? '',
+                    'notif_title': PushNotificationData.title ?? '',
+                    'notif_image': PushNotificationData.image ?? '',
+                  };
+                  PushNotificationData.notificationId = null;
+                  PushNotificationData.message = null;
+                  PushNotificationData.title = null;
+                  PushNotificationData.image = null;
+                }
               }
               
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
@@ -139,7 +140,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               });
               
               if (savedNotification != null) {
-                final data = savedNotification;
+                final data = savedNotification!;
                 final item = NotificationItem(
                   id: data['notification_id']!,
                   message: data['notif_message'] ?? '',
@@ -149,7 +150,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
                 Future.delayed(const Duration(milliseconds: 1200), () {
-                  if (mounted && savedNotification != null) {
+                  if (mounted) {
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
