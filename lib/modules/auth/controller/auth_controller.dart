@@ -230,9 +230,11 @@ class AuthController extends GetxController {
 
       if (hasPasscode) {
         isLockScreenShowing = true;
+        isAppFullyInitialized = false;
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
             isLockScreenShowing = false;
+            isAppFullyInitialized = true;
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
@@ -254,6 +256,7 @@ class AuthController extends GetxController {
         return;
       }
 
+      isAppFullyInitialized = true;
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       
       if (redirect != null && redirect.isNotEmpty) {
@@ -280,6 +283,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       await PasscodeService.setPasscodeEnabled(false);
+      isAppFullyInitialized = false;
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
