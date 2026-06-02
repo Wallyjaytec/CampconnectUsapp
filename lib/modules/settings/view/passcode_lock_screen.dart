@@ -154,7 +154,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       _checkingPasscode = false;
       setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
       if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        // Pop back to lock screen (2 screens: PasscodeInputView + ForgotPasscode)
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
         isLockScreenShowing = false;
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
