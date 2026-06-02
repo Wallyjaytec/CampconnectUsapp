@@ -123,6 +123,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
+              Get.back();
+              _skipNextResume = true;
               
               _debug('UNLOCKED: notif=${savedNotification != null}');
               
@@ -136,16 +138,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Get.back();
                 Future.delayed(const Duration(milliseconds: 500), () {
                   if (mounted) {
                     _debug('NAV NOTIF');
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
-              } else {
-                _skipNextResume = true;
-                Get.back();
               }
             },
           ));
