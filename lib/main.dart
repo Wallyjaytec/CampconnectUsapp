@@ -38,18 +38,21 @@ class PushNotificationData {
   static String? image;
 }
 
-Future<void> initServices() async {
-  await Get.putAsync<NetworkService>(() async => NetworkService().init());
-}
+// On-screen debug
+String debugOneSignal = '';
 
-Future<void> _updateOneSignalIdOnServer(String playerId) async {
+Future<void> updateOneSignalIdOnServer(String playerId) async {
   try {
     final login = LoginService();
     final token = login.token;
-    if (token == null || token.isEmpty) return;
+    if (token == null || token.isEmpty) {
+      debugOneSignal = 'No token';
+      return;
+    }
 
+    debugOneSignal = 'Sending: $playerId';
     final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-onesignal-id');
-    await http.post(
+    final response = await http.post(
       uri,
       headers: {
         'Authorization': '${login.tokenType} $token',
@@ -58,7 +61,14 @@ Future<void> _updateOneSignalIdOnServer(String playerId) async {
       },
       body: jsonEncode({'onesignal_id': playerId}),
     );
-  } catch (_) {}
+    debugOneSignal = 'Response: ${response.statusCode} ${response.body}';
+  } catch (e) {
+    debugOneSignal = 'Error: $e';
+  }
+}
+
+Future<void> initServices() async {
+  await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
 Future<void> main() async {
@@ -66,11 +76,12 @@ Future<void> main() async {
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
-  // Sync OneSignal player ID to backend when user is logged in
+  // Sync OneSignal player ID to backend
   OneSignal.User.pushSubscription.addObserver((state) {
     final playerId = state.current.id;
+    debugOneSignal = 'Observer: $playerId';
     if (playerId != null && playerId.isNotEmpty) {
-      _updateOneSignalIdOnServer(playerId);
+      updateOneSignalIdOnServer(playerId);
     }
   });
 
