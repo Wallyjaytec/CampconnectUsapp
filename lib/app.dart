@@ -1,257 +1,334 @@
-import 'core/routes/app_routes.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'core/bindings/initial_bindings.dart';
-import 'core/config/app_scroll_behavior.dart';
-import 'core/constants/app_colors.dart';
-import 'core/controllers/theme_controller.dart';
-import 'core/routes/app_pages.dart';
-import 'core/theme/app_theme.dart';
-import 'core/utils/locale_mapper.dart';
-import 'core/services/language_service.dart';
-import 'core/services/passcode_service.dart';
-import 'main.dart';
-import 'modules/account/model/notification_model.dart';
-import 'modules/account/view/notification_detail_view.dart';
-import 'modules/auth/view/password_reset_view.dart';
-import 'modules/auth/view/verification_success_view.dart';
-import 'modules/settings/view/passcode_lock_screen.dart';
+import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:kartly_e_commerce/core/config/app_config.dart';
+import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:kartly_e_commerce/core/services/api_service.dart';
+import 'package:kartly_e_commerce/core/services/login_service.dart';
+import 'package:kartly_e_commerce/core/services/passcode_service.dart';
+import 'passcode_input_view.dart';
 
-class MyApp extends StatefulWidget {
-  final String initialLocaleCode;
-  const MyApp({super.key, required this.initialLocaleCode});
+class PasscodeLockScreen extends StatefulWidget {
+  final VoidCallback onUnlocked;
+  const PasscodeLockScreen({super.key, required this.onUnlocked});
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<PasscodeLockScreen> createState() => _PasscodeLockScreenState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  Brightness? _lastBrightness;
-  late Rx<Locale> _locale;
-  int _lastActiveTime = 0;
-  bool _showingLockScreen = false;
-  bool _skipNextResume = false;
-  bool _taskSwitcherHidden = false;
-  bool _appWasActive = false;
-  String _debugText = '';
+class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBindingObserver {
+  String _errorMessage = '';
+  String _passcode = '';
+  int _failedAttempts = 0;
+  bool _isLockedOut = false;
+  int _lockoutSeconds = 0;
+  Timer? _lockoutTimer;
+  bool _unlocking = false;
+  bool _checkingPasscode = false;
+  bool _biometricAvailable = false;
+  bool _biometricChecked = false;
+  bool _biometricTriggered = false;
+
+  bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _lastBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    final box = GetStorage();
-    _lastActiveTime = box.read<int>('_last_active_time') ?? DateTime.now().millisecondsSinceEpoch;
-    final savedLangCode = box.read<String>('selected_language_api_code');
-    final localeCode = savedLangCode ?? widget.initialLocaleCode;
-    _locale = LocaleMapper.fromApiCode(localeCode).obs;
-    WidgetsBinding.instance.addPostFrameCallback((_) => LanguageService.load(localeCode));
-  }
-
-  void _debug(String msg) {
-    if (mounted) setState(() => _debugText = msg);
+    debugPrint('🔷 LOCKSCREEN: initState');
+    _checkBiometricAvailability();
   }
 
   @override
-  void dispose() { WidgetsBinding.instance.removeObserver(this); super.dispose(); }
-
-  @override
-  void didChangePlatformBrightness() {
-    final newBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    if (_lastBrightness != newBrightness && Get.isRegistered<ThemeController>()) {
-      _lastBrightness = newBrightness;
-      Get.find<ThemeController>().setMode(ThemeMode.system);
-    }
+  void dispose() {
+    debugPrint('🔷 LOCKSCREEN: dispose');
+    WidgetsBinding.instance.removeObserver(this);
+    _lockoutTimer?.cancel();
+    super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _appWasActive = true;
-      _taskSwitcherHidden = false;
-      
-      if (_skipNextResume) {
-        _skipNextResume = false;
-        _debug('SKIP: just unlocked');
-        setState(() {});
-        return;
-      }
+    debugPrint('🔷 LOCKSCREEN LIFECYCLE: $state | unlocking=$_unlocking | checking=$_checkingPasscode');
+  }
 
-      final box = GetStorage();
-      final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
-      LanguageService.load(savedLang);
-      final locale = LocaleMapper.fromApiCode(savedLang);
-      if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
-
-      if (_showingLockScreen) {
-        setState(() {});
-        return;
-      }
-
-      if (PasscodeService.isPasscodeEnabled()) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
-        final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
-        
-        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
-          _showingLockScreen = true;
-          
-          Map<String, dynamic>? savedNotification;
-          if (pendingNotificationData != null) {
-            savedNotification = Map<String, dynamic>.from(pendingNotificationData!);
-            pendingNotificationData = null;
-            _debug('NOTIF: ${savedNotification?['notification_id']}');
-          }
-          if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-            savedNotification = {
-              'notification_id': PushNotificationData.notificationId,
-              'notif_message': PushNotificationData.message ?? '',
-              'notif_title': PushNotificationData.title ?? '',
-              'notif_image': PushNotificationData.image ?? '',
-            };
-            PushNotificationData.notificationId = null;
-            PushNotificationData.message = null;
-            PushNotificationData.title = null;
-            PushNotificationData.image = null;
-            _debug('PUSH: ${savedNotification?['notification_id']}');
-          }
-          
-          _debug('LOCKING');
-          Get.to(() => PasscodeLockScreen(
-            onUnlocked: () {
-              _showingLockScreen = false;
-              _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-              GetStorage().write('_last_active_time', _lastActiveTime);
-              _skipNextResume = true;
-              Get.back();
-              
-              _debug('UNLOCKED: notif=${savedNotification != null}');
-              
-              if (savedNotification != null) {
-                final data = savedNotification;
-                final item = NotificationItem(
-                  id: data['notification_id']!,
-                  message: data['notif_message'] ?? '',
-                  link: '',
-                  time: 'Just now',
-                  title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-                  image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-                );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted) {
-                    _debug('NAV NOTIF');
-                    Get.to(() => NotificationDetailView(item: item));
-                  }
-                });
-              }
-            },
-          ));
+  Future<void> _checkBiometricAvailability() async {
+    if (!PasscodeService.useFingerprint) {
+      debugPrint('🔷 BIO CHECK: fingerprint disabled');
+      setState(() => _biometricChecked = true);
+      return;
+    }
+    try {
+      final localAuth = LocalAuthentication();
+      final canCheck = await localAuth.canCheckBiometrics;
+      final availableBiometrics = await localAuth.getAvailableBiometrics();
+      debugPrint('🔷 BIO CHECK: canCheck=$canCheck, available=$availableBiometrics');
+      if (mounted) {
+        setState(() {
+          _biometricAvailable = canCheck && availableBiometrics.isNotEmpty;
+          _biometricChecked = true;
+        });
+        if (_biometricAvailable && !_unlocking && !_biometricTriggered) {
+          _biometricTriggered = true;
+          debugPrint('🔷 BIO CHECK: auto-triggering biometric');
+          WidgetsBinding.instance.addPostFrameCallback((_) => _useBiometric());
         }
+      }
+    } catch (e) {
+      debugPrint('🔷 BIO CHECK: error=$e');
+      if (mounted) setState(() => _biometricChecked = true);
+    }
+  }
+
+  void _doUnlock() {
+    debugPrint('🔷 DO UNLOCK: mounted=$mounted, unlocking=$_unlocking');
+    if (!mounted || _unlocking) {
+      debugPrint('🔷 DO UNLOCK: BLOCKED');
+      return;
+    }
+    debugPrint('🔷 DO UNLOCK: PROCEEDING');
+    _unlocking = true;
+    _lockoutTimer?.cancel();
+    GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+    debugPrint('🔷 DO UNLOCK: calling onUnlocked');
+    widget.onUnlocked();
+  }
+
+  void _onKeyPressed(String value) {
+    if (_isLockedOut || _unlocking || _checkingPasscode) return;
+    if (value == 'delete') {
+      if (_passcode.isNotEmpty) {
+        setState(() { _passcode = _passcode.substring(0, _passcode.length - 1); _errorMessage = ''; });
+      }
+    } else if (value == 'clear') {
+      setState(() { _passcode = ''; _errorMessage = ''; });
+    } else {
+      if (_passcode.length < 6) {
+        setState(() { _passcode += value; _errorMessage = ''; });
+        if (_passcode.length == 6) _verifyPasscode();
+      }
+    }
+  }
+
+  Future<void> _verifyPasscode() async {
+    if (_unlocking || _checkingPasscode) {
+      debugPrint('🔷 VERIFY PASSCODE: blocked (unlocking=$_unlocking, checking=$_checkingPasscode)');
+      return;
+    }
+    debugPrint('🔷 VERIFY PASSCODE: checking passcode');
+    _checkingPasscode = true;
+    final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+    _checkingPasscode = false;
+    debugPrint('🔷 VERIFY PASSCODE: verified=$verified');
+    if (verified) {
+      _doUnlock();
+    } else {
+      _failedAttempts++;
+      setState(() => _passcode = '');
+      if (_failedAttempts >= 5) {
+        _startLockout();
       } else {
-        if (pendingNotificationData != null) {
-          final data = Map<String, dynamic>.from(pendingNotificationData!);
-          pendingNotificationData = null;
-          _debug('NO PASSCODE NOTIF: ${data['notification_id']}');
-          final item = NotificationItem(
-            id: data['notification_id']!,
-            message: data['notif_message'] ?? '',
-            link: '',
-            time: 'Just now',
-            title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-            image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-          );
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) {
-              Get.to(() => NotificationDetailView(item: item));
-            }
-          });
-        }
-        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-          final item = NotificationItem(
-            id: PushNotificationData.notificationId!,
-            message: PushNotificationData.message ?? '',
-            link: '',
-            time: 'Just now',
-            title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
-            image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
-          );
-          PushNotificationData.notificationId = null;
-          PushNotificationData.message = null;
-          PushNotificationData.title = null;
-          PushNotificationData.image = null;
-          _debug('NO PASSCODE PUSH: ${item.id}');
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) {
-              Get.to(() => NotificationDetailView(item: item));
-            }
-          });
-        }
+        setState(() { _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; });
       }
-      setState(() {});
-    } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      _skipNextResume = false;
-      _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
-      GetStorage().write('_last_active_time', _lastActiveTime);
-      
-      if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
-        _taskSwitcherHidden = true;
-        setState(() {});
+    }
+  }
+
+  void _startLockout() {
+    _isLockedOut = true;
+    _lockoutSeconds = 60;
+    _lockoutTimer?.cancel();
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) { timer.cancel(); return; }
+      setState(() {
+        _lockoutSeconds--;
+        _errorMessage = '${'Too many attempts. Please wait'.tr} ${_formatTime(_lockoutSeconds)}';
+      });
+      if (_lockoutSeconds <= 0) {
+        timer.cancel();
+        setState(() { _failedAttempts = 0; _isLockedOut = false; _errorMessage = ''; });
       }
+    });
+  }
+
+  String _formatTime(int seconds) {
+    if (seconds < 60) return '0:${seconds.toString().padLeft(2, '0')}';
+    final min = seconds ~/ 60; final sec = seconds % 60;
+    return '$min:${sec.toString().padLeft(2, '0')}';
+  }
+
+  void _forgotPasscode() {
+    if (_isLockedOut || _unlocking) return;
+    Get.to(() => _ForgotPasscodeScreen(onReset: (newPasscode) async {
+      final questions = await PasscodeService.fetchSecurityQuestions();
+      await PasscodeService.setPasscodeOnServer(
+        passcode: newPasscode,
+        question1: questions?['question1'] ?? '',
+        answer1: questions?['answer1'] ?? '',
+        question2: questions?['question2'] ?? '',
+        answer2: questions?['answer2'] ?? '',
+      );
+      _lockoutTimer?.cancel();
+      _failedAttempts = 0;
+      _unlocking = false;
+      _checkingPasscode = false;
+      setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Passcode reset successfully. Enter your new passcode.'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
+      }
+    }));
+  }
+
+  void _useBiometric() async {
+    if (_unlocking) {
+      debugPrint('🔷 BIO: already unlocking, skip');
+      return;
+    }
+    debugPrint('🔷 BIO: starting authentication');
+    try {
+      final localAuth = LocalAuthentication();
+      final canCheck = await localAuth.canCheckBiometrics;
+      if (!canCheck) {
+        debugPrint('🔷 BIO: cannot check biometrics');
+        return;
+      }
+      debugPrint('🔷 BIO: showing biometric dialog');
+      final authenticated = await localAuth.authenticate(
+        localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
+        options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
+      );
+      debugPrint('🔷 BIO: authenticated=$authenticated, mounted=$mounted, unlocking=$_unlocking');
+      if (authenticated && mounted && !_unlocking) {
+        _lockoutTimer?.cancel();
+        debugPrint('🔷 BIO: calling _doUnlock');
+        _doUnlock();
+      } else {
+        debugPrint('🔷 BIO: NOT calling _doUnlock (auth=$authenticated, mounted=$mounted, unlocking=$_unlocking)');
+      }
+    } catch (e) {
+      debugPrint('🔷 BIO: error=$e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => GetMaterialApp(
-      debugShowCheckedModeBanner: false, scrollBehavior: AppScrollBehavior(), useInheritedMediaQuery: true,
-      locale: _locale.value, fallbackLocale: const Locale('en'),
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: const [Locale('en'), Locale('de'), Locale('zh'), Locale('es'), Locale('ar'), Locale('fr'), Locale('ru'), Locale('ja'), Locale('ko'), Locale('pt'), Locale('it'), Locale('hi')],
-      onGenerateTitle: (_) => 'app_title'.tr,
-      theme: AppTheme.lightFor(_locale.value), darkTheme: AppTheme.darkFor(_locale.value), themeMode: ThemeMode.system,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            Scaffold(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
-              body: child!
-            ),
-            if (_taskSwitcherHidden)
-              Container(
-                color: AppColors.primaryColor,
-                child: const Center(
-                  child: Icon(Icons.lock_outline, size: 60, color: Colors.white),
-                ),
-              ),
-            if (_debugText.isNotEmpty)
-              Positioned(
-                top: 120, left: 10, right: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  color: Colors.black87,
-                  child: Text(_debugText, style: const TextStyle(color: Colors.green, fontSize: 11), textAlign: TextAlign.center),
-                ),
-              ),
-          ],
-        );
-      },
-      initialBinding: InitialBindings(), initialRoute: AppRoutes.splashView, getPages: AppPages.pages,
-      onGenerateRoute: (settings) {
-        final rawPath = settings.name ?? ''; final uri = Uri.tryParse(rawPath);
-        if (uri != null) {
-          if (rawPath.contains('/password/reset')) {
-            var token = uri.queryParameters['u'] ?? ''; var isEmail = false;
-            if (token.contains('type=email')) { isEmail = true; token = token.replaceAll('&type=email', '').replaceAll('%26type%3Demail', ''); }
-            if ((uri.queryParameters['type'] ?? '') == 'email') isEmail = true;
-            return GetPageRoute(page: () => PasswordResetView(token: token, isEmailReset: isEmail), routeName: '/password-reset');
-          }
-          if (uri.path.contains('email-verification')) {
-            return GetPageRoute(page: () => VerificationSuccessView(code: uri.queryParameters['u'] ?? ''), routeName: '/verify-email');
-          }
-        }
-        return null;
-      },
-    ));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
+        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Spacer(),
+          Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
+          const SizedBox(height: 20),
+          Text('CampConnectUs Marketplace', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+          const SizedBox(height: 10),
+          Text('Enter Passcode'.tr, style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey)),
+          const SizedBox(height: 30),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5), color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent)))),
+          const SizedBox(height: 10),
+          if (_errorMessage.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20), child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center)),
+          const SizedBox(height: 40),
+          _buildKeypad(),
+          const SizedBox(height: 20),
+          if (PasscodeService.useFingerprint && _biometricChecked && _biometricAvailable)
+            InkWell(onTap: _useBiometric, child: Column(children: [Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor), const SizedBox(height: 8), Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor))])),
+          const SizedBox(height: 20),
+          if (!_isLockedOut) TextButton(onPressed: _forgotPasscode, child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey))),
+          const Spacer(),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildKeypad() {
+    return Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('1'), _buildKey('2'), _buildKey('3')]),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('4'), _buildKey('5'), _buildKey('6')]),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('7'), _buildKey('8'), _buildKey('9')]),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('clear', text: 'Clear'.tr, isAction: true), _buildKey('0'), _buildKey('delete', text: '⌫', isAction: true)]),
+    ]);
+  }
+
+  Widget _buildKey(String value, {String? text, bool isAction = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(padding: const EdgeInsets.all(8.0), child: InkWell(onTap: () => _onKeyPressed(value), borderRadius: BorderRadius.circular(40), child: Container(width: 70, height: 70, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300, width: 1)), child: Center(child: text != null ? Text(text, style: TextStyle(fontSize: isAction ? 16 : 22, color: isAction ? AppColors.primaryColor : (isDark ? Colors.white : Colors.black))) : Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black))))));
+  }
+}
+
+class _ForgotPasscodeScreen extends StatefulWidget {
+  final Function(String) onReset;
+  const _ForgotPasscodeScreen({required this.onReset});
+  @override
+  State<_ForgotPasscodeScreen> createState() => _ForgotPasscodeScreenState();
+}
+
+class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
+  final _answer1Controller = TextEditingController();
+  final _answer2Controller = TextEditingController();
+  int _step = 1;
+  int _attemptsLeft = 3;
+  String? _errorMessage;
+  Map<String, dynamic>? _questions;
+
+  @override
+  void initState() { super.initState(); _loadQuestions(); }
+
+  Future<void> _loadQuestions() async {
+    final q = await PasscodeService.fetchSecurityQuestions();
+    if (mounted) setState(() => _questions = q);
+  }
+
+  @override
+  void dispose() { _answer1Controller.dispose(); _answer2Controller.dispose(); super.dispose(); }
+
+  void _submitAnswer() {
+    final answer = _step == 1 ? _answer1Controller.text.trim() : _answer2Controller.text.trim();
+    if (answer.isEmpty) { setState(() => _errorMessage = 'Please enter an answer'.tr); return; }
+    final storedAnswer = _step == 1 ? (_questions?['answer1'] ?? '') : (_questions?['answer2'] ?? '');
+    if (answer.toLowerCase() == storedAnswer.toLowerCase()) {
+      if (_step == 1) {
+        setState(() { _step = 2; _errorMessage = null; });
+        _answer2Controller.clear();
+      } else {
+        Get.back();
+        _showResetPasscode();
+      }
+    } else {
+      _attemptsLeft--;
+      if (_attemptsLeft <= 0) {
+        Get.back();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Too many failed attempts. Please try again later.'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 3)));
+      } else {
+        setState(() { _errorMessage = '${'Wrong answer'.tr}. $_attemptsLeft ${'tries remaining'.tr}.'; });
+      }
+    }
+  }
+
+  void _showResetPasscode() {
+    Get.to(() => PasscodeInputView(title: 'Passcode Lock'.tr, hintText: 'Create a new passcode'.tr, onCompleted: (code) { widget.onReset(code); Get.back(); Get.back(); }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final question = _step == 1 ? (_questions?['question1'] ?? '') : (_questions?['question2'] ?? '');
+    return Scaffold(
+      appBar: AppBar(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, automaticallyImplyLeading: false, leadingWidth: 44, leading: Material(color: Colors.transparent, shape: const CircleBorder(), clipBehavior: Clip.antiAlias, child: IconButton(onPressed: () { final nav = Navigator.of(context); if (nav.canPop()) { nav.pop(); return; } if (Get.key.currentState?.canPop() ?? false) { Get.back(); return; } Get.offAllNamed(AppRoutes.bottomNavbarView); }, icon: const Icon(Iconsax.arrow_left_2_copy, size: 20), splashRadius: 20)), centerTitle: false, titleSpacing: 0, title: Text('Forgot Passcode'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18))),
+      body: Padding(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('${'Step'.tr} $_step ${'of'.tr} 2', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Text('Answer your security question to reset your passcode.'.tr, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        const SizedBox(height: 30),
+        Text(question, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 10),
+        TextField(controller: _step == 1 ? _answer1Controller : _answer2Controller, decoration: InputDecoration(hintText: 'Your answer'.tr, border: const OutlineInputBorder()), onSubmitted: (_) => _submitAnswer()),
+        const SizedBox(height: 12),
+        SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _submitAnswer, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text('Submit'.tr))),
+        if (_errorMessage != null) Padding(padding: const EdgeInsets.only(top: 20), child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 14))),
+      ])),
+    );
   }
 }
