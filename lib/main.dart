@@ -43,7 +43,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
-  OneSignal.Notifications.requestPermission(false);
 
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
