@@ -225,7 +225,10 @@ class AuthController extends GetxController {
       storage.saveDashboardContent(loginRes.dashboardContent);
       
       // Link OneSignal subscription to user ID
-      OneSignal.login(loginRes.user.id.toString());
+      final userId = loginRes.user?.id;
+      if (userId != null) {
+        OneSignal.login(userId.toString());
+      }
       
       // Send OneSignal player ID to backend
       final playerId = OneSignal.User.pushSubscription.id;
