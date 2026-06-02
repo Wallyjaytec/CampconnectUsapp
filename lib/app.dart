@@ -20,7 +20,6 @@ import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
 
 bool isLockScreenShowing = false;
-bool isAppFullyInitialized = false;
 
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
@@ -66,32 +65,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _appWasActive = true;
       _taskSwitcherHidden = false;
       
-      if (!isAppFullyInitialized) {
-        setState(() {});
-        return;
-      }
-      
-      if (_skipNextResume) {
-        _skipNextResume = false;
-        setState(() {});
-        return;
-      }
+      // Only auto-lock on warm start (app was already active before this resume)
+      if (_appWasActive && PasscodeService.isPasscodeEnabled() && !_showingLockScreen && !isLockScreenShowing) {
+        if (_skipNextResume) {
+          _skipNextResume = false;
+          setState(() {});
+          return;
+        }
 
-      final box = GetStorage();
-      final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
-      LanguageService.load(savedLang);
-      final locale = LocaleMapper.fromApiCode(savedLang);
-      if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
+        final box = GetStorage();
+        final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
+        LanguageService.load(savedLang);
+        final locale = LocaleMapper.fromApiCode(savedLang);
+        if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
-      if (_showingLockScreen || isLockScreenShowing) {
-        setState(() {});
-        return;
-      }
-
-      if (PasscodeService.isPasscodeEnabled()) {
         final now = DateTime.now().millisecondsSinceEpoch;
         final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
@@ -150,6 +139,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ));
         }
       } else {
+        // Cold start or no passcode - process notifications directly
         if (pendingNotificationData != null) {
           final data = Map<String, dynamic>.from(pendingNotificationData!);
           pendingNotificationData = null;
@@ -187,6 +177,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           });
         }
       }
+      
+      _appWasActive = true;
       setState(() {});
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
       _skipNextResume = false;
