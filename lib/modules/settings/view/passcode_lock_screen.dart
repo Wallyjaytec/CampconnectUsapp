@@ -10,6 +10,7 @@ import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/api_service.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
 import 'package:kartly_e_commerce/core/services/passcode_service.dart';
+import 'package:kartly_e_commerce/app.dart';
 import 'passcode_input_view.dart';
 
 class PasscodeLockScreen extends StatefulWidget {
@@ -154,6 +155,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
+        isLockScreenShowing = false;
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
