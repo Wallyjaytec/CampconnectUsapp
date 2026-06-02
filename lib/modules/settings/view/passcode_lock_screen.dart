@@ -19,7 +19,7 @@ class PasscodeLockScreen extends StatefulWidget {
   State<PasscodeLockScreen> createState() => _PasscodeLockScreenState();
 }
 
-class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
+class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBindingObserver {
   String _errorMessage = '';
   String _passcode = '';
   int _failedAttempts = 0;
@@ -37,17 +37,27 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    debugPrint('🔷 LOCKSCREEN: initState');
     _checkBiometricAvailability();
   }
 
   @override
   void dispose() {
+    debugPrint('🔷 LOCKSCREEN: dispose');
+    WidgetsBinding.instance.removeObserver(this);
     _lockoutTimer?.cancel();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('🔷 LOCKSCREEN LIFECYCLE: $state | unlocking=$_unlocking | checking=$_checkingPasscode');
+  }
+
   Future<void> _checkBiometricAvailability() async {
     if (!PasscodeService.useFingerprint) {
+      debugPrint('🔷 BIO CHECK: fingerprint disabled');
       setState(() => _biometricChecked = true);
       return;
     }
@@ -55,6 +65,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
       final availableBiometrics = await localAuth.getAvailableBiometrics();
+      debugPrint('🔷 BIO CHECK: canCheck=$canCheck, available=$availableBiometrics');
       if (mounted) {
         setState(() {
           _biometricAvailable = canCheck && availableBiometrics.isNotEmpty;
@@ -62,19 +73,27 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
         });
         if (_biometricAvailable && !_unlocking && !_biometricTriggered) {
           _biometricTriggered = true;
+          debugPrint('🔷 BIO CHECK: auto-triggering biometric');
           WidgetsBinding.instance.addPostFrameCallback((_) => _useBiometric());
         }
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('🔷 BIO CHECK: error=$e');
       if (mounted) setState(() => _biometricChecked = true);
     }
   }
 
   void _doUnlock() {
-    if (!mounted || _unlocking) return;
+    debugPrint('🔷 DO UNLOCK: mounted=$mounted, unlocking=$_unlocking');
+    if (!mounted || _unlocking) {
+      debugPrint('🔷 DO UNLOCK: BLOCKED');
+      return;
+    }
+    debugPrint('🔷 DO UNLOCK: PROCEEDING');
     _unlocking = true;
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+    debugPrint('🔷 DO UNLOCK: calling onUnlocked');
     widget.onUnlocked();
   }
 
@@ -95,10 +114,15 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   Future<void> _verifyPasscode() async {
-    if (_unlocking || _checkingPasscode) return;
+    if (_unlocking || _checkingPasscode) {
+      debugPrint('🔷 VERIFY PASSCODE: blocked (unlocking=$_unlocking, checking=$_checkingPasscode)');
+      return;
+    }
+    debugPrint('🔷 VERIFY PASSCODE: checking passcode');
     _checkingPasscode = true;
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
     _checkingPasscode = false;
+    debugPrint('🔷 VERIFY PASSCODE: verified=$verified');
     if (verified) {
       _doUnlock();
     } else {
@@ -159,20 +183,34 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> {
   }
 
   void _useBiometric() async {
-    if (_unlocking) return;
+    if (_unlocking) {
+      debugPrint('🔷 BIO: already unlocking, skip');
+      return;
+    }
+    debugPrint('🔷 BIO: starting authentication');
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
-      if (!canCheck) return;
+      if (!canCheck) {
+        debugPrint('🔷 BIO: cannot check biometrics');
+        return;
+      }
+      debugPrint('🔷 BIO: showing biometric dialog');
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
+      debugPrint('🔷 BIO: authenticated=$authenticated, mounted=$mounted, unlocking=$_unlocking');
       if (authenticated && mounted && !_unlocking) {
         _lockoutTimer?.cancel();
+        debugPrint('🔷 BIO: calling _doUnlock');
         _doUnlock();
+      } else {
+        debugPrint('🔷 BIO: NOT calling _doUnlock (auth=$authenticated, mounted=$mounted, unlocking=$_unlocking)');
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('🔷 BIO: error=$e');
+    }
   }
 
   @override
