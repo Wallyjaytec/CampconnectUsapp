@@ -139,7 +139,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             },
           ));
         }
-      } else {
+      } else if (!isLockScreenShowing) {
+        // Only process notifications if no lock screen is showing (fixes issue #1)
         if (pendingNotificationData != null) {
           final data = Map<String, dynamic>.from(pendingNotificationData!);
           pendingNotificationData = null;
