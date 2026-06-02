@@ -111,11 +111,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           
           Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
-              _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
               _skipNextResume = true;
               Get.back();
+              
+              // Delay resetting _showingLockScreen to prevent biometric lifecycle from creating second lock
+              Future.delayed(const Duration(milliseconds: 300), () {
+                _showingLockScreen = false;
+              });
               
               if (savedNotification != null) {
                 final data = savedNotification;
