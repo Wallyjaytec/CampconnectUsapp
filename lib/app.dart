@@ -67,7 +67,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _taskSwitcherHidden = false;
       
-      // Only auto-lock on warm start (app was already active before this resume)
       if (_appWasActive && PasscodeService.isPasscodeEnabled() && !_showingLockScreen && !isLockScreenShowing) {
         if (_skipNextResume) {
           _skipNextResume = false;
@@ -129,8 +128,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted) {
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted && savedNotification != null) {
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
@@ -139,7 +138,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ));
         }
       } else {
-        // Cold start or no passcode - process notifications directly
         if (pendingNotificationData != null) {
           final data = Map<String, dynamic>.from(pendingNotificationData!);
           pendingNotificationData = null;
