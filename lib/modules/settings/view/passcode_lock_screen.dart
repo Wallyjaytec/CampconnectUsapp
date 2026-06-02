@@ -31,6 +31,18 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
   bool _biometricTriggered = false;
+  
+  // On-screen debug
+  final List<String> _debugLogs = [];
+  int _unlockCount = 0;
+  
+  void _addDebug(String msg) {
+    if (!mounted) return;
+    setState(() {
+      _debugLogs.insert(0, msg);
+      if (_debugLogs.length > 15) _debugLogs.removeLast();
+    });
+  }
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -38,13 +50,13 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    debugPrint('🔷 LOCKSCREEN: initState');
+    _addDebug('INIT');
     _checkBiometricAvailability();
   }
 
   @override
   void dispose() {
-    debugPrint('🔷 LOCKSCREEN: dispose');
+    _addDebug('DISPOSE');
     WidgetsBinding.instance.removeObserver(this);
     _lockoutTimer?.cancel();
     super.dispose();
@@ -52,12 +64,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('🔷 LOCKSCREEN LIFECYCLE: $state | unlocking=$_unlocking | checking=$_checkingPasscode');
+    _addDebug('LIFECYCLE: $state | unlock=$_unlocking');
   }
 
   Future<void> _checkBiometricAvailability() async {
     if (!PasscodeService.useFingerprint) {
-      debugPrint('🔷 BIO CHECK: fingerprint disabled');
+      _addDebug('BIO: disabled');
       setState(() => _biometricChecked = true);
       return;
     }
@@ -65,7 +77,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
       final availableBiometrics = await localAuth.getAvailableBiometrics();
-      debugPrint('🔷 BIO CHECK: canCheck=$canCheck, available=$availableBiometrics');
+      _addDebug('BIO: canCheck=$canCheck, avail=$availableBiometrics');
       if (mounted) {
         setState(() {
           _biometricAvailable = canCheck && availableBiometrics.isNotEmpty;
@@ -73,27 +85,28 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
         });
         if (_biometricAvailable && !_unlocking && !_biometricTriggered) {
           _biometricTriggered = true;
-          debugPrint('🔷 BIO CHECK: auto-triggering biometric');
+          _addDebug('BIO: auto-trigger');
           WidgetsBinding.instance.addPostFrameCallback((_) => _useBiometric());
         }
       }
     } catch (e) {
-      debugPrint('🔷 BIO CHECK: error=$e');
+      _addDebug('BIO ERROR: $e');
       if (mounted) setState(() => _biometricChecked = true);
     }
   }
 
   void _doUnlock() {
-    debugPrint('🔷 DO UNLOCK: mounted=$mounted, unlocking=$_unlocking');
+    _unlockCount++;
+    _addDebug('DO_UNLOCK #$_unlockCount | mounted=$mounted | unlocking=$_unlocking');
     if (!mounted || _unlocking) {
-      debugPrint('🔷 DO UNLOCK: BLOCKED');
+      _addDebug('DO_UNLOCK BLOCKED');
       return;
     }
-    debugPrint('🔷 DO UNLOCK: PROCEEDING');
+    _addDebug('DO_UNLOCK PROCEED');
     _unlocking = true;
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-    debugPrint('🔷 DO UNLOCK: calling onUnlocked');
+    _addDebug('DO_UNLOCK calling onUnlocked');
     widget.onUnlocked();
   }
 
@@ -115,14 +128,14 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
 
   Future<void> _verifyPasscode() async {
     if (_unlocking || _checkingPasscode) {
-      debugPrint('🔷 VERIFY PASSCODE: blocked (unlocking=$_unlocking, checking=$_checkingPasscode)');
+      _addDebug('VERIFY BLOCKED: unlock=$_unlocking check=$_checkingPasscode');
       return;
     }
-    debugPrint('🔷 VERIFY PASSCODE: checking passcode');
+    _addDebug('VERIFY: checking...');
     _checkingPasscode = true;
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
     _checkingPasscode = false;
-    debugPrint('🔷 VERIFY PASSCODE: verified=$verified');
+    _addDebug('VERIFY: result=$verified');
     if (verified) {
       _doUnlock();
     } else {
@@ -184,32 +197,32 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
 
   void _useBiometric() async {
     if (_unlocking) {
-      debugPrint('🔷 BIO: already unlocking, skip');
+      _addDebug('BIO: already unlocking');
       return;
     }
-    debugPrint('🔷 BIO: starting authentication');
+    _addDebug('BIO: starting auth...');
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
       if (!canCheck) {
-        debugPrint('🔷 BIO: cannot check biometrics');
+        _addDebug('BIO: no biometrics');
         return;
       }
-      debugPrint('🔷 BIO: showing biometric dialog');
+      _addDebug('BIO: showing dialog');
       final authenticated = await localAuth.authenticate(
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
-      debugPrint('🔷 BIO: authenticated=$authenticated, mounted=$mounted, unlocking=$_unlocking');
+      _addDebug('BIO: auth=$authenticated | mounted=$mounted | unlock=$_unlocking');
       if (authenticated && mounted && !_unlocking) {
         _lockoutTimer?.cancel();
-        debugPrint('🔷 BIO: calling _doUnlock');
+        _addDebug('BIO: SUCCESS, calling doUnlock');
         _doUnlock();
       } else {
-        debugPrint('🔷 BIO: NOT calling _doUnlock (auth=$authenticated, mounted=$mounted, unlocking=$_unlocking)');
+        _addDebug('BIO: NOT unlocking (auth=$authenticated, mounted=$mounted, unlocking=$_unlocking)');
       }
     } catch (e) {
-      debugPrint('🔷 BIO: error=$e');
+      _addDebug('BIO ERROR: $e');
     }
   }
 
@@ -220,26 +233,51 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       canPop: false,
       child: Scaffold(
         backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
-        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Spacer(),
-          Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
-          const SizedBox(height: 20),
-          Text('CampConnectUs Marketplace', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
-          const SizedBox(height: 10),
-          Text('Enter Passcode'.tr, style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey)),
-          const SizedBox(height: 30),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5), color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent)))),
-          const SizedBox(height: 10),
-          if (_errorMessage.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20), child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center)),
-          const SizedBox(height: 40),
-          _buildKeypad(),
-          const SizedBox(height: 20),
-          if (PasscodeService.useFingerprint && _biometricChecked && _biometricAvailable)
-            InkWell(onTap: _useBiometric, child: Column(children: [Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor), const SizedBox(height: 8), Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor))])),
-          const SizedBox(height: 20),
-          if (!_isLockedOut) TextButton(onPressed: _forgotPasscode, child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey))),
-          const Spacer(),
-        ]),
+        body: Stack(
+          children: [
+            Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Spacer(),
+              Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
+              const SizedBox(height: 20),
+              Text('CampConnectUs Marketplace', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+              const SizedBox(height: 10),
+              Text('Enter Passcode'.tr, style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey)),
+              const SizedBox(height: 30),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5), color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent)))),
+              const SizedBox(height: 10),
+              if (_errorMessage.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20), child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center)),
+              const SizedBox(height: 40),
+              _buildKeypad(),
+              const SizedBox(height: 20),
+              if (PasscodeService.useFingerprint && _biometricChecked && _biometricAvailable)
+                InkWell(onTap: _useBiometric, child: Column(children: [Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor), const SizedBox(height: 8), Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor))])),
+              const SizedBox(height: 20),
+              if (!_isLockedOut) TextButton(onPressed: _forgotPasscode, child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey))),
+              const Spacer(),
+            ]),
+            // Debug overlay
+            if (_debugLogs.isNotEmpty)
+              Positioned(
+                bottom: 10, left: 5, right: 5,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  color: Colors.black.withOpacity(0.85),
+                  constraints: const BoxConstraints(maxHeight: 250),
+                  child: SingleChildScrollView(
+                    reverse: true,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _debugLogs.map((log) => Text(
+                        log,
+                        style: const TextStyle(color: Colors.green, fontSize: 10, fontFamily: 'monospace'),
+                      )).toList(),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
