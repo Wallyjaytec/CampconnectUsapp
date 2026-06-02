@@ -67,6 +67,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _taskSwitcherHidden = false;
       
+      // Always sync with storage to get latest time from any source
+      final box = GetStorage();
+      _lastActiveTime = box.read<int>('_last_active_time') ?? _lastActiveTime;
+      
       if (_appWasActive && PasscodeService.isPasscodeEnabled() && !_showingLockScreen && !isLockScreenShowing) {
         if (_skipNextResume) {
           _skipNextResume = false;
@@ -74,7 +78,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           return;
         }
 
-        final box = GetStorage();
         final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
         LanguageService.load(savedLang);
         final locale = LocaleMapper.fromApiCode(savedLang);
