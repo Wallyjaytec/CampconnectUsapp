@@ -11,6 +11,7 @@ import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.
 import 'package:kartly_e_commerce/modules/settings/view/passcode_lock_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kartly_e_commerce/app.dart';
 import '../../auth/view/password_reset_view.dart';
 import '../../auth/view/verification_success_view.dart';
 
@@ -45,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkLockAndNavigate() async {
     if (_navigated) return;
 
-    // Only check passcode if user is logged in (has token for server verification)
     bool hasPasscode = false;
     if (isLoggedIn) {
       hasPasscode = await PasscodeService.checkPasscodeOnServer();
@@ -53,6 +53,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     if (hasPasscode) {
       _navigated = true;
+      isLockScreenShowing = true;
       
       if (pendingNotificationData != null) {
         _pendingNotificationData = Map<String, dynamic>.from(pendingNotificationData!);
@@ -73,6 +74,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       
       Get.offAll(() => PasscodeLockScreen(
         onUnlocked: () {
+          isLockScreenShowing = false;
           final box = GetStorage();
           box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
           
@@ -99,7 +101,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
 
-    // No passcode or not logged in - proceed normally
     Timer(const Duration(seconds: 3), () {
       if (!mounted || _navigated) return;
       _checkPushAndNavigate(attempts: 0);
@@ -159,7 +160,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _navigateNormally() {
     final box = GetStorage();
     
-    // If not logged in, go to login
     if (!isLoggedIn) {
       final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
       if (!onboardingComplete) {
