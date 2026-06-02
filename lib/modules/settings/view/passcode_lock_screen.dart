@@ -30,7 +30,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   bool _checkingPasscode = false;
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
-  bool _biometricAuthenticating = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -155,14 +154,26 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Passcode reset successfully. Enter your new passcode.'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Passcode reset successfully. Enter your new passcode.'.tr),
+                backgroundColor: AppColors.primaryColor,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        });
       }
     }));
   }
 
   void _useBiometric() async {
-    if (_didUnlock || _biometricAuthenticating) return;
-    _biometricAuthenticating = true;
+    if (_didUnlock) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -175,9 +186,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
         _lockoutTimer?.cancel();
         _doUnlock();
       }
-    } catch (_) {} finally {
-      _biometricAuthenticating = false;
-    }
+    } catch (_) {}
   }
 
   @override
