@@ -19,8 +19,8 @@ import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
 
-// Global flag to prevent double lock screen from any source
 bool isLockScreenShowing = false;
+bool isAppFullyInitialized = false;
 
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
@@ -68,6 +68,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _appWasActive = true;
       _taskSwitcherHidden = false;
+      
+      if (!isAppFullyInitialized) {
+        setState(() {});
+        return;
+      }
       
       if (_skipNextResume) {
         _skipNextResume = false;
