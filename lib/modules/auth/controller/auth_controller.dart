@@ -14,6 +14,7 @@ import '../../../core/services/login_service.dart';
 import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../modules/settings/view/passcode_lock_screen.dart';
+import 'package:kartly_e_commerce/app.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();
@@ -222,17 +223,16 @@ class AuthController extends GetxController {
       storage.saveDashboardContent(loginRes.dashboardContent);
       
       final hasPasscode = await PasscodeService.checkPasscodeOnServer();
-      debugPrint('🟤 LOGIN: checkPasscodeOnServer=$hasPasscode, isPasscodeEnabled=${PasscodeService.isPasscodeEnabled()}');
       
       _showSnackbar('Success'.tr, 'Login successful'.tr);
       final args = Get.arguments is Map ? Get.arguments as Map : null;
       final redirect = args?['redirect'] as String?;
 
       if (hasPasscode) {
-        debugPrint('🟤 LOGIN: showing lock screen');
+        isLockScreenShowing = true;
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
-            debugPrint('🟤 LOGIN UNLOCKED');
+            isLockScreenShowing = false;
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
@@ -254,7 +254,6 @@ class AuthController extends GetxController {
         return;
       }
 
-      debugPrint('🟤 LOGIN: no passcode, going to home');
       Get.offAllNamed(AppRoutes.bottomNavbarView);
       
       if (redirect != null && redirect.isNotEmpty) {
@@ -280,7 +279,7 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
-      debugPrint('🟤 LOGOUT');
+      await PasscodeService.setPasscodeEnabled(false);
       final followStore = FollowStore();
       followStore.clearAllFollowed();
       storage.logout();
