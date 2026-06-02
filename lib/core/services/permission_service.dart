@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
@@ -69,8 +70,6 @@ class PermissionService extends GetxService {
       );
     }
 
-    // Request notification permission after gallery/camera is done
-    // OneSignal's own dialog is already suppressed in main.dart
     final notifStatus = await Permission.notification.status;
     if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
       await Permission.notification.request();
@@ -195,44 +194,52 @@ class PermissionService extends GetxService {
       GetBuilder<ThemeController>(
         builder: (ctrl) {
           final isDark = ctrl.isDarkMode.value;
-          return Dialog(
-            backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${'Allow CampConnectUs to access'.tr}?',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Camera, Photos, and Notifications are needed so you can take photos, pick images, and receive order updates while shopping.'
-                        .tr,
-                    style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            ),
+            child: SafeArea(
+              child: Dialog(
+                backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
+                insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextButton(
-                        onPressed: () => Get.back(result: false),
-                        child: Text('Not now'.tr),
+                      Text(
+                        '${'Allow CampConnectUs to access'.tr}?',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: () => Get.back(result: true),
-                        child: Text('Continue'.tr),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Camera, Photos, and Notifications are needed so you can take photos, pick images, and receive order updates while shopping.'
+                            .tr,
+                        style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Get.back(result: false),
+                            child: Text('Not now'.tr),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: () => Get.back(result: true),
+                            child: Text('Continue'.tr),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           );
@@ -250,43 +257,51 @@ class PermissionService extends GetxService {
       GetBuilder<ThemeController>(
         builder: (ctrl) {
           final isDark = ctrl.isDarkMode.value;
-          return Dialog(
-            backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(message, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            ),
+            child: SafeArea(
+              child: Dialog(
+                backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
+                insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextButton(
-                        onPressed: () => Get.back(),
-                        child: Text('Later'.tr),
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: () async {
-                          await openAppSettings();
-                          Get.back();
-                        },
-                        child: Text('Open Settings'.tr),
+                      const SizedBox(height: 10),
+                      Text(message, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87)),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Get.back(),
+                            child: Text('Later'.tr),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: () async {
+                              await openAppSettings();
+                              Get.back();
+                            },
+                            child: Text('Open Settings'.tr),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           );
