@@ -19,6 +19,9 @@ import 'modules/auth/view/password_reset_view.dart';
 import 'modules/auth/view/verification_success_view.dart';
 import 'modules/settings/view/passcode_lock_screen.dart';
 
+// Global flag to prevent double lock screen from any source
+bool isLockScreenShowing = false;
+
 class MyApp extends StatefulWidget {
   final String initialLocaleCode;
   const MyApp({super.key, required this.initialLocaleCode});
@@ -78,7 +81,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       final locale = LocaleMapper.fromApiCode(savedLang);
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
-      if (_showingLockScreen) {
+      if (_showingLockScreen || isLockScreenShowing) {
         setState(() {});
         return;
       }
@@ -90,6 +93,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         
         if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
+          isLockScreenShowing = true;
           
           Map<String, dynamic>? savedNotification;
           if (pendingNotificationData != null) {
@@ -116,9 +120,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               _skipNextResume = true;
               Get.back();
               
-              // Delay resetting _showingLockScreen to prevent biometric lifecycle from creating second lock
               Future.delayed(const Duration(milliseconds: 300), () {
                 _showingLockScreen = false;
+                isLockScreenShowing = false;
               });
               
               if (savedNotification != null) {
@@ -184,7 +188,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
       
-      if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
+      if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen && !isLockScreenShowing) {
         _taskSwitcherHidden = true;
         setState(() {});
       }
