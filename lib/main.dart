@@ -43,6 +43,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
+  // Prevent OneSignal's own notification dialog (we use native Android dialog via PermissionService)
+  OneSignal.Notifications.requestPermission(false);
 
   try {
     const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
@@ -65,7 +67,6 @@ Future<void> main() async {
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
-        // Save notification data
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -73,7 +74,6 @@ Future<void> main() async {
           'notif_image': additionalData['notif_image']?.toString() ?? '',
         };
 
-        // Don't process if lock screen is showing (fixes issue #2)
         if (isLockScreenShowing) return;
 
         PushNotificationData.notificationId = notificationId;
