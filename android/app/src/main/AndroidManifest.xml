@@ -15,6 +15,9 @@
         <!-- OneSignal Notification Icon -->
         <meta-data android:name="com.onesignal.NotificationIcon" android:value="ic_stat_onesignal_default" />
         
+        <!-- Disable OneSignal's built-in notification permission prompt -->
+        <meta-data android:name="com.onesignal.NotificationPermissionPrompt" android:value="false" />
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
