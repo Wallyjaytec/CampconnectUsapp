@@ -155,7 +155,7 @@ class _NotificationTile extends StatelessWidget {
               ),
             ),
       title: Text(
-        htmlToPlainText(item.message),
+        htmlToPlainText(item.message).tr,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
