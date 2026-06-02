@@ -154,21 +154,16 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       _checkingPasscode = false;
       setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
       if (mounted) {
-        isLockScreenShowing = false;
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Passcode reset successfully. Enter your new passcode.'.tr),
-                backgroundColor: AppColors.primaryColor,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Passcode reset successfully. Enter your new passcode.'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     }));
   }
