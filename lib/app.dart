@@ -67,7 +67,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _taskSwitcherHidden = false;
       
-      // Always sync with storage to get latest time from any source
       final box = GetStorage();
       _lastActiveTime = box.read<int>('_last_active_time') ?? _lastActiveTime;
       
@@ -131,7 +130,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 800), () {
+                Future.delayed(const Duration(milliseconds: 1200), () {
                   if (mounted && savedNotification != null) {
                     Get.to(() => NotificationDetailView(item: item));
                   }
