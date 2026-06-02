@@ -102,7 +102,7 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
                     children: [
                       if (_item.title != null && _item.title!.isNotEmpty)
                         Text(
-                          _item.title!,
+                          _item.title!.tr,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
                           ),
                         ),
                       Text(
-                        _htmlToPlainText(_item.message),
+                        _htmlToPlainText(_item.message).tr,
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.5,
