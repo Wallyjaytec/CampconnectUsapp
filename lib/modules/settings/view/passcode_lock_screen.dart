@@ -26,7 +26,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   bool _isLockedOut = false;
   int _lockoutSeconds = 0;
   Timer? _lockoutTimer;
-  bool _unlocking = false;
+  bool _didUnlock = false;
   bool _checkingPasscode = false;
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
@@ -73,15 +73,15 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   void _doUnlock() {
-    if (!mounted || _unlocking) return;
-    _unlocking = true;
+    if (!mounted || _didUnlock) return;
+    _didUnlock = true;
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
     widget.onUnlocked();
   }
 
   void _onKeyPressed(String value) {
-    if (_isLockedOut || _unlocking || _checkingPasscode) return;
+    if (_isLockedOut || _didUnlock || _checkingPasscode) return;
     if (value == 'delete') {
       if (_passcode.isNotEmpty) {
         setState(() { _passcode = _passcode.substring(0, _passcode.length - 1); _errorMessage = ''; });
@@ -97,7 +97,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   Future<void> _verifyPasscode() async {
-    if (_unlocking || _checkingPasscode) return;
+    if (_didUnlock || _checkingPasscode) return;
     _checkingPasscode = true;
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
     _checkingPasscode = false;
@@ -138,7 +138,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   void _forgotPasscode() {
-    if (_isLockedOut || _unlocking) return;
+    if (_isLockedOut || _didUnlock) return;
     Get.to(() => _ForgotPasscodeScreen(onReset: (newPasscode) async {
       final questions = await PasscodeService.fetchSecurityQuestions();
       await PasscodeService.setPasscodeOnServer(
@@ -150,7 +150,6 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       );
       _lockoutTimer?.cancel();
       _failedAttempts = 0;
-      _unlocking = false;
       _checkingPasscode = false;
       setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
       if (mounted) {
@@ -161,7 +160,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   void _useBiometric() async {
-    if (_unlocking) return;
+    if (_didUnlock) return;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -170,7 +169,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
-      if (authenticated && mounted && !_unlocking) {
+      if (authenticated && mounted && !_didUnlock) {
         _lockoutTimer?.cancel();
         _doUnlock();
       }
