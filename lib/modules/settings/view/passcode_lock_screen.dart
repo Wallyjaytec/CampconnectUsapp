@@ -31,6 +31,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   bool _checkingPasscode = false;
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
+  String _debugText = 'init';
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -49,9 +50,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Lifecycle handled by app.dart
-  }
+  void didChangeAppLifecycleState(AppLifecycleState state) {}
 
   Future<void> _checkBiometricAvailability() async {
     if (!PasscodeService.useFingerprint) {
@@ -74,6 +73,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   void _doUnlock() {
+    _debugText = 'doUnlock';
     if (!mounted || _didUnlock) return;
     _didUnlock = true;
     _lockoutTimer?.cancel();
@@ -100,8 +100,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   Future<void> _verifyPasscode() async {
     if (_didUnlock || _checkingPasscode) return;
     _checkingPasscode = true;
+    _debugText = 'verifying...';
+    setState(() {});
     final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
     _checkingPasscode = false;
+    _debugText = verified ? 'OK' : 'wrong';
+    setState(() {});
     if (verified) {
       _doUnlock();
     } else {
@@ -140,7 +144,11 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
 
   void _forgotPasscode() {
     if (_isLockedOut || _didUnlock) return;
+    _debugText = 'forgot';
+    setState(() {});
     Get.to(() => _ForgotPasscodeScreen(onReset: (newPasscode) async {
+      _debugText = 'reset callback';
+      setState(() {});
       final questions = await PasscodeService.fetchSecurityQuestions();
       await PasscodeService.setPasscodeOnServer(
         passcode: newPasscode,
@@ -153,6 +161,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
       _lockoutTimer?.cancel();
       _failedAttempts = 0;
       _checkingPasscode = false;
+      _debugText = 'reset done';
       setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,6 +179,8 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   void _useBiometric() async {
+    _debugText = 'bio';
+    setState(() {});
     if (_didUnlock) return;
     try {
       final localAuth = LocalAuthentication();
@@ -179,11 +190,16 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
         localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
+      _debugText = 'bio=$authenticated';
+      setState(() {});
       if (authenticated && mounted && !_didUnlock) {
         _lockoutTimer?.cancel();
         _doUnlock();
       }
-    } catch (_) {}
+    } catch (e) {
+      _debugText = 'bio err: $e';
+      setState(() {});
+    }
   }
 
   @override
@@ -204,6 +220,15 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
           Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5), color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent)))),
           const SizedBox(height: 10),
           if (_errorMessage.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20), child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center)),
+          // DEBUG
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+              _debugText,
+              style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38),
+              textAlign: TextAlign.center,
+            ),
+          ),
           const SizedBox(height: 40),
           _buildKeypad(),
           const SizedBox(height: 20),
