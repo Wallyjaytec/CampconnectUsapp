@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -74,6 +75,8 @@ class PermissionService extends GetxService {
     if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
       await Permission.notification.request();
     }
+    // Tell OneSignal we already handled permission (prevents second dialog with black bar)
+    OneSignal.Notifications.requestPermission(false);
   }
 
   Future<void> refreshStatus() async {
