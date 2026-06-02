@@ -30,6 +30,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   bool _checkingPasscode = false;
   bool _biometricAvailable = false;
   bool _biometricChecked = false;
+  bool _biometricAuthenticating = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
@@ -160,7 +161,8 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   }
 
   void _useBiometric() async {
-    if (_didUnlock) return;
+    if (_didUnlock || _biometricAuthenticating) return;
+    _biometricAuthenticating = true;
     try {
       final localAuth = LocalAuthentication();
       final canCheck = await localAuth.canCheckBiometrics;
@@ -173,7 +175,9 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
         _lockoutTimer?.cancel();
         _doUnlock();
       }
-    } catch (_) {}
+    } catch (_) {} finally {
+      _biometricAuthenticating = false;
+    }
   }
 
   @override
