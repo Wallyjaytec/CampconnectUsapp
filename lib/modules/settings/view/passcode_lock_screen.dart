@@ -149,6 +149,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
         question2: questions?['question2'] ?? '',
         answer2: questions?['answer2'] ?? '',
       );
+      await PasscodeService.setPasscodeEnabled(true);
       _lockoutTimer?.cancel();
       _failedAttempts = 0;
       _checkingPasscode = false;
