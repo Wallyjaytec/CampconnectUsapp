@@ -75,6 +75,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       Get.offAll(() => PasscodeLockScreen(
         onUnlocked: () {
           isLockScreenShowing = false;
+          isAppFullyInitialized = true;
           final box = GetStorage();
           box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
           
@@ -103,6 +104,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted || _navigated) return;
+      isAppFullyInitialized = true;
       _checkPushAndNavigate(attempts: 0);
     });
   }
@@ -165,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       if (!onboardingComplete) {
         Get.offAllNamed(AppRoutes.languageSelect);
       } else {
-        Get.offAllNamed(AppRoutes.loginView);
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
       }
       return;
     }
