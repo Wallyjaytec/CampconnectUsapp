@@ -31,6 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Rx<Locale> _locale;
   int _lastActiveTime = 0;
   bool _showingLockScreen = false;
+  bool _skipNextResume = false;
   bool _taskSwitcherHidden = false;
   bool _appWasActive = false;
   String _debugText = '';
@@ -66,11 +67,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    _debug('STATE: $state | lock=$_showingLockScreen | active=$_appWasActive');
-    
     if (state == AppLifecycleState.resumed) {
       _appWasActive = true;
       _taskSwitcherHidden = false;
+      
+      if (_skipNextResume) {
+        _skipNextResume = false;
+        _debug('SKIP: just unlocked');
+        setState(() {});
+        return;
+      }
 
       final box = GetStorage();
       final savedLang = box.read<String>('selected_language_api_code') ?? 'en';
@@ -79,25 +85,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (Get.locale?.languageCode != locale.languageCode) Get.updateLocale(locale);
 
       if (_showingLockScreen) {
-        _debug('RESUME: already showing lock');
         setState(() {});
         return;
       }
 
       if (PasscodeService.isPasscodeEnabled()) {
         final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedMs = now - _lastActiveTime;
-        final elapsedSeconds = elapsedMs ~/ 1000;
+        final elapsedSeconds = (now - _lastActiveTime) ~/ 1000;
         final autoLockSeconds = PasscodeService.autoLockMinutes * 60;
         
-        // Always lock if immediately, or if enough time passed
-        // AND not just unlocked (within last 500ms)
-        final justUnlocked = elapsedMs < 500;
-        final shouldLock = !justUnlocked && (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds);
-        
-        _debug('CHECK: elapsed=${elapsedMs}ms | justUnlocked=$justUnlocked | shouldLock=$shouldLock');
-        
-        if (shouldLock) {
+        if (autoLockSeconds == 0 || elapsedSeconds >= autoLockSeconds) {
           _showingLockScreen = true;
           
           Map<String, dynamic>? savedNotification;
@@ -126,7 +123,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               _showingLockScreen = false;
               _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
               GetStorage().write('_last_active_time', _lastActiveTime);
-              Get.back();
               
               _debug('UNLOCKED: notif=${savedNotification != null}');
               
@@ -140,25 +136,69 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
                   image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
                 );
-                Future.delayed(const Duration(milliseconds: 700), () {
+                Get.back();
+                Future.delayed(const Duration(milliseconds: 500), () {
                   if (mounted) {
                     _debug('NAV NOTIF');
                     Get.to(() => NotificationDetailView(item: item));
                   }
                 });
+              } else {
+                _skipNextResume = true;
+                Get.back();
               }
             },
           ));
         }
+      } else {
+        // Passcode disabled - process pending notification directly
+        if (pendingNotificationData != null) {
+          final data = Map<String, dynamic>.from(pendingNotificationData!);
+          pendingNotificationData = null;
+          _debug('NO PASSCODE NOTIF: ${data['notification_id']}');
+          final item = NotificationItem(
+            id: data['notification_id']!,
+            message: data['notif_message'] ?? '',
+            link: '',
+            time: 'Just now',
+            title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
+            image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
+          );
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) {
+              Get.to(() => NotificationDetailView(item: item));
+            }
+          });
+        }
+        if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
+          final item = NotificationItem(
+            id: PushNotificationData.notificationId!,
+            message: PushNotificationData.message ?? '',
+            link: '',
+            time: 'Just now',
+            title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
+            image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
+          );
+          PushNotificationData.notificationId = null;
+          PushNotificationData.message = null;
+          PushNotificationData.title = null;
+          PushNotificationData.image = null;
+          _debug('NO PASSCODE PUSH: ${item.id}');
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) {
+              Get.to(() => NotificationDetailView(item: item));
+            }
+          });
+        }
       }
       setState(() {});
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _skipNextResume = false;
       _lastActiveTime = DateTime.now().millisecondsSinceEpoch;
       GetStorage().write('_last_active_time', _lastActiveTime);
       
       if (_appWasActive && PasscodeService.isPasscodeEnabled() && PasscodeService.taskSwitcherPreview == 'hide' && !_showingLockScreen) {
         _taskSwitcherHidden = true;
-        _debug('TASK HIDE');
         setState(() {});
       }
     }
