@@ -232,10 +232,12 @@ class AuthController extends GetxController {
         isLockScreenShowing = true;
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
-            isLockScreenShowing = false;
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
+            Future.delayed(const Duration(milliseconds: 500), () {
+              isLockScreenShowing = false;
+            });
             if (redirect != null && redirect.isNotEmpty) {
               Future.delayed(const Duration(milliseconds: 100), () {
                 if (redirect == AppRoutes.myOrderDetailsView) {
