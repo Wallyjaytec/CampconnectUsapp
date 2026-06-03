@@ -11,7 +11,6 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
-        <!-- OneSignal Notification Icon -->
         <meta-data android:name="com.onesignal.NotificationIcon" android:value="ic_stat_onesignal_default" />
         
         <activity
@@ -30,7 +29,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             
-            <!-- Custom scheme -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -38,7 +36,6 @@
                 <data android:scheme="campconnectus" android:host="*" />
             </intent-filter>
             
-            <!-- Email Verification -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -46,7 +43,6 @@
                 <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/customer/email-verification" />
             </intent-filter>
             
-            <!-- Password Reset -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -54,7 +50,6 @@
                 <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/password/reset" />
             </intent-filter>
             
-            <!-- Email Reset -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -62,13 +57,17 @@
                 <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/email/reset" />
             </intent-filter>
             
-            <!-- Catch All -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="campconnectus.store" />
             </intent-filter>
+            
+            <meta-data 
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+                
         </activity>
         <meta-data android:name="flutterEmbedding" android:value="2" />
     </application>
