@@ -162,7 +162,13 @@ class _OnlineAmountSheet extends StatelessWidget {
               Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('${'Pay with'.tr} ${method.name}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
                 const SizedBox(height: 12),
-                CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: c.setOnlineAmount),
+                CustomTextField(
+                  key: ValueKey('amount_${isDark}'),
+                  hint: '${'Enter amount'.tr} ($currencyCode)',
+                  icon: Iconsax.coin_1_copy,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: c.setOnlineAmount
+                ),
                 if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12))],
                 const SizedBox(height: 16),
                 SizedBox(width: double.infinity, height: 46, child: ElevatedButton.icon(
