@@ -33,7 +33,6 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
   bool _isLoading = false;
   String? _error;
   
-  // Enhanced data
   OrderDetailsData? _orderData;
   RefundRequestDetailsData? _refundData;
   bool _loadingEnhanced = false;
@@ -113,6 +112,33 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
     }
   }
 
+  String _translateMessage(String msg) {
+    if (msg.isEmpty) return msg;
+    
+    final full = msg.tr;
+    if (full != msg) return full;
+    
+    if (msg.contains('Contact:')) {
+      final parts = msg.split('Contact:');
+      final translated = '${'Your package has been handed over to a local driver. Contact:'.tr} ${parts.last.trim()}';
+      return translated;
+    }
+    
+    if (msg.contains('credited to your wallet')) {
+      final parts = msg.split('credited to your wallet');
+      final amount = parts.first.trim();
+      return '$amount ${'credited to your wallet'.tr}';
+    }
+    
+    if (msg.contains('debited from your wallet')) {
+      final parts = msg.split('debited from your wallet');
+      final amount = parts.first.trim();
+      return '$amount ${'debited from your wallet'.tr}';
+    }
+    
+    return msg;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -165,9 +191,6 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
     }
   }
 
-  // ────────────────────────────────────────────
-  // ORDER DETAIL
-  // ────────────────────────────────────────────
   Widget _buildOrderDetail(bool isDark) {
     final d = _orderData!;
     final product = d.products.isNotEmpty ? d.products.first : null;
@@ -177,21 +200,14 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header message
           _buildHeaderMessage(isDark),
           const SizedBox(height: 16),
-          
-          // Product card
           if (product != null) ...[
             _buildProductCard(isDark, product),
             const SizedBox(height: 12),
           ],
-          
-          // Status + Info card
           _buildOrderInfoCard(isDark, d),
           const SizedBox(height: 16),
-          
-          // View full details button
           _buildViewFullButton(
             onTap: () => Get.toNamed(
               AppRoutes.myOrderDetailsView,
@@ -225,9 +241,6 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
     );
   }
 
-  // ────────────────────────────────────────────
-  // REFUND DETAIL
-  // ────────────────────────────────────────────
   Widget _buildRefundDetail(bool isDark) {
     final d = _refundData!;
     
@@ -236,19 +249,12 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header message
           _buildHeaderMessage(isDark),
           const SizedBox(height: 16),
-          
-          // Product card
           _buildRefundProductCard(isDark, d),
           const SizedBox(height: 12),
-          
-          // Status + Info card
           _buildRefundInfoCard(isDark, d),
           const SizedBox(height: 16),
-          
-          // View full details button
           _buildViewFullButton(
             onTap: () => Get.toNamed(
               AppRoutes.refundRequestDetailsView,
@@ -339,9 +345,6 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
     return Colors.grey;
   }
 
-  // ────────────────────────────────────────────
-  // SIMPLE DETAIL (admin custom notifications)
-  // ────────────────────────────────────────────
   Widget _buildSimpleDetail(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -349,7 +352,7 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_item.title != null && _item.title!.isNotEmpty)
-            Text(_item.title!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
+            Text(_item.title!.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87)),
           if (_item.title != null && _item.title!.isNotEmpty) const SizedBox(height: 10),
           if (_item.image != null && _item.image!.isNotEmpty)
@@ -376,7 +379,7 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
                 ),
               ),
             ),
-          Text(_htmlToPlainText(_item.message), style: TextStyle(fontSize: 16, height: 1.5,
+          Text(_translateMessage(_htmlToPlainText(_item.message)), style: TextStyle(fontSize: 16, height: 1.5,
             color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 20),
           Text(_item.time, style: TextStyle(fontSize: 12,
@@ -386,15 +389,12 @@ class _NotificationDetailViewState extends State<NotificationDetailView> {
     );
   }
 
-  // ────────────────────────────────────────────
-  // SHARED WIDGETS
-  // ────────────────────────────────────────────
   Widget _buildHeaderMessage(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _htmlToPlainText(_item.message),
+          _translateMessage(_htmlToPlainText(_item.message)),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
