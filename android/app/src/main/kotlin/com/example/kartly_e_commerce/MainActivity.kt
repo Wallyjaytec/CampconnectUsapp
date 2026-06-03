@@ -7,8 +7,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
-    private val ONESIGNAL_CHANNEL = "com.example.kartly_e_commerce/onesignal"
-    private val SHORTCUT_CHANNEL = "com.example.kartly_e_commerce/shortcut"
+    private val CHANNEL = "com.example.kartly_e_commerce/onesignal"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,20 +25,13 @@ class MainActivity : FlutterFragmentActivity() {
         val data = intent?.data
         if (data != null) {
             intent.putExtra("deep_link_uri", data.toString())
-            // Handle shortcut deep links
-            if (data.scheme == "campconnectus") {
-                val host = data.host ?: ""
-                flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-                    MethodChannel(messenger, SHORTCUT_CHANNEL).invokeMethod("shortcut", host)
-                }
-            }
         }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, ONESIGNAL_CHANNEL).setMethodCallHandler { call, result ->
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "getColdStartNotification") {
                 val notificationData = getColdStartData()
                 if (notificationData != null) {
@@ -51,11 +43,6 @@ class MainActivity : FlutterFragmentActivity() {
             } else {
                 result.notImplemented()
             }
-        }
-        
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SHORTCUT_CHANNEL).setMethodCallHandler { call, result ->
-            // Handled by main.dart listener
-            result.success(null)
         }
     }
 
