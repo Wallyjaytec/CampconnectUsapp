@@ -160,6 +160,30 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _navigateNormally() {
     final box = GetStorage();
     
+    // Handle shortcut deep links (works even when logged out)
+    final shortcutDest = box.read<String>('shortcut_destination') ?? '';
+    if (shortcutDest.isNotEmpty) {
+      box.remove('shortcut_destination');
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        switch (shortcutDest) {
+          case 'search':
+            Get.toNamed(AppRoutes.searchView);
+            break;
+          case 'orders':
+            Get.toNamed(AppRoutes.myOrderListView);
+            break;
+          case 'cart':
+            Get.toNamed(AppRoutes.cartView);
+            break;
+          case 'wallet':
+            Get.toNamed(AppRoutes.myWalletView);
+            break;
+        }
+      });
+      return;
+    }
+    
     if (!isLoggedIn) {
       final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
       if (!onboardingComplete) {
@@ -170,7 +194,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
     
-    // Check wallet deep link first (before order/refund to avoid stale IDs)
+    // Check wallet deep link first
     final walletLink = box.read<bool>('deep_link_wallet') ?? false;
     if (walletLink) {
       box.remove('deep_link_wallet');
