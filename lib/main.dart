@@ -195,13 +195,13 @@ Future<void> main() async {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
       if (uri.host == 'search') {
-        Get.toNamed(AppRoutes.searchView);
+        box.write('shortcut_destination', 'search');
       } else if (uri.host == 'orders') {
-        Get.toNamed(AppRoutes.myOrderListView);
+        box.write('shortcut_destination', 'orders');
       } else if (uri.host == 'cart') {
-        Get.toNamed(AppRoutes.cartView);
+        box.write('shortcut_destination', 'cart');
       } else if (uri.host == 'wallet') {
-        Get.toNamed(AppRoutes.myWalletView);
+        box.write('shortcut_destination', 'wallet');
       } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
         final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
         if (orderId > 0) {
