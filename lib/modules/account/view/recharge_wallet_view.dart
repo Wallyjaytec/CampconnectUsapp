@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/controllers/theme_controller.dart';
 import '../controller/customer_dashboard_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
@@ -129,7 +130,7 @@ class _OnlineTab extends StatelessWidget {
     ctrl.pickOnlineMethod(method.id); ctrl.setOnlineAmount('');
     Get.bottomSheet(
       Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(Get.context!).viewInsets.bottom), child: SafeArea(top: false, child: _OnlineAmountSheet(method: method, currencyCode: currencyCode))),
-      isScrollControlled: true, backgroundColor: Get.theme.scaffoldBackgroundColor,
+      isScrollControlled: true, backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     );
   }
@@ -144,45 +145,56 @@ class _OnlineAmountSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = Get.find<WalletRechargeController>();
-    return Obx(() {
-      final min = c.minAmount.value; final max = c.maxAmount.value; final isLoaded = c.isLimitsLoaded.value;
-      String helper = '';
-      if (isLoaded) { final parts = <String>[]; if (min != null) parts.add('${'Min'.tr} ${_pretty(min)}'); if (max != null) parts.add('${'Max'.tr} ${_pretty(max)}'); if (parts.isNotEmpty) helper = '${'Limits'.tr}: ${parts.join(', ')} ($currencyCode)'; } else { helper = 'Fetching limits...'.tr; }
-      final err = c.onlineFieldErrors['recharge_amount'];
-      return Wrap(children: [
-        Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('${'Pay with'.tr} ${method.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
-          const SizedBox(height: 12),
-          CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: c.setOnlineAmount),
-          if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: const TextStyle(color: Colors.black54, fontSize: 12))],
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, height: 46, child: ElevatedButton.icon(
-            onPressed: c.isGeneratingLink.value ? null : () async {
-              final url = await c.generateOnlineLink(); if (url == null) return;
-              if (kIsWeb) { final ok = await launchUrlString(url, mode: LaunchMode.externalApplication); return; }
-              final login = LoginService(); final headers = <String, String>{}; final token = login.token;
-              if (token != null && token.isNotEmpty) headers['Authorization'] = '${login.tokenType} $token';
-              final result = await Get.to<bool>(() => WebPayView(initialUrl: url, headers: headers));
-              if (result == true) {
-                if (Get.isBottomSheetOpen == true) safeBack();
-                Get.offNamedUntil(AppRoutes.myWalletView, (route) => route.isFirst);
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  if (Get.isRegistered<WalletController>()) {
-                    Get.find<WalletController>().refreshList();
-                  }
-                  if (Get.isRegistered<CustomerDashboardController>()) {
-                    Get.find<CustomerDashboardController>().fetchDashboard();
-                  }
-                });
-              }
-            },
-            icon: c.isGeneratingLink.value ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Iconsax.send_2_copy),
-            label: Text('Generate and Pay'.tr),
-          )),
-          const SizedBox(height: 10),
-        ])),
-      ]);
-    });
+    return GetBuilder<ThemeController>(
+      builder: (themeCtrl) {
+        final isDark = themeCtrl.isDarkMode.value;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCardColor : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Obx(() {
+            final min = c.minAmount.value; final max = c.maxAmount.value; final isLoaded = c.isLimitsLoaded.value;
+            String helper = '';
+            if (isLoaded) { final parts = <String>[]; if (min != null) parts.add('${'Min'.tr} ${_pretty(min)}'); if (max != null) parts.add('${'Max'.tr} ${_pretty(max)}'); if (parts.isNotEmpty) helper = '${'Limits'.tr}: ${parts.join(', ')} ($currencyCode)'; } else { helper = 'Fetching limits...'.tr; }
+            final err = c.onlineFieldErrors['recharge_amount'];
+            return Wrap(children: [
+              Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('${'Pay with'.tr} ${method.name}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
+                const SizedBox(height: 12),
+                CustomTextField(hint: '${'Enter amount'.tr} ($currencyCode)', icon: Iconsax.coin_1_copy, keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: c.setOnlineAmount),
+                if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12))],
+                const SizedBox(height: 16),
+                SizedBox(width: double.infinity, height: 46, child: ElevatedButton.icon(
+                  onPressed: c.isGeneratingLink.value ? null : () async {
+                    final url = await c.generateOnlineLink(); if (url == null) return;
+                    if (kIsWeb) { final ok = await launchUrlString(url, mode: LaunchMode.externalApplication); return; }
+                    final login = LoginService(); final headers = <String, String>{}; final token = login.token;
+                    if (token != null && token.isNotEmpty) headers['Authorization'] = '${login.tokenType} $token';
+                    final result = await Get.to<bool>(() => WebPayView(initialUrl: url, headers: headers));
+                    if (result == true) {
+                      if (Get.isBottomSheetOpen == true) safeBack();
+                      Get.offNamedUntil(AppRoutes.myWalletView, (route) => route.isFirst);
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (Get.isRegistered<WalletController>()) {
+                          Get.find<WalletController>().refreshList();
+                        }
+                        if (Get.isRegistered<CustomerDashboardController>()) {
+                          Get.find<CustomerDashboardController>().fetchDashboard();
+                        }
+                      });
+                    }
+                  },
+                  icon: c.isGeneratingLink.value ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Iconsax.send_2_copy),
+                  label: Text('Generate and Pay'.tr),
+                )),
+                const SizedBox(height: 10),
+              ])),
+            ]);
+          }),
+        );
+      },
+    );
   }
 }
 class _OfflineTab extends StatelessWidget {
