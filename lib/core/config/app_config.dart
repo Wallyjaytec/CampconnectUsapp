@@ -180,9 +180,6 @@ static const String resetPasswordPath =
 
   // Visual Search
   static const String visualSearchBaseUrl = 'https://campconnectus-campconnectus-search.hf.space';
-  
-  static String visualSearchUrl() => '$visualSearchBaseUrl/search';
-  static String visualIndexUrl() => '$visualSearchBaseUrl/index';
 
   //base url + api endpoint
   static String sitePropertiesUrl() => '$baseUrl$sitePropertiesPath';
@@ -313,8 +310,6 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   static String verifyEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/verify-email-code';
 
   // Visual Search
-  static const String visualSearchBaseUrl = 'https://campconnectus-campconnectus-search.hf.space';
-  
   static String visualSearchUrl() => '$visualSearchBaseUrl/search';
   static String visualIndexUrl() => '$visualSearchBaseUrl/index';
 
