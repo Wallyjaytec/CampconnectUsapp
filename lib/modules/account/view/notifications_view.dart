@@ -115,6 +115,18 @@ class NotificationsView extends StatelessWidget {
   }
 }
 
+String _translateMessage(String msg) {
+  if (msg.isEmpty) return msg;
+  final full = msg.tr;
+  if (full != msg) return full;
+  if (msg.contains('Contact:')) {
+    final parts = msg.split('Contact:');
+    final translated = '${'Your package has been handed over to a local driver. Contact:'.tr} ${parts.last.trim()}';
+    return translated;
+  }
+  return msg;
+}
+
 class _NotificationTile extends StatelessWidget {
   const _NotificationTile({
     required this.item,
@@ -155,7 +167,7 @@ class _NotificationTile extends StatelessWidget {
               ),
             ),
       title: Text(
-        htmlToPlainText(item.message).tr,
+        _translateMessage(htmlToPlainText(item.message)),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
