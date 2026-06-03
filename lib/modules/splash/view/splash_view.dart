@@ -170,6 +170,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
     
+    // Check wallet deep link first (before order/refund to avoid stale IDs)
+    final walletLink = box.read<bool>('deep_link_wallet') ?? false;
+    if (walletLink) {
+      box.remove('deep_link_wallet');
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Get.toNamed(AppRoutes.myWalletView);
+      });
+      return;
+    }
+    
     final refundId = box.read<int>('deep_link_refund_id') ?? 0;
     if (refundId > 0) {
       box.remove('deep_link_refund_id');
