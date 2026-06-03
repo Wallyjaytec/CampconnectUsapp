@@ -7,6 +7,7 @@ import 'package:kartly_e_commerce/modules/product/view/following_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/latest_collection_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/popular_items_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/recently_viewed_section.dart';
+import 'package:kartly_e_commerce/modules/search/controller/visual_search_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -88,7 +89,6 @@ class _HomeViewState extends State<HomeView> {
     futures.add(NewProductSection.refreshSection());
     futures.add(ForYouSection.refreshSection());
     
-    // Refresh category product sections (Gaming, Shoes, Health & Beauty, Jewelry)
     final catTags = ['cat_section_55', 'cat_section_44', 'cat_section_45', 'cat_section_43'];
     for (final tag in catTags) {
       if (Get.isRegistered<NewProductListController>(tag: tag)) {
@@ -124,7 +124,6 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
     _scrollCtrl.addListener(_onScrollDetected);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Force actual connectivity check after homepage fully loaded
       Future.delayed(const Duration(milliseconds: 800), () async {
         if (Get.isRegistered<NetworkService>()) {
           final ns = Get.find<NetworkService>();
@@ -133,7 +132,6 @@ class _HomeViewState extends State<HomeView> {
           final connected = results.any((r) => r != ConnectivityResult.none);
           
           if (!connected) {
-            // Force show popup if offline
             ns.showNoInternetDialog();
           }
           ns.isConnected.value = connected;
@@ -148,12 +146,10 @@ class _HomeViewState extends State<HomeView> {
       }
       await PermissionService.I.requestOnceOnHome();
       
-      // Request notification permission after homepage is ready
       Future.delayed(Duration(milliseconds: 500), () {
         OneSignal.Notifications.requestPermission(true);
       });
       
-      // Refresh notifications when homepage loads
       if (Get.isRegistered<NotificationController>()) {
         await Get.find<NotificationController>().refreshList();
       }
@@ -326,6 +322,14 @@ class _SearchField extends StatelessWidget {
                 decoration: InputDecoration(hintText: 'Search on CampconnectUs Marketplace'.tr, hintStyle: const TextStyle(color: AppColors.greyColor, fontWeight: FontWeight.normal, fontSize: 14), border: InputBorder.none, isDense: true),
               ),
             )),
+            GestureDetector(
+              onTap: () {
+                Get.toNamed(AppRoutes.searchView);
+                Get.put(VisualSearchController()).searchFromGallery();
+              },
+              child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.primaryColor),
+            ),
+            const SizedBox(width: 10),
             const Icon(Iconsax.search_normal_1_copy, size: 18),
           ],
         ),
