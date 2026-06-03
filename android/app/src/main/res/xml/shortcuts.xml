@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_search"
+        android:shortcutShortLabel="Search"
+        android:shortcutLongLabel="Search Products">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kartly.ecommerce"
+            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:data="campconnectus://search" />
+    </shortcut>
+    
+    <shortcut
+        android:shortcutId="orders"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_view"
+        android:shortcutShortLabel="Orders"
+        android:shortcutLongLabel="My Orders">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kartly.ecommerce"
+            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:data="campconnectus://orders" />
+    </shortcut>
+    
+    <shortcut
+        android:shortcutId="cart"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_slideshow"
+        android:shortcutShortLabel="Cart"
+        android:shortcutLongLabel="Shopping Cart">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kartly.ecommerce"
+            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:data="campconnectus://cart" />
+    </shortcut>
+    
+    <shortcut
+        android:shortcutId="wallet"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:shortcutShortLabel="Wallet"
+        android:shortcutLongLabel="My Wallet">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kartly.ecommerce"
+            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:data="campconnectus://wallet" />
+    </shortcut>
+</shortcuts>
