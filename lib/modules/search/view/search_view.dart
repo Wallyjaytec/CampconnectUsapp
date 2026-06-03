@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/modules/home/widgets/search_header.dart';
 import 'package:kartly_e_commerce/modules/search/controller/search_view_controller.dart';
@@ -24,90 +25,94 @@ class SearchView extends StatelessWidget {
 
   void _showImagePickerSheet() {
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(Get.context!).brightness == Brightness.dark 
-              ? AppColors.darkCardColor : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 20),
-            Row(
+      GetBuilder<ThemeController>(
+        builder: (themeCtrl) {
+          final isDark = themeCtrl.isDarkMode.value;
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCardColor : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Iconsax.shield_tick, color: AppColors.primaryColor, size: 24),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Iconsax.shield_tick, color: AppColors.primaryColor, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('All data will be encrypted', style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87))),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                const Expanded(child: Text('All data will be encrypted', style: TextStyle(fontSize: 13))),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Iconsax.camera_copy, color: AppColors.primaryColor, size: 22),
+                  ),
+                  title: Text('Take photo'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    final controller = Get.put(VisualSearchController());
+                    controller.searchFromCamera();
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Iconsax.gallery_copy, color: AppColors.primaryColor, size: 22),
+                  ),
+                  title: Text('Select from album'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    final controller = Get.put(VisualSearchController());
+                    controller.searchFromGallery();
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Iconsax.clock_copy, color: AppColors.primaryColor, size: 22),
+                  ),
+                  title: Text('Search history'.tr, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    Get.back();
+                    Get.to(() => const ImageSearchHistoryView());
+                  },
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Get.back(),
+                    child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.camera_copy, color: AppColors.primaryColor, size: 22),
-              ),
-              title: Text('Take photo'.tr),
-              onTap: () {
-                Get.back();
-                final controller = Get.put(VisualSearchController());
-                controller.searchFromCamera();
-              },
-            ),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.gallery_copy, color: AppColors.primaryColor, size: 22),
-              ),
-              title: Text('Select from album'.tr),
-              onTap: () {
-                Get.back();
-                final controller = Get.put(VisualSearchController());
-                controller.searchFromGallery();
-              },
-            ),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.clock_copy, color: AppColors.primaryColor, size: 22),
-              ),
-              title: Text('Search history'.tr),
-              onTap: () {
-                Get.back();
-                Get.to(() => const ImageSearchHistoryView());
-              },
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Get.back(),
-                child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
       backgroundColor: Colors.transparent,
     );
