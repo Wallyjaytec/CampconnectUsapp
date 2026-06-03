@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_short">खोजें</string>
+    <string name="search_long">CCU पर खोजें</string>
+    <string name="orders_short">ऑर्डर</string>
+    <string name="orders_long">ऑर्डर देखें</string>
+    <string name="cart_short">कार्ट</string>
+    <string name="cart_long">शॉपिंग कार्ट</string>
+    <string name="wallet_short">वॉलेट</string>
+    <string name="wallet_long">वॉलेट देखें</string>
+</resources>

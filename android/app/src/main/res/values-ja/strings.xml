@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_short">検索</string>
+    <string name="search_long">CCUで検索</string>
+    <string name="orders_short">注文</string>
+    <string name="orders_long">注文を見る</string>
+    <string name="cart_short">カート</string>
+    <string name="cart_long">ショッピングカート</string>
+    <string name="wallet_short">ウォレット</string>
+    <string name="wallet_long">ウォレットを見る</string>
+</resources>

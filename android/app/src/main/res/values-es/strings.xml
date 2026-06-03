@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_short">Buscar en CCU</string>
+    <string name="search_long">Buscar en CCU</string>
+    <string name="orders_short">Ver Pedidos</string>
+    <string name="orders_long">Ver Pedidos</string>
+    <string name="cart_short">Carrito</string>
+    <string name="cart_long">Carrito de Compras</string>
+    <string name="wallet_short">Ver Billetera</string>
+    <string name="wallet_long">Ver Billetera</string>
+</resources>

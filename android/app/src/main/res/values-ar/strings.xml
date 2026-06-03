@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_short">بحث</string>
+    <string name="search_long">بحث في CCU</string>
+    <string name="orders_short">طلباتي</string>
+    <string name="orders_long">طلباتي</string>
+    <string name="cart_short">عربة التسوق</string>
+    <string name="cart_long">عربة التسوق</string>
+    <string name="wallet_short">محفظتي</string>
+    <string name="wallet_long">محفظتي</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_short">搜索</string>
+    <string name="search_long">在CCU上搜索</string>
+    <string name="orders_short">订单</string>
+    <string name="orders_long">查看订单</string>
+    <string name="cart_short">购物车</string>
+    <string name="cart_long">购物车</string>
+    <string name="wallet_short">钱包</string>
+    <string name="wallet_long">查看钱包</string>
+</resources>
