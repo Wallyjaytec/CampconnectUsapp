@@ -17,9 +17,100 @@ import '../../../shared/widgets/search_icon_widget.dart';
 import '../controller/search_input_controller.dart';
 import '../controller/search_results_controller.dart';
 import '../model/search_model.dart';
+import '../view/visual_search_results_view.dart';
 
 class SearchView extends StatelessWidget {
   const SearchView({super.key});
+
+  void _showImagePickerSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(Get.context!).brightness == Brightness.dark 
+              ? AppColors.darkCardColor : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Iconsax.shield_tick, color: AppColors.primaryColor, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('All data will be encrypted', style: TextStyle(fontSize: 13))),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.camera_copy, color: AppColors.primaryColor, size: 22),
+              ),
+              title: Text('Take photo'.tr),
+              onTap: () {
+                Get.back();
+                final controller = Get.put(VisualSearchController());
+                controller.searchFromCamera();
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.gallery_copy, color: AppColors.primaryColor, size: 22),
+              ),
+              title: Text('Select from album'.tr),
+              onTap: () {
+                Get.back();
+                final controller = Get.put(VisualSearchController());
+                controller.searchFromGallery();
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.clock_copy, color: AppColors.primaryColor, size: 22),
+              ),
+              title: Text('Search history'.tr),
+              onTap: () {
+                Get.back();
+              },
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Get.back(),
+                child: Text('Cancel'.tr, style: const TextStyle(color: Colors.grey)),
+              ),
+            ),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +146,7 @@ class SearchView extends StatelessWidget {
                 height: 40,
                 child: _SearchField(
                   key: ValueKey('sf_${controller.tick.value}'),
+                  onImageSearch: _showImagePickerSheet,
                 ),
               ),
             ),
@@ -68,7 +160,8 @@ class SearchView extends StatelessWidget {
 }
 
 class _SearchField extends StatelessWidget {
-  const _SearchField({super.key});
+  final VoidCallback onImageSearch;
+  const _SearchField({super.key, required this.onImageSearch});
 
   @override
   Widget build(BuildContext context) {
@@ -110,54 +203,34 @@ class _SearchField extends StatelessWidget {
               ),
             ),
           ),
-          Obx(
-            () => Row(
-              spacing: 6,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (controller.query.value.isNotEmpty)
-                  InkWell(
-                    radius: 10,
-                    onTap: () {
-                      controller.textController.clear();
-                      controller.onSearchChanged('');
-                    },
-                    child: const Icon(Iconsax.close_circle_copy, size: 18),
-                  ),
+          Row(
+            spacing: 8,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (controller.query.value.isNotEmpty)
                 InkWell(
                   radius: 10,
                   onTap: () {
-                    Get.put(VisualSearchController()).searchFromGallery();
+                    controller.textController.clear();
+                    controller.onSearchChanged('');
                   },
-                  child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.primaryColor),
+                  child: const Icon(Iconsax.close_circle_copy, size: 18),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: () {
-                      final q = controller.query.value.trim();
-                      if (q.isEmpty) return;
-                      SearchNavHelper.goToSearchResults(query: q);
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Icon(Iconsax.search_normal_1_copy, size: 18, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              InkWell(
+                radius: 10,
+                onTap: onImageSearch,
+                child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.greyColor),
+              ),
+              InkWell(
+                radius: 10,
+                onTap: () {
+                  final q = controller.query.value.trim();
+                  if (q.isEmpty) return;
+                  SearchNavHelper.goToSearchResults(query: q);
+                },
+                child: const Icon(Iconsax.search_normal_1_copy, size: 18),
+              ),
+            ],
           ),
         ],
       ),
@@ -193,29 +266,13 @@ class _SuggestionsSection extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Iconsax.search_normal_1_copy,
-                  size: 80,
-                  color: AppColors.primaryColor,
-                ),
+                const Icon(Iconsax.search_normal_1_copy, size: 80, color: AppColors.primaryColor),
                 const SizedBox(height: 16),
-                Text(
-                  '${'No product found for'.tr} "$q"',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text('${'No product found for'.tr} "$q"', textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
-                Text(
-                  'Try searching with different keywords'.tr,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
+                Text('Try searching with different keywords'.tr, textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600])),
               ],
             ),
           ),
@@ -229,81 +286,35 @@ class _SuggestionsSection extends StatelessWidget {
       return SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (tagList.isNotEmpty) ...[
-                Text('Tags'.tr, style: Theme.of(context).textTheme.titleMedium),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: tagList.map((t) {
-                    return InputChip(
-                      label: Text(t.name),
-                      backgroundColor: chipBg,
-                      onPressed: () {
-                        input.submitSearch(t.name);
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 10),
-              ],
-              if (catList.isNotEmpty) ...[
-                Text(
-                  'Category'.tr,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Column(
-                  children: catList.map((c) {
-                    return ListTile(
-                      dense: true,
-                      contentPadding: const EdgeInsetsDirectional.only(
-                        start: 0,
-                        end: 4,
-                      ),
-                      leading: const Icon(Iconsax.folder_2_copy, size: 18),
-                      title: Text(
-                        c.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: const Icon(
-                        Iconsax.arrow_right_3_copy,
-                        size: 18,
-                      ),
-                      onTap: () {
-                        SearchNavHelper.goToCategory(
-                          id: c.id,
-                          name: c.name,
-                          slug: c.slug,
-                        );
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
-              if (prodList.isNotEmpty) ...[
-                Text(
-                  'Products'.tr,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Column(
-                  children: prodList.map((p) {
-                    return SuggestionProductRow(
-                      product: p,
-                      onTap: () {
-                        SearchNavHelper.goToProductDetails(
-                          slug: p.slug,
-                          id: p.id,
-                        );
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (tagList.isNotEmpty) ...[
+              Text('Tags'.tr, style: Theme.of(context).textTheme.titleMedium),
+              Wrap(spacing: 8, runSpacing: 8, children: tagList.map((t) {
+                return InputChip(label: Text(t.name), backgroundColor: chipBg,
+                  onPressed: () => input.submitSearch(t.name));
+              }).toList()),
+              const SizedBox(height: 10),
             ],
-          ),
+            if (catList.isNotEmpty) ...[
+              Text('Category'.tr, style: Theme.of(context).textTheme.titleMedium),
+              Column(children: catList.map((c) {
+                return ListTile(
+                  dense: true, contentPadding: const EdgeInsetsDirectional.only(start: 0, end: 4),
+                  leading: const Icon(Iconsax.folder_2_copy, size: 18),
+                  title: Text(c.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                  onTap: () => SearchNavHelper.goToCategory(id: c.id, name: c.name, slug: c.slug),
+                );
+              }).toList()),
+            ],
+            if (prodList.isNotEmpty) ...[
+              Text('Products'.tr, style: Theme.of(context).textTheme.titleMedium),
+              Column(children: prodList.map((p) {
+                return SuggestionProductRow(product: p,
+                  onTap: () => SearchNavHelper.goToProductDetails(slug: p.slug, id: p.id));
+              }).toList()),
+            ],
+          ]),
         ),
       );
     });
@@ -319,24 +330,15 @@ class SuggestionProductRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
+      leading: ClipRRect(borderRadius: BorderRadius.circular(6),
         child: CachedNetworkImage(
           imageUrl: AppConfig.assetUrl(product.thumbnailImage),
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorWidget: (_, __, ___) => const SizedBox(
-            width: 40,
-            height: 40,
-            child: ColoredBox(color: Color(0xFFE0E0E0)),
-          ),
+          width: 40, height: 40, fit: BoxFit.cover,
+          errorWidget: (_, __, ___) => const SizedBox(width: 40, height: 40, child: ColoredBox(color: Color(0xFFE0E0E0))),
         ),
       ),
       title: Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        '${formatCurrency(product.price, applyConversion: true)} • ⭐ ${product.avgRating}',
-      ),
+      subtitle: Text('${formatCurrency(product.price, applyConversion: true)} • ⭐ ${product.avgRating}'),
       trailing: const Icon(Iconsax.arrow_right_3_copy, size: 18),
       onTap: onTap,
       contentPadding: const EdgeInsetsDirectional.only(start: 0, end: 4),
@@ -350,9 +352,7 @@ class _RecentSearchesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final chipBg = isDark
-        ? Colors.white.withValues(alpha: .08)
-        : Colors.black.withValues(alpha: .06);
+    final chipBg = isDark ? Colors.white.withValues(alpha: .08) : Colors.black.withValues(alpha: .06);
     final controller = Get.find<SearchInputController>();
     final input = Get.find<SearchInputController>();
 
@@ -361,82 +361,40 @@ class _RecentSearchesSection extends StatelessWidget {
 
       if (controller.history.isEmpty && query.isEmpty) {
         return SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Iconsax.search_normal_1_copy,
-                  size: 80,
-                  color: AppColors.primaryColor,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Search product across all categories'.tr,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Find your favorite products by searching above'.tr,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: Padding(padding: const EdgeInsets.all(32), child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Iconsax.search_normal_1_copy, size: 80, color: AppColors.primaryColor),
+              const SizedBox(height: 16),
+              Text('Search product across all categories'.tr, textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 8),
+              Text('Find your favorite products by searching above'.tr, textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            ],
+          )),
         );
       }
 
-      if (controller.history.isEmpty) {
-        return const SliverToBoxAdapter(child: SizedBox.shrink());
-      }
+      if (controller.history.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
 
       return SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Recent'.tr,
-                    style: TextStyle(
-                      color: isDark
-                          ? AppColors.whiteColor
-                          : AppColors.blackColor,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: controller.clearHistory,
-                    child: Text('CLEAR ALL'.tr),
-                  ),
-                ],
-              ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: controller.history.map((term) {
-                  return InputChip(
-                    label: Text(term),
-                    backgroundColor: chipBg,
-                    onPressed: () => controller.selectFromHistory(term),
-                    onDeleted: () => controller.removeFromHistory(term),
-                    deleteIcon: const Icon(Iconsax.close_circle_copy, size: 16),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Text('Recent'.tr, style: TextStyle(color: isDark ? AppColors.whiteColor : AppColors.blackColor)),
+              const Spacer(),
+              TextButton(onPressed: controller.clearHistory, child: Text('CLEAR ALL'.tr)),
+            ]),
+            Wrap(spacing: 8, runSpacing: 8, children: controller.history.map((term) {
+              return InputChip(
+                label: Text(term), backgroundColor: chipBg,
+                onPressed: () => controller.selectFromHistory(term),
+                onDeleted: () => controller.removeFromHistory(term),
+                deleteIcon: const Icon(Iconsax.close_circle_copy, size: 16),
+              );
+            }).toList()),
+          ]),
         ),
       );
     });
