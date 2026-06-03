@@ -103,7 +103,6 @@ Future<void> main() async {
       if (isLockScreenShowing) return;
 
       if (notificationId != null && notificationId.isNotEmpty) {
-        // Admin custom notification
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -120,7 +119,6 @@ Future<void> main() async {
           Get.find<NotificationController>().refreshList();
         }
       } else if (orderId != null && orderId.isNotEmpty) {
-        // Order notification
         final id = int.tryParse(orderId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_order_id', id);
@@ -130,7 +128,6 @@ Future<void> main() async {
           Get.find<NotificationController>().refreshList();
         }
       } else if (refundId != null && refundId.isNotEmpty) {
-        // Refund notification
         final id = int.tryParse(refundId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_refund_id', id);
@@ -140,7 +137,6 @@ Future<void> main() async {
           Get.find<NotificationController>().refreshList();
         }
       } else if (type == 'wallet') {
-        // Wallet notification
         GetStorage().write('deep_link_wallet', true);
         if (Get.isRegistered<NotificationController>()) {
           Get.find<NotificationController>().refreshList();
@@ -198,7 +194,15 @@ Future<void> main() async {
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
-      if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
+      if (uri.host == 'search') {
+        Get.toNamed(AppRoutes.searchView);
+      } else if (uri.host == 'orders') {
+        Get.toNamed(AppRoutes.myOrderListView);
+      } else if (uri.host == 'cart') {
+        Get.toNamed(AppRoutes.cartView);
+      } else if (uri.host == 'wallet') {
+        Get.toNamed(AppRoutes.myWalletView);
+      } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
         final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
         if (orderId > 0) {
           box.write('deep_link_order_id', orderId);
@@ -223,7 +227,15 @@ Future<void> main() async {
   } catch (_) {}
 
   _appLinks.uriLinkStream.listen((uri) {
-    if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
+    if (uri.host == 'search') {
+      Get.toNamed(AppRoutes.searchView);
+    } else if (uri.host == 'orders') {
+      Get.toNamed(AppRoutes.myOrderListView);
+    } else if (uri.host == 'cart') {
+      Get.toNamed(AppRoutes.cartView);
+    } else if (uri.host == 'wallet') {
+      Get.toNamed(AppRoutes.myWalletView);
+    } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
       final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
       if (orderId > 0) {
         box.write('deep_link_order_id', orderId);
