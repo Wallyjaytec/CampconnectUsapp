@@ -8,8 +8,8 @@
         android:shortcutLongLabel="@string/search_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.kartly.ecommerce"
-            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://search" />
     </shortcut>
     
@@ -21,8 +21,8 @@
         android:shortcutLongLabel="@string/orders_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.kartly.ecommerce"
-            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://orders" />
     </shortcut>
     
@@ -34,8 +34,8 @@
         android:shortcutLongLabel="@string/cart_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.kartly.ecommerce"
-            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://cart" />
     </shortcut>
     
@@ -43,12 +43,12 @@
         android:shortcutId="wallet"
         android:enabled="true"
         android:icon="@drawable/ic_shortcut_wallet"
-        android:shortcutLongLabel="@string/wallet_short"
+        android:shortcutShortLabel="@string/wallet_short"
         android:shortcutLongLabel="@string/wallet_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.kartly.ecommerce"
-            android:targetClass="com.kartly.ecommerce.MainActivity"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://wallet" />
     </shortcut>
 </shortcuts>
