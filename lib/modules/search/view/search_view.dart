@@ -17,7 +17,7 @@ import '../../../shared/widgets/search_icon_widget.dart';
 import '../controller/search_input_controller.dart';
 import '../controller/search_results_controller.dart';
 import '../model/search_model.dart';
-import '../view/visual_search_results_view.dart';
+import '../view/image_search_history_view.dart';
 
 class SearchView extends StatelessWidget {
   const SearchView({super.key});
@@ -95,6 +95,7 @@ class SearchView extends StatelessWidget {
               title: Text('Search history'.tr),
               onTap: () {
                 Get.back();
+                Get.to(() => const ImageSearchHistoryView());
               },
             ),
             const SizedBox(height: 10),
@@ -128,7 +129,7 @@ class SearchView extends StatelessWidget {
           leading: const BackIconWidget(),
           centerTitle: false,
           title: Text(
-            '${'Products'.tr} ${'Search'.tr}',
+            '${'Image'.tr} ${'Search'.tr}',
             style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
           ),
           actionsPadding: const EdgeInsetsDirectional.only(end: 10),
