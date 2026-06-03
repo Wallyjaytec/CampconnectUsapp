@@ -9,6 +9,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:kartly_e_commerce/core/controllers/currency_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/language_controller.dart';
 import 'package:kartly_e_commerce/core/controllers/theme_controller.dart';
+import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/services/currency_service.dart';
 import 'package:kartly_e_commerce/core/services/connectivity_service.dart';
 import 'package:kartly_e_commerce/core/services/login_service.dart';
@@ -38,21 +39,16 @@ class PushNotificationData {
   static String? image;
 }
 
-// On-screen debug
 String debugOneSignal = '';
 
 Future<void> updateOneSignalIdOnServer(String playerId) async {
   try {
     final login = LoginService();
     final token = login.token;
-    if (token == null || token.isEmpty) {
-      debugOneSignal = 'No token';
-      return;
-    }
+    if (token == null || token.isEmpty) return;
 
-    debugOneSignal = 'Sending: $playerId';
     final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-onesignal-id');
-    final response = await http.post(
+    await http.post(
       uri,
       headers: {
         'Authorization': '${login.tokenType} $token',
@@ -61,10 +57,7 @@ Future<void> updateOneSignalIdOnServer(String playerId) async {
       },
       body: jsonEncode({'onesignal_id': playerId}),
     );
-    debugOneSignal = 'Response: ${response.statusCode} ${response.body}';
-  } catch (e) {
-    debugOneSignal = 'Error: $e';
-  }
+  } catch (_) {}
 }
 
 Future<void> initServices() async {
@@ -76,10 +69,8 @@ Future<void> main() async {
 
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
-  // Sync OneSignal player ID to backend
   OneSignal.User.pushSubscription.addObserver((state) {
     final playerId = state.current.id;
-    debugOneSignal = 'Observer: $playerId';
     if (playerId != null && playerId.isNotEmpty) {
       updateOneSignalIdOnServer(playerId);
     }
@@ -105,7 +96,14 @@ Future<void> main() async {
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
       final notificationId = additionalData['notification_id']?.toString();
+      final orderId = additionalData['order_id']?.toString();
+      final refundId = additionalData['refund_id']?.toString();
+      final type = additionalData['type']?.toString();
+
+      if (isLockScreenShowing) return;
+
       if (notificationId != null && notificationId.isNotEmpty) {
+        // Admin custom notification
         pendingNotificationData = {
           'notification_id': notificationId,
           'notif_message': additionalData['notif_message']?.toString() ?? '',
@@ -113,17 +111,40 @@ Future<void> main() async {
           'notif_image': additionalData['notif_image']?.toString() ?? '',
         };
 
-        if (isLockScreenShowing) return;
-
         PushNotificationData.notificationId = notificationId;
         PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
         PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
         PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
 
         if (Get.isRegistered<NotificationController>()) {
-          final controller = Get.find<NotificationController>();
-          controller.refreshList();
+          Get.find<NotificationController>().refreshList();
         }
+      } else if (orderId != null && orderId.isNotEmpty) {
+        // Order notification - navigate to order details
+        final id = int.tryParse(orderId) ?? 0;
+        if (id > 0) {
+          GetStorage().write('deep_link_order_id', id);
+          Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': id});
+        }
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().refreshList();
+        }
+      } else if (refundId != null && refundId.isNotEmpty) {
+        // Refund notification - navigate to refund details
+        final id = int.tryParse(refundId) ?? 0;
+        if (id > 0) {
+          GetStorage().write('deep_link_refund_id', id);
+          Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: id);
+        }
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().refreshList();
+        }
+      } else if (type == 'wallet') {
+        // Wallet notification
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().refreshList();
+        }
+        Get.toNamed(AppRoutes.myWalletView);
       }
     }
   });
