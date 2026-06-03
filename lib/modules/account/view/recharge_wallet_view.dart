@@ -25,7 +25,6 @@ import '../../../core/services/permission_service.dart';
 import '../../../core/utils/currency_formatters.dart';
 import '../../../data/repositories/wallet_repository.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
-import '../../auth/widget/custom_text_field.dart';
 import '../controller/wallet_controller.dart';
 import '../controller/wallet_recharge_controller.dart';
 import '../model/wallet_payment_methods_model.dart';
@@ -162,12 +161,30 @@ class _OnlineAmountSheet extends StatelessWidget {
               Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [_LogoBox(url: method.logo), const SizedBox(width: 8), Expanded(child: Text('${'Pay with'.tr} ${method.name}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black))), IconButton(onPressed: () => safeBack(), icon: const Icon(Icons.close))]),
                 const SizedBox(height: 12),
-                CustomTextField(
-                  key: ValueKey('amount_${isDark}'),
-                  hint: '${'Enter amount'.tr} ($currencyCode)',
-                  icon: Iconsax.coin_1_copy,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: c.setOnlineAmount
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextField(
+                    cursorColor: AppColors.primaryColor,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black87),
+                    textAlignVertical: TextAlignVertical.center,
+                    onChanged: c.setOnlineAmount,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                      hintText: '${'Enter amount'.tr} ($currencyCode)',
+                      hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white54 : AppColors.greyColor),
+                      prefixIcon: const Icon(Iconsax.coin_1_copy, size: 18),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 30, minHeight: 40),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    ),
+                  ),
                 ),
                 if (err != null) ...[const SizedBox(height: 4), Text(err, style: const TextStyle(color: Colors.red, fontSize: 12))] else if (helper.isNotEmpty) ...[const SizedBox(height: 4), Text(helper, style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12))],
                 const SizedBox(height: 16),
