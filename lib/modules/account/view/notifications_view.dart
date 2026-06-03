@@ -117,13 +117,28 @@ class NotificationsView extends StatelessWidget {
 
 String _translateMessage(String msg) {
   if (msg.isEmpty) return msg;
+  
   final full = msg.tr;
   if (full != msg) return full;
+  
   if (msg.contains('Contact:')) {
     final parts = msg.split('Contact:');
     final translated = '${'Your package has been handed over to a local driver. Contact:'.tr} ${parts.last.trim()}';
     return translated;
   }
+  
+  if (msg.contains('credited to your wallet')) {
+    final parts = msg.split('credited to your wallet');
+    final amount = parts.first.trim();
+    return '$amount ${'credited to your wallet'.tr}';
+  }
+  
+  if (msg.contains('debited from your wallet')) {
+    final parts = msg.split('debited from your wallet');
+    final amount = parts.first.trim();
+    return '$amount ${'debited from your wallet'.tr}';
+  }
+  
   return msg;
 }
 
