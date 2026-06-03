@@ -7,7 +7,6 @@ import 'package:kartly_e_commerce/modules/product/view/following_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/latest_collection_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/popular_items_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/recently_viewed_section.dart';
-import 'package:kartly_e_commerce/modules/search/controller/visual_search_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -325,9 +324,8 @@ class _SearchField extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 Get.toNamed(AppRoutes.searchView);
-                Get.put(VisualSearchController()).searchFromGallery();
               },
-              child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.primaryColor),
+              child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.greyColor),
             ),
             const SizedBox(width: 10),
             const Icon(Iconsax.search_normal_1_copy, size: 18),
