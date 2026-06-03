@@ -178,6 +178,12 @@ static const String resetPasswordPath =
   static const String customerResetPasscodePath = '/api/v1/ecommerce-core/customer/reset-passcode';
   static const String customerGetPasscodeStatusPath = '/api/v1/ecommerce-core/customer/get-passcode-status';
 
+  // Visual Search
+  static const String visualSearchBaseUrl = 'https://campconnectus-campconnectus-search.hf.space';
+  
+  static String visualSearchUrl() => '$visualSearchBaseUrl/search';
+  static String visualIndexUrl() => '$visualSearchBaseUrl/index';
+
   //base url + api endpoint
   static String sitePropertiesUrl() => '$baseUrl$sitePropertiesPath';
   static String localeUrl(String apiCode) =>
@@ -305,6 +311,12 @@ static String resetPasswordUrl() => '$baseUrl$resetPasswordPath';
   // Email verification code endpoints
   static String sendEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/send-email-verification-code';
   static String verifyEmailCodeUrl() => '$baseUrl/api/v1/ecommerce-core/customer/verify-email-code';
+
+  // Visual Search
+  static const String visualSearchBaseUrl = 'https://campconnectus-campconnectus-search.hf.space';
+  
+  static String visualSearchUrl() => '$visualSearchBaseUrl/search';
+  static String visualIndexUrl() => '$visualSearchBaseUrl/index';
 
   //image path custom url
   static const String kLangCode = 'langCode';
