@@ -4,8 +4,8 @@
         android:shortcutId="search"
         android:enabled="true"
         android:icon="@android:drawable/ic_menu_search"
-        android:shortcutShortLabel="Search"
-        android:shortcutLongLabel="Search Products">
+        android:shortcutShortLabel="@string/search_short"
+        android:shortcutLongLabel="@string/search_long">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.kartly.ecommerce"
@@ -17,8 +17,8 @@
         android:shortcutId="orders"
         android:enabled="true"
         android:icon="@android:drawable/ic_menu_view"
-        android:shortcutShortLabel="Orders"
-        android:shortcutLongLabel="My Orders">
+        android:shortcutShortLabel="@string/orders_short"
+        android:shortcutLongLabel="@string/orders_long">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.kartly.ecommerce"
@@ -30,8 +30,8 @@
         android:shortcutId="cart"
         android:enabled="true"
         android:icon="@android:drawable/ic_menu_slideshow"
-        android:shortcutShortLabel="Cart"
-        android:shortcutLongLabel="Shopping Cart">
+        android:shortcutShortLabel="@string/cart_short"
+        android:shortcutLongLabel="@string/cart_long">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.kartly.ecommerce"
@@ -43,8 +43,8 @@
         android:shortcutId="wallet"
         android:enabled="true"
         android:icon="@android:drawable/ic_menu_manage"
-        android:shortcutShortLabel="Wallet"
-        android:shortcutLongLabel="My Wallet">
+        android:shortcutShortLabel="@string/wallet_short"
+        android:shortcutLongLabel="@string/wallet_long">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.kartly.ecommerce"
