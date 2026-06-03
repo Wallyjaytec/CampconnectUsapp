@@ -6,6 +6,7 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/modules/home/widgets/search_header.dart';
 import 'package:kartly_e_commerce/modules/search/controller/search_view_controller.dart';
+import 'package:kartly_e_commerce/modules/search/controller/visual_search_controller.dart';
 import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
 
 import '../../../core/config/app_config.dart';
@@ -111,7 +112,7 @@ class _SearchField extends StatelessWidget {
           ),
           Obx(
             () => Row(
-              spacing: 10,
+              spacing: 6,
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (controller.query.value.isNotEmpty)
@@ -126,11 +127,34 @@ class _SearchField extends StatelessWidget {
                 InkWell(
                   radius: 10,
                   onTap: () {
-                    final q = controller.query.value.trim();
-                    if (q.isEmpty) return;
-                    SearchNavHelper.goToSearchResults(query: q);
+                    Get.put(VisualSearchController()).searchFromGallery();
                   },
-                  child: const Icon(Iconsax.search_normal_1_copy, size: 18),
+                  child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.primaryColor),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      final q = controller.query.value.trim();
+                      if (q.isEmpty) return;
+                      SearchNavHelper.goToSearchResults(query: q);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Icon(Iconsax.search_normal_1_copy, size: 18, color: Colors.white),
+                    ),
+                  ),
                 ),
               ],
             ),
