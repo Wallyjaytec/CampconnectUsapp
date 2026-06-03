@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/services/visual_search_service.dart';
+import '../controller/image_search_history_controller.dart';
 import '../view/visual_search_results_view.dart';
 
 class VisualSearchController extends GetxController {
@@ -39,6 +40,11 @@ class VisualSearchController extends GetxController {
     isLoading.value = true;
     error.value = '';
     results.clear();
+
+    final historyCtrl = Get.isRegistered<ImageSearchHistoryController>()
+        ? Get.find<ImageSearchHistoryController>()
+        : Get.put(ImageSearchHistoryController());
+    historyCtrl.addToHistory(image.path);
 
     try {
       final searchResults = await _service.searchByImage(image);
