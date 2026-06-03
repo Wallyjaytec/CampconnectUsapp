@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="onesignal_notification_accent_color">FF8C00</string>
+    <string name="search_short">Search</string>
+    <string name="search_long">Search Products</string>
+    <string name="orders_short">Orders</string>
+    <string name="orders_long">My Orders</string>
+    <string name="cart_short">Cart</string>
+    <string name="cart_long">Shopping Cart</string>
+    <string name="wallet_short">Wallet</string>
+    <string name="wallet_long">My Wallet</string>
 </resources>
