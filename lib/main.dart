@@ -120,7 +120,7 @@ Future<void> main() async {
           Get.find<NotificationController>().refreshList();
         }
       } else if (orderId != null && orderId.isNotEmpty) {
-        // Order notification - navigate to order details
+        // Order notification
         final id = int.tryParse(orderId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_order_id', id);
@@ -130,7 +130,7 @@ Future<void> main() async {
           Get.find<NotificationController>().refreshList();
         }
       } else if (refundId != null && refundId.isNotEmpty) {
-        // Refund notification - navigate to refund details
+        // Refund notification
         final id = int.tryParse(refundId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_refund_id', id);
@@ -141,6 +141,7 @@ Future<void> main() async {
         }
       } else if (type == 'wallet') {
         // Wallet notification
+        GetStorage().write('deep_link_wallet', true);
         if (Get.isRegistered<NotificationController>()) {
           Get.find<NotificationController>().refreshList();
         }
