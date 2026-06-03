@@ -6,7 +6,6 @@ import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
 import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/services/api_service.dart';
@@ -39,7 +38,7 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
 
     setState(() => _loadingProducts = true);
 
-    final repo = ProductRepository(api: ApiService());
+    final repo = ProductRepository(ApiService());
     for (final r in results) {
       final id = int.tryParse(r.productId) ?? 0;
       if (id > 0) {
@@ -209,7 +208,6 @@ class _ProductCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () {
-            // Navigate to product details using the same method as text search
             Get.toNamed('/product_details_view', arguments: {'id': product.id, 'slug': product.slug});
           },
           child: Column(
