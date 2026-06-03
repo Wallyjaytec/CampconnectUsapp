@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 
 import '../../data/models/site_settings_properties_model.dart';
 import '../../data/repositories/site_settings_properties_repository.dart';
@@ -7,6 +9,7 @@ import '../../modules/category/controller/category_controller.dart';
 import '../../modules/compare/controller/compare_controller.dart';
 import '../config/app_config.dart';
 import '../services/language_service.dart';
+import '../services/login_service.dart';
 import '../utils/locale_mapper.dart';
 
 class LanguageController extends GetxController {
@@ -59,6 +62,7 @@ class LanguageController extends GetxController {
     if (persist) {
       box.write(AppConfig.kLangCode, apiCode);
       box.write('selected_language_api_code', apiCode);
+      _syncLanguageToServer(apiCode);
     }
 
     if (Get.isRegistered<CompareController>()) {
@@ -68,6 +72,25 @@ class LanguageController extends GetxController {
     if (Get.isRegistered<CategoryController>()) {
       Get.find<CategoryController>().fetchCategories();
     }
+  }
+
+  Future<void> _syncLanguageToServer(String apiCode) async {
+    try {
+      final login = LoginService();
+      final token = login.token;
+      if (token == null || token.isEmpty) return;
+
+      final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-language');
+      await http.post(
+        uri,
+        headers: {
+          'Authorization': '${login.tokenType} $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'language': apiCode}),
+      );
+    } catch (_) {}
   }
 
   void _loadPersistedLang() {
