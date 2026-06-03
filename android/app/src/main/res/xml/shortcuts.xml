@@ -3,7 +3,7 @@
     <shortcut
         android:shortcutId="search"
         android:enabled="true"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@drawable/ic_shortcut_search"
         android:shortcutShortLabel="@string/search_short"
         android:shortcutLongLabel="@string/search_long">
         <intent
@@ -16,7 +16,7 @@
     <shortcut
         android:shortcutId="orders"
         android:enabled="true"
-        android:icon="@android:drawable/ic_menu_view"
+        android:icon="@drawable/ic_shortcut_orders"
         android:shortcutShortLabel="@string/orders_short"
         android:shortcutLongLabel="@string/orders_long">
         <intent
@@ -29,7 +29,7 @@
     <shortcut
         android:shortcutId="cart"
         android:enabled="true"
-        android:icon="@android:drawable/ic_menu_slideshow"
+        android:icon="@drawable/ic_shortcut_cart"
         android:shortcutShortLabel="@string/cart_short"
         android:shortcutLongLabel="@string/cart_long">
         <intent
@@ -42,8 +42,8 @@
     <shortcut
         android:shortcutId="wallet"
         android:enabled="true"
-        android:icon="@android:drawable/ic_menu_manage"
-        android:shortcutShortLabel="@string/wallet_short"
+        android:icon="@drawable/ic_shortcut_wallet"
+        android:shortcutLongLabel="@string/wallet_short"
         android:shortcutLongLabel="@string/wallet_long">
         <intent
             android:action="android.intent.action.VIEW"
