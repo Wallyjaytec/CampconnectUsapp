@@ -4,9 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/data/repositories/product_details_repository.dart';
-import 'package:kartly_e_commerce/modules/product/model/related_product_model.dart';
-import 'package:kartly_e_commerce/modules/product/widgets/single_price_tag.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
@@ -15,6 +12,7 @@ import '../../product/controller/related_products_controller.dart';
 import '../../product/view/product_details_view.dart';
 import '../../wishlist/controller/wishlist_controller.dart';
 import '../controller/product_details_controller.dart';
+import '../widgets/single_price_tag.dart';
 import '../widgets/star_row.dart';
 
 class RelatedProductView extends StatelessWidget {
@@ -213,7 +211,6 @@ class _ProductCard extends StatelessWidget {
                   alignment: Alignment.center,
                   child: SinglePriceTag.forRelated(p),
                 ),
-
                 const SizedBox(height: 6),
               ],
             ),
