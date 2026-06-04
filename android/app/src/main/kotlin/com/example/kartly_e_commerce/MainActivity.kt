@@ -2,15 +2,21 @@ package com.example.kartly_e_commerce
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
-    private val CHANNEL = "com.example.kartly_e_commerce/onesignal"
+    private val ONESIGNAL_CHANNEL = "com.example.kartly_e_commerce/onesignal"
+    private val SHORTCUT_CHANNEL = "com.example.kartly_e_commerce/shortcut"
+    
+    private var pendingShortcut: String? = null
+    private var flutterEngineReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.e("MainActivity", ">>> onCreate called — intent: ${intent?.data}")
         setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
@@ -18,6 +24,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        Log.e("MainActivity", ">>> onNewIntent called — intent: ${intent?.data}")
         setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
@@ -27,13 +34,23 @@ class MainActivity : FlutterFragmentActivity() {
         val data = intent?.data
         if (data != null) {
             intent.putExtra("deep_link_uri", data.toString())
+            if (data.scheme == "campconnectus") {
+                val host = data.host ?: ""
+                if (flutterEngineReady) {
+                    flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+                        MethodChannel(messenger, SHORTCUT_CHANNEL).invokeMethod("shortcut", host)
+                    }
+                } else {
+                    pendingShortcut = host
+                }
+            }
         }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, ONESIGNAL_CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "getColdStartNotification") {
                 val notificationData = getColdStartData()
                 if (notificationData != null) {
@@ -45,6 +62,16 @@ class MainActivity : FlutterFragmentActivity() {
             } else {
                 result.notImplemented()
             }
+        }
+        
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SHORTCUT_CHANNEL).setMethodCallHandler { call, result ->
+            result.success(null)
+        }
+        
+        flutterEngineReady = true
+        pendingShortcut?.let { host ->
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SHORTCUT_CHANNEL).invokeMethod("shortcut", host)
+            pendingShortcut = null
         }
     }
 
