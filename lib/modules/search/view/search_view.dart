@@ -134,7 +134,7 @@ class SearchView extends StatelessWidget {
           leading: const BackIconWidget(),
           centerTitle: false,
           title: Text(
-            '${'Image'.tr} ${'Search'.tr}',
+            '${'Product'.tr} ${'Search'.tr}',
             style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
           ),
           actionsPadding: const EdgeInsetsDirectional.only(end: 10),
