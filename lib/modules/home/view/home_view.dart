@@ -22,6 +22,7 @@ import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/category_product_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_section.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../../../core/controllers/currency_controller.dart';
 import '../../../core/services/network_service.dart';
 import '../../../core/services/permission_service.dart';
