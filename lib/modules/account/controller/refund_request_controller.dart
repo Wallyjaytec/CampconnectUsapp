@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/widget_data_service.dart';
 import '../../../data/repositories/refund_repository.dart';
 import '../model/refund_request_model.dart';
 
@@ -121,6 +122,7 @@ class RefundRequestController extends GetxController {
       error.value = 'Something went wrong'.tr;
     } finally {
       isLoading.value = false;
+      _syncWidget();
     }
   }
 
@@ -167,5 +169,33 @@ class RefundRequestController extends GetxController {
 
   void onTapItem(RefundRequest r) {
     Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: r.id);
+  }
+
+  void _syncWidget() {
+    final latest = items.isNotEmpty ? items.first : null;
+    if (latest != null) {
+      WidgetDataService.updateWidgetData(
+        cartItems: 0,
+        cartTotal: '₦0',
+        refundId: '#${latest.refundCode}',
+        refundAmount: '₦${latest.totalAmount}',
+        refundStatus: _mapRefundStatus(latest.paymentStatusLabel),
+      );
+    }
+  }
+
+  String _mapRefundStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return '20';
+      case 'processing':
+        return '50';
+      case 'approved':
+        return '80';
+      case 'refunded':
+        return '100';
+      default:
+        return '0';
+    }
   }
 }
