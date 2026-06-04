@@ -7,4 +7,4 @@
     android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:description="Search products and quick access to Account, Cart, Orders, Notifications" />
+    android:description="@string/widget_search_actions_desc" />
