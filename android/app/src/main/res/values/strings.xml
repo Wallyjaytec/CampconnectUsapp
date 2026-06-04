@@ -9,4 +9,5 @@
     <string name="cart_long">Shopping Cart</string>
     <string name="wallet_short">View Wallet</string>
     <string name="wallet_long">View Wallet</string>
+    <string name="widget_description">CampConnectUs Marketplace - Quick access</string>
 </resources>
