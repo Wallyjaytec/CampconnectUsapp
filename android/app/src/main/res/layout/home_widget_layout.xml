@@ -6,8 +6,37 @@
     android:padding="12dp"
     android:background="#FFFFFF">
 
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_marginEnd="6dp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CampConnectUs"
+            android:textSize="14sp"
+            android:textColor="#FF8C00"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Shop on CCU"
+            android:textSize="10sp"
+            android:textColor="#999999" />
+    </LinearLayout>
+
     <!-- Search bar -->
     <LinearLayout
+        android:id="@+id/widget_search_bar"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:background="@drawable/widget_search_bg"
@@ -15,7 +44,7 @@
         android:paddingHorizontal="12dp"
         android:orientation="horizontal"
         android:clickable="true"
-        android:onClick="onSearchClick">
+        android:focusable="true">
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
@@ -40,18 +69,21 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         android:gravity="center">
 
+        <!-- Account -->
         <LinearLayout
+            android:id="@+id/widget_account"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
             android:clickable="true"
-            android:onClick="onAccountClick">
+            android:focusable="true"
+            android:padding="6dp">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -65,14 +97,17 @@
                 android:textColor="#333333" />
         </LinearLayout>
 
+        <!-- Cart -->
         <LinearLayout
+            android:id="@+id/widget_cart"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
             android:clickable="true"
-            android:onClick="onCartClick">
+            android:focusable="true"
+            android:padding="6dp">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -86,14 +121,17 @@
                 android:textColor="#333333" />
         </LinearLayout>
 
+        <!-- Orders -->
         <LinearLayout
+            android:id="@+id/widget_orders"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
             android:clickable="true"
-            android:onClick="onOrdersClick">
+            android:focusable="true"
+            android:padding="6dp">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -107,14 +145,17 @@
                 android:textColor="#333333" />
         </LinearLayout>
 
+        <!-- Notifications -->
         <LinearLayout
+            android:id="@+id/widget_notifications"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
             android:clickable="true"
-            android:onClick="onNotificationsClick">
+            android:focusable="true"
+            android:padding="6dp">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -128,4 +169,180 @@
                 android:textColor="#333333" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- Order & Refund Tracking -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Latest Order -->
+        <LinearLayout
+            android:id="@+id/widget_latest_order"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/widget_tracking_bg"
+            android:padding="8dp"
+            android:layout_marginEnd="4dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@android:drawable/ic_menu_view"
+                    android:tint="#666666" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Latest Order"
+                    android:textSize="10sp"
+                    android:textColor="#666666"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/widget_order_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#CCU1012..."
+                android:textSize="11sp"
+                android:textColor="#333333"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="4dp" />
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:background="#FF8C00"
+                android:layout_marginTop="-4dp" />
+            <TextView
+                android:id="@+id/widget_order_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₦15,000"
+                android:textSize="10sp"
+                android:textColor="#FF8C00"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Refund -->
+        <LinearLayout
+            android:id="@+id/widget_refund"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/widget_tracking_bg"
+            android:padding="8dp"
+            android:layout_marginStart="4dp"
+            android:clickable="true"
+            android:focusable="true">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@android:drawable/ic_menu_revert"
+                    android:tint="#666666" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Refund"
+                    android:textSize="10sp"
+                    android:textColor="#666666"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/widget_refund_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#5-120345"
+                android:textSize="11sp"
+                android:textColor="#333333"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="4dp" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:background="#4CAF50"
+                android:layout_marginTop="-4dp" />
+            <TextView
+                android:id="@+id/widget_refund_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₦5,000"
+                android:textSize="10sp"
+                android:textColor="#4CAF50"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Cart Bar -->
+    <LinearLayout
+        android:id="@+id/widget_cart_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/widget_cart_bar_bg"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:clickable="true"
+        android:focusable="true">
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@android:drawable/ic_menu_slideshow"
+            android:tint="#FFFFFF" />
+        <TextView
+            android:id="@+id/widget_cart_items"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 items"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="6dp" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+        <TextView
+            android:id="@+id/widget_cart_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₦25,500"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Checkout →"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
 </LinearLayout>
