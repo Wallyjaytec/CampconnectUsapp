@@ -175,7 +175,7 @@ class _ProductCard extends StatelessWidget {
           onTap: () {
             if (id > 0) {
               final slug = product.slug.isNotEmpty ? product.slug : product.title;
-              Get.toNamed('/product_details_view', arguments: {'permalink': slug});
+              Get.toNamed('/product_details_view', arguments: {'permalink': slug, 'product_id': id.toString()});
             }
           },
           child: Column(
