@@ -67,36 +67,6 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const shortcutChannel = MethodChannel('com.example.kartly_e_commerce/shortcut');
-  shortcutChannel.setMethodCallHandler((call) async {
-    if (call.method == 'shortcut') {
-      final destination = call.arguments.toString();
-      Get.snackbar(
-        '🔔 Shortcut',
-        destination,
-        duration: const Duration(seconds: 2),
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-      );
-      switch (destination) {
-        case 'search':
-          Get.toNamed(AppRoutes.searchView);
-          break;
-        case 'orders':
-          Get.toNamed(AppRoutes.myOrderListView);
-          break;
-        case 'cart':
-          Get.toNamed(AppRoutes.cartView);
-          break;
-        case 'wallet':
-          Get.toNamed(AppRoutes.myWalletView);
-          break;
-      }
-    }
-    return null;
-  });
-
   OneSignal.initialize("d254c403-bcbb-494d-8920-5f49ecf67de7");
 
   OneSignal.User.pushSubscription.addObserver((state) {
@@ -224,7 +194,24 @@ Future<void> main() async {
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
-      if (uri.host == 'search') {
+      // Handle shortcut deep links via HTTPS
+      if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
+        final dest = uri.pathSegments[1];
+        switch (dest) {
+          case 'search':
+            box.write('shortcut_destination', 'search');
+            break;
+          case 'orders':
+            box.write('shortcut_destination', 'orders');
+            break;
+          case 'cart':
+            box.write('shortcut_destination', 'cart');
+            break;
+          case 'wallet':
+            box.write('shortcut_destination', 'wallet');
+            break;
+        }
+      } else if (uri.host == 'search') {
         box.write('shortcut_destination', 'search');
       } else if (uri.host == 'orders') {
         box.write('shortcut_destination', 'orders');
@@ -257,8 +244,16 @@ Future<void> main() async {
   } catch (_) {}
 
   _appLinks.uriLinkStream.listen((uri) {
-    debugPrint('🔔 APP_LINKS STREAM: ${uri.host}');
-    if (uri.host == 'search') {
+    // Handle shortcut deep links via HTTPS
+    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
+      final dest = uri.pathSegments[1];
+      switch (dest) {
+        case 'search': Get.toNamed(AppRoutes.searchView);
+        case 'orders': Get.toNamed(AppRoutes.myOrderListView);
+        case 'cart': Get.toNamed(AppRoutes.cartView);
+        case 'wallet': Get.toNamed(AppRoutes.myWalletView);
+      }
+    } else if (uri.host == 'search') {
       Get.toNamed(AppRoutes.searchView);
     } else if (uri.host == 'orders') {
       Get.toNamed(AppRoutes.myOrderListView);
