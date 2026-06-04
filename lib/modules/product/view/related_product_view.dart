@@ -127,7 +127,7 @@ class _ProductCard extends StatelessWidget {
             Get.toNamed(
               AppRoutes.productDetailsView,
               preventDuplicates: false,
-              arguments: {'permalink': p.slug},
+              arguments: {'permalink': p.slug, 'product_id': p.id.toString()},
             );
           },
           child: Padding(
