@@ -29,7 +29,7 @@ class ProductDetailsController extends GetxController {
   final ProductDetailsRepository _detailsRepo;
   final ProductReviewsRepository _reviewsRepo;
 
-  late final String permalink;
+  String permalink = '';
 
   final RxBool isLoading = false.obs;
   final RxBool buyNowLoading = false.obs;
@@ -66,14 +66,20 @@ class ProductDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    initFromArgs();
+  }
+
+  void initFromArgs() {
     final args = Get.arguments;
-    permalink =
-        (args is Map && (args['permalink'] != null || args['slug'] != null))
+    final newPermalink = (args is Map && (args['permalink'] != null || args['slug'] != null))
         ? (args['permalink'] ?? args['slug']).toString()
         : '';
-    if (permalink.isEmpty) {
-      error.value = 'Invalid product permalink.';
-    } else {
+    if (newPermalink.isNotEmpty && newPermalink != permalink) {
+      permalink = newPermalink;
+      product.value = null;
+      error.value = '';
+      load();
+    } else if (newPermalink.isNotEmpty && product.value == null) {
       load();
     }
   }
