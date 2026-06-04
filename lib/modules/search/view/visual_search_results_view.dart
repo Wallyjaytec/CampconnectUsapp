@@ -9,6 +9,7 @@ import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/services/visual_search_service.dart';
+import '../../product/widgets/star_row.dart';
 import '../controller/visual_search_controller.dart';
 
 class VisualSearchResultsView extends StatelessWidget {
@@ -128,7 +129,7 @@ class VisualSearchResultsView extends StatelessWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 14,
                   crossAxisSpacing: 14,
-                  mainAxisExtent: 240,
+                  mainAxisExtent: 260,
                 ),
                 itemCount: controller.results.length,
                 itemBuilder: (context, index) {
@@ -153,6 +154,9 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = int.tryParse(product.productId) ?? 0;
+    final price = double.tryParse(product.price) ?? 0;
+    final rating = double.tryParse(product.rating) ?? 0;
+    final hasDiscount = product.hasDiscount == '1';
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -171,24 +175,40 @@ class _ProductCard extends StatelessWidget {
           onTap: () {
             if (id > 0) {
               final slug = product.slug.isNotEmpty ? product.slug : product.title;
-              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': slug});
+              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': slug}, id: id);
             }
           },
           child: Column(
             children: [
               Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                  child: product.imageUrl.isEmpty
-                      ? Container(color: Theme.of(context).dividerColor.withValues(alpha: 0.1))
-                      : CachedNetworkImage(
-                          imageUrl: AppConfig.assetUrl(product.imageUrl),
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          placeholder: (_, __) => const ShimmerBox(height: double.infinity, width: double.infinity, borderRadius: 0),
-                          errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                      child: product.imageUrl.isEmpty
+                          ? Container(color: Theme.of(context).dividerColor.withValues(alpha: 0.1))
+                          : CachedNetworkImage(
+                              imageUrl: AppConfig.assetUrl(product.imageUrl),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              placeholder: (_, __) => const ShimmerBox(height: double.infinity, width: double.infinity, borderRadius: 0),
+                              errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+                            ),
+                    ),
+                    if (hasDiscount)
+                      Positioned(
+                        top: 8, left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text('Sale'.tr, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                         ),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 10),
@@ -202,11 +222,14 @@ class _ProductCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.normal, height: 1),
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
+              if (rating > 0) StarRow(rating: rating),
+              const SizedBox(height: 4),
               Text(
-                product.price.isNotEmpty ? formatCurrency(double.tryParse(product.price) ?? 0, applyConversion: true) : '',
+                price > 0 ? formatCurrency(price, applyConversion: true) : '',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
+                  fontSize: 13,
                   color: isDark ? AppColors.whiteColor : AppColors.primaryColor,
                 ),
               ),
@@ -231,7 +254,7 @@ class _GridShimmer extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 14,
         crossAxisSpacing: 14,
-        mainAxisExtent: 240,
+        mainAxisExtent: 260,
       ),
       itemBuilder: (_, __) {
         return Container(
