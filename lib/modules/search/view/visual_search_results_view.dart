@@ -9,6 +9,7 @@ import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/services/visual_search_service.dart';
+import '../../product/view/product_details_view.dart';
 import '../../product/widgets/star_row.dart';
 import '../controller/visual_search_controller.dart';
 
@@ -175,7 +176,10 @@ class _ProductCard extends StatelessWidget {
           onTap: () {
             if (id > 0) {
               final slug = product.slug.isNotEmpty ? product.slug : product.title;
-              Get.toNamed('/product_details_view', arguments: {'permalink': slug, 'product_id': id.toString()});
+              Get.to(
+                () => ProductDetailsView(),
+                arguments: {'permalink': slug},
+              );
             }
           },
           child: Column(
