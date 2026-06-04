@@ -128,7 +128,6 @@ class _ProductCard extends StatelessWidget {
               AppRoutes.productDetailsView,
               preventDuplicates: false,
               arguments: {'permalink': p.slug},
-              id: p.id,
             );
           },
           child: Padding(
