@@ -8,6 +8,7 @@ class VisualSearchResult {
   final String title;
   final String imageUrl;
   final String price;
+  final String slug;
   final double score;
 
   VisualSearchResult({
@@ -15,6 +16,7 @@ class VisualSearchResult {
     required this.title,
     required this.imageUrl,
     required this.price,
+    required this.slug,
     required this.score,
   });
 
@@ -24,6 +26,7 @@ class VisualSearchResult {
       title: json['title']?.toString() ?? '',
       imageUrl: json['image_url']?.toString() ?? '',
       price: json['price']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? '',
       score: (json['score'] is num) ? (json['score'] as num).toDouble() : 0.0,
     );
   }
