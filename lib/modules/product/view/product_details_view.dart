@@ -48,17 +48,22 @@ ProductDetailsController get controller {
   final args = Get.arguments;
   final productId = (args is Map) ? (args['product_id'] ?? '') : '';
   final tag = 'product_$productId';
+  ProductDetailsController ctrl;
   if (tag == 'product_' || tag == 'product_null') {
-    // Fallback for old navigation without product_id
     if (Get.isRegistered<ProductDetailsController>()) {
-      return Get.find<ProductDetailsController>();
+      ctrl = Get.find<ProductDetailsController>();
+    } else {
+      ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
     }
-    return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
+  } else if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
+    ctrl = Get.find<ProductDetailsController>(tag: tag);
+  } else {
+    ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
   }
-  if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
-    return Get.find<ProductDetailsController>(tag: tag);
+  if (ctrl.permalink.isEmpty || ctrl.product.value == null) {
+    ctrl.initFromArgs();
   }
-  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
+  return ctrl;
 }
   @override
   Widget build(BuildContext context) {
