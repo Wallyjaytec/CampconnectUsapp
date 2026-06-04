@@ -23,13 +23,13 @@ enum ReviewSort { recent, ratingHigh, ratingLow }
 enum QuickSection { overview, reviews, details, recommendations }
 
 class ProductDetailsController extends GetxController {
-  ProductDetailsController(this._detailsRepo)
-    : _reviewsRepo = ProductReviewsRepository(ApiService());
+  ProductDetailsController(this._detailsRepo, {String? permalink})
+    : _reviewsRepo = ProductReviewsRepository(ApiService()),
+      permalink = permalink ?? '';
 
   final ProductDetailsRepository _detailsRepo;
   final ProductReviewsRepository _reviewsRepo;
-
-  String permalink = '';
+  final String permalink;
 
   final RxBool isLoading = false.obs;
   final RxBool buyNowLoading = false.obs;
@@ -66,21 +66,10 @@ class ProductDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    initFromArgs();
-  }
-
-  void initFromArgs() {
-    final args = Get.arguments;
-    final newPermalink = (args is Map && (args['permalink'] != null || args['slug'] != null))
-        ? (args['permalink'] ?? args['slug']).toString()
-        : '';
-    if (newPermalink.isNotEmpty && newPermalink != permalink) {
-      permalink = newPermalink;
-      product.value = null;
-      error.value = '';
+    if (permalink.isNotEmpty) {
       load();
-    } else if (newPermalink.isNotEmpty && product.value == null) {
-      load();
+    } else {
+      error.value = 'Invalid product link';
     }
   }
 
