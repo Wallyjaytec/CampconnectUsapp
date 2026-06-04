@@ -41,6 +41,7 @@ import '../widgets/features_banner_carousel.dart';
 import '../widgets/customer_reviews_carousel.dart';
 import '../widgets/home_header_widget.dart';
 import '../widgets/order_refund_cards.dart';
+import '../widgets/cart_summary_bar.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -186,14 +187,12 @@ class _HomeViewState extends State<HomeView> {
                 child: CustomScrollView(
                   controller: _scrollCtrl,
                   slivers: [
-                    // New header widget
-                    SliverToBoxAdapter(
-                      child: const HomeHeaderWidget(),
-                    ),
-                    // Order/Refund cards
-                    SliverToBoxAdapter(
-                      child: const OrderRefundCards(),
-                    ),
+                    // Header with search and quick actions
+                    const SliverToBoxAdapter(child: HomeHeaderWidget()),
+                    // Order & Refund tracking cards
+                    const SliverToBoxAdapter(child: OrderRefundCards()),
+                    // Cart summary bar
+                    const SliverToBoxAdapter(child: CartSummaryBar()),
                     // Banners
                     SliverToBoxAdapter(
                       child: GetX<BannerController>(
