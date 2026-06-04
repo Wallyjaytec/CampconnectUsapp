@@ -40,7 +40,7 @@ import '../model/review_model.dart';
 import '../widgets/star_row.dart';
 
 class ProductDetailsView extends StatelessWidget {
-  ProductDetailsProductDetailsControllerView({super.key});
+  const ProductDetailsView({super.key});
 
   // ✅ CHANGE 1: Use getter instead of final field
 ProductDetailsController get controller {
