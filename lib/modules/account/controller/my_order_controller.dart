@@ -159,15 +159,15 @@ class OrderController extends GetxController {
       WidgetDataService.updateWidgetData(
         cartItems: 0,
         cartTotal: '₦0',
-        latestOrderId: '#${latest.orderId}',
-        latestOrderAmount: '₦${latest.totalAmount}',
+        latestOrderId: '#${latest.orderCode}',
+        latestOrderAmount: '₦${latest.totalPayableAmount}',
         latestOrderStatus: _mapStatus(latest.deliveryStatus),
       );
     }
   }
 
   String _mapStatus(String status) {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'pending':
         return '10';
       case 'confirmed':
