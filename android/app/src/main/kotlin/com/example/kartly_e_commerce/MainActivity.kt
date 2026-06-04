@@ -8,6 +8,8 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "com.example.kartly_e_commerce/onesignal"
+    private val DEEP_LINK_CHANNEL = "com.example.kartly_e_commerce/deeplink"
+    private var deepLinkChannel: MethodChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +22,10 @@ class MainActivity : FlutterFragmentActivity() {
         setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
+        // Send deep link to Flutter
+        intent.data?.let { uri ->
+            deepLinkChannel?.invokeMethod("onDeepLink", uri.toString())
+        }
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -31,7 +37,9 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        
+
+        deepLinkChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEEP_LINK_CHANNEL)
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "getColdStartNotification") {
                 val notificationData = getColdStartData()
