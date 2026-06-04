@@ -4,16 +4,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:kartly_e_commerce/data/repositories/product_details_repository.dart';
+import 'package:kartly_e_commerce/modules/product/model/related_product_model.dart';
+import 'package:kartly_e_commerce/modules/product/widgets/single_price_tag.dart';
 
-import '../model/related_product_model.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/related_products_repository.dart';
 import '../../product/controller/related_products_controller.dart';
-import '../../product/view/product_details_view.dart';
 import '../../wishlist/controller/wishlist_controller.dart';
 import '../controller/product_details_controller.dart';
-import '../widgets/single_price_tag.dart';
 import '../widgets/star_row.dart';
 
 class RelatedProductView extends StatelessWidget {
@@ -26,7 +27,9 @@ class RelatedProductView extends StatelessWidget {
       permanent: false,
     );
 
-    final details = Get.find<ProductDetailsController>();
+    final details = Get.put(
+      ProductDetailsController(ProductDetailsRepository(ApiService())),
+    );
     relController.ensureLoaded(details.product.value?.id);
 
     return Padding(
@@ -121,10 +124,10 @@ class _ProductCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () async {
-            Get.to(
-              () => ProductDetailsView(),
-              arguments: {'permalink': p.slug},
+            Get.toNamed(
+              AppRoutes.productDetailsView,
               preventDuplicates: false,
+              arguments: {'permalink': p.slug, 'product_id': p.id.toString()},
             );
           },
           child: Padding(
@@ -212,6 +215,7 @@ class _ProductCard extends StatelessWidget {
                   alignment: Alignment.center,
                   child: SinglePriceTag.forRelated(p),
                 ),
+
                 const SizedBox(height: 6),
               ],
             ),
