@@ -5,6 +5,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
 import '../controller/image_search_history_controller.dart';
+import '../controller/visual_search_controller.dart';
 
 class ImageSearchHistoryView extends StatefulWidget {
   const ImageSearchHistoryView({super.key});
@@ -54,6 +55,16 @@ class _ImageSearchHistoryViewState extends State<ImageSearchHistoryView> {
     });
   }
 
+  void _openCamera() {
+    final controller = Get.put(VisualSearchController());
+    controller.searchFromCamera();
+  }
+
+  void _openGallery() {
+    final controller = Get.put(VisualSearchController());
+    controller.searchFromGallery();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -88,7 +99,7 @@ class _ImageSearchHistoryViewState extends State<ImageSearchHistoryView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Iconsax.gallery_copy, size: 80, color: AppColors.greyColor),
+                  const Icon(Iconsax.gallery_copy, size: 80, color: AppColors.primaryColor),
                   const SizedBox(height: 16),
                   Text('It is empty'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
@@ -100,14 +111,14 @@ class _ImageSearchHistoryViewState extends State<ImageSearchHistoryView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton.icon(
-                        onPressed: () => Get.back(),
+                        onPressed: _openCamera,
                         icon: const Icon(Iconsax.camera_copy, size: 18),
                         label: Text('Take photo'.tr),
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white),
                       ),
                       const SizedBox(width: 12),
                       OutlinedButton.icon(
-                        onPressed: () => Get.back(),
+                        onPressed: _openGallery,
                         icon: const Icon(Iconsax.gallery_copy, size: 18),
                         label: Text('Select from album'.tr),
                       ),
@@ -172,7 +183,6 @@ class _ImageSearchHistoryViewState extends State<ImageSearchHistoryView> {
                             child: Container(
                               width: 24, height: 24,
                               decoration: BoxDecoration(
-                                color: Colors.transparent,
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 2),
                               ),
