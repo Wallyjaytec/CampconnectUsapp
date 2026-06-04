@@ -20,9 +20,6 @@ class MainActivity : FlutterFragmentActivity() {
         setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
-        
-        // Forward intent to Flutter engine for app_links
-        flutterEngine?.newIntentListener?.onNewIntent(intent)
     }
 
     private fun handleIntent(intent: Intent?) {
