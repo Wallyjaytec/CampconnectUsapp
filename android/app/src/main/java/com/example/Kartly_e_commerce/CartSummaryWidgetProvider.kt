@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
-import org.json.JSONObject
 
 class CartSummaryWidgetProvider : AppWidgetProvider() {
 
@@ -17,14 +16,18 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            try {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            } catch (e: Exception) {
+                val views = RemoteViews(context.packageName, R.layout.cart_summary_widget_layout)
+                views.setTextViewText(R.id.widget_cart_items, "0 items")
+                views.setTextViewText(R.id.widget_cart_total, "\u20A60")
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
         }
     }
 
     companion object {
-        private const val PREFS_NAME = "FlutterSharedPreferences"
-        private const val DATA_KEY = "flutter.widget_data"
-
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -32,23 +35,21 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.cart_summary_widget_layout)
 
-            try {
-                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val jsonStr = prefs.getString(DATA_KEY, null)
+            views.setTextViewText(R.id.widget_cart_items, "0 items")
+            views.setTextViewText(R.id.widget_cart_total, "\u20A60")
 
-                var cartItems = "0 items"
-                var cartTotal = "\u20A60"
+            try {
+                val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                val jsonStr = prefs.getString("flutter.widget_data", null)
 
                 if (jsonStr != null) {
-                    val json = JSONObject(jsonStr)
+                    val json = org.json.JSONObject(jsonStr)
                     val count = json.optInt("cartItems", 0)
-                    cartItems = if (count == 1) "1 item" else "$count items"
-                    cartTotal = json.optString("cartTotal", "\u20A60")
+                    val cartItems = if (count == 1) "1 item" else "$count items"
+                    val cartTotal = json.optString("cartTotal", "\u20A60")
+                    views.setTextViewText(R.id.widget_cart_items, cartItems)
+                    views.setTextViewText(R.id.widget_cart_total, cartTotal)
                 }
-
-                views.setTextViewText(R.id.widget_cart_items, cartItems)
-                views.setTextViewText(R.id.widget_cart_total, cartTotal)
-
             } catch (_: Exception) {}
 
             val intent = Intent(context, MainActivity::class.java).apply {
