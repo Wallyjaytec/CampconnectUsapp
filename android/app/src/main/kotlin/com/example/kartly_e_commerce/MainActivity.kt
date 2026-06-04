@@ -11,12 +11,14 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
     }
@@ -68,9 +70,7 @@ class MainActivity : FlutterFragmentActivity() {
                             coldStartData = map
                         }
                     }
-                } catch (e: Exception) {
-                    // Ignore parsing errors
-                }
+                } catch (e: Exception) {}
             }
         }
     }
