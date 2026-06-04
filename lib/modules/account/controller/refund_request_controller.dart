@@ -178,7 +178,7 @@ class RefundRequestController extends GetxController {
         cartItems: 0,
         cartTotal: '₦0',
         refundId: '#${latest.refundCode}',
-        refundAmount: '₦${latest.totalAmount}',
+        refundAmount: '₦${latest.totalRefundAmount}',
         refundStatus: _mapRefundStatus(latest.paymentStatusLabel),
       );
     }
