@@ -43,16 +43,23 @@ class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
   // ✅ CHANGE 1: Use getter instead of final field
-  ProductDetailsController get controller {
+  
+ProductDetailsController get controller {
   final args = Get.arguments;
-  final permalink = (args is Map) ? (args['permalink'] ?? args['slug'] ?? '') : '';
-  final tag = 'product_$permalink';
+  final productId = (args is Map) ? (args['product_id'] ?? '') : '';
+  final tag = 'product_$productId';
+  if (tag == 'product_' || tag == 'product_null') {
+    // Fallback for old navigation without product_id
+    if (Get.isRegistered<ProductDetailsController>()) {
+      return Get.find<ProductDetailsController>();
+    }
+    return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
+  }
   if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
     return Get.find<ProductDetailsController>(tag: tag);
   }
   return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
-  }
-
+}
   @override
   Widget build(BuildContext context) {
     return SafeArea(
