@@ -64,6 +64,46 @@ Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
+void _handleDeepLink(Uri uri, GetStorage box) {
+  if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
+    final dest = uri.pathSegments[1];
+    switch (dest) {
+      case 'search': Get.toNamed(AppRoutes.searchView); break;
+      case 'orders': Get.toNamed(AppRoutes.myOrderListView); break;
+      case 'cart': Get.toNamed(AppRoutes.cartView); break;
+      case 'wallet': Get.toNamed(AppRoutes.myWalletView); break;
+    }
+  } else if (uri.host == 'search') {
+    Get.toNamed(AppRoutes.searchView);
+  } else if (uri.host == 'orders') {
+    Get.toNamed(AppRoutes.myOrderListView);
+  } else if (uri.host == 'cart') {
+    Get.toNamed(AppRoutes.cartView);
+  } else if (uri.host == 'wallet') {
+    Get.toNamed(AppRoutes.myWalletView);
+  } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
+    final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
+    if (orderId > 0) {
+      box.write('deep_link_order_id', orderId);
+    }
+  } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
+    final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
+    if (refundId > 0) {
+      box.write('deep_link_refund_id', refundId);
+    }
+  } else {
+    final token = uri.queryParameters['u'] ?? '';
+    if (token.isNotEmpty) {
+      box.write('deep_link_token', token);
+      String type = 'password_reset';
+      if (uri.path.contains('email-verification')) {
+        type = 'email_verify';
+      }
+      box.write('deep_link_type', type);
+    }
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -150,6 +190,20 @@ Future<void> main() async {
 
   final box = GetStorage();
 
+  // Listen for widget deep links from Android
+  const deepLinkChannel = MethodChannel('com.example.kartly_e_commerce/deeplink');
+  deepLinkChannel.setMethodCallHandler((call) async {
+    if (call.method == 'onDeepLink') {
+      final url = call.arguments?.toString() ?? '';
+      if (url.isNotEmpty) {
+        final uri = Uri.tryParse(url);
+        if (uri != null) {
+          _handleDeepLink(uri, box);
+        }
+      }
+    }
+  });
+
   final startTime = DateTime.now();
 
   try {
@@ -194,94 +248,12 @@ Future<void> main() async {
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
-      // Handle shortcut deep links via HTTPS
-      if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
-        final dest = uri.pathSegments[1];
-        switch (dest) {
-          case 'search':
-            box.write('shortcut_destination', 'search');
-            break;
-          case 'orders':
-            box.write('shortcut_destination', 'orders');
-            break;
-          case 'cart':
-            box.write('shortcut_destination', 'cart');
-            break;
-          case 'wallet':
-            box.write('shortcut_destination', 'wallet');
-            break;
-        }
-      } else if (uri.host == 'search') {
-        box.write('shortcut_destination', 'search');
-      } else if (uri.host == 'orders') {
-        box.write('shortcut_destination', 'orders');
-      } else if (uri.host == 'cart') {
-        box.write('shortcut_destination', 'cart');
-      } else if (uri.host == 'wallet') {
-        box.write('shortcut_destination', 'wallet');
-      } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
-        final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
-        if (orderId > 0) {
-          box.write('deep_link_order_id', orderId);
-        }
-      } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
-        final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
-        if (refundId > 0) {
-          box.write('deep_link_refund_id', refundId);
-        }
-      } else {
-        final token = uri.queryParameters['u'] ?? '';
-        if (token.isNotEmpty) {
-          box.write('deep_link_token', token);
-          String type = 'password_reset';
-          if (uri.path.contains('email-verification')) {
-            type = 'email_verify';
-          }
-          box.write('deep_link_type', type);
-        }
-      }
+      _handleDeepLink(uri, box);
     }
   } catch (_) {}
 
   _appLinks.uriLinkStream.listen((uri) {
-    // Handle shortcut deep links via HTTPS
-    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
-      final dest = uri.pathSegments[1];
-      switch (dest) {
-        case 'search': Get.toNamed(AppRoutes.searchView);
-        case 'orders': Get.toNamed(AppRoutes.myOrderListView);
-        case 'cart': Get.toNamed(AppRoutes.cartView);
-        case 'wallet': Get.toNamed(AppRoutes.myWalletView);
-      }
-    } else if (uri.host == 'search') {
-      Get.toNamed(AppRoutes.searchView);
-    } else if (uri.host == 'orders') {
-      Get.toNamed(AppRoutes.myOrderListView);
-    } else if (uri.host == 'cart') {
-      Get.toNamed(AppRoutes.cartView);
-    } else if (uri.host == 'wallet') {
-      Get.toNamed(AppRoutes.myWalletView);
-    } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
-      final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
-      if (orderId > 0) {
-        box.write('deep_link_order_id', orderId);
-      }
-    } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
-      final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
-      if (refundId > 0) {
-        box.write('deep_link_refund_id', refundId);
-      }
-    } else {
-      final token = uri.queryParameters['u'] ?? '';
-      if (token.isNotEmpty) {
-        box.write('deep_link_token', token);
-        String type = 'password_reset';
-        if (uri.path.contains('email-verification')) {
-          type = 'email_verify';
-        }
-        box.write('deep_link_type', type);
-      }
-    }
+    _handleDeepLink(uri, box);
   });
 
   final elapsed = DateTime.now().difference(startTime);
