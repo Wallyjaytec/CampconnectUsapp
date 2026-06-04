@@ -9,6 +9,8 @@ class VisualSearchResult {
   final String imageUrl;
   final String price;
   final String slug;
+  final String rating;
+  final String hasDiscount;
   final double score;
 
   VisualSearchResult({
@@ -17,6 +19,8 @@ class VisualSearchResult {
     required this.imageUrl,
     required this.price,
     required this.slug,
+    required this.rating,
+    required this.hasDiscount,
     required this.score,
   });
 
@@ -27,6 +31,8 @@ class VisualSearchResult {
       imageUrl: json['image_url']?.toString() ?? '',
       price: json['price']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
+      rating: json['rating']?.toString() ?? '0',
+      hasDiscount: json['has_discount']?.toString() ?? '0',
       score: (json['score'] is num) ? (json['score'] as num).toDouble() : 0.0,
     );
   }
