@@ -48,9 +48,9 @@ class VisualSearchController extends GetxController {
 
     try {
       final searchResults = await _service.searchByImage(image);
-      // Filter by minimum similarity (lower distance = more similar)
-      final filtered = searchResults.where((r) => r.score < 10.0).toList();
-      results.assignAll(filtered);
+      // Show all results, sorted by similarity (lowest distance first)
+      searchResults.sort((a, b) => a.score.compareTo(b.score));
+      results.assignAll(searchResults);
       if (results.isEmpty) {
         error.value = 'No similar products found'.tr;
       }
