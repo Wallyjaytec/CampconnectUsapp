@@ -27,9 +27,7 @@ class RelatedProductView extends StatelessWidget {
       permanent: false,
     );
 
-    final details = Get.put(
-      ProductDetailsController(ProductDetailsRepository(ApiService())),
-    );
+    final details = Get.find<ProductDetailsController>();
     relController.ensureLoaded(details.product.value?.id);
 
     return Padding(
