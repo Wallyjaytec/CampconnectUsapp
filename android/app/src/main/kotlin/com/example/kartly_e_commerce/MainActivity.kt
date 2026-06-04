@@ -20,6 +20,9 @@ class MainActivity : FlutterFragmentActivity() {
         setIntent(intent)
         handleIntent(intent)
         handleColdStartNotification(intent)
+        flutterEngine?.let { engine ->
+            engine.newIntentListener?.onNewIntent(intent)
+        }
     }
 
     private fun handleIntent(intent: Intent?) {
