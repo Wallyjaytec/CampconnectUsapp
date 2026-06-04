@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.RemoteViews
 import org.json.JSONObject
@@ -41,10 +40,8 @@ class HomeWidgetProvider : AppWidgetProvider() {
             var cartTotal = "₦0"
             var orderId = ""
             var orderAmount = ""
-            var orderProgress = 0
             var refundId = ""
             var refundAmount = ""
-            var refundProgress = 0
 
             if (jsonStr != null) {
                 try {
@@ -54,10 +51,8 @@ class HomeWidgetProvider : AppWidgetProvider() {
                     cartTotal = json.optString("cartTotal", "₦0")
                     orderId = json.optString("latestOrderId", "")
                     orderAmount = json.optString("latestOrderAmount", "")
-                    orderProgress = json.optString("latestOrderStatus", "0").toIntOrNull() ?: 0
                     refundId = json.optString("refundId", "")
                     refundAmount = json.optString("refundAmount", "")
-                    refundProgress = json.optString("refundStatus", "0").toIntOrNull() ?: 0
                 } catch (_: Exception) {}
             }
 
@@ -68,14 +63,8 @@ class HomeWidgetProvider : AppWidgetProvider() {
             if (orderId.isNotEmpty()) {
                 views.setTextViewText(R.id.widget_order_id, orderId)
                 views.setTextViewText(R.id.widget_order_amount, orderAmount)
-                // Update order progress bar
-                views.setViewVisibility(R.id.widget_order_bar, android.view.View.VISIBLE)
-                views.setViewVisibility(R.id.widget_order_progress, android.view.View.VISIBLE)
-                // Set progress width as fraction of parent
-                val orderWidth = (orderProgress * 0.01).toFloat()
-                // We'll handle progress bar sizing differently below
             } else {
-                views.setTextViewText(R.id.widget_order_id, "No orders")
+                views.setTextViewText(R.id.widget_order_id, "No orders yet")
                 views.setTextViewText(R.id.widget_order_amount, "")
             }
 
