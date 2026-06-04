@@ -124,13 +124,11 @@ class _ProductCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () async {
-            if (Get.isRegistered<ProductDetailsController>()) {
-              await Get.delete<ProductDetailsController>();
-            }
             Get.toNamed(
               AppRoutes.productDetailsView,
               preventDuplicates: false,
               arguments: {'permalink': p.slug},
+              id: p.id,
             );
           },
           child: Padding(
