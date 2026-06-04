@@ -4,6 +4,7 @@
     android:minHeight="90dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/order_tracking_widget_layout"
+    android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:description="Track your latest order and refund status" />
