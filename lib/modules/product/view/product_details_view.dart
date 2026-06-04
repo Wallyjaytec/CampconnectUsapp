@@ -42,9 +42,21 @@ import '../widgets/star_row.dart';
 class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
-  final controller = Get.put(
-  ProductDetailsController(ProductDetailsRepository(ApiService())),
-);
+  ProductDetailsController get controller {
+  final args = Get.arguments;
+  final productId = (args is Map) ? (args['product_id'] ?? '') : '';
+  final tag = 'product_$productId';
+  if (tag == 'product_' || tag == 'product_null') {
+    if (Get.isRegistered<ProductDetailsController>()) {
+      return Get.find<ProductDetailsController>();
+    }
+    return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
+  }
+  if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
+    return Get.find<ProductDetailsController>(tag: tag);
+  }
+  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
