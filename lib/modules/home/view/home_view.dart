@@ -21,9 +21,12 @@ import 'package:kartly_e_commerce/modules/brand/view/brand_view.dart';
 import 'package:kartly_e_commerce/modules/category/view/category_view.dart';
 import 'package:kartly_e_commerce/modules/product/view/category_product_section.dart';
 import 'package:kartly_e_commerce/modules/product/view/discount_sales_section.dart';
+import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
+import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
 
-import '../../../core/routes/app_routes.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/controllers/currency_controller.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/services/network_service.dart';
 import '../../../core/services/permission_service.dart';
 import '../../account/controller/notifications_controller.dart';
@@ -40,9 +43,7 @@ import '../controller/banner_controller.dart';
 import '../widgets/banner_carousel.dart';
 import '../widgets/features_banner_carousel.dart';
 import '../widgets/customer_reviews_carousel.dart';
-import '../widgets/home_header_widget.dart';
-import '../widgets/order_refund_cards.dart';
-import '../widgets/cart_summary_bar.dart';
+import '../widgets/search_header.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -176,95 +177,104 @@ class _HomeViewState extends State<HomeView> {
         top: true, bottom: false,
         child: Stack(
           children: [
-            RefreshIndicator(
-              onRefresh: _onRefresh,
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (notification) {
-                  if (notification is ScrollUpdateNotification || notification is OverscrollNotification) {
-                    _handleScrollMetrics(notification.metrics);
-                  }
-                  return false;
-                },
-                child: CustomScrollView(
-                  controller: _scrollCtrl,
-                  slivers: [
-                    // Header with search and quick actions
-                    const SliverToBoxAdapter(child: HomeHeaderWidget()),
-                    // Order & Refund tracking cards
-                    const SliverToBoxAdapter(child: OrderRefundCards()),
-                    // Cart summary bar
-                    const SliverToBoxAdapter(child: CartSummaryBar()),
-                    // Banners
-                    SliverToBoxAdapter(
-                      child: GetX<BannerController>(
-                        init: BannerController(),
-                        builder: (bCtrl) {
-                          if (bCtrl.isLoading.value) {
-                            return const BannerCarousel(
-                              items: [_BannerShimmer(), _BannerShimmer(), _BannerShimmer()],
-                              height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
-                            );
-                          }
-                          if (bCtrl.error.isNotEmpty || bCtrl.banners.isEmpty) {
-                            return const BannerCarousel(
-                              items: [Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52)],
-                              height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
-                            );
-                          }
-                          final items = bCtrl.banners.map((b) => GestureDetector(
-                            onTap: () => bCtrl.onTapBanner(b),
-                            child: CachedNetworkImage(imageUrl: b.image, fit: BoxFit.cover, width: double.infinity, height: 130),
-                          )).toList();
-                          return BannerCarousel(items: items, height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true);
-                        },
+            NestedScrollView(
+              floatHeaderSlivers: true,
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverAppBar(
+                    primary: false, automaticallyImplyLeading: false, leading: null,
+                    titleSpacing: 10,
+                    title: Image.asset(AppAssets.appLogo, width: 150, height: 45, fit: BoxFit.contain),
+                    actionsPadding: const EdgeInsetsDirectional.only(end: 10),
+                    actions: const [CartIconWidget(), NotificationIconWidget()],
+                    floating: true, snap: true, pinned: false, centerTitle: false, elevation: 0,
+                  ),
+                  SliverPersistentHeader(pinned: true, delegate: SearchHeader(height: 40, child: _SearchField())),
+                ];
+              },
+              body: RefreshIndicator(
+                onRefresh: _onRefresh,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification is ScrollUpdateNotification || notification is OverscrollNotification) {
+                      _handleScrollMetrics(notification.metrics);
+                    }
+                    return false;
+                  },
+                  child: CustomScrollView(
+                    controller: _scrollCtrl,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: GetX<BannerController>(
+                          init: BannerController(),
+                          builder: (bCtrl) {
+                            if (bCtrl.isLoading.value) {
+                              return const BannerCarousel(
+                                items: [_BannerShimmer(), _BannerShimmer(), _BannerShimmer()],
+                                height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
+                              );
+                            }
+                            if (bCtrl.error.isNotEmpty || bCtrl.banners.isEmpty) {
+                              return const BannerCarousel(
+                                items: [Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52), Icon(Iconsax.gallery_copy, size: 52)],
+                                height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true,
+                              );
+                            }
+                            final items = bCtrl.banners.map((b) => GestureDetector(
+                              onTap: () => bCtrl.onTapBanner(b),
+                              child: CachedNetworkImage(imageUrl: b.image, fit: BoxFit.cover, width: double.infinity, height: 130),
+                            )).toList();
+                            return BannerCarousel(items: items, height: 130, viewportFraction: 0.84, padEnds: true, itemSpacing: 8, padding: EdgeInsets.zero, autoPlay: true);
+                          },
+                        ),
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: CategoryView(
-                        onViewAll: () => Get.toNamed(AppRoutes.allCategoriesView),
-                        onTapCategory: (id) {
-                          final c = Get.put(NewProductListController(ProductRepository(ApiService())));
-                          String? name;
-                          if (Get.isRegistered<CategoryController>()) {
-                            name = Get.find<CategoryController>().categories.firstWhereOrNull((e) => e.id == id)?.name;
-                          }
-                          c.openForCategory(categoryId: id, categoryName: name);
-                          Get.to(() => const product_list_view.NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
-                        },
+                      SliverToBoxAdapter(
+                        child: CategoryView(
+                          onViewAll: () => Get.toNamed(AppRoutes.allCategoriesView),
+                          onTapCategory: (id) {
+                            final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                            String? name;
+                            if (Get.isRegistered<CategoryController>()) {
+                              name = Get.find<CategoryController>().categories.firstWhereOrNull((e) => e.id == id)?.name;
+                            }
+                            c.openForCategory(categoryId: id, categoryName: name);
+                            Get.to(() => const product_list_view.NewProductListView(), arguments: {'categoryId': id, 'categoryName': name});
+                          },
+                        ),
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: BrandView(
-                        onViewAll: () => Get.to(() => AllBrandsView(onTapBrand: (brand) {
-                          Get.back();
-                          final c = Get.put(NewProductListController(ProductRepository(ApiService())));
-                          c.openForBrand(brandId: brand.id, brandName: brand.name);
-                          Get.to(() => const product_list_view.NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
-                        })),
-                        onTapBrand: (brand) {
-                          final c = Get.put(NewProductListController(ProductRepository(ApiService())));
-                          c.openForBrand(brandId: brand.id, brandName: brand.name);
-                          Get.to(() => const product_list_view.NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
-                        },
+                      SliverToBoxAdapter(
+                        child: BrandView(
+                          onViewAll: () => Get.to(() => AllBrandsView(onTapBrand: (brand) {
+                            Get.back();
+                            final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                            c.openForBrand(brandId: brand.id, brandName: brand.name);
+                            Get.to(() => const product_list_view.NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                          })),
+                          onTapBrand: (brand) {
+                            final c = Get.put(NewProductListController(ProductRepository(ApiService())));
+                            c.openForBrand(brandId: brand.id, brandName: brand.name);
+                            Get.to(() => const product_list_view.NewProductListView(), arguments: {'brandId': brand.id, 'brandName': brand.name});
+                          },
+                        ),
                       ),
-                    ),
-                    const SliverToBoxAdapter(child: FlashDealsSection()),
-                    const SliverToBoxAdapter(child: DiscountSalesSection()),
-                    const SliverToBoxAdapter(child: RecentlyViewedSection()),
-                    const SliverToBoxAdapter(child: FeaturesBannerCarousel()),
-                    SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
-                    const SliverToBoxAdapter(child: CustomerReviewsCarousel()),
-                    const SliverToBoxAdapter(child: FollowingSection()),
-                    const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 55, title: 'Gaming')),
-                    const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
-                    const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 45, title: 'Health & Beauty')),
-                    const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 43, title: 'Jewelry')),
-                    const SliverToBoxAdapter(child: FeaturedItemsSection()),
-                    const SliverToBoxAdapter(child: PopularItemsSection()),
-                    const SliverToBoxAdapter(child: LatestCollectionSection()),
-                    const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
-                    SliverToBoxAdapter(child: ForYouSection()),
-                  ],
+                      const SliverToBoxAdapter(child: FlashDealsSection()),
+                      const SliverToBoxAdapter(child: DiscountSalesSection()),
+                      const SliverToBoxAdapter(child: RecentlyViewedSection()),
+                      const SliverToBoxAdapter(child: FeaturesBannerCarousel()),
+                      SliverToBoxAdapter(child: TopSalesSection(limit: 4)),
+                      const SliverToBoxAdapter(child: CustomerReviewsCarousel()),
+                      const SliverToBoxAdapter(child: FollowingSection()),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 55, title: 'Gaming')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 44, title: 'Shoes')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 45, title: 'Health & Beauty')),
+                      const SliverToBoxAdapter(child: CategoryProductSection(categoryId: 43, title: 'Jewelry')),
+                      const SliverToBoxAdapter(child: FeaturedItemsSection()),
+                      const SliverToBoxAdapter(child: PopularItemsSection()),
+                      const SliverToBoxAdapter(child: LatestCollectionSection()),
+                      const SliverToBoxAdapter(child: NewProductSection(limit: 4)),
+                      SliverToBoxAdapter(child: ForYouSection()),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -283,6 +293,42 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () { FocusScope.of(context).unfocus(); Get.toNamed(AppRoutes.searchView); },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.only(left: 10, right: 10),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 3))],
+        ),
+        child: Row(
+          children: [
+            Expanded(child: AbsorbPointer(absorbing: true,
+              child: TextField(readOnly: true, showCursor: false, enableInteractiveSelection: false,
+                decoration: InputDecoration(hintText: 'Search on CampconnectUs Marketplace'.tr, hintStyle: const TextStyle(color: AppColors.greyColor, fontWeight: FontWeight.normal, fontSize: 14), border: InputBorder.none, isDense: true),
+              ),
+            )),
+            GestureDetector(
+              onTap: () {
+                Get.toNamed(AppRoutes.searchView);
+              },
+              child: const Icon(Iconsax.camera_copy, size: 18, color: AppColors.greyColor),
+            ),
+            const SizedBox(width: 10),
+            const Icon(Iconsax.search_normal_1_copy, size: 18),
           ],
         ),
       ),
