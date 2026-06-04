@@ -10,9 +10,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
-            android:data="campconnectus://search">
-            <flag android:value="0x14000000" />
-        </intent>
+            android:data="https://campconnectus.store/shortcut/search" />
     </shortcut>
     
     <shortcut
@@ -25,9 +23,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
-            android:data="campconnectus://orders">
-            <flag android:value="0x14000000" />
-        </intent>
+            android:data="https://campconnectus.store/shortcut/orders" />
     </shortcut>
     
     <shortcut
@@ -40,9 +36,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
-            android:data="campconnectus://cart">
-            <flag android:value="0x14000000" />
-        </intent>
+            android:data="https://campconnectus.store/shortcut/cart" />
     </shortcut>
     
     <shortcut
@@ -55,8 +49,6 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
-            android:data="campconnectus://wallet">
-            <flag android:value="0x14000000" />
-        </intent>
+            android:data="https://campconnectus.store/shortcut/wallet" />
     </shortcut>
 </shortcuts>
