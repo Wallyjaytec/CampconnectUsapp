@@ -8,56 +8,15 @@ import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
 import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
 
 import '../../../core/config/app_config.dart';
-import '../../../core/services/api_service.dart';
-import '../../../data/repositories/product_repository.dart';
+import '../../../core/services/visual_search_service.dart';
 import '../controller/visual_search_controller.dart';
-import '../model/search_model.dart';
 
-class VisualSearchResultsView extends StatefulWidget {
+class VisualSearchResultsView extends StatelessWidget {
   const VisualSearchResultsView({super.key});
 
   @override
-  State<VisualSearchResultsView> createState() => _VisualSearchResultsViewState();
-}
-
-class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
-  final List<ProductModel> _products = [];
-  bool _loadingProducts = false;
-
-  VisualSearchController get _controller => Get.find<VisualSearchController>();
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchProductDetails();
-  }
-
-  Future<void> _fetchProductDetails() async {
-    final results = _controller.results;
-    if (results.isEmpty) return;
-
-    setState(() => _loadingProducts = true);
-
-    final repo = ProductRepository(ApiService());
-    for (final r in results) {
-      final id = int.tryParse(r.productId) ?? 0;
-      if (id > 0) {
-        try {
-          final res = await repo.fetchProductDetails(id: id, slug: '');
-          if (res.data != null) {
-            _products.add(res.data!);
-          }
-        } catch (_) {}
-      }
-    }
-
-    if (mounted) {
-      setState(() => _loadingProducts = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.find<VisualSearchController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -68,11 +27,11 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
         title: Text('Image Search'.tr),
       ),
       body: Obx(() {
-        if (_controller.isLoading.value || _loadingProducts) {
+        if (controller.isLoading.value) {
           return const _GridShimmer();
         }
 
-        if (_controller.error.value.isNotEmpty && _products.isEmpty) {
+        if (controller.error.value.isNotEmpty && controller.results.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -81,21 +40,21 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
                 children: [
                   const Icon(Iconsax.camera_copy, size: 80, color: AppColors.primaryColor),
                   const SizedBox(height: 16),
-                  Text(_controller.error.value, textAlign: TextAlign.center,
+                  Text(controller.error.value, textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton.icon(
-                        onPressed: () => _controller.searchFromCamera(),
+                        onPressed: () => controller.searchFromCamera(),
                         icon: const Icon(Iconsax.camera_copy, size: 18),
                         label: Text('Camera'.tr),
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white),
                       ),
                       const SizedBox(width: 12),
                       OutlinedButton.icon(
-                        onPressed: () => _controller.searchFromGallery(),
+                        onPressed: () => controller.searchFromGallery(),
                         icon: const Icon(Iconsax.gallery_copy, size: 18),
                         label: Text('Gallery'.tr),
                       ),
@@ -107,7 +66,7 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
           );
         }
 
-        if (_products.isEmpty) {
+        if (controller.results.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -126,14 +85,14 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton.icon(
-                        onPressed: () => _controller.searchFromCamera(),
+                        onPressed: () => controller.searchFromCamera(),
                         icon: const Icon(Iconsax.camera_copy, size: 18),
                         label: Text('Camera'.tr),
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white),
                       ),
                       const SizedBox(width: 12),
                       OutlinedButton.icon(
-                        onPressed: () => _controller.searchFromGallery(),
+                        onPressed: () => controller.searchFromGallery(),
                         icon: const Icon(Iconsax.gallery_copy, size: 18),
                         label: Text('Gallery'.tr),
                       ),
@@ -151,11 +110,11 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Text('${_products.length} ${'products found'.tr}',
+                  Text('${controller.results.length} ${'products found'.tr}',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                   const Spacer(),
                   TextButton.icon(
-                    onPressed: () => _controller.searchFromGallery(),
+                    onPressed: () => controller.searchFromGallery(),
                     icon: const Icon(Iconsax.gallery_copy, size: 16),
                     label: Text('New Search'.tr),
                   ),
@@ -171,10 +130,10 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
                   crossAxisSpacing: 14,
                   mainAxisExtent: 240,
                 ),
-                itemCount: _products.length,
+                itemCount: controller.results.length,
                 itemBuilder: (context, index) {
-                  final p = _products[index];
-                  return _ProductCard(product: p, isDark: isDark);
+                  final product = controller.results[index];
+                  return _ProductCard(product: product, isDark: isDark);
                 },
               ),
             ),
@@ -186,13 +145,15 @@ class _VisualSearchResultsViewState extends State<VisualSearchResultsView> {
 }
 
 class _ProductCard extends StatelessWidget {
-  final ProductModel product;
+  final VisualSearchResult product;
   final bool isDark;
 
   const _ProductCard({required this.product, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
+    final id = int.tryParse(product.productId) ?? 0;
+    
     return Container(
       clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.only(bottom: 0),
@@ -208,17 +169,19 @@ class _ProductCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () {
-            Get.toNamed('/product_details_view', arguments: {'id': product.id, 'slug': product.slug});
+            if (id > 0) {
+              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': ''});
+            }
           },
           child: Column(
             children: [
               Expanded(
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                  child: product.thumbnailImage.isEmpty
+                  child: product.imageUrl.isEmpty
                       ? Container(color: Theme.of(context).dividerColor.withValues(alpha: 0.1))
                       : CachedNetworkImage(
-                          imageUrl: AppConfig.assetUrl(product.thumbnailImage),
+                          imageUrl: AppConfig.assetUrl(product.imageUrl),
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
@@ -231,7 +194,7 @@ class _ProductCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
-                  product.name,
+                  product.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -240,7 +203,7 @@ class _ProductCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                formatCurrency(product.price.toDouble(), applyConversion: true),
+                product.price.isNotEmpty ? formatCurrency(double.tryParse(product.price) ?? 0, applyConversion: true) : '',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   color: isDark ? AppColors.whiteColor : AppColors.primaryColor,
