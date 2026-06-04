@@ -40,15 +40,20 @@ import '../model/review_model.dart';
 import '../widgets/star_row.dart';
 
 class ProductDetailsView extends StatelessWidget {
-  ProductDetailsView({super.key});
+  ProductDetailsProductDetailsControllerView({super.key});
 
   // ✅ CHANGE 1: Use getter instead of final field
-  ProductDetailsController? _ctrl;
-
 ProductDetailsController get controller {
-  if (_ctrl != null) return _ctrl!;
-  _ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
-  return _ctrl!;
+  final args = Get.arguments;
+  final permalink = (args is Map) ? (args['permalink'] ?? args['slug'] ?? '') : '';
+  final tag = 'product_$permalink';
+  if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
+    return Get.find<ProductDetailsController>(tag: tag);
+  }
+  return Get.put(
+    ProductDetailsController(ProductDetailsRepository(ApiService()), permalink: permalink),
+    tag: tag,
+  );
 }
   @override
   Widget build(BuildContext context) {
