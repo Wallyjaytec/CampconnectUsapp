@@ -7,6 +7,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/services/currency_service.dart';
 import '../../../core/services/guest_cart_service.dart';
 import '../../../core/services/login_service.dart';
+import '../../../core/services/widget_data_service.dart';
 import '../../../data/repositories/cart_repository.dart';
 import '../../product/model/cart_item_model.dart';
 
@@ -107,6 +108,7 @@ class CartController extends GetxController {
       selectedIds.clear();
     } finally {
       isLoading.value = false;
+      _syncWidget();
     }
   }
 
@@ -268,6 +270,7 @@ class CartController extends GetxController {
         colorText: AppColors.whiteColor,
       );
     }
+    _syncWidget();
   }
 
   void dec(int idx) async {
@@ -295,6 +298,7 @@ class CartController extends GetxController {
         colorText: AppColors.whiteColor,
       );
     }
+    _syncWidget();
   }
 
   void removeAt(int idx) async {
@@ -318,6 +322,7 @@ class CartController extends GetxController {
         colorText: AppColors.whiteColor,
       );
     }
+    _syncWidget();
   }
 
   bool isSelectedId(int productId) => selectedIds.contains(productId);
@@ -519,5 +524,12 @@ class CartController extends GetxController {
     appliedCouponId.value = null;
     couponPillText.value = '';
     couponPillKind.value = CouponPillKind.none;
+  }
+
+  void _syncWidget() {
+    WidgetDataService.updateWidgetData(
+      cartItems: totalItemsCount,
+      cartTotal: money(grandTotal),
+    );
   }
 }
