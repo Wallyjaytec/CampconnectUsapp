@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../core/services/widget_data_service.dart';
 import '../../../data/repositories/my_order_repository.dart';
 import '../model/my_order_model.dart';
 
@@ -115,6 +116,7 @@ class OrderController extends GetxController {
       error.value = 'Something went wrong'.tr;
     } finally {
       isLoading.value = false;
+      _syncWidget();
     }
   }
 
@@ -149,5 +151,37 @@ class OrderController extends GetxController {
   Future<void> searchOrders(String query) async {
     searchKey.value = query;
     await initLoad();
+  }
+
+  void _syncWidget() {
+    final latest = orders.isNotEmpty ? orders.first : null;
+    if (latest != null) {
+      WidgetDataService.updateWidgetData(
+        cartItems: 0,
+        cartTotal: '₦0',
+        latestOrderId: '#${latest.orderId}',
+        latestOrderAmount: '₦${latest.totalAmount}',
+        latestOrderStatus: _mapStatus(latest.deliveryStatus),
+      );
+    }
+  }
+
+  String _mapStatus(String status) {
+    switch (status) {
+      case 'pending':
+        return '10';
+      case 'confirmed':
+        return '30';
+      case 'processing':
+        return '50';
+      case 'picked_up':
+        return '70';
+      case 'on_the_way':
+        return '85';
+      case 'delivered':
+        return '100';
+      default:
+        return '0';
+    }
   }
 }
