@@ -8,8 +8,6 @@
         android:shortcutLongLabel="@string/search_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://search" />
     </shortcut>
     
@@ -21,8 +19,6 @@
         android:shortcutLongLabel="@string/orders_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://orders" />
     </shortcut>
     
@@ -34,8 +30,6 @@
         android:shortcutLongLabel="@string/cart_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://cart" />
     </shortcut>
     
@@ -47,8 +41,6 @@
         android:shortcutLongLabel="@string/wallet_long">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="campconnectus://wallet" />
     </shortcut>
 </shortcuts>
