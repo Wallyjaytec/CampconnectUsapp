@@ -45,24 +45,11 @@ class ProductDetailsView extends StatelessWidget {
   // ✅ CHANGE 1: Use getter instead of final field
   
 ProductDetailsController get controller {
-  final args = Get.arguments;
-  final productId = (args is Map) ? (args['product_id'] ?? '') : '';
-  final tag = 'product_$productId';
-  ProductDetailsController ctrl;
-  if (tag == 'product_' || tag == 'product_null') {
-    if (Get.isRegistered<ProductDetailsController>()) {
-      ctrl = Get.find<ProductDetailsController>();
-    } else {
-      ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
-    }
-  } else if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
-    ctrl = Get.find<ProductDetailsController>(tag: tag);
-  } else {
-    ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
+  if (Get.isRegistered<ProductDetailsController>()) {
+    Get.delete<ProductDetailsController>(force: true);
   }
-  if (ctrl.permalink.isEmpty || ctrl.product.value == null) {
-    ctrl.initFromArgs();
-  }
+  final ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
+  ctrl.initFromArgs();
   return ctrl;
 }
   @override
