@@ -42,19 +42,9 @@ import '../widgets/star_row.dart';
 class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
-  ProductDetailsController get controller {
-  final args = Get.arguments;
-  String permalink = '';
-  if (args is Map) {
-    permalink = (args['permalink'] ?? args['slug'] ?? '').toString();
-  } else if (args is String) {
-    permalink = args;
-  }
-  return Get.put(
-    ProductDetailsController(ProductDetailsRepository(ApiService()), permalink: permalink),
-    tag: permalink,
-  );
-  }
+  final controller = Get.put(
+  ProductDetailsController(ProductDetailsRepository(ApiService())),
+);
   @override
   Widget build(BuildContext context) {
     return SafeArea(
