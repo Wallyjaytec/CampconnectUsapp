@@ -9,10 +9,10 @@ import 'package:kartly_e_commerce/modules/product/model/related_product_model.da
 import 'package:kartly_e_commerce/modules/product/widgets/single_price_tag.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/routes/app_routes.dart';
 import '../../../core/services/api_service.dart';
 import '../../../data/repositories/related_products_repository.dart';
 import '../../product/controller/related_products_controller.dart';
+import '../../product/view/product_details_view.dart';
 import '../../wishlist/controller/wishlist_controller.dart';
 import '../controller/product_details_controller.dart';
 import '../widgets/star_row.dart';
@@ -124,10 +124,10 @@ class _ProductCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () async {
-            Get.toNamed(
-              AppRoutes.productDetailsView,
+            Get.to(
+              () => ProductDetailsView(),
+              arguments: {'permalink': p.slug},
               preventDuplicates: false,
-              arguments: {'permalink': p.slug, 'product_id': p.id.toString()},
             );
           },
           child: Padding(
