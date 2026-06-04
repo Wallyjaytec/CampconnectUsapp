@@ -153,7 +153,7 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = int.tryParse(product.productId) ?? 0;
-    
+
     return Container(
       clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.only(bottom: 0),
@@ -170,7 +170,7 @@ class _ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           onTap: () {
             if (id > 0) {
-              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': ''});
+              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': product.title});
             }
           },
           child: Column(
