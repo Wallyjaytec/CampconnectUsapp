@@ -175,7 +175,7 @@ class _ProductCard extends StatelessWidget {
           onTap: () {
             if (id > 0) {
               final slug = product.slug.isNotEmpty ? product.slug : product.title;
-              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': slug}, id: id);
+              Get.toNamed('/product_details_view', arguments: {'permalink': slug});
             }
           },
           child: Column(
@@ -205,7 +205,7 @@ class _ProductCard extends StatelessWidget {
                             color: Colors.red,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('Sale'.tr, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                          child: Text('Discount'.tr, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                         ),
                       ),
                   ],
@@ -223,10 +223,10 @@ class _ProductCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              if (rating > 0) StarRow(rating: rating),
+              StarRow(rating: rating),
               const SizedBox(height: 4),
               Text(
-                price > 0 ? formatCurrency(price, applyConversion: true) : '',
+                price > 0 ? formatCurrency(price, applyConversion: true) : 'Tap to view'.tr,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
