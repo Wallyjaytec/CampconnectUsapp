@@ -43,14 +43,12 @@ class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
   // ✅ CHANGE 1: Use getter instead of final field
-  
-ProductDetailsController? _controller;
+  ProductDetailsController? _ctrl;
 
 ProductDetailsController get controller {
-  if (_controller != null) return _controller!;
-  _controller = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
-  _controller!.initFromArgs();
-  return _controller!;
+  if (_ctrl != null) return _ctrl!;
+  _ctrl = Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
+  return _ctrl!;
 }
   @override
   Widget build(BuildContext context) {
