@@ -4,44 +4,55 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/core/constants/app_colors.dart';
 import 'package:kartly_e_commerce/core/routes/app_routes.dart';
 import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
+import 'package:kartly_e_commerce/modules/home/controller/home_summary_controller.dart';
 
 class OrderRefundCards extends StatelessWidget {
   const OrderRefundCards({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(HomeSummaryController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _StatusCard(
-              icon: Iconsax.box_copy,
-              title: 'Latest Order'.tr,
-              orderCode: '#CCU1012...',
-              status: 'Processing',
-              amount: 15000,
-              onTap: () => Get.toNamed(AppRoutes.myOrderListView),
-              isDark: isDark,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _StatusCard(
-              icon: Iconsax.money_recive_copy,
-              title: 'Refund'.tr,
-              orderCode: '#5-120345',
-              status: 'In Progress',
-              amount: 5000,
-              onTap: () => Get.toNamed(AppRoutes.refundRequestListView),
-              isDark: isDark,
-            ),
-          ),
-        ],
-      ),
-    );
+    return Obx(() {
+      final order = controller.latestOrder.value;
+      final refund = controller.latestRefund.value;
+
+      if (order == null && refund == null) return const SizedBox.shrink();
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            if (order != null)
+              Expanded(
+                child: _StatusCard(
+                  icon: Iconsax.box_copy,
+                  title: 'Latest Order'.tr,
+                  orderCode: order.orderCode,
+                  status: order.deliveryStatus,
+                  amount: order.totalPayableAmount,
+                  onTap: () => Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': order.id}),
+                  isDark: isDark,
+                ),
+              ),
+            if (order != null && refund != null) const SizedBox(width: 10),
+            if (refund != null)
+              Expanded(
+                child: _StatusCard(
+                  icon: Iconsax.money_recive_copy,
+                  title: 'Refund'.tr,
+                  orderCode: refund.refundCode,
+                  status: refund.returnStatusLabel,
+                  amount: double.tryParse(refund.totalRefundAmount) ?? 0,
+                  onTap: () => Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refund.id),
+                  isDark: isDark,
+                ),
+              ),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -88,7 +99,6 @@ class _StatusCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(orderCode, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
             const SizedBox(height: 4),
-            // Status bar
             Container(
               height: 4,
               decoration: BoxDecoration(
@@ -97,7 +107,7 @@ class _StatusCard extends StatelessWidget {
               ),
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
-                widthFactor: status == 'Processing' ? 0.4 : 0.6,
+                widthFactor: 0.5,
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor,
