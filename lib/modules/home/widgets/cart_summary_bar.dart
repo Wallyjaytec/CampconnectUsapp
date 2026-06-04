@@ -20,7 +20,7 @@ class CartSummaryBar extends StatelessWidget {
       if (items.isEmpty) return const SizedBox.shrink();
 
       final count = items.length;
-      final total = items.fold<double>(0, (sum, item) => sum + (item.unitPrice * item.quantity));
+      final total = items.fold<double>(0, (sum, item) => sum + (item.unitPrice.toDouble() * item.quantity));
 
       return GestureDetector(
         onTap: () => Get.toNamed(AppRoutes.cartView),
