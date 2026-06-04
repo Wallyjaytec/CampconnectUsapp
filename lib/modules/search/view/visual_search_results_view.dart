@@ -170,7 +170,8 @@ class _ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           onTap: () {
             if (id > 0) {
-              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': product.title});
+              final slug = product.slug.isNotEmpty ? product.slug : product.title;
+              Get.toNamed('/product_details_view', arguments: {'id': id, 'slug': slug});
             }
           },
           child: Column(
