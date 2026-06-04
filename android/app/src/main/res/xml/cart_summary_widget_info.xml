@@ -4,6 +4,7 @@
     android:minHeight="40dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/cart_summary_widget_layout"
+    android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:description="Quick view of your cart total and items" />
