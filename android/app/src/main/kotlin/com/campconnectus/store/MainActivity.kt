@@ -23,6 +23,18 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         writeLog("onCreate called - savedInstanceState: ${savedInstanceState != null} - intent data: ${intent?.data}")
+
+        intent?.data?.let { uri ->
+            val path = uri.pathSegments
+            if (path.size >= 2 && path[0] == "shortcut") {
+                getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+                    .edit()
+                    .putString("flutter.shortcut_destination", path[1])
+                    .putBoolean("flutter.skip_splash", true)
+                    .apply()
+            }
+        }
+
         super.onCreate(savedInstanceState)
         handleColdStartNotification(intent)
         intent?.data?.let { pendingDeepLink = it.toString() }
