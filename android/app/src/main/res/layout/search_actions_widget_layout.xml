@@ -67,7 +67,6 @@
                 android:textSize="10sp"
                 android:singleLine="true" />
 
-            <!-- Camera icon — same size as search, black -->
             <ImageView
                 android:layout_width="18dp"
                 android:layout_height="18dp"
@@ -75,15 +74,14 @@
                 android:tint="#1A1A1A"
                 android:layout_marginEnd="6dp" />
 
-            <!-- Search icon in black pill -->
             <LinearLayout
-                android:layout_width="36dp"
+                android:layout_width="34dp"
                 android:layout_height="26dp"
                 android:background="@drawable/widget_search_icon_bg"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:src="@android:drawable/ic_menu_search"
                     android:tint="#FFFFFF" />
             </LinearLayout>
@@ -96,7 +94,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- Account -->
             <LinearLayout
                 android:id="@+id/widget_account"
                 android:layout_width="0dp"
@@ -123,7 +120,6 @@
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
-            <!-- Cart -->
             <LinearLayout
                 android:id="@+id/widget_cart"
                 android:layout_width="0dp"
@@ -150,7 +146,6 @@
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
-            <!-- Orders -->
             <LinearLayout
                 android:id="@+id/widget_orders"
                 android:layout_width="0dp"
@@ -177,7 +172,6 @@
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
-            <!-- Notifications -->
             <LinearLayout
                 android:id="@+id/widget_notifications"
                 android:layout_width="0dp"
