@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Each shortcut uses TWO intents:
+          1. MAIN intent  — sets the back-stack root so Android recognises the
+                            existing task and calls onNewIntent instead of onCreate.
+          2. VIEW intent  — carries the deep-link URI, delivered as onNewIntent
+                            into the already-running (or just-rooted) activity.
+
+        Without the MAIN intent Android treats every shortcut tap as a cold
+        launch and reconstructs the task, restarting the Flutter engine.
+    -->
+
+    <!-- Search -->
     <shortcut
         android:shortcutId="search"
         android:enabled="true"
         android:icon="@drawable/ic_shortcut_search"
         android:shortcutShortLabel="@string/search_short"
         android:shortcutLongLabel="@string/search_long">
+        <!-- Back-stack root (must come first) -->
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+        <!-- Deep-link payload (delivered as onNewIntent) -->
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="https://campconnectus.store/shortcut/search" />
     </shortcut>
-    
+
+    <!-- Orders -->
     <shortcut
         android:shortcutId="orders"
         android:enabled="true"
@@ -20,12 +40,17 @@
         android:shortcutShortLabel="@string/orders_short"
         android:shortcutLongLabel="@string/orders_long">
         <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+        <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="https://campconnectus.store/shortcut/orders" />
     </shortcut>
-    
+
+    <!-- Cart -->
     <shortcut
         android:shortcutId="cart"
         android:enabled="true"
@@ -33,12 +58,17 @@
         android:shortcutShortLabel="@string/cart_short"
         android:shortcutLongLabel="@string/cart_long">
         <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+        <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="https://campconnectus.store/shortcut/cart" />
     </shortcut>
-    
+
+    <!-- Wallet -->
     <shortcut
         android:shortcutId="wallet"
         android:enabled="true"
@@ -46,9 +76,14 @@
         android:shortcutShortLabel="@string/wallet_short"
         android:shortcutLongLabel="@string/wallet_long">
         <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.example.kartly_e_commerce"
+            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+        <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.kartly_e_commerce"
             android:targetClass="com.example.kartly_e_commerce.MainActivity"
             android:data="https://campconnectus.store/shortcut/wallet" />
     </shortcut>
+
 </shortcuts>
