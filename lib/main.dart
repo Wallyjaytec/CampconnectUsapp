@@ -33,6 +33,8 @@ final _appLinks = AppLinks();
 
 Map<String, dynamic>? pendingNotificationData;
 
+bool appHasLaunched = false;
+
 class PushNotificationData {
   static String? notificationId;
   static String? message;
@@ -70,11 +72,6 @@ Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
-// Stores a deep-link URI to be handled once the app is fully running and the
-// GetX router is ready (i.e. after runApp + SplashScreen is mounted).
-// SplashScreen reads this in _navigateNormally() via GetStorage, so we write
-// shortcut destinations there. For non-shortcut links we write the relevant
-// GetStorage keys directly — same as before.
 void _handleDeepLink(Uri uri, GetStorage box) {
   box.write('debug_last_link', uri.toString());
   box.write('debug_last_link_time', DateTime.now().toString());
@@ -110,8 +107,6 @@ void _handleDeepLink(Uri uri, GetStorage box) {
   }
 }
 
-// Tries Get.toNamed immediately (warm resume — router is live).
-// Falls back to writing shortcut_destination (cold start — SplashScreen reads it).
 void _navigateOrStore(String dest, GetStorage box) {
   final context = Get.context;
   if (context != null && ModalRoute.of(context) != null) {
@@ -140,7 +135,6 @@ void _navigateOrStore(String dest, GetStorage box) {
         break;
     }
   } else {
-    // Router not ready — store for SplashScreen._navigateNormally()
     box.write('shortcut_destination', dest);
   }
 }
@@ -235,8 +229,6 @@ Future<void> main() async {
 
   final box = GetStorage();
 
-  // MethodChannel — receives deep links from Android widgets and shortcuts
-  // (forwarded by MainActivity.onNewIntent / configureFlutterEngine).
   const deepLinkChannel =
       MethodChannel('com.campconnectus.store/deeplink');
   deepLinkChannel.setMethodCallHandler((call) async {
@@ -245,7 +237,6 @@ Future<void> main() async {
       if (url.isNotEmpty) {
         final uri = Uri.tryParse(url);
         if (uri != null) {
-          // Remember this URL so uriLinkStream can skip it (dedup).
           _lastMethodChannelLink = url;
           _handleDeepLink(uri, box);
         }
@@ -301,25 +292,20 @@ Future<void> main() async {
     await LanguageService.load(savedApiCode);
   } catch (_) {}
 
-  // Cold-start deep link from app_links (handles truly cold opens from browser
-  // or custom-scheme links that don't go through the MethodChannel).
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
       final uriStr = uri.toString();
-      // Skip if already handled by MethodChannel (avoids double-navigation).
       if (uriStr != _lastMethodChannelLink) {
         _handleDeepLink(uri, box);
       }
     }
   } catch (_) {}
 
-  // Warm-resume stream from app_links.
   _appLinks.uriLinkStream.listen((uri) {
     final uriStr = uri.toString();
-    // Skip URIs already forwarded by the MethodChannel to avoid duplication.
     if (uriStr == _lastMethodChannelLink) {
-      _lastMethodChannelLink = null; // consume the guard
+      _lastMethodChannelLink = null;
       return;
     }
     _handleDeepLink(uri, box);
