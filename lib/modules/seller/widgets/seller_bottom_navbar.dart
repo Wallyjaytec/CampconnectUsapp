@@ -13,7 +13,10 @@ class SellerBottomNavbar extends StatelessWidget {
 
     return Obx(
       () => Scaffold(
-        body: controller.screens[controller.currentIndex.value],
+        body: IndexedStack(
+          index: controller.currentIndex.value,
+          children: controller.screens,
+        ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: controller.currentIndex.value,
           onTap: (index) {
