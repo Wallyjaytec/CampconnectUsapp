@@ -13,6 +13,7 @@ import 'package:kartly_e_commerce/modules/seller/controller/seller_products_cont
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
+import '../../../shared/widgets/shimmer_widgets.dart';
 import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
