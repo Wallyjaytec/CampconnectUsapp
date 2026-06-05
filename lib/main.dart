@@ -33,8 +33,6 @@ final _appLinks = AppLinks();
 
 Map<String, dynamic>? pendingNotificationData;
 
-bool appHasLaunched = false;
-
 class PushNotificationData {
   static String? notificationId;
   static String? message;
@@ -44,8 +42,6 @@ class PushNotificationData {
 
 String debugOneSignal = '';
 
-// Tracks the last URI forwarded via MethodChannel so app_links' uriLinkStream
-// can skip it and avoid double-navigation.
 String? _lastMethodChannelLink;
 
 Future<void> updateOneSignalIdOnServer(String playerId) async {
