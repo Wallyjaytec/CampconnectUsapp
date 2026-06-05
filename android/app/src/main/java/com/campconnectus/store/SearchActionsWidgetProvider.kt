@@ -16,57 +16,34 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.search_actions_widget_layout)
+            val views = RemoteViews(
+                context.packageName,
+                R.layout.search_actions_widget_layout
+            )
 
-            val searchIntent = Intent(context, MainActivity::class.java).apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/search")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            // Each intent uses the widget ID as requestCode to ensure
+            // PendingIntents are unique and don't overwrite each other
+            fun makePendingIntent(dest: String, requestCode: Int): PendingIntent {
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = Uri.parse("https://campconnectus.store/shortcut/$dest")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                return PendingIntent.getActivity(
+                    context,
+                    appWidgetId * 10 + requestCode, // unique per widget instance + button
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
             }
-            views.setOnClickPendingIntent(R.id.widget_search_bar, PendingIntent.getActivity(
-                context, 0, searchIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            ))
 
-            val accountIntent = Intent(context, MainActivity::class.java).apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/account")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-            views.setOnClickPendingIntent(R.id.widget_account, PendingIntent.getActivity(
-                context, 1, accountIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            ))
-
-            val cartIntent = Intent(context, MainActivity::class.java).apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/cart")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-            views.setOnClickPendingIntent(R.id.widget_cart, PendingIntent.getActivity(
-                context, 2, cartIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            ))
-
-            val ordersIntent = Intent(context, MainActivity::class.java).apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/orders")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-            views.setOnClickPendingIntent(R.id.widget_orders, PendingIntent.getActivity(
-                context, 3, ordersIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            ))
-
-            val notifIntent = Intent(context, MainActivity::class.java).apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/notifications")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-            views.setOnClickPendingIntent(R.id.widget_notifications, PendingIntent.getActivity(
-                context, 4, notifIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            ))
+            views.setOnClickPendingIntent(R.id.widget_search_bar,  makePendingIntent("search",        0))
+            views.setOnClickPendingIntent(R.id.widget_account,      makePendingIntent("account",       1))
+            views.setOnClickPendingIntent(R.id.widget_cart,         makePendingIntent("cart",          2))
+            views.setOnClickPendingIntent(R.id.widget_orders,       makePendingIntent("orders",        3))
+            views.setOnClickPendingIntent(R.id.widget_notifications, makePendingIntent("notifications", 4))
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
