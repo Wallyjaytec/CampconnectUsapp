@@ -50,7 +50,7 @@ class SearchView extends StatelessWidget {
                       child: const Icon(Iconsax.shield_tick, color: AppColors.primaryColor, size: 24),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text('All data will be encrypted', style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87))),
+                    Expanded(child: Text('All data will be encrypted'.tr, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87))),
                   ],
                 ),
                 const SizedBox(height: 16),
