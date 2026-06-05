@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 
 class ShimmerBox extends StatelessWidget {
   const ShimmerBox({
@@ -8,14 +8,18 @@ class ShimmerBox extends StatelessWidget {
     this.width,
     this.height,
     this.borderRadius = 8,
-    this.showIcon = true,
-    this.iconSize = 40,
+    this.showLogo = true,
+    this.logoSize = 28,
+    this.useText = false,
+    this.text = 'CCU',
   });
   final double? width;
   final double? height;
   final double borderRadius;
-  final bool showIcon;
-  final double iconSize;
+  final bool showLogo;
+  final double logoSize;
+  final bool useText;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +35,25 @@ class ShimmerBox extends StatelessWidget {
           color: base,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
-        child: showIcon
+        child: showLogo
             ? Center(
                 child: Opacity(
                   opacity: 0.35,
-                  child: Icon(
-                    Iconsax.shopping_cart,
-                    size: iconSize,
-                    color: Colors.grey,
-                  ),
+                  child: useText
+                      ? Text(
+                          text,
+                          style: TextStyle(
+                            fontSize: logoSize - 8,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Image.asset(
+                          AppAssets.appIcon,
+                          width: logoSize,
+                          height: logoSize,
+                          fit: BoxFit.contain,
+                        ),
                 ),
               )
             : null,
@@ -52,12 +66,16 @@ class ShimmerCircle extends StatelessWidget {
   const ShimmerCircle({
     super.key,
     required this.diameter,
-    this.showIcon = true,
-    this.iconSize = 24,
+    this.showLogo = true,
+    this.logoSize = 16,
+    this.useText = false,
+    this.text = 'CCU',
   });
   final double diameter;
-  final bool showIcon;
-  final double iconSize;
+  final bool showLogo;
+  final double logoSize;
+  final bool useText;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -70,15 +88,25 @@ class ShimmerCircle extends StatelessWidget {
         width: diameter,
         height: diameter,
         decoration: BoxDecoration(color: base, shape: BoxShape.circle),
-        child: showIcon
+        child: showLogo
             ? Center(
                 child: Opacity(
                   opacity: 0.35,
-                  child: Icon(
-                    Iconsax.shopping_cart,
-                    size: iconSize,
-                    color: Colors.grey,
-                  ),
+                  child: useText
+                      ? Text(
+                          text,
+                          style: TextStyle(
+                            fontSize: logoSize - 4,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Image.asset(
+                          AppAssets.appIcon,
+                          width: logoSize,
+                          height: logoSize,
+                          fit: BoxFit.contain,
+                        ),
                 ),
               )
             : null,
