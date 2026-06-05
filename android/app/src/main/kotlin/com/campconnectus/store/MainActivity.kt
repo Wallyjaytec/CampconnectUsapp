@@ -1,12 +1,9 @@
 package com.campconnectus.store
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.FlutterEngineCache
-import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
@@ -17,54 +14,12 @@ class MainActivity : FlutterFragmentActivity() {
     private var deepLinkChannel: MethodChannel? = null
     private var pendingDeepLink: String? = null
 
-    companion object {
-        const val ENGINE_ID = "main_engine"
-        var coldStartData: MutableMap<String, String>? = null
-
-        // Pre-warms the engine before MainActivity is created.
-        // Call this from your Application class if you have one,
-        // otherwise it is called lazily in provideFlutterEngine.
-        fun warmUpEngine(context: Context) {
-            if (FlutterEngineCache.getInstance().get(ENGINE_ID) != null) return
-            val engine = FlutterEngine(context)
-            engine.dartExecutor.executeDartEntrypoint(
-                DartExecutor.DartEntrypoint.createDefault()
-            )
-            FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Engine caching — prevents full reinit on Samsung's second onCreate call
-    // -------------------------------------------------------------------------
-
-    override fun provideFlutterEngine(context: Context): FlutterEngine? {
-        // Always return the cached engine if it exists.
-        // This is what prevents the splash screen from showing twice.
-        FlutterEngineCache.getInstance().get(ENGINE_ID)?.let { return it }
-        // First launch — create, cache, and return.
-        val engine = FlutterEngine(context)
-        engine.dartExecutor.executeDartEntrypoint(
-            DartExecutor.DartEntrypoint.createDefault()
-        )
-        FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
-        return engine
-    }
-
-    // -------------------------------------------------------------------------
-    // Logging helper — remove after debugging is done
-    // -------------------------------------------------------------------------
-
     private fun writeLog(msg: String) {
         try {
             val file = java.io.File(getExternalFilesDir(null), "deeplink_log.txt")
             file.appendText("${System.currentTimeMillis()}: $msg\n")
         } catch (_: Exception) {}
     }
-
-    // -------------------------------------------------------------------------
-    // Lifecycle
-    // -------------------------------------------------------------------------
 
     override fun onCreate(savedInstanceState: Bundle?) {
         writeLog("onCreate called - intent data: ${intent?.data}")
@@ -87,10 +42,6 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Flutter engine setup
-    // -------------------------------------------------------------------------
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -119,9 +70,9 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // OneSignal cold-start notification handling
-    // -------------------------------------------------------------------------
+    companion object {
+        var coldStartData: MutableMap<String, String>? = null
+    }
 
     private fun handleColdStartNotification(intent: Intent?) {
         val onesignalData = intent?.extras?.getString("onesignal_data") ?: return
