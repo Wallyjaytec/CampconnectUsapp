@@ -10,6 +10,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     private val ONESIGNAL_CHANNEL = "com.campconnectus.store/onesignal"
     private val DEEP_LINK_CHANNEL = "com.campconnectus.store/deeplink"
+    private val SKIP_SPLASH_CHANNEL = "com.campconnectus.store/skip_splash"
 
     private var deepLinkChannel: MethodChannel? = null
     private var pendingDeepLink: String? = null
@@ -23,18 +24,6 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         writeLog("onCreate called - savedInstanceState: ${savedInstanceState != null} - intent data: ${intent?.data}")
-
-        intent?.data?.let { uri ->
-            val path = uri.pathSegments
-            if (path.size >= 2 && path[0] == "shortcut") {
-                getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
-                    .edit()
-                    .putString("flutter.shortcut_destination", path[1])
-                    .putBoolean("flutter.skip_splash", true)
-                    .apply()
-            }
-        }
-
         super.onCreate(savedInstanceState)
         handleColdStartNotification(intent)
         intent?.data?.let { pendingDeepLink = it.toString() }
@@ -45,7 +34,18 @@ class MainActivity : FlutterFragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleColdStartNotification(intent)
+
         intent.data?.let { uri ->
+            val path = uri.pathSegments
+            // Write skip flag to file BEFORE forwarding to Flutter
+            // Flutter reads this via MethodChannel in splash screen
+            if (path.size >= 2 && path[0] == "shortcut") {
+                try {
+                    val file = java.io.File(filesDir, "skip_splash_flag")
+                    file.writeText(path[1])
+                } catch (_: Exception) {}
+            }
+
             val link = uri.toString()
             if (deepLinkChannel != null) {
                 deepLinkChannel!!.invokeMethod("onDeepLink", link)
@@ -65,6 +65,29 @@ class MainActivity : FlutterFragmentActivity() {
             pendingDeepLink?.let {
                 channel.invokeMethod("onDeepLink", it)
                 pendingDeepLink = null
+            }
+        }
+
+        // Skip splash channel — Flutter calls this to check if shortcut launched the app
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            SKIP_SPLASH_CHANNEL
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "shouldSkip") {
+                try {
+                    val file = java.io.File(filesDir, "skip_splash_flag")
+                    if (file.exists()) {
+                        val dest = file.readText().trim()
+                        file.delete()
+                        result.success(dest)
+                    } else {
+                        result.success(null)
+                    }
+                } catch (_: Exception) {
+                    result.success(null)
+                }
+            } else {
+                result.notImplemented()
             }
         }
 
