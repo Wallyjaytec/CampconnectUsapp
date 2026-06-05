@@ -90,7 +90,7 @@ class ProductDetailsView extends StatelessWidget {
         bottomNavigationBar: _BottomBar(),
         body: Obx(() {
   if (controller.isLoading.value && controller.product.value == null) {
-    return const Center(
+    return Center(
       child: ShimmerBox(
         width: double.infinity,
         height: 300,
