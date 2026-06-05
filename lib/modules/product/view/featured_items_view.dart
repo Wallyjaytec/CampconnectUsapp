@@ -63,7 +63,7 @@ class FeaturedItemsView extends StatelessWidget {
             return GestureDetector(
               onTap: () => Get.toNamed(
                 AppRoutes.productDetailsView,
-                arguments: {'permalink': p.slug},
+                arguments: {'permalink': p.slug, 'product_id': p.id.toString()},
               ),
               child: Container(
                 decoration: BoxDecoration(
