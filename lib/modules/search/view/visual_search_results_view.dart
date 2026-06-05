@@ -178,7 +178,7 @@ class _ProductCard extends StatelessWidget {
               final slug = product.slug.isNotEmpty ? product.slug : product.title;
               Get.to(
                 () => ProductDetailsView(),
-                arguments: {'permalink': slug, 'product_id': id.toString()},
+                arguments: {'permalink': slug},
               );
             }
           },
