@@ -42,10 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Ask Kotlin if this was a shortcut launch via the skip_splash file
-      // onNewIntent writes the file before Flutter renders anything
-      // We wait 300ms to ensure onNewIntent has fired and written the file
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 100));
       if (!mounted) return;
 
       try {
