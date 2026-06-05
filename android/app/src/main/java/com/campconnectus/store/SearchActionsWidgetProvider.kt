@@ -1,4 +1,4 @@
-package com.example.kartly_e_commerce
+package com.campconnectus.store
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager

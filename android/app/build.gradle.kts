@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.kartly_e_commerce"
+    namespace = "com.campconnectus.store"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.kartly_e_commerce"
+        applicationId = "com.campconnectus.store"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

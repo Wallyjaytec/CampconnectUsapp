@@ -1,4 +1,4 @@
-package com.example.kartly_e_commerce
+package com.campconnectus.store
 
 import android.content.Context
 import android.content.Intent
@@ -11,8 +11,8 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
 
-    private val ONESIGNAL_CHANNEL = "com.example.kartly_e_commerce/onesignal"
-    private val DEEP_LINK_CHANNEL = "com.example.kartly_e_commerce/deeplink"
+    private val ONESIGNAL_CHANNEL = "com.campconnectus.store/onesignal"
+    private val DEEP_LINK_CHANNEL = "com.campconnectus.store/deeplink"
 
     private var deepLinkChannel: MethodChannel? = null
     private var pendingDeepLink: String? = null

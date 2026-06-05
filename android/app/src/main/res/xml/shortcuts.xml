@@ -22,13 +22,13 @@
         <!-- Back-stack root (must come first) -->
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity" />
         <!-- Deep-link payload (delivered as onNewIntent) -->
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity"
             android:data="https://campconnectus.store/shortcut/search" />
     </shortcut>
 
@@ -41,12 +41,12 @@
         android:shortcutLongLabel="@string/orders_long">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity" />
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity"
             android:data="https://campconnectus.store/shortcut/orders" />
     </shortcut>
 
@@ -59,12 +59,12 @@
         android:shortcutLongLabel="@string/cart_long">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity" />
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity"
             android:data="https://campconnectus.store/shortcut/cart" />
     </shortcut>
 
@@ -77,12 +77,12 @@
         android:shortcutLongLabel="@string/wallet_long">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity" />
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity" />
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.example.kartly_e_commerce"
-            android:targetClass="com.example.kartly_e_commerce.MainActivity"
+            android:targetPackage="com.campconnectus.store"
+            android:targetClass="com.campconnectus.store.MainActivity"
             android:data="https://campconnectus.store/shortcut/wallet" />
     </shortcut>
 

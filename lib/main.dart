@@ -158,7 +158,7 @@ Future<void> main() async {
   });
 
   try {
-    const channel = MethodChannel('com.example.kartly_e_commerce/onesignal');
+    const channel = MethodChannel('com.campconnectus.store/onesignal');
     final result = await channel.invokeMethod('getColdStartNotification');
     if (result != null && result is Map) {
       final notificationId = result['notification_id']?.toString();
@@ -238,7 +238,7 @@ Future<void> main() async {
   // MethodChannel — receives deep links from Android widgets and shortcuts
   // (forwarded by MainActivity.onNewIntent / configureFlutterEngine).
   const deepLinkChannel =
-      MethodChannel('com.example.kartly_e_commerce/deeplink');
+      MethodChannel('com.campconnectus.store/deeplink');
   deepLinkChannel.setMethodCallHandler((call) async {
     if (call.method == 'onDeepLink') {
       final url = call.arguments?.toString() ?? '';
