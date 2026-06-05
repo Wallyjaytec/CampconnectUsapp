@@ -24,10 +24,12 @@ class ShimmerBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = Theme.of(context).dividerColor.withValues(alpha: 0.15);
-    final highlight = Theme.of(context).dividerColor.withValues(alpha: 0.30);
+    final highlight = Theme.of(context).dividerColor.withValues(alpha: 0.50);
     return Shimmer.fromColors(
       baseColor: base,
       highlightColor: highlight,
+      period: const Duration(milliseconds: 1200),
+      direction: ShimmerDirection.ltr,
       child: Container(
         width: width,
         height: height,
@@ -37,24 +39,27 @@ class ShimmerBox extends StatelessWidget {
         ),
         child: showLogo
             ? Center(
-                child: Opacity(
-                  opacity: 0.35,
-                  child: useText
-                      ? Text(
-                          text,
-                          style: TextStyle(
-                            fontSize: logoSize - 8,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        )
-                      : Image.asset(
-                          AppAssets.appIcon,
+                child: useText
+                    ? Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: logoSize - 8,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      )
+                    : Shimmer.fromColors(
+                        baseColor: const Color(0x99FFFFFF),
+                        highlightColor: const Color(0x40FFFFFF),
+                        period: const Duration(milliseconds: 1200),
+                        direction: ShimmerDirection.ltr,
+                        child: Image.asset(
+                          AppAssets.shimmerIcon,
                           width: logoSize,
                           height: logoSize,
                           fit: BoxFit.contain,
                         ),
-                ),
+                      ),
               )
             : null,
       ),
@@ -80,34 +85,39 @@ class ShimmerCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = Theme.of(context).dividerColor.withValues(alpha: 0.15);
-    final highlight = Theme.of(context).dividerColor.withValues(alpha: 0.30);
+    final highlight = Theme.of(context).dividerColor.withValues(alpha: 0.50);
     return Shimmer.fromColors(
       baseColor: base,
       highlightColor: highlight,
+      period: const Duration(milliseconds: 1200),
+      direction: ShimmerDirection.ltr,
       child: Container(
         width: diameter,
         height: diameter,
         decoration: BoxDecoration(color: base, shape: BoxShape.circle),
         child: showLogo
             ? Center(
-                child: Opacity(
-                  opacity: 0.35,
-                  child: useText
-                      ? Text(
-                          text,
-                          style: TextStyle(
-                            fontSize: logoSize - 4,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        )
-                      : Image.asset(
-                          AppAssets.appIcon,
+                child: useText
+                    ? Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: logoSize - 4,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      )
+                    : Shimmer.fromColors(
+                        baseColor: const Color(0x99FFFFFF),
+                        highlightColor: const Color(0x40FFFFFF),
+                        period: const Duration(milliseconds: 1200),
+                        direction: ShimmerDirection.ltr,
+                        child: Image.asset(
+                          AppAssets.shimmerIcon,
                           width: logoSize,
                           height: logoSize,
                           fit: BoxFit.contain,
                         ),
-                ),
+                      ),
               )
             : null,
       ),
