@@ -42,13 +42,18 @@ class PushNotificationData {
 
 String debugOneSignal = '';
 
+// Tracks the last URI forwarded via MethodChannel so app_links' uriLinkStream
+// can skip it and avoid double-navigation.
+String? _lastMethodChannelLink;
+
 Future<void> updateOneSignalIdOnServer(String playerId) async {
   try {
     final login = LoginService();
     final token = login.token;
     if (token == null || token.isEmpty) return;
 
-    final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-onesignal-id');
+    final uri = Uri.parse(
+        '${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-onesignal-id');
     await http.post(
       uri,
       headers: {
@@ -65,16 +70,64 @@ Future<void> initServices() async {
   await Get.putAsync<NetworkService>(() async => NetworkService().init());
 }
 
+// Stores a deep-link URI to be handled once the app is fully running and the
+// GetX router is ready (i.e. after runApp + SplashScreen is mounted).
+// SplashScreen reads this in _navigateNormally() via GetStorage, so we write
+// shortcut destinations there. For non-shortcut links we write the relevant
+// GetStorage keys directly — same as before.
 void _handleDeepLink(Uri uri, GetStorage box) {
   box.write('debug_last_link', uri.toString());
   box.write('debug_last_link_time', DateTime.now().toString());
-  if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
+
+  if (uri.pathSegments.isNotEmpty &&
+      uri.pathSegments.first == 'shortcut' &&
+      uri.pathSegments.length > 1) {
     final dest = uri.pathSegments[1];
+    _navigateOrStore(dest, box);
+  } else if (uri.host == 'search') {
+    _navigateOrStore('search', box);
+  } else if (uri.host == 'orders') {
+    _navigateOrStore('orders', box);
+  } else if (uri.host == 'cart') {
+    _navigateOrStore('cart', box);
+  } else if (uri.host == 'wallet') {
+    _navigateOrStore('wallet', box);
+  } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
+    final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
+    if (orderId > 0) box.write('deep_link_order_id', orderId);
+  } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
+    final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
+    if (refundId > 0) box.write('deep_link_refund_id', refundId);
+  } else {
+    final token = uri.queryParameters['u'] ?? '';
+    if (token.isNotEmpty) {
+      box.write('deep_link_token', token);
+      final type = uri.path.contains('email-verification')
+          ? 'email_verify'
+          : 'password_reset';
+      box.write('deep_link_type', type);
+    }
+  }
+}
+
+// Tries Get.toNamed immediately (warm resume — router is live).
+// Falls back to writing shortcut_destination (cold start — SplashScreen reads it).
+void _navigateOrStore(String dest, GetStorage box) {
+  final context = Get.context;
+  if (context != null && ModalRoute.of(context) != null) {
     switch (dest) {
-      case 'search': Get.toNamed(AppRoutes.searchView); break;
-      case 'orders': Get.toNamed(AppRoutes.myOrderListView); break;
-      case 'cart': Get.toNamed(AppRoutes.cartView); break;
-      case 'wallet': Get.toNamed(AppRoutes.myWalletView); break;
+      case 'search':
+        Get.toNamed(AppRoutes.searchView);
+        break;
+      case 'orders':
+        Get.toNamed(AppRoutes.myOrderListView);
+        break;
+      case 'cart':
+        Get.toNamed(AppRoutes.cartView);
+        break;
+      case 'wallet':
+        Get.toNamed(AppRoutes.myWalletView);
+        break;
       case 'account':
         if (Get.isRegistered<BottomNavbarController>()) {
           Get.find<BottomNavbarController>().currentIndex.value = 4;
@@ -82,36 +135,13 @@ void _handleDeepLink(Uri uri, GetStorage box) {
           Get.toNamed(AppRoutes.bottomNavbarView);
         }
         break;
-      case 'notifications': Get.toNamed(AppRoutes.notificationsView); break;
-    }
-  } else if (uri.host == 'search') {
-    Get.toNamed(AppRoutes.searchView);
-  } else if (uri.host == 'orders') {
-    Get.toNamed(AppRoutes.myOrderListView);
-  } else if (uri.host == 'cart') {
-    Get.toNamed(AppRoutes.cartView);
-  } else if (uri.host == 'wallet') {
-    Get.toNamed(AppRoutes.myWalletView);
-  } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
-    final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
-    if (orderId > 0) {
-      box.write('deep_link_order_id', orderId);
-    }
-  } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
-    final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
-    if (refundId > 0) {
-      box.write('deep_link_refund_id', refundId);
+      case 'notifications':
+        Get.toNamed(AppRoutes.notificationsView);
+        break;
     }
   } else {
-    final token = uri.queryParameters['u'] ?? '';
-    if (token.isNotEmpty) {
-      box.write('deep_link_token', token);
-      String type = 'password_reset';
-      if (uri.path.contains('email-verification')) {
-        type = 'email_verify';
-      }
-      box.write('deep_link_type', type);
-    }
+    // Router not ready — store for SplashScreen._navigateNormally()
+    box.write('shortcut_destination', dest);
   }
 }
 
@@ -141,7 +171,7 @@ Future<void> main() async {
         };
       }
     }
-  } catch (e) {}
+  } catch (_) {}
 
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData;
@@ -162,9 +192,12 @@ Future<void> main() async {
         };
 
         PushNotificationData.notificationId = notificationId;
-        PushNotificationData.message = additionalData['notif_message']?.toString() ?? '';
-        PushNotificationData.title = additionalData['notif_title']?.toString() ?? '';
-        PushNotificationData.image = additionalData['notif_image']?.toString() ?? '';
+        PushNotificationData.message =
+            additionalData['notif_message']?.toString() ?? '';
+        PushNotificationData.title =
+            additionalData['notif_title']?.toString() ?? '';
+        PushNotificationData.image =
+            additionalData['notif_image']?.toString() ?? '';
 
         if (Get.isRegistered<NotificationController>()) {
           Get.find<NotificationController>().refreshList();
@@ -173,7 +206,8 @@ Future<void> main() async {
         final id = int.tryParse(orderId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_order_id', id);
-          Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': id});
+          Get.toNamed(AppRoutes.myOrderDetailsView,
+              arguments: {'order_id': id});
         }
         if (Get.isRegistered<NotificationController>()) {
           Get.find<NotificationController>().refreshList();
@@ -201,14 +235,18 @@ Future<void> main() async {
 
   final box = GetStorage();
 
-  // Listen for widget deep links from Android
-  const deepLinkChannel = MethodChannel('com.example.kartly_e_commerce/deeplink');
+  // MethodChannel — receives deep links from Android widgets and shortcuts
+  // (forwarded by MainActivity.onNewIntent / configureFlutterEngine).
+  const deepLinkChannel =
+      MethodChannel('com.example.kartly_e_commerce/deeplink');
   deepLinkChannel.setMethodCallHandler((call) async {
     if (call.method == 'onDeepLink') {
       final url = call.arguments?.toString() ?? '';
       if (url.isNotEmpty) {
         final uri = Uri.tryParse(url);
         if (uri != null) {
+          // Remember this URL so uriLinkStream can skip it (dedup).
+          _lastMethodChannelLink = url;
           _handleDeepLink(uri, box);
         }
       }
@@ -233,21 +271,28 @@ Future<void> main() async {
   }
 
   try {
-    Get.put(LanguageController(SiteSettingsPropertiesRepository(ApiService())), permanent: true);
+    Get.put(
+        LanguageController(SiteSettingsPropertiesRepository(ApiService())),
+        permanent: true);
   } catch (_) {}
 
   try {
     final siteRepo = SiteSettingsPropertiesRepository(ApiService());
     final currencyService = CurrencyService(siteRepo);
     Get.put<CurrencyService>(currencyService, permanent: true);
-    Get.put<CurrencyController>(CurrencyController(siteRepo, currencyService), permanent: true);
+    Get.put<CurrencyController>(
+        CurrencyController(siteRepo, currencyService),
+        permanent: true);
   } catch (_) {}
 
   Get.put<NotificationController>(NotificationController(), permanent: true);
   Get.put(CategoryController(CategoryRepository(ApiService())));
-  Get.put<NewProductListController>(NewProductListController(ProductRepository(ApiService())), permanent: true);
+  Get.put<NewProductListController>(
+      NewProductListController(ProductRepository(ApiService())),
+      permanent: true);
   Get.put(CartRepository(ApiService()), permanent: true);
-  Get.put<CartController>(CartController(CartRepository(ApiService())), permanent: true);
+  Get.put<CartController>(CartController(CartRepository(ApiService())),
+      permanent: true);
   Get.put(AuthController(), permanent: true);
 
   final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
@@ -256,14 +301,27 @@ Future<void> main() async {
     await LanguageService.load(savedApiCode);
   } catch (_) {}
 
+  // Cold-start deep link from app_links (handles truly cold opens from browser
+  // or custom-scheme links that don't go through the MethodChannel).
   try {
     final uri = await _appLinks.getInitialLink();
     if (uri != null) {
-      _handleDeepLink(uri, box);
+      final uriStr = uri.toString();
+      // Skip if already handled by MethodChannel (avoids double-navigation).
+      if (uriStr != _lastMethodChannelLink) {
+        _handleDeepLink(uri, box);
+      }
     }
   } catch (_) {}
 
+  // Warm-resume stream from app_links.
   _appLinks.uriLinkStream.listen((uri) {
+    final uriStr = uri.toString();
+    // Skip URIs already forwarded by the MethodChannel to avoid duplication.
+    if (uriStr == _lastMethodChannelLink) {
+      _lastMethodChannelLink = null; // consume the guard
+      return;
+    }
     _handleDeepLink(uri, box);
   });
 
