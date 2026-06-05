@@ -116,7 +116,8 @@
                     android:layout_height="wrap_content"
                     android:text="Account"
                     android:textSize="9sp"
-                    android:textColor="#1A1A1A"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
@@ -142,7 +143,8 @@
                     android:layout_height="wrap_content"
                     android:text="Cart"
                     android:textSize="9sp"
-                    android:textColor="#1A1A1A"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
@@ -168,7 +170,8 @@
                     android:layout_height="wrap_content"
                     android:text="Orders"
                     android:textSize="9sp"
-                    android:textColor="#1A1A1A"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
@@ -193,7 +196,8 @@
                     android:layout_height="wrap_content"
                     android:text="Notif"
                     android:textSize="9sp"
-                    android:textColor="#1A1A1A"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
