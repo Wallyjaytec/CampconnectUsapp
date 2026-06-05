@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:get_storage/get_storage.dart';
-import 'package:campconnectus_marketplace/main.dart';
 import 'package:campconnectus_marketplace/core/constants/app_assets.dart';
 import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
+import 'package:campconnectus_marketplace/main.dart';
 import 'package:campconnectus_marketplace/modules/account/model/notification_model.dart';
 import 'package:campconnectus_marketplace/modules/account/view/notification_detail_view.dart';
 import 'package:campconnectus_marketplace/modules/bottom_navbar/controller/bottom_navbar_controller.dart';
@@ -37,8 +37,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final box = GetStorage();
+      final skipSplash = box.read<bool>('skip_splash') ?? false;
+
+      if (skipSplash) {
+        box.remove('skip_splash');
+        _controller.value = 1.0;
+        _navigated = true;
+        _navigateNormally();
+        return;
+      }
+
       _controller.forward();
       _checkLockAndNavigate();
     });
@@ -46,18 +57,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _checkLockAndNavigate() async {
     if (_navigated) return;
-
-    final box = GetStorage();
-    final hasLaunched = box.read<bool>('app_has_launched') ?? false;
-
-    if (hasLaunched) {
-      _controller.value = 1.0;
-      Timer(const Duration(milliseconds: 100), () {
-        if (!mounted || _navigated) return;
-        _checkPushAndNavigate(attempts: 0);
-      });
-      return;
-    }
 
     bool hasPasscode = false;
     if (isLoggedIn) {
@@ -172,9 +171,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _navigateNormally() {
     final box = GetStorage();
-    box.write('app_has_launched', true);
     
-    // Handle shortcut deep links (works even when logged out)
     final shortcutDest = box.read<String>('shortcut_destination') ?? '';
     if (shortcutDest.isNotEmpty) {
       box.remove('shortcut_destination');
@@ -216,7 +213,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
     
-    // Check wallet deep link first
     final walletLink = box.read<bool>('deep_link_wallet') ?? false;
     if (walletLink) {
       box.remove('deep_link_wallet');
