@@ -80,7 +80,7 @@ class SellerView extends StatelessWidget {
           },
           body: RefreshIndicator(
             onRefresh: () async {
-              await Get.find<SellerProductsController>().refreshAll();
+              await Get.find<SellerProductsController>().load();
             },
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
