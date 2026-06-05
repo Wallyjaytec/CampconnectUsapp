@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.fashly" "\0"
-            VALUE "FileDescription", "fashly_e_commerce" "\0"
+            VALUE "CompanyName", "com.campconnectus" "\0"
+            VALUE "FileDescription", "campconnectus_marketplace" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "fashly_e_commerce" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.fashly. All rights reserved." "\0"
-            VALUE "OriginalFilename", "fashly_e_commerce.exe" "\0"
-            VALUE "ProductName", "fashly_e_commerce" "\0"
+            VALUE "InternalName", "campconnectus_marketplace" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.campconnectus. All rights reserved." "\0"
+            VALUE "OriginalFilename", "campconnectus_marketplace.exe" "\0"
+            VALUE "ProductName", "campconnectus_marketplace" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

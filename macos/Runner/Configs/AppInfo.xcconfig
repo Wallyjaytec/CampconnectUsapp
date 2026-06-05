@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = fashly_e_commerce
+PRODUCT_NAME = campconnectus_marketplace
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.fashly.fashlyECommerce
+PRODUCT_BUNDLE_IDENTIFIER = com.campconnectus.store
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.fashly. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.campconnectus. All rights reserved.

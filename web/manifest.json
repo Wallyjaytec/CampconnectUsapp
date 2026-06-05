@@ -1,11 +1,11 @@
 {
-    "name": "fashly_e_commerce",
-    "short_name": "fashly_e_commerce",
+    "name": "campconnectus_marketplace",
+    "short_name": "campconnectus_marketplace",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter Fashly E-commerce app project created by Themelooks.",
+    "description": "A new Flutter CampConnectUs E-commerce app project created by Themelooks.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

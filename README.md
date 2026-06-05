@@ -1,6 +1,6 @@
-# fashly_e_commerce
+# campconnectus_marketplace
 
-A new Flutter Fashly E-commerce app project created by Themelooks.
+A new Flutter CampConnectUs E-commerce app project created by Themelooks.
 
 ## Getting Started
 
