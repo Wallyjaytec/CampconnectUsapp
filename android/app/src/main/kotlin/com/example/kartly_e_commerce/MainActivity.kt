@@ -12,41 +12,39 @@ class MainActivity : FlutterFragmentActivity() {
     private val DEEP_LINK_CHANNEL = "com.example.kartly_e_commerce/deeplink"
 
     private var deepLinkChannel: MethodChannel? = null
-
-    // Holds a deep-link URI that arrived before the Flutter engine was ready
-    // (i.e. during onCreate on a cold or warm-restart path).
-    // Flushed to Flutter inside configureFlutterEngine once the channel exists.
     private var pendingDeepLink: String? = null
+
+    // -------------------------------------------------------------------------
+    // Logging helper — writes to a file you can read without ADB
+    // -------------------------------------------------------------------------
+    private fun writeLog(msg: String) {
+        try {
+            val file = java.io.File(getExternalFilesDir(null), "deeplink_log.txt")
+            file.appendText("${System.currentTimeMillis()}: $msg\n")
+        } catch (_: Exception) {}
+    }
 
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        writeLog("onCreate called - intent data: ${intent?.data}")
         super.onCreate(savedInstanceState)
         handleColdStartNotification(intent)
-
-        // Engine is NOT ready yet — stash the URI so configureFlutterEngine
-        // can forward it once the MethodChannel exists.
-        intent?.data?.let { uri ->
-            pendingDeepLink = uri.toString()
-        }
+        intent?.data?.let { pendingDeepLink = it.toString() }
     }
 
     override fun onNewIntent(intent: Intent) {
+        writeLog("onNewIntent called - intent data: ${intent.data}")
         super.onNewIntent(intent)
-        // Keep getIntent() current so any future call returns the latest intent.
         setIntent(intent)
         handleColdStartNotification(intent)
-
         intent.data?.let { uri ->
             val link = uri.toString()
             if (deepLinkChannel != null) {
-                // Engine is already running — forward immediately.
                 deepLinkChannel!!.invokeMethod("onDeepLink", link)
             } else {
-                // Engine not yet ready (rare, but possible if onNewIntent fires
-                // very early). Stash so configureFlutterEngine can flush it.
                 pendingDeepLink = link
             }
         }
@@ -59,18 +57,16 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // Deep-link channel — flush any URI that arrived before the engine was ready.
         deepLinkChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             DEEP_LINK_CHANNEL
         ).also { channel ->
-            pendingDeepLink?.let { link ->
-                channel.invokeMethod("onDeepLink", link)
+            pendingDeepLink?.let {
+                channel.invokeMethod("onDeepLink", it)
                 pendingDeepLink = null
             }
         }
 
-        // OneSignal / notification channel
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             ONESIGNAL_CHANNEL
@@ -107,8 +103,6 @@ class MainActivity : FlutterFragmentActivity() {
                     "notif_image"     to custom.optString("notif_image", "")
                 )
             }
-        } catch (_: Exception) {
-            // Malformed JSON — ignore silently.
-        }
+        } catch (_: Exception) {}
     }
 }
