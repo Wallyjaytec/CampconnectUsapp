@@ -8,6 +8,7 @@ import 'package:kartly_e_commerce/core/services/passcode_service.dart';
 import 'package:kartly_e_commerce/main.dart';
 import 'package:kartly_e_commerce/modules/account/model/notification_model.dart';
 import 'package:kartly_e_commerce/modules/account/view/notification_detail_view.dart';
+import 'package:kartly_e_commerce/modules/bottom_navbar/controller/bottom_navbar_controller.dart';
 import 'package:kartly_e_commerce/modules/settings/view/passcode_lock_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -180,7 +181,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             Get.toNamed(AppRoutes.myWalletView);
             break;
           case 'account':
-            Get.toNamed(AppRoutes.bottomNavbarView);
+            if (Get.isRegistered<BottomNavbarController>()) {
+              Get.find<BottomNavbarController>().currentIndex.value = 4;
+            }
             break;
           case 'notifications':
             Get.toNamed(AppRoutes.notificationsView);
