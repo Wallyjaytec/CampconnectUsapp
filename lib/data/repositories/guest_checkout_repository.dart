@@ -1,4 +1,4 @@
-import 'package:kartly_e_commerce/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/services/api_service.dart';

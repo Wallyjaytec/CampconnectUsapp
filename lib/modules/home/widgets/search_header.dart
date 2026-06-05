@@ -1,4 +1,4 @@
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class SearchHeader extends SliverPersistentHeaderDelegate {

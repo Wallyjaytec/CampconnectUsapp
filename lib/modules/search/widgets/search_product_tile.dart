@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:kartly_e_commerce/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
 
 import '../model/search_model.dart';
 

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/core/services/passcode_service.dart';
-import 'package:kartly_e_commerce/modules/settings/view/passcode_input_view.dart';
-import 'package:kartly_e_commerce/modules/settings/view/security_questions_view.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
+import 'package:campconnectus_marketplace/modules/settings/view/passcode_input_view.dart';
+import 'package:campconnectus_marketplace/modules/settings/view/security_questions_view.dart';
 
 class PasscodeSettingsView extends StatefulWidget {
   const PasscodeSettingsView({super.key});

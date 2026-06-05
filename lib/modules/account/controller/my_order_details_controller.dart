@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/modules/account/view/web_pay_view.dart';
+import 'package:campconnectus_marketplace/modules/account/view/web_pay_view.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';

@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/data/repositories/compare_repository.dart';
-import 'package:kartly_e_commerce/data/repositories/search_repository.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/data/repositories/compare_repository.dart';
+import 'package:campconnectus_marketplace/data/repositories/search_repository.dart';
 
 import '../../product/model/product_model.dart' as pm;
 import '../../search/model/search_model.dart' as search;

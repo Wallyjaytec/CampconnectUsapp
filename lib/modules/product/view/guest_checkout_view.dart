@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/modules/product/widgets/guest_checkout_text_form_field.dart';
+import 'package:campconnectus_marketplace/modules/product/widgets/guest_checkout_text_form_field.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/config/app_config.dart';

@@ -3,15 +3,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
-import 'package:kartly_e_commerce/modules/product/controller/following_products_controller.dart';
-import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
-import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/utils/currency_formatters.dart';
+import 'package:campconnectus_marketplace/modules/product/controller/following_products_controller.dart';
+import 'package:campconnectus_marketplace/modules/product/widgets/star_row.dart';
+import 'package:campconnectus_marketplace/shared/widgets/cart_icon_widget.dart';
+import 'package:campconnectus_marketplace/shared/widgets/notification_icon_widget.dart';
+import 'package:campconnectus_marketplace/shared/widgets/search_icon_widget.dart';
+import 'package:campconnectus_marketplace/shared/widgets/shimmer_widgets.dart';
 
 class FollowingProductsView extends StatefulWidget {
   const FollowingProductsView({super.key});

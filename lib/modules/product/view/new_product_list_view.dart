@@ -4,9 +4,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/data/repositories/product_repository.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/data/repositories/product_repository.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatters.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/modules/product/controller/related_products_controller.dart';
-import 'package:kartly_e_commerce/modules/product/controller/recently_viewed_controller.dart';
+import 'package:campconnectus_marketplace/modules/product/controller/related_products_controller.dart';
+import 'package:campconnectus_marketplace/modules/product/controller/recently_viewed_controller.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/config/app_config.dart';

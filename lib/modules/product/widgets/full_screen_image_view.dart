@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
+import 'package:campconnectus_marketplace/shared/utils/dialog_utils.dart';
 
 import '../../../core/routes/app_routes.dart';
 

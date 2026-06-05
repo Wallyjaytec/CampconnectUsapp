@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/shared/widgets/currency_select.dart';
-import 'package:kartly_e_commerce/shared/widgets/language_select.dart';
+import 'package:campconnectus_marketplace/shared/widgets/currency_select.dart';
+import 'package:campconnectus_marketplace/shared/widgets/language_select.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 

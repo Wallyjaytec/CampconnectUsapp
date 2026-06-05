@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:kartly_e_commerce/modules/product/model/product_model.dart';
+import 'package:campconnectus_marketplace/modules/product/model/product_model.dart';
 
 import '../../../core/config/app_config.dart';
 

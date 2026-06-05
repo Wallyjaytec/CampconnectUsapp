@@ -1,4 +1,4 @@
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:get/get.dart';
 
 class RouteNames {

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
 
 import '../../../data/repositories/seller_repository.dart';
 import '../model/shop_review_model.dart';

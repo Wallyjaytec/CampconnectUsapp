@@ -2,9 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/modules/brand/controller/brand_controller.dart';
-import 'package:kartly_e_commerce/modules/product/model/brand_model.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/modules/brand/controller/brand_controller.dart';
+import 'package:campconnectus_marketplace/modules/product/model/brand_model.dart';
 
 class AllBrandsView extends StatefulWidget {
   const AllBrandsView({super.key, this.onTapBrand});

@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 
 import '../../../core/services/api_service.dart';
 import '../../../core/services/currency_service.dart';

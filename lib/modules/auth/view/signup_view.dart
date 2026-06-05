@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/modules/account/widgets/custom_text_form_field.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/modules/account/widgets/custom_text_form_field.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 

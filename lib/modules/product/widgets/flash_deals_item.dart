@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:kartly_e_commerce/modules/product/widgets/price_tag.dart';
-import 'package:kartly_e_commerce/modules/product/widgets/star_row.dart';
+import 'package:campconnectus_marketplace/modules/product/widgets/price_tag.dart';
+import 'package:campconnectus_marketplace/modules/product/widgets/star_row.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';

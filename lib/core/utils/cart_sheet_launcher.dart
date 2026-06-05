@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/config/app_config.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/data/repositories/product_details_repository.dart';
-import 'package:kartly_e_commerce/modules/product/controller/add_to_cart_controller.dart';
-import 'package:kartly_e_commerce/modules/product/model/product_details_model.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/data/repositories/product_details_repository.dart';
+import 'package:campconnectus_marketplace/modules/product/controller/add_to_cart_controller.dart';
+import 'package:campconnectus_marketplace/modules/product/model/product_details_model.dart';
 
 import '../../modules/product/model/product_model.dart';
 import '../../modules/product/widgets/add_to_cart_sheet.dart';

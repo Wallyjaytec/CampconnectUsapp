@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/routes/app_routes.dart';
@@ -15,8 +15,8 @@ import '../../../core/services/login_service.dart';
 import '../../../core/services/passcode_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../modules/settings/view/passcode_lock_screen.dart';
-import 'package:kartly_e_commerce/app.dart';
-import 'package:kartly_e_commerce/main.dart';
+import 'package:campconnectus_marketplace/app.dart';
+import 'package:campconnectus_marketplace/main.dart';
 
 class AuthController extends GetxController {
   final nameController = TextEditingController();

@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/data/repositories/search_repository.dart';
-import 'package:kartly_e_commerce/modules/search/model/search_model.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/data/repositories/search_repository.dart';
+import 'package:campconnectus_marketplace/modules/search/model/search_model.dart';
 
 import '../../../data/repositories/brand_repository.dart';
 import '../../product/model/brand_model.dart';

@@ -8,8 +8,8 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide Ima
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:kartly_e_commerce/modules/account/view/web_pay_view.dart';
-import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
+import 'package:campconnectus_marketplace/modules/account/view/web_pay_view.dart';
+import 'package:campconnectus_marketplace/shared/utils/dialog_utils.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 

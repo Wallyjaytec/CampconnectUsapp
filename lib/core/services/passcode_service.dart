@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:kartly_e_commerce/core/config/app_config.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/data/repositories/passcode_repository.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/data/repositories/passcode_repository.dart';
 
 class PasscodeService {
   static const String _boxName = 'passcode_settings';

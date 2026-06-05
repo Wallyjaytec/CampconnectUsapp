@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/shared/utils/dialog_utils.dart';
+import 'package:campconnectus_marketplace/shared/utils/dialog_utils.dart';
 
 import '../controller/email_reset_controller.dart';
 

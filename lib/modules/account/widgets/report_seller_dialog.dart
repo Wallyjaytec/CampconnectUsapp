@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import '../controller/report_submit_controller.dart';
 
 class ReportSellerDialog extends StatelessWidget {

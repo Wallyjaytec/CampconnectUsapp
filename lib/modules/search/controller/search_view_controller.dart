@@ -1,4 +1,4 @@
-import 'package:kartly_e_commerce/modules/search/controller/search_input_controller.dart';
+import 'package:campconnectus_marketplace/modules/search/controller/search_input_controller.dart';
 import 'package:get/get.dart';
 
 class SearchViewController extends GetxController {

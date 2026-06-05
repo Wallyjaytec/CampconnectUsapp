@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:kartly_e_commerce/core/constants/app_assets.dart';
+import 'package:campconnectus_marketplace/core/constants/app_assets.dart';
 
 class ShimmerBox extends StatelessWidget {
   const ShimmerBox({

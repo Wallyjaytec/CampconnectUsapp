@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:kartly_e_commerce/core/utils/locale_mapper.dart';
-import 'package:kartly_e_commerce/core/services/language_service.dart';
+import 'package:campconnectus_marketplace/core/utils/locale_mapper.dart';
+import 'package:campconnectus_marketplace/core/services/language_service.dart';
 
 class ConnectivityService extends GetxService {
   final Connectivity _connectivity = Connectivity();

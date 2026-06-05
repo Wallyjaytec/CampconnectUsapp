@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
-import 'package:kartly_e_commerce/core/config/app_config.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/modules/account/model/customer_basic_info.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/modules/account/model/customer_basic_info.dart';
 import 'package:mime/mime.dart';
 
 class CustomerRepository {

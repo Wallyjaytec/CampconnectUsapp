@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
 
 import '../../../data/repositories/search_repository.dart';
 import '../model/search_model.dart';

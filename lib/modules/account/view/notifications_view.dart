@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/modules/account/controller/notifications_controller.dart';
-import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
+import 'package:campconnectus_marketplace/modules/account/controller/notifications_controller.dart';
+import 'package:campconnectus_marketplace/shared/widgets/back_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';

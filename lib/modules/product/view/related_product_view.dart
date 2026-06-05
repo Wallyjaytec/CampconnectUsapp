@@ -4,9 +4,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/data/repositories/product_details_repository.dart';
-import 'package:kartly_e_commerce/modules/product/model/related_product_model.dart';
-import 'package:kartly_e_commerce/modules/product/widgets/single_price_tag.dart';
+import 'package:campconnectus_marketplace/data/repositories/product_details_repository.dart';
+import 'package:campconnectus_marketplace/modules/product/model/related_product_model.dart';
+import 'package:campconnectus_marketplace/modules/product/widgets/single_price_tag.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';

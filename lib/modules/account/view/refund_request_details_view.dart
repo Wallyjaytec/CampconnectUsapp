@@ -4,10 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:kartly_e_commerce/core/utils/currency_formatters.dart';
-import 'package:kartly_e_commerce/shared/widgets/cart_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/notification_icon_widget.dart';
-import 'package:kartly_e_commerce/shared/widgets/search_icon_widget.dart';
+import 'package:campconnectus_marketplace/core/utils/currency_formatters.dart';
+import 'package:campconnectus_marketplace/shared/widgets/cart_icon_widget.dart';
+import 'package:campconnectus_marketplace/shared/widgets/notification_icon_widget.dart';
+import 'package:campconnectus_marketplace/shared/widgets/search_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/config/app_config.dart';

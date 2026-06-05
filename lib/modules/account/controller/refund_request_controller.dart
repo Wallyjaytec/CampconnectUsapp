@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/widget_data_service.dart';

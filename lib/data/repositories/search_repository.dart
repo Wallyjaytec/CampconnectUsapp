@@ -1,6 +1,6 @@
-import 'package:kartly_e_commerce/core/config/app_config.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/modules/search/model/search_model.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/modules/search/model/search_model.dart';
 
 class SearchRepository {
   final ApiService api;

@@ -4,13 +4,13 @@ import 'package:get_storage/get_storage.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:kartly_e_commerce/core/config/app_config.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/core/routes/app_routes.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/core/services/login_service.dart';
-import 'package:kartly_e_commerce/core/services/passcode_service.dart';
-import 'package:kartly_e_commerce/app.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/core/services/login_service.dart';
+import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
+import 'package:campconnectus_marketplace/app.dart';
 import 'passcode_input_view.dart';
 
 class PasscodeLockScreen extends StatefulWidget {

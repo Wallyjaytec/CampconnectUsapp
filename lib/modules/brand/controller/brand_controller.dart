@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/data/repositories/brand_repository.dart';
-import 'package:kartly_e_commerce/modules/product/model/brand_model.dart';
+import 'package:campconnectus_marketplace/data/repositories/brand_repository.dart';
+import 'package:campconnectus_marketplace/modules/product/model/brand_model.dart';
 
 class BrandController extends GetxController {
   final BrandRepository _repo = BrandRepository();

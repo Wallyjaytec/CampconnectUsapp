@@ -1,7 +1,7 @@
-import 'package:kartly_e_commerce/core/config/app_config.dart';
-import 'package:kartly_e_commerce/core/services/api_service.dart';
-import 'package:kartly_e_commerce/data/models/site_settings_properties_model.dart';
-import 'package:kartly_e_commerce/data/responses/site_settings_properties_response.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
+import 'package:campconnectus_marketplace/data/models/site_settings_properties_model.dart';
+import 'package:campconnectus_marketplace/data/responses/site_settings_properties_response.dart';
 
 class SiteSettingsPropertiesRepository {
   final ApiService _api;

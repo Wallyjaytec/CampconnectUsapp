@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kartly_e_commerce/core/constants/app_colors.dart';
-import 'package:kartly_e_commerce/modules/brand/controller/brand_controller.dart';
-import 'package:kartly_e_commerce/modules/product/model/brand_model.dart';
-import 'package:kartly_e_commerce/shared/widgets/shimmer_widgets.dart';
+import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
+import 'package:campconnectus_marketplace/modules/brand/controller/brand_controller.dart';
+import 'package:campconnectus_marketplace/modules/product/model/brand_model.dart';
+import 'package:campconnectus_marketplace/shared/widgets/shimmer_widgets.dart';
 
 class BrandView extends StatelessWidget {
   const BrandView({super.key, this.onViewAll, this.onTapBrand});
