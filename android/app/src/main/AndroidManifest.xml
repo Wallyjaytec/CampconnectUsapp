@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -10,9 +11,9 @@
         android:label="CampConnectUs Marketplace"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        
+
         <meta-data android:name="com.onesignal.NotificationIcon" android:value="ic_stat_onesignal_default" />
-        
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -21,52 +22,60 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
+
             <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
-            
+
+            <!-- Launcher -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            
+
+            <!-- Custom scheme fallback (campconnectus://) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="campconnectus" android:host="*" />
             </intent-filter>
-            
+
+            <!-- Email verification -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/customer/email-verification" />
             </intent-filter>
-            
+
+            <!-- Password reset -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/password/reset" />
             </intent-filter>
-            
+
+            <!-- Email reset -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="campconnectus.store" android:pathPrefix="/email/reset" />
             </intent-filter>
-            
-            <intent-filter>
+
+            <!-- Shortcut deep links (/shortcut/*) and all other https links -->
+            <!-- autoVerify=true ensures no app-chooser dialog on shortcut taps -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="campconnectus.store" />
             </intent-filter>
-            
-            <meta-data 
+
+            <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
-                
+
         </activity>
 
         <!-- Widget #1: Search + Quick Actions -->
@@ -104,9 +113,10 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/cart_summary_widget_info" />
         </receiver>
-        
+
         <meta-data android:name="flutterEmbedding" android:value="2" />
     </application>
+
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
