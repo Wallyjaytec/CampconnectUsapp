@@ -23,6 +23,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.NormalTheme)
         writeLog("onCreate called - savedInstanceState: ${savedInstanceState != null} - intent data: ${intent?.data}")
         super.onCreate(savedInstanceState)
         handleColdStartNotification(intent)
@@ -37,8 +38,6 @@ class MainActivity : FlutterFragmentActivity() {
 
         intent.data?.let { uri ->
             val path = uri.pathSegments
-            // Write skip flag to file BEFORE forwarding to Flutter
-            // Flutter reads this via MethodChannel in splash screen
             if (path.size >= 2 && path[0] == "shortcut") {
                 try {
                     val file = java.io.File(filesDir, "skip_splash_flag")
@@ -68,7 +67,6 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
-        // Skip splash channel — Flutter calls this to check if shortcut launched the app
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             SKIP_SPLASH_CHANNEL
