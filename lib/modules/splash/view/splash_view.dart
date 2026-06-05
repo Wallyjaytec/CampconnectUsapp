@@ -5,7 +5,6 @@ import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
-import 'package:campconnectus_marketplace/main.dart';
 import 'package:campconnectus_marketplace/modules/account/model/notification_model.dart';
 import 'package:campconnectus_marketplace/modules/account/view/notification_detail_view.dart';
 import 'package:campconnectus_marketplace/modules/bottom_navbar/controller/bottom_navbar_controller.dart';
@@ -47,8 +46,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkLockAndNavigate() async {
     if (_navigated) return;
 
-    // Skip animation on warm resume (Samsung/One UI creates a second onCreate)
-    if (appHasLaunched) {
+    final box = GetStorage();
+    final hasLaunched = box.read<bool>('app_has_launched') ?? false;
+
+    if (hasLaunched) {
       _controller.value = 1.0;
       Timer(const Duration(milliseconds: 100), () {
         if (!mounted || _navigated) return;
@@ -169,8 +170,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _navigateNormally() {
-    appHasLaunched = true;
     final box = GetStorage();
+    box.write('app_has_launched', true);
     
     // Handle shortcut deep links (works even when logged out)
     final shortcutDest = box.read<String>('shortcut_destination') ?? '';
