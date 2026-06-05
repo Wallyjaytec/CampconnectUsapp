@@ -70,9 +70,45 @@ class VisualSearchController extends GetxController {
   }
 }
 
-class _ImageScanningView extends StatelessWidget {
+class _ImageScanningView extends StatefulWidget {
   final File imageFile;
   const _ImageScanningView({required this.imageFile});
+
+  @override
+  State<_ImageScanningView> createState() => _ImageScanningViewState();
+}
+
+class _ImageScanningViewState extends State<_ImageScanningView>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _scanAnimation;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _scanAnimation = Tween<double>(begin: 0.1, end: 0.9).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
+    );
+
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0, 0.5, curve: Curves.easeInOut),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,53 +117,152 @@ class _ImageScanningView extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.file(imageFile, fit: BoxFit.cover),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.4),
-                  AppColors.primaryColor.withValues(alpha: 0.15),
-                  AppColors.primaryColor.withValues(alpha: 0.3),
-                  AppColors.primaryColor.withValues(alpha: 0.15),
-                  Colors.black.withValues(alpha: 0.4),
-                ],
-              ),
-            ),
+          // Background image
+          Image.file(widget.imageFile, fit: BoxFit.cover),
+
+          // Dark overlay for readability
+          Container(color: Colors.black.withValues(alpha: 0.55)),
+
+          // Scanning line animation
+          AnimatedBuilder(
+            animation: _scanAnimation,
+            builder: (context, _) {
+              return Positioned(
+                left: 0,
+                right: 0,
+                top: MediaQuery.of(context).size.height * _scanAnimation.value,
+                child: Column(
+                  children: [
+                    Container(
+                      height: 2,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            Color(0xCCFF8C00),
+                            Color(0xFFFF8C00),
+                            Color(0xCCFF8C00),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 30,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.primaryColor.withValues(alpha: 0.2),
+                            Colors.transparent,
+                            AppColors.primaryColor.withValues(alpha: 0.2),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 2,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            Color(0xCCFF8C00),
+                            Color(0xFFFF8C00),
+                            Color(0xCCFF8C00),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
+
+          // Center content
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.15),
-                  ),
-                  child: const Center(
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 3,
+                // Pulsing circle
+                AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, _) {
+                    return Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryColor.withValues(
+                          alpha: 0.15 * _pulseAnimation.value,
+                        ),
+                        border: Border.all(
+                          color: AppColors.primaryColor.withValues(
+                            alpha: 0.4 * _pulseAnimation.value,
+                          ),
+                          width: 2,
+                        ),
                       ),
+                      child: Center(
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 35,
+                              height: 35,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 28),
+                // Text with frosted glass effect
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      width: 1,
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                 Text(
-                  'Scanning image...'.tr,
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Finding similar products'.tr,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Scanning image...'.tr,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Finding similar products'.tr,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
