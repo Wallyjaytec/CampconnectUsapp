@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:kartly_e_commerce/core/constants/app_assets.dart';
 
 class ShimmerBox extends StatelessWidget {
-  const ShimmerBox({super.key, this.width, this.height, this.borderRadius = 8});
+  const ShimmerBox({
+    super.key,
+    this.width,
+    this.height,
+    this.borderRadius = 8,
+    this.showLogo = true,
+    this.logoSize = 40,
+  });
   final double? width;
   final double? height;
   final double borderRadius;
+  final bool showLogo;
+  final double logoSize;
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +31,33 @@ class ShimmerBox extends StatelessWidget {
           color: base,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
+        child: showLogo
+            ? Center(
+                child: Opacity(
+                  opacity: 0.35,
+                  child: Image.asset(
+                    AppAssets.appLogo,
+                    width: logoSize,
+                    height: logoSize,
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
 }
 
 class ShimmerCircle extends StatelessWidget {
-  const ShimmerCircle({super.key, required this.diameter});
+  const ShimmerCircle({
+    super.key,
+    required this.diameter,
+    this.showLogo = true,
+    this.logoSize = 24,
+  });
   final double diameter;
+  final bool showLogo;
+  final double logoSize;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +70,18 @@ class ShimmerCircle extends StatelessWidget {
         width: diameter,
         height: diameter,
         decoration: BoxDecoration(color: base, shape: BoxShape.circle),
+        child: showLogo
+            ? Center(
+                child: Opacity(
+                  opacity: 0.35,
+                  child: Image.asset(
+                    AppAssets.appLogo,
+                    width: logoSize,
+                    height: logoSize,
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
