@@ -50,6 +50,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         final dest = await skipChannel.invokeMethod<String>('shouldSkip');
         if (dest != null && dest.isNotEmpty) {
           final box = GetStorage();
+
+          // Check if onboarding is complete before skipping
+          final onboardingDone = box.read<bool>('onboarding_done') ?? false;
+          final languageSelected = box.read<bool>('language_selected') ?? false;
+          final countrySelected = box.read<bool>('country_selected') ?? false;
+          final currencySelected = box.read<bool>('currency_selected') ?? false;
+
+          if (!onboardingDone || !languageSelected || !countrySelected || !currencySelected) {
+            // New user — don't skip, show onboarding
+            _controller.forward();
+            _checkLockAndNavigate();
+            return;
+          }
+
+          // Existing user — skip splash and go to destination
           box.write('shortcut_destination', dest);
           _controller.value = 1.0;
           _navigated = true;
