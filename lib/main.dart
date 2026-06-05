@@ -66,6 +66,8 @@ Future<void> initServices() async {
 }
 
 void _handleDeepLink(Uri uri, GetStorage box) {
+  box.write('debug_last_link', uri.toString());
+  box.write('debug_last_link_time', DateTime.now().toString());
   if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'shortcut' && uri.pathSegments.length > 1) {
     final dest = uri.pathSegments[1];
     switch (dest) {
