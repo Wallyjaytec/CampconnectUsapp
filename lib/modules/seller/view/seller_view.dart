@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kartly_e_commerce/shared/widgets/back_icon_widget.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -12,6 +11,7 @@ import '../../../core/utils/currency_formatters.dart';
 import '../../../shared/widgets/cart_icon_widget.dart';
 import '../../../shared/widgets/notification_icon_widget.dart';
 import '../../../shared/widgets/search_icon_widget.dart';
+import '../../../shared/widgets/shimmer_widgets.dart';
 import '../../home/widgets/banner_carousel.dart';
 import '../../product/controller/product_details_controller.dart';
 import '../../product/widgets/star_row.dart';
@@ -467,10 +467,8 @@ class _ImageBoxShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Theme.of(context).dividerColor.withValues(alpha: 0.08),
-      highlightColor: Theme.of(context).dividerColor.withValues(alpha: 0.18),
-      child: const SizedBox.expand(child: ColoredBox(color: Colors.white)),
+    return const SizedBox.expand(
+      child: ShimmerBox(borderRadius: 0),
     );
   }
 }
@@ -482,67 +480,10 @@ class _CardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(10);
     return SizedBox(
       width: width,
       height: height,
-      child: Shimmer.fromColors(
-        baseColor: Theme.of(context).dividerColor.withValues(alpha: 0.08),
-        highlightColor: Theme.of(context).dividerColor.withValues(alpha: 0.18),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: radius,
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 20,
-                offset: Offset(0, 10),
-                color: Color(0x146A7EC8),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              const Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                  child: SizedBox.expand(
-                    child: ColoredBox(color: Colors.white),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 12,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                height: 10,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                height: 12,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        ),
-      ),
+      child: const ShimmerBox(borderRadius: 10),
     );
   }
 }
