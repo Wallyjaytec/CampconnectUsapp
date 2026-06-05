@@ -74,54 +74,60 @@ class SellerView extends StatelessWidget {
                 primary: false,
                 floating: true,
                 snap: true,
-                pinned: false,
+                pinned: true,
               ),
             ];
           },
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Builder(
-                  builder: (context) {
-                    final banner = args.shopBanner ?? '';
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await Get.find<SellerProductsController>().refreshAll();
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Builder(
+                    builder: (context) {
+                      final banner = args.shopBanner ?? '';
 
-                    if (banner.isEmpty) {
-                      return const SizedBox();
-                    }
+                      if (banner.isEmpty) {
+                        return const SizedBox();
+                      }
 
-                    return CachedNetworkImage(
-                      imageUrl: banner,
-                      height: 100,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => const _ImageBoxShimmer(),
-                      errorWidget: (_, __, ___) =>
-                          const Icon(Iconsax.gallery_remove_copy),
-                    );
-                  },
+                      return CachedNetworkImage(
+                        imageUrl: banner,
+                        height: 100,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => const _ImageBoxShimmer(),
+                        errorWidget: (_, __, ___) =>
+                            const Icon(Iconsax.gallery_remove_copy),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SliverToBoxAdapter(child: _SellerHeader(args: args)),
-              SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
-              const SliverToBoxAdapter(
-                child: _SellerCarousel(section: _SellerSection.newItems),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
-              SliverToBoxAdapter(
-                child: _SectionHeader('Top Selling Products'.tr),
-              ),
-              const SliverToBoxAdapter(
-                child: _SellerCarousel(section: _SellerSection.topSelling),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
-              SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
-              const SliverToBoxAdapter(
-                child: _SellerCarousel(
-                  section: _SellerSection.featured,
-                  bottomPadding: 12,
+                SliverToBoxAdapter(child: _SellerHeader(args: args)),
+                SliverToBoxAdapter(child: _SectionHeader('Newest items'.tr)),
+                const SliverToBoxAdapter(
+                  child: _SellerCarousel(section: _SellerSection.newItems),
                 ),
-              ),
-            ],
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverToBoxAdapter(
+                  child: _SectionHeader('Top Selling Products'.tr),
+                ),
+                const SliverToBoxAdapter(
+                  child: _SellerCarousel(section: _SellerSection.topSelling),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverToBoxAdapter(child: _SectionHeader('Featured Items'.tr)),
+                const SliverToBoxAdapter(
+                  child: _SellerCarousel(
+                    section: _SellerSection.featured,
+                    bottomPadding: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
