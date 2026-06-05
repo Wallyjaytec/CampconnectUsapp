@@ -257,7 +257,7 @@ class _ListCard extends StatelessWidget {
             final permalink = p.slug;
             Get.toNamed(
               AppRoutes.productDetailsView,
-              arguments: {'permalink': permalink},
+              arguments: {'permalink': permalink, 'product_id': p.id.toString()},
             );
           },
           child: Column(
