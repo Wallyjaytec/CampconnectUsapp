@@ -43,22 +43,21 @@ import '../widgets/star_row.dart';
 class ProductDetailsView extends StatelessWidget {
   ProductDetailsView({super.key});
 
-  ProductDetailsController get controller {
+ProductDetailsController get controller {
   final args = Get.arguments;
   final productId = (args is Map) ? (args['product_id'] ?? '') : '';
-  final permalink = (args is Map) ? (args['permalink'] ?? args['slug'] ?? '') : '';
   final tag = 'product_$productId';
   if (tag == 'product_' || tag == 'product_null') {
     if (Get.isRegistered<ProductDetailsController>()) {
       return Get.find<ProductDetailsController>();
     }
-    return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService()), permalink: permalink));
+    return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())));
   }
   if (Get.isRegistered<ProductDetailsController>(tag: tag)) {
     return Get.find<ProductDetailsController>(tag: tag);
   }
-  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService()), permalink: permalink), tag: tag);
-  }
+  return Get.put(ProductDetailsController(ProductDetailsRepository(ApiService())), tag: tag);
+}
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -91,14 +90,7 @@ class ProductDetailsView extends StatelessWidget {
         bottomNavigationBar: _BottomBar(),
         body: Obx(() {
   if (controller.isLoading.value && controller.product.value == null) {
-    return Center(
-      child: ShimmerBox(
-        width: double.infinity,
-        height: 300,
-        borderRadius: 10,
-        logoSize: 80,
-      ),
-    );
+  return const Center(child: CircularProgressIndicator());
   }
   if (controller.error.isNotEmpty && controller.product.value == null) {
     return _ErrorPane(
