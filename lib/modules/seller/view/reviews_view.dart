@@ -72,7 +72,9 @@ class _ReviewsViewState extends State<ReviewsView> {
         body: Obx(() {
           final err = controller.loadError.value;
           return RefreshIndicator(
-            onRefresh: () => controller.refreshRatings(),
+            onRefresh: () async {
+              await controller.setReviewSort(controller.reviewSort.value);
+            },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.only(bottom: 16),
