@@ -29,6 +29,7 @@ import '../../../core/controllers/currency_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/network_service.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../shared/widgets/shimmer_widgets.dart';
 import '../../account/controller/notifications_controller.dart';
 import '../../category/controller/category_controller.dart';
 import '../../product/controller/cart_controller.dart';
@@ -340,19 +341,10 @@ class _BannerShimmer extends StatelessWidget {
   const _BannerShimmer();
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return const ShimmerBox(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Center(
-        child: Image.asset(
-          'assets/icons/loading_placeholder.png',
-          width: 60,
-          height: 60,
-        ),
-      ),
+      height: 130,
+      borderRadius: 10,
     );
   }
 }
