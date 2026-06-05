@@ -179,6 +179,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           case 'wallet':
             Get.toNamed(AppRoutes.myWalletView);
             break;
+          case 'account':
+            Get.toNamed(AppRoutes.bottomNavbarView);
+            break;
+          case 'notifications':
+            Get.toNamed(AppRoutes.notificationsView);
+            break;
         }
       });
       return;

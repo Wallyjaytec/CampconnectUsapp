@@ -21,7 +21,7 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
             val searchIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/search")
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             views.setOnClickPendingIntent(R.id.widget_search_bar, PendingIntent.getActivity(
                 context, 0, searchIntent,
@@ -31,7 +31,7 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
             val accountIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/account")
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             views.setOnClickPendingIntent(R.id.widget_account, PendingIntent.getActivity(
                 context, 1, accountIntent,
@@ -41,7 +41,7 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
             val cartIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/cart")
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             views.setOnClickPendingIntent(R.id.widget_cart, PendingIntent.getActivity(
                 context, 2, cartIntent,
@@ -51,7 +51,7 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
             val ordersIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/orders")
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             views.setOnClickPendingIntent(R.id.widget_orders, PendingIntent.getActivity(
                 context, 3, ordersIntent,
@@ -61,7 +61,7 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
             val notifIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/notifications")
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             views.setOnClickPendingIntent(R.id.widget_notifications, PendingIntent.getActivity(
                 context, 4, notifIntent,

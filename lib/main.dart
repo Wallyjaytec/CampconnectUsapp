@@ -27,6 +27,7 @@ import 'modules/account/controller/notifications_controller.dart';
 import 'modules/category/controller/category_controller.dart';
 import 'modules/product/controller/cart_controller.dart';
 import 'modules/product/controller/new_product_list_controller.dart';
+import 'modules/bottom_navbar/controller/bottom_navbar_controller.dart';
 
 final _appLinks = AppLinks();
 
@@ -72,6 +73,14 @@ void _handleDeepLink(Uri uri, GetStorage box) {
       case 'orders': Get.toNamed(AppRoutes.myOrderListView); break;
       case 'cart': Get.toNamed(AppRoutes.cartView); break;
       case 'wallet': Get.toNamed(AppRoutes.myWalletView); break;
+      case 'account':
+        if (Get.isRegistered<BottomNavbarController>()) {
+          Get.find<BottomNavbarController>().currentIndex.value = 4;
+        } else {
+          Get.toNamed(AppRoutes.bottomNavbarView);
+        }
+        break;
+      case 'notifications': Get.toNamed(AppRoutes.notificationsView); break;
     }
   } else if (uri.host == 'search') {
     Get.toNamed(AppRoutes.searchView);
