@@ -47,6 +47,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _checkLockAndNavigate() async {
     if (_navigated) return;
 
+    // Skip animation on warm resume (Samsung/One UI creates a second onCreate)
+    if (appHasLaunched) {
+      _controller.value = 1.0;
+      Timer(const Duration(milliseconds: 100), () {
+        if (!mounted || _navigated) return;
+        _checkPushAndNavigate(attempts: 0);
+      });
+      return;
+    }
+
     bool hasPasscode = false;
     if (isLoggedIn) {
       hasPasscode = await PasscodeService.checkPasscodeOnServer();
@@ -159,6 +169,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _navigateNormally() {
+    appHasLaunched = true;
     final box = GetStorage();
     
     // Handle shortcut deep links (works even when logged out)
