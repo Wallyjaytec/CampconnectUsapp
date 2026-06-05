@@ -89,26 +89,33 @@ class ProductDetailsView extends StatelessWidget {
         ),
         bottomNavigationBar: _BottomBar(),
         body: Obx(() {
-          if (controller.isLoading.value && controller.product.value == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (controller.error.isNotEmpty && controller.product.value == null) {
-            return _ErrorPane(
-              message: controller.error.value,
-              onRetry: controller.load,
-            );
-          }
-          final p = controller.product.value!;
+  if (controller.isLoading.value && controller.product.value == null) {
+    return const Center(
+      child: ShimmerBox(
+        width: double.infinity,
+        height: 300,
+        borderRadius: 10,
+        logoSize: 80,
+      ),
+    );
+  }
+  if (controller.error.isNotEmpty && controller.product.value == null) {
+    return _ErrorPane(
+      message: controller.error.value,
+      onRetry: controller.load,
+    );
+  }
+  final p = controller.product.value!;
 
-          return RefreshIndicator(
-            onRefresh: controller.load,
-            child: ListView(
-              children: [
-                _Gallery(p: p),
-                const SizedBox(height: 12),
-                const _OverviewBlock(),
-                const SizedBox(height: 12),
-                if (controller.hasVariationsProduct) ...[
+  return RefreshIndicator(
+    onRefresh: controller.load,
+    child: ListView(
+      children: [
+        _Gallery(p: p),
+        const SizedBox(height: 12),
+        const _OverviewBlock(),
+        const SizedBox(height: 12),
+          if (controller.hasVariationsProduct) ...[
                   const _VariationBlock(),
                   const SizedBox(height: 12),
                 ],
