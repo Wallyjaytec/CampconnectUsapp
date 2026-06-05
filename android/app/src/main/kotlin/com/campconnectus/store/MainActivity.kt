@@ -23,7 +23,11 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.NormalTheme)
+        val skipFile = java.io.File(filesDir, "skip_splash_flag")
+        if (skipFile.exists()) {
+            setTheme(R.style.InstantTheme)
+        }
+
         writeLog("onCreate called - savedInstanceState: ${savedInstanceState != null} - intent data: ${intent?.data}")
         super.onCreate(savedInstanceState)
         handleColdStartNotification(intent)
