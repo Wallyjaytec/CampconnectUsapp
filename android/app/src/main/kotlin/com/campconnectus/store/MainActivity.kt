@@ -22,7 +22,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        writeLog("onCreate called - intent data: ${intent?.data}")
+        writeLog("onCreate called - savedInstanceState: ${savedInstanceState != null} - intent data: ${intent?.data}")
         super.onCreate(savedInstanceState)
         handleColdStartNotification(intent)
         intent?.data?.let { pendingDeepLink = it.toString() }
