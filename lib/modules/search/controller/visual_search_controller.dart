@@ -121,7 +121,7 @@ class _ImageScanningView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Scanning image...',
+                  'Scanning image...'.tr,
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
