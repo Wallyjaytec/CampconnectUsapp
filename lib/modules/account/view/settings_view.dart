@@ -249,41 +249,6 @@ class _SettingsViewState extends State<SettingsView> {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              // Debug Deep Link
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Iconsax.link, color: AppColors.primaryColor, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Last Deep Link',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            GetStorage().read<String>('debug_last_link') ?? 'None',
-                            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                          ),
-                          Text(
-                            GetStorage().read<String>('debug_last_link_time') ?? '',
-                            style: TextStyle(fontSize: 10, color: Colors.grey[400]),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
