@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../shared/widgets/shimmer_widgets.dart';
 import '../../product/widgets/star_row.dart';
 import '../controller/seller_ratings_controller.dart';
 import '../model/seller_shop_model.dart';
@@ -62,7 +62,6 @@ class _ReviewsViewState extends State<ReviewsView> {
           titleSpacing: 10,
           leadingWidth: 0,
           elevation: 0,
-          //leading: const BackIconWidget(),
           centerTitle: false,
           title: Text(
             '${navArgs.title} — ${'Reviews'.tr}',
@@ -72,186 +71,190 @@ class _ReviewsViewState extends State<ReviewsView> {
         ),
         body: Obx(() {
           final err = controller.loadError.value;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                  child: SellerRatingsCard(),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkCardColor
-                          : AppColors.lightCardColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    child: Obx(() {
-                      final totalText = controller.totalReviewsText;
-                      final sort = controller.reviewSort.value;
+          return RefreshIndicator(
+            onRefresh: () => controller.refreshRatings(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                    child: SellerRatingsCard(),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkCardColor
+                            : AppColors.lightCardColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Obx(() {
+                        final totalText = controller.totalReviewsText;
+                        final sort = controller.reviewSort.value;
 
-                      String label(ReviewSort s) {
-                        switch (s) {
-                          case ReviewSort.recent:
-                            return 'Recent'.tr;
-                          case ReviewSort.ratingHigh:
-                            return 'Rating: High to Low'.tr;
-                          case ReviewSort.ratingLow:
-                            return 'Rating: Low to High'.tr;
+                        String label(ReviewSort s) {
+                          switch (s) {
+                            case ReviewSort.recent:
+                              return 'Recent'.tr;
+                            case ReviewSort.ratingHigh:
+                              return 'Rating: High to Low'.tr;
+                            case ReviewSort.ratingLow:
+                              return 'Rating: Low to High'.tr;
+                          }
                         }
+
+                        return Row(
+                          children: [
+                            Text(
+                              '${'Reviews'.tr}: $totalText',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const Spacer(),
+                            DropdownButtonHideUnderline(
+                              child: DropdownButton<ReviewSort>(
+                                alignment: AlignmentDirectional.centerEnd,
+                                icon: const SizedBox.shrink(),
+                                isDense: true,
+                                isExpanded: false,
+                                borderRadius: BorderRadius.circular(10),
+                                dropdownColor: isDark
+                                    ? AppColors.darkCardColor
+                                    : AppColors.lightCardColor,
+                                value: sort,
+                                selectedItemBuilder: (context) {
+                                  return ReviewSort.values.map((v) {
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          label(v),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.normal,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Iconsax.arrow_down_1_copy,
+                                          size: 14,
+                                        ),
+                                      ],
+                                    );
+                                  }).toList();
+                                },
+                                items: [
+                                  DropdownMenuItem(
+                                    value: ReviewSort.recent,
+                                    child: Text(
+                                      'Recent'.tr,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: ReviewSort.ratingHigh,
+                                    child: Text(
+                                      'Rating: High to Low'.tr,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: ReviewSort.ratingLow,
+                                    child: Text(
+                                      'Rating: Low to High'.tr,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (v) {
+                                  if (v != null) controller.setReviewSort(v);
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                  ),
+
+                  if (err.isNotEmpty && controller.rawReviews.isEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(err, textAlign: TextAlign.center),
+                    ),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Obx(() {
+                      if (controller.isSorting.value) {
+                        return const _ShimmerReviewList();
                       }
 
-                      return Row(
-                        children: [
-                          Text(
-                            '${'Reviews'.tr}: $totalText',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          const Spacer(),
-                          DropdownButtonHideUnderline(
-                            child: DropdownButton<ReviewSort>(
-                              alignment: AlignmentDirectional.centerEnd,
-                              icon: const SizedBox.shrink(),
-                              isDense: true,
-                              isExpanded: false,
-                              borderRadius: BorderRadius.circular(10),
-                              dropdownColor: isDark
-                                  ? AppColors.darkCardColor
-                                  : AppColors.lightCardColor,
-                              value: sort,
-                              selectedItemBuilder: (context) {
-                                return ReviewSort.values.map((v) {
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        label(v),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Icon(
-                                        Iconsax.arrow_down_1_copy,
-                                        size: 14,
-                                      ),
-                                    ],
-                                  );
-                                }).toList();
-                              },
-                              items: [
-                                DropdownMenuItem(
-                                  value: ReviewSort.recent,
-                                  child: Text(
-                                    'Recent'.tr,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 14,
-                                    ),
+                      final list = controller.reviewsForView;
+                      if (controller.isLoading.value && list.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      if (list.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: Text('No reviews yet'.tr)),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: EdgeInsets.zero,
+                        itemCount: list.length + 1,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (_, i) {
+                          if (i == list.length) {
+                            if (controller.hasMore.value) {
+                              return Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Center(
+                                  child: ElevatedButton(
+                                    onPressed: controller.loadMore,
+                                    child: Text('Load more'.tr),
                                   ),
                                 ),
-                                DropdownMenuItem(
-                                  value: ReviewSort.ratingHigh,
-                                  child: Text(
-                                    'Rating: High to Low'.tr,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                                DropdownMenuItem(
-                                  value: ReviewSort.ratingLow,
-                                  child: Text(
-                                    'Rating: Low to High'.tr,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              onChanged: (v) {
-                                if (v != null) controller.setReviewSort(v);
-                              },
+                              );
+                            }
+                            return const SizedBox(height: 8);
+                          }
+                          final item = list[i];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6,
+                              horizontal: 12,
                             ),
-                          ),
-                        ],
+                            child: _ReviewTile(item: item),
+                          );
+                        },
                       );
                     }),
                   ),
-                ),
-
-                if (err.isNotEmpty && controller.rawReviews.isEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(err, textAlign: TextAlign.center),
-                  ),
                 ],
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Obx(() {
-                    if (controller.isSorting.value) {
-                      return const _ShimmerReviewList();
-                    }
-
-                    final list = controller.reviewsForView;
-                    if (controller.isLoading.value && list.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    if (list.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Center(child: Text('No reviews yet'.tr)),
-                      );
-                    }
-
-                    return ListView.separated(
-                      padding: EdgeInsets.zero,
-                      itemCount: list.length + 1,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (_, i) {
-                        if (i == list.length) {
-                          if (controller.hasMore.value) {
-                            return Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Center(
-                                child: ElevatedButton(
-                                  onPressed: controller.loadMore,
-                                  child: Text('Load more'.tr),
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox(height: 8);
-                        }
-                        final item = list[i];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 12,
-                          ),
-                          child: _ReviewTile(item: item),
-                        );
-                      },
-                    );
-                  }),
-                ),
-              ],
+              ),
             ),
           );
         }),
@@ -547,60 +550,40 @@ class _ShimmerReviewList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context).dividerColor.withValues(alpha: 0.08);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return ListView.builder(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 6,
       itemBuilder: (_, __) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-          child: Shimmer.fromColors(
-            baseColor: isDark
-                ? AppColors.lightCardColor
-                : AppColors.darkCardColor,
-            highlightColor: AppColors.greyColor,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: base,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerCircle(diameter: 36),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(height: 12, width: 120, borderRadius: 6),
+                    SizedBox(height: 8),
+                    ShimmerBox(height: 12, width: 80, borderRadius: 6),
+                    SizedBox(height: 8),
+                    ShimmerBox(height: 12, borderRadius: 6),
+                    SizedBox(height: 6),
+                    Row(
+                      children: [
+                        ShimmerBox(height: 76, width: 76, borderRadius: 8),
+                        SizedBox(width: 8),
+                        ShimmerBox(height: 76, width: 76, borderRadius: 8),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(height: 12, width: 120, color: base),
-                      const SizedBox(height: 8),
-                      Container(height: 12, width: 80, color: base),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 12,
-                        width: double.infinity,
-                        color: base,
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Container(height: 76, width: 76, color: base),
-                          const SizedBox(width: 8),
-                          Container(height: 76, width: 76, color: base),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
