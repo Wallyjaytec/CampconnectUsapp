@@ -195,6 +195,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _navigateNormally() {
     final box = GetStorage();
 
+    // Check onboarding first — if not complete, redirect to onboarding
+    final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
+    final languageSelected = box.read<bool>('language_selected') ?? false;
+    final countrySelected = box.read<bool>('country_selected') ?? false;
+    final currencySelected = box.read<bool>('currency_selected') ?? false;
+
+    if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
+      Get.offAllNamed(AppRoutes.languageSelect);
+      return;
+    }
+
+    // Handle shortcut deep links
     final shortcutDest = box.read<String>('shortcut_destination') ?? '';
     if (shortcutDest.isNotEmpty) {
       box.remove('shortcut_destination');
@@ -274,11 +286,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       }
       return;
     }
-
-    final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
-    final languageSelected = box.read<bool>('language_selected') ?? false;
-    final countrySelected = box.read<bool>('country_selected') ?? false;
-    final currencySelected = box.read<bool>('currency_selected') ?? false;
 
     if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
       Get.offAllNamed(AppRoutes.languageSelect);
