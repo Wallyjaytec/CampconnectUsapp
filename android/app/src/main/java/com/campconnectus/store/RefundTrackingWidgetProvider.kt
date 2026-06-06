@@ -22,6 +22,7 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
                 val views = RemoteViews(context.packageName, R.layout.refund_tracking_widget_layout)
                 views.setTextViewText(R.id.widget_refund_id, "No refunds")
                 views.setTextViewText(R.id.widget_refund_amount, "")
+                views.setTextViewText(R.id.widget_refund_status, "")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
         }
@@ -37,6 +38,7 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
 
             views.setTextViewText(R.id.widget_refund_id, "No refunds")
             views.setTextViewText(R.id.widget_refund_amount, "")
+            views.setTextViewText(R.id.widget_refund_status, "")
 
             try {
                 val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
@@ -46,10 +48,14 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
                     val json = org.json.JSONObject(jsonStr)
                     val refundId = json.optString("refundId", "")
                     val refundAmount = json.optString("refundAmount", "")
+                    val refundStatus = json.optString("refundStatus", "")
 
                     if (refundId.isNotEmpty()) {
                         views.setTextViewText(R.id.widget_refund_id, refundId)
                         views.setTextViewText(R.id.widget_refund_amount, refundAmount)
+                        if (refundStatus.isNotEmpty() && refundStatus != "0") {
+                            views.setTextViewText(R.id.widget_refund_status, _getStatusText(refundStatus))
+                        }
                     }
                 }
             } catch (_: Exception) {}
@@ -66,6 +72,16 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.widget_refund, pending)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun _getStatusText(status: String): String {
+            return when (status) {
+                "20" -> "Pending"
+                "50" -> "Processing"
+                "80" -> "Approved"
+                "100" -> "Refunded"
+                else -> status
+            }
         }
     }
 }
