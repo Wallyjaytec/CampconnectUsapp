@@ -7,8 +7,8 @@
     android:maxResizeHeight="110dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/order_tracking_widget_layout"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/widget_order_preview"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
-    android:label="Order Tracking"
+    android:label="@string/widget_order_label"
     android:description="@string/widget_order_tracking_desc" />

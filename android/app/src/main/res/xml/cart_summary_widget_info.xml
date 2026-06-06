@@ -12,5 +12,5 @@
     android:previewImage="@drawable/widget_cart_preview"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
-    android:label="Cart Summary"
+    android:label="@string/widget_cart_label"
     android:description="@string/widget_cart_summary_desc" />

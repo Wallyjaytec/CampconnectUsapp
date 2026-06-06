@@ -10,5 +10,5 @@
     android:previewImage="@drawable/widget_refund_preview"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
-    android:label="Refund Tracking"
+    android:label="@string/widget_refund_label"
     android:description="@string/widget_refund_tracking_desc" />
