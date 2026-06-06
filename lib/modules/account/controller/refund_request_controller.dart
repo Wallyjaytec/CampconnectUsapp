@@ -186,16 +186,11 @@ class RefundRequestController extends GetxController {
 
   String _mapRefundStatus(String status) {
     switch (status.toLowerCase()) {
-      case 'pending':
-        return '20';
-      case 'processing':
-        return '50';
-      case 'approved':
-        return '80';
-      case 'refunded':
-        return '100';
-      default:
-        return '0';
+      case 'pending': return '20';
+      case 'processing': return '50';
+      case 'approved': return '80';
+      case 'refunded': return '100';
+      default: return '0';
     }
   }
 }
