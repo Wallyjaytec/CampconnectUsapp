@@ -1,5 +1,7 @@
 package com.campconnectus.store
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -11,6 +13,7 @@ class MainActivity : FlutterFragmentActivity() {
     private val ONESIGNAL_CHANNEL = "com.campconnectus.store/onesignal"
     private val DEEP_LINK_CHANNEL = "com.campconnectus.store/deeplink"
     private val SKIP_SPLASH_CHANNEL = "com.campconnectus.store/skip_splash"
+    private val WIDGET_UPDATE_CHANNEL = "com.campconnectus.store/widget_update"
 
     private var deepLinkChannel: MethodChannel? = null
     private var pendingDeepLink: String? = null
@@ -87,6 +90,42 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                 } catch (_: Exception) {
                     result.success(null)
+                }
+            } else {
+                result.notImplemented()
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            WIDGET_UPDATE_CHANNEL
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "updateWidgets") {
+                try {
+                    val context = this
+                    val appWidgetManager = AppWidgetManager.getInstance(context)
+                    
+                    // Update all 3 widgets
+                    val searchWidget = ComponentName(context, SearchActionsWidgetProvider::class.java)
+                    val orderWidget = ComponentName(context, OrderTrackingWidgetProvider::class.java)
+                    val cartWidget = ComponentName(context, CartSummaryWidgetProvider::class.java)
+                    
+                    val searchIds = appWidgetManager.getAppWidgetIds(searchWidget)
+                    val orderIds = appWidgetManager.getAppWidgetIds(orderWidget)
+                    val cartIds = appWidgetManager.getAppWidgetIds(cartWidget)
+                    
+                    if (searchIds.isNotEmpty()) {
+                        SearchActionsWidgetProvider.updateAppWidget(context, appWidgetManager, searchIds[0])
+                    }
+                    if (orderIds.isNotEmpty()) {
+                        OrderTrackingWidgetProvider.updateAppWidget(context, appWidgetManager, orderIds[0])
+                    }
+                    if (cartIds.isNotEmpty()) {
+                        CartSummaryWidgetProvider.updateAppWidget(context, appWidgetManager, cartIds[0])
+                    }
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.success(false)
                 }
             } else {
                 result.notImplemented()

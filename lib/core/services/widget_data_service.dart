@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WidgetDataService {
@@ -10,6 +11,8 @@ class WidgetDataService {
     String? latestOrderId,
     String? latestOrderAmount,
     String? latestOrderStatus,
+    String? latestOrderProduct,
+    String? latestOrderImage,
     String? refundId,
     String? refundAmount,
     String? refundStatus,
@@ -21,10 +24,18 @@ class WidgetDataService {
       'latestOrderId': latestOrderId ?? '',
       'latestOrderAmount': latestOrderAmount ?? '',
       'latestOrderStatus': latestOrderStatus ?? '0',
+      'latestOrderProduct': latestOrderProduct ?? '',
+      'latestOrderImage': latestOrderImage ?? '',
       'refundId': refundId ?? '',
       'refundAmount': refundAmount ?? '',
       'refundStatus': refundStatus ?? '0',
     });
     await prefs.setString(_key, data);
+
+    // Trigger widget update
+    try {
+      const channel = MethodChannel('com.campconnectus.store/widget_update');
+      await channel.invokeMethod('updateWidgets');
+    } catch (_) {}
   }
 }
