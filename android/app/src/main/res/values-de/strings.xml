@@ -16,6 +16,7 @@
     <string name="widget_notif">Benachr.</string>
     <string name="no_orders">Keine Bestellungen</string>
     <string name="no_refunds">Keine Rückerstattungen</string>
+    <string name="default_items_in_cart">0 Artikel im Warenkorb</string>
     <string name="checkout_btn">Zur Kasse  →</string>
     <string name="section_cart">| Warenkorb</string>
     <string name="section_orders">| Bestellungen</string>

@@ -20,7 +20,6 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                 updateAppWidget(context, appWidgetManager, appWidgetId)
             } catch (e: Exception) {
                 val views = RemoteViews(context.packageName, R.layout.order_tracking_widget_layout)
-                views.setTextViewText(R.id.widget_order_id, "")
                 views.setTextViewText(R.id.widget_order_amount, "")
                 views.setTextViewText(R.id.widget_order_product, "")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -36,7 +35,6 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.order_tracking_widget_layout)
 
-            views.setTextViewText(R.id.widget_order_id, "")
             views.setTextViewText(R.id.widget_order_amount, "")
             views.setTextViewText(R.id.widget_order_product, "")
 

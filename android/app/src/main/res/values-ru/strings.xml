@@ -16,6 +16,7 @@
     <string name="widget_notif">Увед.</string>
     <string name="no_orders">Нет заказов</string>
     <string name="no_refunds">Нет возвратов</string>
+    <string name="default_items_in_cart">0 items in cart</string>
     <string name="checkout_btn">Оформить  →</string>
     <string name="section_cart">| Корзина</string>
     <string name="section_orders">| Заказы</string>

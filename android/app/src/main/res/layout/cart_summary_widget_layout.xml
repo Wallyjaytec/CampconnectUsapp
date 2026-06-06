@@ -66,10 +66,10 @@
 
             <TextView
                 android:id="@+id/widget_cart_items"
+                android:text="@string/default_items_in_cart"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text=""
                 android:textSize="12sp"
                 android:textColor="#333333" />
 
@@ -77,7 +77,6 @@
                 android:id="@+id/widget_cart_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=""
                 android:textSize="16sp"
                 android:textColor="#1A1A1A"
                 android:textStyle="bold" />

@@ -16,6 +16,7 @@
     <string name="widget_notif">सूचना</string>
     <string name="no_orders">कोई ऑर्डर नहीं</string>
     <string name="no_refunds">कोई रिफंड नहीं</string>
+    <string name="default_items_in_cart">0 items in cart</string>
     <string name="checkout_btn">चेकआउट  →</string>
     <string name="section_cart">| कार्ट</string>
     <string name="section_orders">| ऑर्डर</string>

@@ -16,6 +16,7 @@
     <string name="widget_notif">알림</string>
     <string name="no_orders">주문 없음</string>
     <string name="no_refunds">환불 없음</string>
+    <string name="default_items_in_cart">0 items in cart</string>
     <string name="checkout_btn">결제하기  →</string>
     <string name="section_cart">| 장바구니</string>
     <string name="section_orders">| 주문</string>

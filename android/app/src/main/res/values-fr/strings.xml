@@ -16,6 +16,7 @@
     <string name="widget_notif">Notif.</string>
     <string name="no_orders">Aucune commande</string>
     <string name="no_refunds">Aucun remboursement</string>
+    <string name="default_items_in_cart">0 article dans le panier</string>
     <string name="checkout_btn">Commander  →</string>
     <string name="section_cart">| Panier</string>
     <string name="section_orders">| Commandes</string>
