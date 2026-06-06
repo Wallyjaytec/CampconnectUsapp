@@ -8,4 +8,13 @@
     <string name="cart_long">Корзина</string>
     <string name="wallet_short">Кошелек</string>
     <string name="wallet_long">Мой Кошелек</string>
+    <string name="search_hint">Поиск на CampConnectUs Marketplace...</string>
+    <string name="shop_on_ccu">| Покупки на CCU</string>
+    <string name="widget_account">Аккаунт</string>
+    <string name="widget_cart">Корзина</string>
+    <string name="widget_orders">Заказы</string>
+    <string name="widget_notif">Увед.</string>
+    <string name="no_orders">Нет заказов</string>
+    <string name="no_refunds">Нет возвратов</string>
+    <string name="checkout_btn">Оформить  →</string>
 </resources>

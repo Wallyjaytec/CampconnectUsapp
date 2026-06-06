@@ -8,4 +8,13 @@
     <string name="cart_long">장바구니</string>
     <string name="wallet_short">지갑</string>
     <string name="wallet_long">지갑 보기</string>
+    <string name="search_hint">CampConnectUs Marketplace 검색...</string>
+    <string name="shop_on_ccu">| CCU에서 쇼핑</string>
+    <string name="widget_account">계정</string>
+    <string name="widget_cart">장바구니</string>
+    <string name="widget_orders">주문</string>
+    <string name="widget_notif">알림</string>
+    <string name="no_orders">주문 없음</string>
+    <string name="no_refunds">환불 없음</string>
+    <string name="checkout_btn">결제하기  →</string>
 </resources>

@@ -8,4 +8,13 @@
     <string name="cart_long">शॉपिंग कार्ट</string>
     <string name="wallet_short">वॉलेट</string>
     <string name="wallet_long">वॉलेट देखें</string>
+    <string name="search_hint">CampConnectUs Marketplace पर खोजें...</string>
+    <string name="shop_on_ccu">| CCU पर खरीदें</string>
+    <string name="widget_account">खाता</string>
+    <string name="widget_cart">कार्ट</string>
+    <string name="widget_orders">ऑर्डर</string>
+    <string name="widget_notif">सूचना</string>
+    <string name="no_orders">कोई ऑर्डर नहीं</string>
+    <string name="no_refunds">कोई रिफंड नहीं</string>
+    <string name="checkout_btn">चेकआउट  →</string>
 </resources>

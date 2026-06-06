@@ -8,4 +8,13 @@
     <string name="cart_long">Warenkorb</string>
     <string name="wallet_short">Geldbörse</string>
     <string name="wallet_long">Geldbörse</string>
+    <string name="search_hint">Auf CampConnectUs Marketplace suchen...</string>
+    <string name="shop_on_ccu">| Kaufen auf CCU</string>
+    <string name="widget_account">Konto</string>
+    <string name="widget_cart">Warenkorb</string>
+    <string name="widget_orders">Bestellungen</string>
+    <string name="widget_notif">Benachr.</string>
+    <string name="no_orders">Keine Bestellungen</string>
+    <string name="no_refunds">Keine Rückerstattungen</string>
+    <string name="checkout_btn">Zur Kasse  →</string>
 </resources>

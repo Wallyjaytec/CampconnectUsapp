@@ -8,4 +8,13 @@
     <string name="cart_long">Carrito de Compras</string>
     <string name="wallet_short">Ver Billetera</string>
     <string name="wallet_long">Ver Billetera</string>
+    <string name="search_hint">Buscar en CampConnectUs Marketplace...</string>
+    <string name="shop_on_ccu">| Comprar en CCU</string>
+    <string name="widget_account">Cuenta</string>
+    <string name="widget_cart">Carrito</string>
+    <string name="widget_orders">Pedidos</string>
+    <string name="widget_notif">Notif.</string>
+    <string name="no_orders">Sin pedidos</string>
+    <string name="no_refunds">Sin reembolsos</string>
+    <string name="checkout_btn">Pagar  →</string>
 </resources>

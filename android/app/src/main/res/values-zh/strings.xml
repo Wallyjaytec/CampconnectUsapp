@@ -8,4 +8,13 @@
     <string name="cart_long">购物车</string>
     <string name="wallet_short">钱包</string>
     <string name="wallet_long">查看钱包</string>
+    <string name="search_hint">在CampConnectUs Marketplace搜索...</string>
+    <string name="shop_on_ccu">| 在CCU购物</string>
+    <string name="widget_account">账户</string>
+    <string name="widget_cart">购物车</string>
+    <string name="widget_orders">订单</string>
+    <string name="widget_notif">通知</string>
+    <string name="no_orders">暂无订单</string>
+    <string name="no_refunds">暂无退款</string>
+    <string name="checkout_btn">去结算  →</string>
 </resources>

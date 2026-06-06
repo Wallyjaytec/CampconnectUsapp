@@ -8,4 +8,13 @@
     <string name="cart_long">ショッピングカート</string>
     <string name="wallet_short">ウォレット</string>
     <string name="wallet_long">ウォレットを見る</string>
+    <string name="search_hint">CampConnectUs Marketplaceで検索...</string>
+    <string name="shop_on_ccu">| CCUで購入</string>
+    <string name="widget_account">アカウント</string>
+    <string name="widget_cart">カート</string>
+    <string name="widget_orders">注文</string>
+    <string name="widget_notif">通知</string>
+    <string name="no_orders">注文なし</string>
+    <string name="no_refunds">返金なし</string>
+    <string name="checkout_btn">チェックアウト  →</string>
 </resources>

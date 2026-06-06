@@ -18,4 +18,13 @@
     <string name="widget_order_label">Order Tracking</string>
     <string name="widget_cart_label">Cart Summary</string>
     <string name="widget_refund_label">Refund Tracking</string>
+    <string name="search_hint">Search on CampConnectUs Marketplace...</string>
+    <string name="shop_on_ccu">| Shop on CCU</string>
+    <string name="widget_account">Account</string>
+    <string name="widget_cart">Cart</string>
+    <string name="widget_orders">Orders</string>
+    <string name="widget_notif">Notif</string>
+    <string name="no_orders">No orders yet</string>
+    <string name="no_refunds">No refunds</string>
+    <string name="checkout_btn">Proceed to Checkout  →</string>
 </resources>

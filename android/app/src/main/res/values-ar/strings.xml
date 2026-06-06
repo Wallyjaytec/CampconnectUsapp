@@ -8,4 +8,13 @@
     <string name="cart_long">عربة التسوق</string>
     <string name="wallet_short">محفظتي</string>
     <string name="wallet_long">محفظتي</string>
+    <string name="search_hint">...البحث في CampConnectUs Marketplace</string>
+    <string name="shop_on_ccu">| تسوق على CCU</string>
+    <string name="widget_account">الحساب</string>
+    <string name="widget_cart">السلة</string>
+    <string name="widget_orders">الطلبات</string>
+    <string name="widget_notif">إشعارات</string>
+    <string name="no_orders">لا توجد طلبات</string>
+    <string name="no_refunds">لا توجد مبالغ مستردة</string>
+    <string name="checkout_btn">الدفع  →</string>
 </resources>
