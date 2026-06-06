@@ -62,23 +62,24 @@
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/widget_icon_orders"
-                    android:layout_marginEnd="4dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Latest Order"
-                    android:textSize="9sp"
-                    android:textColor="#666666" />
-            </LinearLayout>
+                android:text="📦 Latest Order"
+                android:textSize="9sp"
+                android:textColor="#666666" />
+
+            <TextView
+                android:id="@+id/widget_order_product"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="11sp"
+                android:textColor="#333333"
+                android:textStyle="bold"
+                android:layout_marginTop="3dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/widget_order_id"
@@ -86,9 +87,17 @@
                 android:layout_height="wrap_content"
                 android:text="No orders yet"
                 android:textSize="10sp"
-                android:textColor="#333333"
-                android:textStyle="bold"
-                android:layout_marginTop="4dp" />
+                android:textColor="#888888"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/widget_order_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="9sp"
+                android:textColor="#FF8C00"
+                android:layout_marginTop="3dp" />
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -126,24 +135,12 @@
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@android:drawable/ic_menu_revert"
-                    android:tint="#4CAF50"
-                    android:layout_marginEnd="4dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Refund"
-                    android:textSize="9sp"
-                    android:textColor="#666666" />
-            </LinearLayout>
+                android:text="💰 Refund"
+                android:textSize="9sp"
+                android:textColor="#666666" />
 
             <TextView
                 android:id="@+id/widget_refund_id"
