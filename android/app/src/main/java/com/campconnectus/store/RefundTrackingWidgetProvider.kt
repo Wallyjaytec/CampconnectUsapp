@@ -53,8 +53,8 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
                     if (refundId.isNotEmpty()) {
                         views.setTextViewText(R.id.widget_refund_id, refundId)
                         views.setTextViewText(R.id.widget_refund_amount, refundAmount)
-                        if (refundStatus.isNotEmpty() && refundStatus != "0") {
-                            views.setTextViewText(R.id.widget_refund_status, _getStatusText(refundStatus))
+                        if (refundStatus.isNotEmpty()) {
+                            views.setTextViewText(R.id.widget_refund_status, refundStatus)
                         }
                     }
                 }
@@ -72,16 +72,6 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.widget_refund, pending)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
-        }
-
-        private fun _getStatusText(status: String): String {
-            return when (status) {
-                "20" -> "Pending"
-                "50" -> "Processing"
-                "80" -> "Approved"
-                "100" -> "Refunded"
-                else -> status
-            }
         }
     }
 }
