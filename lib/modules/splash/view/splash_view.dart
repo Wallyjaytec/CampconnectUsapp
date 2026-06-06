@@ -231,6 +231,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             }
             break;
           case 'notifications':
+          case 'refunds':
+            Get.toNamed(AppRoutes.refundRequestListView);
+            break;
             Get.toNamed(AppRoutes.notificationsView);
             break;
         }

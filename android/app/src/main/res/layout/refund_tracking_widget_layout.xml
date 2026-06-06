@@ -50,56 +50,24 @@
         android:clickable="true"
         android:focusable="true">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@android:drawable/ic_menu_revert"
-                android:tint="#4CAF50"
-                android:layout_marginEnd="6dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Latest Refund"
-                android:textSize="10sp"
-                android:textColor="#666666" />
-        </LinearLayout>
-
         <TextView
             android:id="@+id/widget_refund_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No refunds"
-            android:textSize="10sp"
+            android:textSize="13sp"
             android:textColor="#333333"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:background="#E0E0E0"
-            android:layout_marginTop="6dp">
-            <TextView
-                android:id="@+id/widget_refund_progress"
-                android:layout_width="0dp"
-                android:layout_height="4dp"
-                android:background="#4CAF50" />
-        </FrameLayout>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/widget_refund_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textSize="12sp"
+            android:textSize="14sp"
             android:textColor="#4CAF50"
             android:textStyle="bold"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="6dp" />
 
     </LinearLayout>
 
