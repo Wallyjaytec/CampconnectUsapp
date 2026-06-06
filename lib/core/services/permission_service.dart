@@ -1,3 +1,4 @@
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -80,6 +81,7 @@ class PermissionService extends GetxService {
       if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
         await Permission.notification.request();
       }
+      await OneSignal.Notifications.requestPermission(true);
     }
   }
 
