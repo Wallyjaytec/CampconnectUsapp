@@ -178,10 +178,10 @@ class RefundRequestController extends GetxController {
       final currency = Get.find<CurrencyService>();
       WidgetDataService.updateWidgetData(
         cartItems: 0,
-        cartTotal: '${currency.current.symbol ?? '₦'}0',
-        currencySymbol: currency.current.symbol ?? '₦',
+        cartTotal: '${currency.current?.symbol ?? '₦'}0',
+        currencySymbol: currency.current?.symbol ?? '₦',
         refundId: '#${latest.refundCode}',
-        refundAmount: '${currency.current.symbol ?? '₦'}${latest.totalRefundAmount}',
+        refundAmount: '${currency.current?.symbol ?? '₦'}${latest.totalRefundAmount}',
         refundStatus: _mapRefundStatus(latest.paymentStatusLabel),
       );
     }
