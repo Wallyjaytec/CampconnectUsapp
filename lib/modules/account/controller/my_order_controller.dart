@@ -162,26 +162,33 @@ class OrderController extends GetxController {
         latestOrderId: '#${latest.orderCode}',
         latestOrderAmount: '₦${latest.totalPayableAmount}',
         latestOrderStatus: _mapStatus(latest.deliveryStatus),
+        latestOrderProduct: _mapStatusText(latest.deliveryStatus),
+        latestOrderImage: '',
       );
     }
   }
 
   String _mapStatus(String status) {
     switch (status.toLowerCase()) {
-      case 'pending':
-        return '10';
-      case 'confirmed':
-        return '30';
-      case 'processing':
-        return '50';
-      case 'picked_up':
-        return '70';
-      case 'on_the_way':
-        return '85';
-      case 'delivered':
-        return '100';
-      default:
-        return '0';
+      case 'pending': return '10';
+      case 'confirmed': return '30';
+      case 'processing': return '50';
+      case 'picked_up': return '70';
+      case 'on_the_way': return '85';
+      case 'delivered': return '100';
+      default: return '0';
+    }
+  }
+
+  String _mapStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending': return '⏳ Pending';
+      case 'confirmed': return '✅ Confirmed';
+      case 'processing': return '🔄 Processing';
+      case 'picked_up': return '📦 Picked Up';
+      case 'on_the_way': return '🚚 On the Way';
+      case 'delivered': return '📬 Delivered';
+      default: return status;
     }
   }
 }
