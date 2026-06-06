@@ -6,9 +6,9 @@ class WidgetDataService {
   static const _key = 'widget_data';
 
   static Future<void> updateWidgetData({
-    required int cartItems,
-    required String cartTotal,
-    required String currencySymbol,
+    int? cartItems,
+    String? cartTotal,
+    String? currencySymbol,
     String? latestOrderId,
     String? latestOrderAmount,
     String? latestOrderStatus,
@@ -19,20 +19,30 @@ class WidgetDataService {
     String? refundStatus,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final data = jsonEncode({
-      'cartItems': cartItems,
-      'cartTotal': cartTotal,
-      'currencySymbol': currencySymbol,
-      'latestOrderId': latestOrderId ?? '',
-      'latestOrderAmount': latestOrderAmount ?? '',
-      'latestOrderStatus': latestOrderStatus ?? '0',
-      'latestOrderProduct': latestOrderProduct ?? '',
-      'latestOrderImage': latestOrderImage ?? '',
-      'refundId': refundId ?? '',
-      'refundAmount': refundAmount ?? '',
-      'refundStatus': refundStatus ?? '0',
-    });
-    await prefs.setString(_key, data);
+    
+    // Read existing data so we don't overwrite other sections
+    final existing = prefs.getString(_key);
+    Map<String, dynamic> data = {};
+    if (existing != null) {
+      try {
+        data = Map<String, dynamic>.from(jsonDecode(existing));
+      } catch (_) {}
+    }
+    
+    // Only update fields that are provided
+    if (cartItems != null) data['cartItems'] = cartItems;
+    if (cartTotal != null) data['cartTotal'] = cartTotal;
+    if (currencySymbol != null) data['currencySymbol'] = currencySymbol;
+    if (latestOrderId != null) data['latestOrderId'] = latestOrderId;
+    if (latestOrderAmount != null) data['latestOrderAmount'] = latestOrderAmount;
+    if (latestOrderStatus != null) data['latestOrderStatus'] = latestOrderStatus;
+    if (latestOrderProduct != null) data['latestOrderProduct'] = latestOrderProduct;
+    if (latestOrderImage != null) data['latestOrderImage'] = latestOrderImage;
+    if (refundId != null) data['refundId'] = refundId;
+    if (refundAmount != null) data['refundAmount'] = refundAmount;
+    if (refundStatus != null) data['refundStatus'] = refundStatus;
+
+    await prefs.setString(_key, jsonEncode(data));
 
     try {
       const channel = MethodChannel('com.campconnectus.store/widget_update');

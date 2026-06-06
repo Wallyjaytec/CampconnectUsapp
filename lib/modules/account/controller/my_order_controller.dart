@@ -162,7 +162,7 @@ class OrderController extends GetxController {
         cartItems: 0,
         cartTotal: '${currency.current?.symbol ?? '₦'}0',
         currencySymbol: currency.current?.symbol ?? '₦',
-        latestOrderId: '#${latest.orderCode}',
+        latestOrderId: '${latest.orderCode}',
         latestOrderAmount: '${currency.current?.symbol ?? '₦'}${latest.totalPayableAmount}',
         latestOrderStatus: _mapStatus(latest.deliveryStatus),
         latestOrderProduct: _mapStatusText(latest.deliveryStatus),
