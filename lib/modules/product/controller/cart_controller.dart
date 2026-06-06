@@ -527,9 +527,12 @@ class CartController extends GetxController {
   }
 
   void _syncWidget() {
+    final count = totalItemsCount;
+    final itemsText = count == 1 ? '1 item in cart'.tr : '$count items in cart'.tr;
     WidgetDataService.updateWidgetData(
       cartItems: totalItemsCount,
       cartTotal: money(grandTotal),
+      cartItemsText: itemsText,
       currencySymbol: _currency.current?.symbol ?? '₦',
     );
   }
