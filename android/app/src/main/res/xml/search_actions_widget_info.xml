@@ -8,5 +8,5 @@
     android:previewImage="@drawable/widget_search_preview"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:label="Search & Actions"
+    android:label="Search &amp; Actions"
     android:description="@string/widget_search_actions_desc" />
