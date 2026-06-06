@@ -102,27 +102,30 @@ class MainActivity : FlutterFragmentActivity() {
         ).setMethodCallHandler { call, result ->
             if (call.method == "updateWidgets") {
                 try {
-                    val context = this
-                    val appWidgetManager = AppWidgetManager.getInstance(context)
-                    
-                    // Update all 3 widgets
-                    val searchWidget = ComponentName(context, SearchActionsWidgetProvider::class.java)
-                    val orderWidget = ComponentName(context, OrderTrackingWidgetProvider::class.java)
-                    val cartWidget = ComponentName(context, CartSummaryWidgetProvider::class.java)
-                    
-                    val searchIds = appWidgetManager.getAppWidgetIds(searchWidget)
-                    val orderIds = appWidgetManager.getAppWidgetIds(orderWidget)
-                    val cartIds = appWidgetManager.getAppWidgetIds(cartWidget)
-                    
-                    if (searchIds.isNotEmpty()) {
-                        SearchActionsWidgetProvider.Companion.updateAppWidget(context, appWidgetManager, searchIds[0])
+                    val appWidgetManager = AppWidgetManager.getInstance(this)
+
+                    val searchProvider = ComponentName(this, SearchActionsWidgetProvider::class.java)
+                    val orderProvider = ComponentName(this, OrderTrackingWidgetProvider::class.java)
+                    val cartProvider = ComponentName(this, CartSummaryWidgetProvider::class.java)
+
+                    val searchIntent = Intent(this, SearchActionsWidgetProvider::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetManager.getAppWidgetIds(searchProvider))
                     }
-                    if (orderIds.isNotEmpty()) {
-                        OrderTrackingWidgetProvider.Companion.updateAppWidget(context, appWidgetManager, orderIds[0])
+                    sendBroadcast(searchIntent)
+
+                    val orderIntent = Intent(this, OrderTrackingWidgetProvider::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetManager.getAppWidgetIds(orderProvider))
                     }
-                    if (cartIds.isNotEmpty()) {
-                        CartSummaryWidgetProvider.Companion.updateAppWidget(context, appWidgetManager, cartIds[0])
+                    sendBroadcast(orderIntent)
+
+                    val cartIntent = Intent(this, CartSummaryWidgetProvider::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetManager.getAppWidgetIds(cartProvider))
                     }
+                    sendBroadcast(cartIntent)
+
                     result.success(true)
                 } catch (e: Exception) {
                     result.success(false)
