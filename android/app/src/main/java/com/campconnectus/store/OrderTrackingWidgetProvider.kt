@@ -58,15 +58,13 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                     val orderStatus = json.optString("latestOrderStatus", "0")
                     val refundId = json.optString("refundId", "")
                     val refundAmount = json.optString("refundAmount", "")
+                    val currencySymbol = json.optString("currencySymbol", "₦")
 
                     if (orderId.isNotEmpty()) {
                         views.setTextViewText(R.id.widget_order_id, orderId)
                         views.setTextViewText(R.id.widget_order_amount, orderAmount)
                         if (orderProduct.isNotEmpty()) {
-                            views.setTextViewText(R.id.widget_order_product, orderProduct)
-                        }
-                        if (orderStatus.isNotEmpty() && orderStatus != "0") {
-                            views.setTextViewText(R.id.widget_order_status, orderStatus)
+                            views.setTextViewText(R.id.widget_order_status, orderProduct)
                         }
                     }
                     if (refundId.isNotEmpty()) {
@@ -76,6 +74,7 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                 }
             } catch (_: Exception) {}
 
+            // Orders intent
             val ordersIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/orders")
@@ -85,9 +84,11 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                 context, appWidgetId * 10, ordersIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
+
+            // Refund intent — goes to refund page
             val refundIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/orders")
+                data = Uri.parse("https://campconnectus.store/shortcut/refunds")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val refundPending = PendingIntent.getActivity(
