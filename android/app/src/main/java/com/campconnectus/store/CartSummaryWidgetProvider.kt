@@ -20,7 +20,7 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
                 updateAppWidget(context, appWidgetManager, appWidgetId)
             } catch (e: Exception) {
                 val views = RemoteViews(context.packageName, R.layout.cart_summary_widget_layout)
-                views.setTextViewText(R.id.widget_cart_items, "0 items in cart")
+                views.setTextViewText(R.id.widget_cart_items, "")
                 views.setTextViewText(R.id.widget_cart_total, "₦0")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
@@ -35,7 +35,7 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.cart_summary_widget_layout)
 
-            views.setTextViewText(R.id.widget_cart_items, "0 items in cart")
+            views.setTextViewText(R.id.widget_cart_items, "")
             views.setTextViewText(R.id.widget_cart_total, "₦0")
 
             try {

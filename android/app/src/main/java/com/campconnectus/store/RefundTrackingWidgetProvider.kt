@@ -20,7 +20,7 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
                 updateAppWidget(context, appWidgetManager, appWidgetId)
             } catch (e: Exception) {
                 val views = RemoteViews(context.packageName, R.layout.refund_tracking_widget_layout)
-                views.setTextViewText(R.id.widget_refund_id, "No refunds")
+                views.setTextViewText(R.id.widget_refund_id, "")
                 views.setTextViewText(R.id.widget_refund_amount, "")
                 views.setTextViewText(R.id.widget_refund_status, "")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -36,7 +36,7 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.refund_tracking_widget_layout)
 
-            views.setTextViewText(R.id.widget_refund_id, "No refunds")
+            views.setTextViewText(R.id.widget_refund_id, "")
             views.setTextViewText(R.id.widget_refund_amount, "")
             views.setTextViewText(R.id.widget_refund_status, "")
 
