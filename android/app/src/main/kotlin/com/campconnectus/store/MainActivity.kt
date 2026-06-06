@@ -115,13 +115,13 @@ class MainActivity : FlutterFragmentActivity() {
                     val cartIds = appWidgetManager.getAppWidgetIds(cartWidget)
                     
                     if (searchIds.isNotEmpty()) {
-                        SearchActionsWidgetProvider.updateAppWidget(context, appWidgetManager, searchIds[0])
+                        SearchActionsWidgetProvider.Companion.updateAppWidget(context, appWidgetManager, searchIds[0])
                     }
                     if (orderIds.isNotEmpty()) {
-                        OrderTrackingWidgetProvider.updateAppWidget(context, appWidgetManager, orderIds[0])
+                        OrderTrackingWidgetProvider.Companion.updateAppWidget(context, appWidgetManager, orderIds[0])
                     }
                     if (cartIds.isNotEmpty()) {
-                        CartSummaryWidgetProvider.updateAppWidget(context, appWidgetManager, cartIds[0])
+                        CartSummaryWidgetProvider.Companion.updateAppWidget(context, appWidgetManager, cartIds[0])
                     }
                     result.success(true)
                 } catch (e: Exception) {
