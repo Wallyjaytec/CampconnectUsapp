@@ -23,7 +23,6 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_order_id, "No orders yet")
                 views.setTextViewText(R.id.widget_order_amount, "")
                 views.setTextViewText(R.id.widget_order_product, "")
-                views.setTextViewText(R.id.widget_order_status, "")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
         }
@@ -40,7 +39,6 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_order_id, "No orders yet")
             views.setTextViewText(R.id.widget_order_amount, "")
             views.setTextViewText(R.id.widget_order_product, "")
-            views.setTextViewText(R.id.widget_order_status, "")
 
             try {
                 val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
@@ -60,7 +58,6 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                             views.setTextViewText(R.id.widget_order_product, orderProduct)
                         }
                         if (orderStatus.isNotEmpty() && orderStatus != "0") {
-                            views.setTextViewText(R.id.widget_order_status, orderStatus)
                         }
                     }
                 }
