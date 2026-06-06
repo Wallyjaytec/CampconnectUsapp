@@ -8,6 +8,7 @@ class WidgetDataService {
   static Future<void> updateWidgetData({
     int? cartItems,
     String? cartTotal,
+    String? cartItemsText,
     String? currencySymbol,
     String? latestOrderId,
     String? latestOrderAmount,
@@ -20,7 +21,6 @@ class WidgetDataService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     
-    // Read existing data so we don't overwrite other sections
     final existing = prefs.getString(_key);
     Map<String, dynamic> data = {};
     if (existing != null) {
@@ -29,9 +29,9 @@ class WidgetDataService {
       } catch (_) {}
     }
     
-    // Only update fields that are provided
     if (cartItems != null) data['cartItems'] = cartItems;
     if (cartTotal != null) data['cartTotal'] = cartTotal;
+    if (cartItemsText != null) data['cartItemsText'] = cartItemsText;
     if (currencySymbol != null) data['currencySymbol'] = currencySymbol;
     if (latestOrderId != null) data['latestOrderId'] = latestOrderId;
     if (latestOrderAmount != null) data['latestOrderAmount'] = latestOrderAmount;

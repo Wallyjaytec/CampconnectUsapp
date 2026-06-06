@@ -45,7 +45,7 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
                 if (jsonStr != null) {
                     val json = org.json.JSONObject(jsonStr)
                     val count = json.optInt("cartItems", 0)
-                    val cartItems = if (count == 1) "1 item in cart" else "$count items in cart"
+                    val cartItems = json.optString("cartItemsText", if (count == 1) "1 item in cart" else "$count items in cart")
                     val cartTotal = json.optString("cartTotal", "₦0")
                     views.setTextViewText(R.id.widget_cart_items, cartItems)
                     views.setTextViewText(R.id.widget_cart_total, cartTotal)
