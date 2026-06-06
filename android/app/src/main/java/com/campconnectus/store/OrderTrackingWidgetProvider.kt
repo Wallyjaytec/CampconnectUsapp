@@ -19,8 +19,10 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
             try {
                 updateAppWidget(context, appWidgetManager, appWidgetId)
             } catch (e: Exception) {
-                // Fallback: show empty widget
-                val views = RemoteViews(context.packageName, R.layout.order_tracking_widget_layout)
+                val views = RemoteViews(
+                    context.packageName,
+                    R.layout.order_tracking_widget_layout
+                )
                 views.setTextViewText(R.id.widget_order_id, "No orders yet")
                 views.setTextViewText(R.id.widget_order_amount, "")
                 views.setTextViewText(R.id.widget_refund_id, "No refunds")
@@ -36,7 +38,10 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            val views = RemoteViews(context.packageName, R.layout.order_tracking_widget_layout)
+            val views = RemoteViews(
+                context.packageName,
+                R.layout.order_tracking_widget_layout
+            )
 
             views.setTextViewText(R.id.widget_order_id, "No orders yet")
             views.setTextViewText(R.id.widget_order_amount, "")
@@ -44,7 +49,10 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_refund_amount, "")
 
             try {
-                val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                val prefs = context.getSharedPreferences(
+                    "FlutterSharedPreferences",
+                    Context.MODE_PRIVATE
+                )
                 val jsonStr = prefs.getString("flutter.widget_data", null)
 
                 if (jsonStr != null) {
@@ -65,17 +73,36 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
                 }
             } catch (_: Exception) {}
 
-            val intent = Intent(context, MainActivity::class.java).apply {
+            val ordersIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 data = Uri.parse("https://campconnectus.store/shortcut/orders")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
-            val pending = PendingIntent.getActivity(
-                context, 0, intent,
+            val ordersPending = PendingIntent.getActivity(
+                context,
+                appWidgetId * 10,
+                ordersIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            views.setOnClickPendingIntent(R.id.widget_latest_order, pending)
-            views.setOnClickPendingIntent(R.id.widget_refund, pending)
+
+            val refundIntent = Intent(context, MainActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+                data = Uri.parse("https://campconnectus.store/shortcut/orders")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            val refundPending = PendingIntent.getActivity(
+                context,
+                appWidgetId * 10 + 1,
+                refundIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            views.setOnClickPendingIntent(R.id.widget_latest_order, ordersPending)
+            views.setOnClickPendingIntent(R.id.widget_refund, refundPending)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

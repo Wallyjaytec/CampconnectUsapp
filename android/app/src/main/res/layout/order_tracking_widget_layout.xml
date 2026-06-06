@@ -1,47 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="10dp"
     android:background="@drawable/widget_background">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp"
+        android:background="@drawable/widget_header_bg">
+
         <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:src="@mipmap/ic_launcher"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/search_widget_logo"
+            android:scaleType="centerCrop"
             android:layout_marginEnd="5dp" />
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="CampConnectUs"
-            android:textSize="12sp"
-            android:textColor="#FF8C00"
-            android:textStyle="bold" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tracking"
-            android:textSize="9sp"
-            android:textColor="#999999" />
+            android:text="CampConnectUs"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="| Tracking"
+            android:textSize="11sp"
+            android:textColor="#FFFFFF" />
+
     </LinearLayout>
 
-    <!-- Two cards side by side -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
-        <!-- Latest Order card -->
         <LinearLayout
             android:id="@+id/widget_latest_order"
             android:layout_width="0dp"
@@ -49,28 +57,29 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/widget_tracking_card_bg"
-            android:padding="8dp"
+            android:padding="10dp"
             android:layout_marginEnd="4dp"
             android:clickable="true"
             android:focusable="true">
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:src="@android:drawable/ic_menu_view"
-                    android:tint="#FF8C00" />
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/widget_icon_orders"
+                    android:layout_marginEnd="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Latest Order"
                     android:textSize="9sp"
-                    android:textColor="#666666"
-                    android:layout_marginStart="3dp" />
+                    android:textColor="#666666" />
             </LinearLayout>
+
             <TextView
                 android:id="@+id/widget_order_id"
                 android:layout_width="wrap_content"
@@ -79,18 +88,20 @@
                 android:textSize="10sp"
                 android:textColor="#333333"
                 android:textStyle="bold"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="4dp" />
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="4dp"
                 android:background="#E0E0E0"
-                android:layout_marginTop="4dp">
+                android:layout_marginTop="6dp">
                 <View
                     android:id="@+id/widget_order_progress"
                     android:layout_width="20dp"
                     android:layout_height="4dp"
                     android:background="#FF8C00" />
             </FrameLayout>
+
             <TextView
                 android:id="@+id/widget_order_amount"
                 android:layout_width="wrap_content"
@@ -99,10 +110,10 @@
                 android:textSize="10sp"
                 android:textColor="#FF8C00"
                 android:textStyle="bold"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="4dp" />
+
         </LinearLayout>
 
-        <!-- Refund card -->
         <LinearLayout
             android:id="@+id/widget_refund"
             android:layout_width="0dp"
@@ -110,28 +121,30 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/widget_tracking_card_bg"
-            android:padding="8dp"
+            android:padding="10dp"
             android:layout_marginStart="4dp"
             android:clickable="true"
             android:focusable="true">
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
                     android:src="@android:drawable/ic_menu_revert"
-                    android:tint="#4CAF50" />
+                    android:tint="#4CAF50"
+                    android:layout_marginEnd="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Refund"
                     android:textSize="9sp"
-                    android:textColor="#666666"
-                    android:layout_marginStart="3dp" />
+                    android:textColor="#666666" />
             </LinearLayout>
+
             <TextView
                 android:id="@+id/widget_refund_id"
                 android:layout_width="wrap_content"
@@ -140,18 +153,20 @@
                 android:textSize="10sp"
                 android:textColor="#333333"
                 android:textStyle="bold"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="4dp" />
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="4dp"
                 android:background="#E0E0E0"
-                android:layout_marginTop="4dp">
+                android:layout_marginTop="6dp">
                 <View
                     android:id="@+id/widget_refund_progress"
                     android:layout_width="0dp"
                     android:layout_height="4dp"
                     android:background="#4CAF50" />
             </FrameLayout>
+
             <TextView
                 android:id="@+id/widget_refund_amount"
                 android:layout_width="wrap_content"
@@ -160,8 +175,10 @@
                 android:textSize="10sp"
                 android:textColor="#4CAF50"
                 android:textStyle="bold"
-                android:layout_marginTop="3dp" />
+                android:layout_marginTop="4dp" />
+
         </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>
