@@ -8,6 +8,7 @@ class WidgetDataService {
   static Future<void> updateWidgetData({
     required int cartItems,
     required String cartTotal,
+    required String currencySymbol,
     String? latestOrderId,
     String? latestOrderAmount,
     String? latestOrderStatus,
@@ -21,6 +22,7 @@ class WidgetDataService {
     final data = jsonEncode({
       'cartItems': cartItems,
       'cartTotal': cartTotal,
+      'currencySymbol': currencySymbol,
       'latestOrderId': latestOrderId ?? '',
       'latestOrderAmount': latestOrderAmount ?? '',
       'latestOrderStatus': latestOrderStatus ?? '0',
@@ -32,7 +34,6 @@ class WidgetDataService {
     });
     await prefs.setString(_key, data);
 
-    // Trigger widget update
     try {
       const channel = MethodChannel('com.campconnectus.store/widget_update');
       await channel.invokeMethod('updateWidgets');

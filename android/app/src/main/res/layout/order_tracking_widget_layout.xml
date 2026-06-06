@@ -65,7 +65,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📦 Latest Order"
+                android:text="Latest Order"
                 android:textSize="9sp"
                 android:textColor="#666666" />
 
@@ -138,7 +138,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💰 Refund"
+                android:text="Refund"
                 android:textSize="9sp"
                 android:textColor="#666666" />
 

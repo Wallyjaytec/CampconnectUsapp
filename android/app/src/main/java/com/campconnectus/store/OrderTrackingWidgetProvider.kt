@@ -77,7 +77,7 @@ class OrderTrackingWidgetProvider : AppWidgetProvider() {
             // Orders intent
             val ordersIntent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
-                data = Uri.parse("https://campconnectus.store/shortcut/orders")
+                data = Uri.parse("https://campconnectus.store/shortcut/refunds")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val ordersPending = PendingIntent.getActivity(
