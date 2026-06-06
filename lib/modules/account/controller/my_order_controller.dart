@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../core/services/currency_service.dart';
 import '../../../core/services/widget_data_service.dart';
 import '../../../data/repositories/my_order_repository.dart';
 import '../model/my_order_model.dart';
@@ -156,11 +157,13 @@ class OrderController extends GetxController {
   void _syncWidget() {
     final latest = orders.isNotEmpty ? orders.first : null;
     if (latest != null) {
+      final currency = Get.find<CurrencyService>();
       WidgetDataService.updateWidgetData(
         cartItems: 0,
-        cartTotal: '₦0',
+        cartTotal: '${currency.selected.symbol ?? '₦'}0',
+        currencySymbol: currency.selected.symbol ?? '₦',
         latestOrderId: '#${latest.orderCode}',
-        latestOrderAmount: '₦${latest.totalPayableAmount}',
+        latestOrderAmount: '${currency.selected.symbol ?? '₦'}${latest.totalPayableAmount}',
         latestOrderStatus: _mapStatus(latest.deliveryStatus),
         latestOrderProduct: _mapStatusText(latest.deliveryStatus),
         latestOrderImage: '',
@@ -182,12 +185,12 @@ class OrderController extends GetxController {
 
   String _mapStatusText(String status) {
     switch (status.toLowerCase()) {
-      case 'pending': return '⏳ Pending';
-      case 'confirmed': return '✅ Confirmed';
-      case 'processing': return '🔄 Processing';
-      case 'picked_up': return '📦 Picked Up';
-      case 'on_the_way': return '🚚 On the Way';
-      case 'delivered': return '📬 Delivered';
+      case 'pending': return 'Pending';
+      case 'confirmed': return 'Confirmed';
+      case 'processing': return 'Processing';
+      case 'picked_up': return 'Picked Up';
+      case 'on_the_way': return 'On the Way';
+      case 'delivered': return 'Delivered';
       default: return status;
     }
   }
