@@ -176,13 +176,14 @@ class RefundRequestController extends GetxController {
     final latest = items.isNotEmpty ? items.first : null;
     if (latest != null) {
       final currency = Get.find<CurrencyService>();
+      final amount = double.tryParse(latest.totalRefundAmount) ?? 0;
       final statusText = 'Return: ${latest.returnStatusLabel} • Payback: ${latest.paymentStatusLabel}';
       WidgetDataService.updateWidgetData(
         cartItems: null,
         cartTotal: null,
         currencySymbol: currency.current?.symbol ?? '₦',
         refundId: '${latest.refundCode}',
-        refundAmount: '${currency.current?.symbol ?? '₦'}${latest.totalRefundAmount}',
+        refundAmount: currency.format(amount, applyConversion: true),
         refundStatus: statusText,
       );
     }
