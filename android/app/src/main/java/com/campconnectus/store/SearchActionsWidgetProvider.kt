@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.RemoteViews
 
 class SearchActionsWidgetProvider : AppWidgetProvider() {
@@ -23,11 +22,9 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
             )
 
             fun makePendingIntent(dest: String, requestCode: Int): PendingIntent {
-                val url = "https://campconnectus.store/shortcut/$dest"
-                Log.d("WidgetSearch", "Creating intent for: $url with requestCode: ${appWidgetId * 10 + requestCode}")
                 val intent = Intent(context, MainActivity::class.java).apply {
                     action = Intent.ACTION_VIEW
-                    data = Uri.parse(url)
+                    data = Uri.parse("https://campconnectus.store/shortcut/$dest")
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_SINGLE_TOP or
                             Intent.FLAG_ACTIVITY_CLEAR_TOP
