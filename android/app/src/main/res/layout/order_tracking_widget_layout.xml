@@ -95,7 +95,7 @@
                 android:layout_height="4dp"
                 android:background="#E0E0E0"
                 android:layout_marginTop="6dp">
-                <View
+                <TextView
                     android:id="@+id/widget_order_progress"
                     android:layout_width="20dp"
                     android:layout_height="4dp"
@@ -160,7 +160,7 @@
                 android:layout_height="4dp"
                 android:background="#E0E0E0"
                 android:layout_marginTop="6dp">
-                <View
+                <TextView
                     android:id="@+id/widget_refund_progress"
                     android:layout_width="0dp"
                     android:layout_height="4dp"
