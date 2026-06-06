@@ -176,24 +176,15 @@ class RefundRequestController extends GetxController {
     final latest = items.isNotEmpty ? items.first : null;
     if (latest != null) {
       final currency = Get.find<CurrencyService>();
+      final statusText = 'Return: ${latest.returnStatusLabel} • Payback: ${latest.paymentStatusLabel}';
       WidgetDataService.updateWidgetData(
         cartItems: null,
         cartTotal: null,
         currencySymbol: currency.current?.symbol ?? '₦',
         refundId: '${latest.refundCode}',
         refundAmount: '${currency.current?.symbol ?? '₦'}${latest.totalRefundAmount}',
-        refundStatus: _mapRefundStatus(latest.paymentStatusLabel),
+        refundStatus: statusText,
       );
-    }
-  }
-
-  String _mapRefundStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending': case '1': return '20';
-      case 'processing': case '2': return '50';
-      case 'approved': case '3': return '80';
-      case 'refunded': case '4': return '100';
-      default: return '0';
     }
   }
 }
