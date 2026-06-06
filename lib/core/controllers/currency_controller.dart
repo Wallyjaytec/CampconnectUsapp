@@ -1,3 +1,4 @@
+import '../../core/services/widget_data_service.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/site_settings_properties_model.dart';
@@ -42,6 +43,8 @@ class CurrencyController extends GetxController {
     service.setCurrency(c, persist: true);
     selectedRx.value = c;
     update();
+    // Update widgets with new currency
+    WidgetDataService.updateWidgetData(currencySymbol: c.symbol);
   }
 
   String format(num amount, {bool applyConversion = true}) {
