@@ -10,4 +10,5 @@
     android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
+    android:label="Refund Tracking"
     android:description="@string/widget_refund_tracking_desc" />

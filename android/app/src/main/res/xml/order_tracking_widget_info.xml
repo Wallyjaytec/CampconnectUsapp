@@ -10,4 +10,5 @@
     android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
+    android:label="Order Tracking"
     android:description="@string/widget_order_tracking_desc" />
