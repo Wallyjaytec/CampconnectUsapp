@@ -20,7 +20,4 @@
     <string name="section_cart">| 장바구니</string>
     <string name="section_orders">| 주문</string>
     <string name="section_refunds">| 환불</string>
-    <string name="section_cart">| 장바구니</string>
-    <string name="section_orders">| 주문</string>
-    <string name="section_refunds">| 환불</string>
 </resources>

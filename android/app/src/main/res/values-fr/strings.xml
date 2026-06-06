@@ -20,7 +20,4 @@
     <string name="section_cart">| Panier</string>
     <string name="section_orders">| Commandes</string>
     <string name="section_refunds">| Remboursements</string>
-    <string name="section_cart">| Panier</string>
-    <string name="section_orders">| Commandes</string>
-    <string name="section_refunds">| Remboursements</string>
 </resources>

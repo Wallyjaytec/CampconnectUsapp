@@ -20,7 +20,4 @@
     <string name="section_cart">| 购物车</string>
     <string name="section_orders">| 订单</string>
     <string name="section_refunds">| 退款</string>
-    <string name="section_cart">| 购物车</string>
-    <string name="section_orders">| 订单</string>
-    <string name="section_refunds">| 退款</string>
 </resources>
