@@ -107,6 +107,7 @@ class MainActivity : FlutterFragmentActivity() {
                     val searchProvider = ComponentName(this, SearchActionsWidgetProvider::class.java)
                     val orderProvider = ComponentName(this, OrderTrackingWidgetProvider::class.java)
                     val cartProvider = ComponentName(this, CartSummaryWidgetProvider::class.java)
+                    val refundProvider = ComponentName(this, RefundTrackingWidgetProvider::class.java)
 
                     val searchIntent = Intent(this, SearchActionsWidgetProvider::class.java).apply {
                         action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
@@ -125,6 +126,12 @@ class MainActivity : FlutterFragmentActivity() {
                         putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetManager.getAppWidgetIds(cartProvider))
                     }
                     sendBroadcast(cartIntent)
+
+                    val refundIntent = Intent(this, RefundTrackingWidgetProvider::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetManager.getAppWidgetIds(refundProvider))
+                    }
+                    sendBroadcast(refundIntent)
 
                     result.success(true)
                 } catch (e: Exception) {
