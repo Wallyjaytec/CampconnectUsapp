@@ -159,38 +159,24 @@ class OrderController extends GetxController {
     if (latest != null) {
       final currency = Get.find<CurrencyService>();
       WidgetDataService.updateWidgetData(
-        cartItems: 0,
-        cartTotal: '${currency.current?.symbol ?? '₦'}0',
+        cartItems: null,
+        cartTotal: null,
         currencySymbol: currency.current?.symbol ?? '₦',
         latestOrderId: '${latest.orderCode}',
         latestOrderAmount: '${currency.current?.symbol ?? '₦'}${latest.totalPayableAmount}',
-        latestOrderStatus: _mapStatus(latest.deliveryStatus),
         latestOrderProduct: _mapStatusText(latest.deliveryStatus),
-        latestOrderImage: '',
       );
-    }
-  }
-
-  String _mapStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending': return '10';
-      case 'confirmed': return '30';
-      case 'processing': return '50';
-      case 'picked_up': return '70';
-      case 'on_the_way': return '85';
-      case 'delivered': return '100';
-      default: return '0';
     }
   }
 
   String _mapStatusText(String status) {
     switch (status.toLowerCase()) {
-      case 'pending': return 'Pending';
-      case 'confirmed': return 'Confirmed';
-      case 'processing': return 'Processing';
-      case 'picked_up': return 'Picked Up';
-      case 'on_the_way': return 'On the Way';
-      case 'delivered': return 'Delivered';
+      case 'pending': case '1': return 'Pending';
+      case 'confirmed': case '2': return 'Confirmed';
+      case 'processing': case '3': return 'Processing';
+      case 'picked_up': case '4': return 'Picked Up';
+      case 'on_the_way': case '5': return 'On the Way';
+      case 'delivered': case '6': return 'Delivered';
       default: return status;
     }
   }
