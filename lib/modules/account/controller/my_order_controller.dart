@@ -162,7 +162,7 @@ class OrderController extends GetxController {
         cartItems: null,
         cartTotal: null,
         currencySymbol: currency.current?.symbol ?? '₦',
-        latestOrderId: 'Order ID: ${latest.orderCode}',
+        latestOrderId: '${'Order ID'.tr}: ${latest.orderCode}',
         latestOrderAmount: currency.format(latest.totalPayableAmount, applyConversion: true),
         latestOrderProduct: _mapStatusText(latest.deliveryStatus),
       );
@@ -171,11 +171,11 @@ class OrderController extends GetxController {
 
   String _mapStatusText(String status) {
     switch (status) {
-      case '1': return 'Delivered';
-      case '2': return 'Pending';
-      case '3': return 'Shipped';
-      case '4': return 'Cancelled';
-      default: return 'Pending';
+      case '1': return 'Delivered'.tr;
+      case '2': return 'Pending'.tr;
+      case '3': return 'Shipped'.tr;
+      case '4': return 'Cancelled'.tr;
+      default: return 'Pending'.tr;
     }
   }
 }
