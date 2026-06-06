@@ -20,7 +20,7 @@
     <string name="section_cart">| Корзина</string>
     <string name="section_orders">| Заказы</string>
     <string name="section_refunds">| Возвраты</string>
-</resources>
+
 <string name="widget_search_label">Поиск и Действия</string>
 <string name="widget_order_label">Отслеживание Заказов</string>
 <string name="widget_cart_label">Сводка Корзины</string>
@@ -29,3 +29,4 @@
 <string name="widget_order_tracking_desc">Отслеживайте статус вашего последнего заказа</string>
 <string name="widget_cart_summary_desc">Быстрый просмотр итогов корзины и товаров</string>
 <string name="widget_refund_tracking_desc">Отслеживайте статус вашего последнего возврата</string>
+</resources>

@@ -20,7 +20,7 @@
     <string name="section_cart">| 장바구니</string>
     <string name="section_orders">| 주문</string>
     <string name="section_refunds">| 환불</string>
-</resources>
+
 <string name="widget_search_label">검색 및 작업</string>
 <string name="widget_order_label">주문 추적</string>
 <string name="widget_cart_label">장바구니 요약</string>
@@ -29,3 +29,4 @@
 <string name="widget_order_tracking_desc">최신 주문 상태 추적</string>
 <string name="widget_cart_summary_desc">장바구니 총액 및 품목 빠른 보기</string>
 <string name="widget_refund_tracking_desc">최신 환불 상태 추적</string>
+</resources>

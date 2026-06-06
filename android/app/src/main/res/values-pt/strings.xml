@@ -20,7 +20,7 @@
     <string name="section_cart">| Carrinho</string>
     <string name="section_orders">| Pedidos</string>
     <string name="section_refunds">| Reembolsos</string>
-</resources>
+
 <string name="widget_search_label">Pesquisa e Ações</string>
 <string name="widget_order_label">Rastreamento de Pedidos</string>
 <string name="widget_cart_label">Resumo do Carrinho</string>
@@ -29,3 +29,4 @@
 <string name="widget_order_tracking_desc">Acompanhe o status do seu último pedido</string>
 <string name="widget_cart_summary_desc">Visualização rápida do total do seu carrinho e itens</string>
 <string name="widget_refund_tracking_desc">Acompanhe o status do seu último reembolso</string>
+</resources>

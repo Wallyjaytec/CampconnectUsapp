@@ -20,7 +20,7 @@
     <string name="section_cart">| Panier</string>
     <string name="section_orders">| Commandes</string>
     <string name="section_refunds">| Remboursements</string>
-</resources>
+
 <string name="widget_search_label">Recherche et Actions</string>
 <string name="widget_order_label">Suivi de Commande</string>
 <string name="widget_cart_label">Résumé du Panier</string>
@@ -29,3 +29,4 @@
 <string name="widget_order_tracking_desc">Suivre le statut de votre dernière commande</string>
 <string name="widget_cart_summary_desc">Aperçu rapide du total de votre panier et des articles</string>
 <string name="widget_refund_tracking_desc">Suivre le statut de votre dernier remboursement</string>
+</resources>

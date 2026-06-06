@@ -20,7 +20,7 @@
     <string name="section_cart">| Warenkorb</string>
     <string name="section_orders">| Bestellungen</string>
     <string name="section_refunds">| Rückerstattungen</string>
-</resources>
+
 <string name="widget_search_label">Suche &amp; Aktionen</string>
 <string name="widget_order_label">Bestellverfolgung</string>
 <string name="widget_cart_label">Warenkorb Übersicht</string>
@@ -29,3 +29,4 @@
 <string name="widget_order_tracking_desc">Verfolgen Sie Ihren neuesten Bestellstatus</string>
 <string name="widget_cart_summary_desc">Schnellansicht Ihrer Warenkorbsumme und Artikel</string>
 <string name="widget_refund_tracking_desc">Verfolgen Sie Ihren neuesten Rückerstattungsstatus</string>
+</resources>

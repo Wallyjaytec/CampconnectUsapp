@@ -20,7 +20,7 @@
     <string name="section_cart">| السلة</string>
     <string name="section_orders">| الطلبات</string>
     <string name="section_refunds">| المبالغ المستردة</string>
-</resources>
+
 <string name="widget_search_label">البحث والإجراءات</string>
 <string name="widget_order_label">تتبع الطلبات</string>
 <string name="widget_cart_label">ملخص السلة</string>
@@ -29,3 +29,4 @@
 <string name="widget_order_tracking_desc">تتبع حالة أحدث طلب لك</string>
 <string name="widget_cart_summary_desc">نظرة سريعة على إجمالي السلة والعناصر</string>
 <string name="widget_refund_tracking_desc">تتبع حالة أحدث مبلغ مسترد لك</string>
+</resources>
