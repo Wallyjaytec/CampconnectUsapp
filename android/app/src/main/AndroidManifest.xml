@@ -72,6 +72,7 @@
 
         </activity>
 
+        <!-- Widget #1: Search + Quick Actions -->
         <receiver
             android:name=".SearchActionsWidgetProvider"
             android:exported="true">
@@ -83,6 +84,7 @@
                 android:resource="@xml/search_actions_widget_info" />
         </receiver>
 
+        <!-- Widget #2: Order Tracking -->
         <receiver
             android:name=".OrderTrackingWidgetProvider"
             android:exported="true">
@@ -94,6 +96,7 @@
                 android:resource="@xml/order_tracking_widget_info" />
         </receiver>
 
+        <!-- Widget #3: Cart Summary -->
         <receiver
             android:name=".CartSummaryWidgetProvider"
             android:exported="true">
@@ -103,6 +106,18 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/cart_summary_widget_info" />
+        </receiver>
+
+        <!-- Widget #4: Refund Tracking -->
+        <receiver
+            android:name=".RefundTrackingWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/refund_tracking_widget_info" />
         </receiver>
 
         <meta-data android:name="flutterEmbedding" android:value="2" />
