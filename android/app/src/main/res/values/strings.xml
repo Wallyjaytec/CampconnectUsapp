@@ -13,5 +13,5 @@
     <string name="widget_search_actions_desc">Search products and quick access to Account, Cart, Orders, Notifications</string>
     <string name="widget_order_tracking_desc">Track your latest order status</string>
     <string name="widget_cart_summary_desc">Quick view of your cart total and items</string>
+    <string name="widget_refund_tracking_desc">Track your latest refund status</string>
 </resources>
-<string name="widget_refund_tracking_desc">Track your latest refund status</string>
