@@ -209,7 +209,7 @@ class PermissionService extends GetxService {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${'Allow CampConnectUs to access'.tr}?',
+                        '${'Allow CampConnectUs to access?'.tr}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
