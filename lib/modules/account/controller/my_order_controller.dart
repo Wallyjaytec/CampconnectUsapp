@@ -171,13 +171,13 @@ class OrderController extends GetxController {
 
   String _mapStatusText(String status) {
     switch (status.toLowerCase()) {
-      case 'pending': case '1': return 'Pending';
-      case 'confirmed': case '2': return 'Confirmed';
-      case 'processing': case '3': return 'Processing';
-      case 'picked_up': case '4': return 'Picked Up';
+      case 'pending': case '2': return 'Pending';
+      case 'processing': case '1': return 'Processing';
+      case 'ready_to_ship': case '3': return 'Ready to Ship';
+      case 'shipped': case '4': return 'Shipped';
       case 'on_the_way': case '5': return 'On the Way';
       case 'delivered': case '6': return 'Delivered';
-      default: return status;
+      default: return 'Ordered';
     }
   }
 }
