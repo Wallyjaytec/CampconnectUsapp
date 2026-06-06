@@ -11,6 +11,7 @@
     <string name="wallet_long">View Wallet</string>
     <string name="widget_description">CampConnectUs Marketplace - Quick access</string>
     <string name="widget_search_actions_desc">Search products and quick access to Account, Cart, Orders, Notifications</string>
-    <string name="widget_order_tracking_desc">Track your latest order and refund status</string>
+    <string name="widget_order_tracking_desc">Track your latest order status</string>
     <string name="widget_cart_summary_desc">Quick view of your cart total and items</string>
 </resources>
+<string name="widget_refund_tracking_desc">Track your latest refund status</string>

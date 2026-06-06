@@ -10,4 +10,4 @@
     android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
-    android:description="@string/widget_order_tracking_desc" />
+    android:description="@string/widget_refund_tracking_desc" />
