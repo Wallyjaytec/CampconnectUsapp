@@ -21,3 +21,11 @@
     <string name="section_orders">| 注文</string>
     <string name="section_refunds">| 返金</string>
 </resources>
+<string name="widget_search_label">検索とアクション</string>
+<string name="widget_order_label">注文追跡</string>
+<string name="widget_cart_label">カート概要</string>
+<string name="widget_refund_label">返金追跡</string>
+<string name="widget_search_actions_desc">製品を検索し、アカウント、カート、注文、通知にすばやくアクセス</string>
+<string name="widget_order_tracking_desc">最新の注文状況を追跡</string>
+<string name="widget_cart_summary_desc">カートの合計とアイテムのクイックビュー</string>
+<string name="widget_refund_tracking_desc">最新の返金状況を追跡</string>

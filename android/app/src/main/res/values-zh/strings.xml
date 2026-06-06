@@ -21,3 +21,11 @@
     <string name="section_orders">| 订单</string>
     <string name="section_refunds">| 退款</string>
 </resources>
+<string name="widget_search_label">搜索和操作</string>
+<string name="widget_order_label">订单追踪</string>
+<string name="widget_cart_label">购物车摘要</string>
+<string name="widget_refund_label">退款追踪</string>
+<string name="widget_search_actions_desc">搜索产品并快速访问账户、购物车、订单、通知</string>
+<string name="widget_order_tracking_desc">追踪您的最新订单状态</string>
+<string name="widget_cart_summary_desc">快速查看购物车总额和商品</string>
+<string name="widget_refund_tracking_desc">追踪您的最新退款状态</string>

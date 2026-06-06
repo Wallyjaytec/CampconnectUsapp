@@ -21,3 +21,11 @@
     <string name="section_orders">| Ordini</string>
     <string name="section_refunds">| Rimborsi</string>
 </resources>
+<string name="widget_search_label">Ricerca e Azioni</string>
+<string name="widget_order_label">Tracciamento Ordini</string>
+<string name="widget_cart_label">Riepilogo Carrello</string>
+<string name="widget_refund_label">Tracciamento Rimborsi</string>
+<string name="widget_search_actions_desc">Cerca prodotti e accesso rapido a Account, Carrello, Ordini, Notifiche</string>
+<string name="widget_order_tracking_desc">Traccia lo stato del tuo ultimo ordine</string>
+<string name="widget_cart_summary_desc">Vista rapida del totale del carrello e degli articoli</string>
+<string name="widget_refund_tracking_desc">Traccia lo stato del tuo ultimo rimborso</string>

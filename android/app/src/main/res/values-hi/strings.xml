@@ -21,3 +21,11 @@
     <string name="section_orders">| ऑर्डर</string>
     <string name="section_refunds">| रिफंड</string>
 </resources>
+<string name="widget_search_label">खोजें और कार्रवाइयाँ</string>
+<string name="widget_order_label">ऑर्डर ट्रैकिंग</string>
+<string name="widget_cart_label">कार्ट सारांश</string>
+<string name="widget_refund_label">रिफंड ट्रैकिंग</string>
+<string name="widget_search_actions_desc">उत्पाद खोजें और खाता, कार्ट, ऑर्डर, सूचनाओं तक त्वरित पहुंच</string>
+<string name="widget_order_tracking_desc">अपने नवीनतम ऑर्डर की स्थिति ट्रैक करें</string>
+<string name="widget_cart_summary_desc">अपने कार्ट के कुल और आइटम का त्वरित दृश्य</string>
+<string name="widget_refund_tracking_desc">अपने नवीनतम रिफंड की स्थिति ट्रैक करें</string>

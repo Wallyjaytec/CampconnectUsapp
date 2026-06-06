@@ -21,3 +21,11 @@
     <string name="section_orders">| Pedidos</string>
     <string name="section_refunds">| Reembolsos</string>
 </resources>
+<string name="widget_search_label">Buscar y Acciones</string>
+<string name="widget_order_label">Seguimiento de Pedidos</string>
+<string name="widget_cart_label">Resumen del Carrito</string>
+<string name="widget_refund_label">Seguimiento de Reembolsos</string>
+<string name="widget_search_actions_desc">Buscar productos y acceso rápido a Cuenta, Carrito, Pedidos, Notificaciones</string>
+<string name="widget_order_tracking_desc">Seguir el estado de su último pedido</string>
+<string name="widget_cart_summary_desc">Vista rápida del total de su carrito y artículos</string>
+<string name="widget_refund_tracking_desc">Seguir el estado de su último reembolso</string>
