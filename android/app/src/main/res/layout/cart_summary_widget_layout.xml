@@ -3,47 +3,36 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/widget_background"
-    android:elevation="4dp">
+    android:background="@drawable/widget_background">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp"
         android:background="@drawable/widget_header_bg">
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:src="@drawable/search_widget_logo"
             android:scaleType="centerCrop"
-            android:layout_marginEnd="6dp" />
+            android:layout_marginEnd="5dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CampConnectUs"
+            android:text="@string/widget_cart_label"
             android:textSize="12sp"
             android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:layout_marginEnd="4dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="| Cart"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- Cart content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,7 +42,6 @@
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
 
-        <!-- Items count row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -73,7 +61,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="0 items in cart"
+                android:text=""
                 android:textSize="12sp"
                 android:textColor="#333333" />
 
@@ -81,21 +69,19 @@
                 android:id="@+id/widget_cart_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="₦0"
+                android:text=""
                 android:textSize="16sp"
                 android:textColor="#1A1A1A"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
-        <!-- Divider -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#E8E8E8"
             android:layout_marginBottom="8dp" />
 
-        <!-- Checkout button -->
         <LinearLayout
             android:id="@+id/widget_cart_bar"
             android:layout_width="match_parent"
@@ -109,7 +95,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Proceed to Checkout  →"
+                android:text="@string/checkout_btn"
                 android:textSize="13sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />

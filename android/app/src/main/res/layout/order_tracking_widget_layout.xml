@@ -26,18 +26,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CCU"
+            android:text="@string/widget_order_label"
             android:textSize="12sp"
             android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:layout_marginEnd="4dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="| Orders"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 
@@ -65,7 +57,7 @@
             android:id="@+id/widget_order_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No orders yet"
+            android:text="@string/no_orders"
             android:textSize="10sp"
             android:textColor="#888888"
             android:layout_marginTop="3dp" />

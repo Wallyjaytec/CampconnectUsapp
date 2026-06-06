@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:background="@drawable/widget_background">
 
-    <!-- Orange header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -13,8 +12,8 @@
         android:gravity="center_vertical"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:paddingTop="9dp"
-        android:paddingBottom="9dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:background="@drawable/widget_header_bg">
 
         <ImageView
@@ -22,41 +21,31 @@
             android:layout_height="22dp"
             android:src="@drawable/search_widget_logo"
             android:scaleType="centerCrop"
-            android:layout_marginEnd="5dp" />
+            android:layout_marginEnd="6dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CampConnectUs"
+            android:text="@string/shop_on_ccu"
             android:textSize="12sp"
             android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:layout_marginEnd="4dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="| Shop on CCU"
-            android:textSize="11sp"
-            android:textColor="#FFFFFF" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp">
 
-        <!-- Search bar -->
         <LinearLayout
             android:id="@+id/widget_search_bar"
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="36dp"
             android:background="@drawable/widget_search_bg"
             android:gravity="center_vertical"
             android:paddingStart="12dp"
@@ -64,151 +53,140 @@
             android:orientation="horizontal"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="7dp">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Search on CampConnectUs Marketplace..."
+                android:text="@string/search_hint"
                 android:textColor="#AAAAAA"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:singleLine="true" />
 
-            <!-- Camera icon — pure black vector -->
             <ImageView
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:src="@drawable/widget_icon_camera"
-                android:layout_marginEnd="8dp" />
+                android:src="@android:drawable/ic_menu_camera"
+                android:tint="#1A1A1A"
+                android:layout_marginEnd="6dp" />
 
-            <!-- Search icon in black pill -->
             <LinearLayout
-                android:layout_width="36dp"
-                android:layout_height="28dp"
+                android:layout_width="34dp"
+                android:layout_height="26dp"
                 android:background="@drawable/widget_search_icon_bg"
                 android:gravity="center">
                 <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:src="@android:drawable/ic_menu_search"
                     android:tint="#FFFFFF" />
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- 4 action buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="2dp">
+            android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/widget_account"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
                 android:background="@drawable/widget_action_bg"
-                android:layout_marginEnd="4dp">
+                android:layout_marginEnd="5dp">
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/widget_icon_account" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/widget_icon_account"
+                    android:layout_marginBottom="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Account"
+                    android:text="@string/widget_account"
                     android:textSize="9sp"
                     android:textColor="#000000"
-                    android:textStyle="bold"
-                    android:layout_marginTop="3dp" />
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/widget_cart"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
                 android:background="@drawable/widget_action_bg"
-                android:layout_marginEnd="4dp">
+                android:layout_marginEnd="5dp">
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/widget_icon_cart" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/widget_icon_cart"
+                    android:layout_marginBottom="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cart"
+                    android:text="@string/widget_cart"
                     android:textSize="9sp"
                     android:textColor="#000000"
-                    android:textStyle="bold"
-                    android:layout_marginTop="3dp" />
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/widget_orders"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
                 android:background="@drawable/widget_action_bg"
-                android:layout_marginEnd="4dp">
+                android:layout_marginEnd="5dp">
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/widget_icon_orders" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/widget_icon_orders"
+                    android:layout_marginBottom="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Orders"
+                    android:text="@string/widget_orders"
                     android:textSize="9sp"
                     android:textColor="#000000"
-                    android:textStyle="bold"
-                    android:layout_marginTop="3dp" />
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/widget_notifications"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
                 android:background="@drawable/widget_action_bg">
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/widget_icon_notif" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/widget_icon_notif"
+                    android:layout_marginBottom="4dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Notif"
+                    android:text="@string/widget_notif"
                     android:textSize="9sp"
                     android:textColor="#000000"
-                    android:textStyle="bold"
-                    android:layout_marginTop="3dp" />
+                    android:textStyle="bold" />
             </LinearLayout>
 
         </LinearLayout>
