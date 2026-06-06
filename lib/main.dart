@@ -85,6 +85,8 @@ void _handleDeepLink(Uri uri, GetStorage box) {
     _navigateOrStore('cart', box);
   } else if (uri.host == 'wallet') {
     _navigateOrStore('wallet', box);
+  } else if (uri.host == 'refunds') {
+    _navigateOrStore('refunds', box);
   } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
     final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
     if (orderId > 0) box.write('deep_link_order_id', orderId);
@@ -118,6 +120,9 @@ void _navigateOrStore(String dest, GetStorage box) {
         break;
       case 'wallet':
         Get.toNamed(AppRoutes.myWalletView);
+        break;
+      case 'refunds':
+        Get.toNamed(AppRoutes.refundRequestListView);
         break;
       case 'account':
         if (Get.isRegistered<BottomNavbarController>()) {
