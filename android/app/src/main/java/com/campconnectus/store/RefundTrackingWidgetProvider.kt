@@ -46,7 +46,6 @@ class RefundTrackingWidgetProvider : AppWidgetProvider() {
                     val json = org.json.JSONObject(jsonStr)
                     val refundId = json.optString("refundId", "")
                     val refundAmount = json.optString("refundAmount", "")
-                    val refundStatus = json.optString("refundStatus", "0")
 
                     if (refundId.isNotEmpty()) {
                         views.setTextViewText(R.id.widget_refund_id, refundId)
