@@ -530,6 +530,7 @@ class CartController extends GetxController {
     WidgetDataService.updateWidgetData(
       cartItems: totalItemsCount,
       cartTotal: money(grandTotal),
+      currencySymbol: _currency.selected.symbol ?? '₦',
     );
   }
 }
