@@ -16,7 +16,7 @@
     <string name="widget_notif">إشعارات</string>
     <string name="no_orders">لا توجد طلبات</string>
     <string name="no_refunds">لا توجد مبالغ مستردة</string>
-    <string name="default_items_in_cart">0 items in cart</string>
+    <string name="default_items_in_cart">0 عناصر في السلة</string>
     <string name="checkout_btn">الدفع  →</string>
     <string name="section_cart">| السلة</string>
     <string name="section_orders">| الطلبات</string>

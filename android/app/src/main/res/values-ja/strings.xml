@@ -16,7 +16,7 @@
     <string name="widget_notif">通知</string>
     <string name="no_orders">注文なし</string>
     <string name="no_refunds">返金なし</string>
-    <string name="default_items_in_cart">0 items in cart</string>
+    <string name="default_items_in_cart">カートに0件の商品</string>
     <string name="checkout_btn">チェックアウト  →</string>
     <string name="section_cart">| カート</string>
     <string name="section_orders">| 注文</string>
