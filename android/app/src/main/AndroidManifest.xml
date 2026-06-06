@@ -75,6 +75,7 @@
         <!-- Widget #1: Search + Quick Actions -->
         <receiver
             android:name=".SearchActionsWidgetProvider"
+            android:label="@string/widget_search_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -87,6 +88,7 @@
         <!-- Widget #2: Order Tracking -->
         <receiver
             android:name=".OrderTrackingWidgetProvider"
+            android:label="@string/widget_order_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -99,6 +101,7 @@
         <!-- Widget #3: Cart Summary -->
         <receiver
             android:name=".CartSummaryWidgetProvider"
+            android:label="@string/widget_cart_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -111,6 +114,7 @@
         <!-- Widget #4: Refund Tracking -->
         <receiver
             android:name=".RefundTrackingWidgetProvider"
+            android:label="@string/widget_refund_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
