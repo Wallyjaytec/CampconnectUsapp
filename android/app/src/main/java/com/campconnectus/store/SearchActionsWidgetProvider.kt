@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.RemoteViews
 
 class SearchActionsWidgetProvider : AppWidgetProvider() {
@@ -21,28 +22,28 @@ class SearchActionsWidgetProvider : AppWidgetProvider() {
                 R.layout.search_actions_widget_layout
             )
 
-            // Each intent uses the widget ID as requestCode to ensure
-            // PendingIntents are unique and don't overwrite each other
             fun makePendingIntent(dest: String, requestCode: Int): PendingIntent {
+                val url = "https://campconnectus.store/shortcut/$dest"
+                Log.d("WidgetSearch", "Creating intent for: $url with requestCode: ${appWidgetId * 10 + requestCode}")
                 val intent = Intent(context, MainActivity::class.java).apply {
                     action = Intent.ACTION_VIEW
-                    data = Uri.parse("https://campconnectus.store/shortcut/$dest")
+                    data = Uri.parse(url)
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_SINGLE_TOP or
                             Intent.FLAG_ACTIVITY_CLEAR_TOP
                 }
                 return PendingIntent.getActivity(
                     context,
-                    appWidgetId * 10 + requestCode, // unique per widget instance + button
+                    appWidgetId * 10 + requestCode,
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
             }
 
-            views.setOnClickPendingIntent(R.id.widget_search_bar,  makePendingIntent("search",        0))
-            views.setOnClickPendingIntent(R.id.widget_account,      makePendingIntent("account",       1))
-            views.setOnClickPendingIntent(R.id.widget_cart,         makePendingIntent("cart",          2))
-            views.setOnClickPendingIntent(R.id.widget_orders,       makePendingIntent("orders",        3))
+            views.setOnClickPendingIntent(R.id.widget_search_bar, makePendingIntent("search", 0))
+            views.setOnClickPendingIntent(R.id.widget_account, makePendingIntent("account", 1))
+            views.setOnClickPendingIntent(R.id.widget_cart, makePendingIntent("cart", 2))
+            views.setOnClickPendingIntent(R.id.widget_orders, makePendingIntent("orders", 3))
             views.setOnClickPendingIntent(R.id.widget_notifications, makePendingIntent("notifications", 4))
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
