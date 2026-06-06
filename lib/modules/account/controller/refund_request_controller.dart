@@ -182,7 +182,7 @@ class RefundRequestController extends GetxController {
         cartItems: null,
         cartTotal: null,
         currencySymbol: currency.current?.symbol ?? '₦',
-        refundId: '${latest.refundCode}',
+        refundId: 'Refund ID: ${latest.refundCode}',
         refundAmount: currency.format(amount, applyConversion: true),
         refundStatus: statusText,
       );
