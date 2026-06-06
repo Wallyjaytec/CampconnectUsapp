@@ -20,10 +20,9 @@ class PermissionService extends GetxService {
   static PermissionService get I => Get.find<PermissionService>();
 
   static const _askedKey = 'perm_home_asked_once_v1';
-  static const _notifAskedKey = 'perm_notif_asked_once';
+  static const _notifAskedKey = 'perm_notif_asked_once_v1';
   final _state = MediaPermissionState.unknown.obs;
   bool _askedOnce = false;
-  bool _notifAskedOnce = false;
 
   MediaPermissionState get state => _state.value;
   bool get isAllowed =>
@@ -39,7 +38,6 @@ class PermissionService extends GetxService {
   Future<PermissionService> init() async {
     final sp = await SharedPreferences.getInstance();
     _askedOnce = sp.getBool(_askedKey) ?? false;
-    _notifAskedOnce = sp.getBool(_notifAskedKey) ?? false;
     await refreshStatus();
     return this;
   }
@@ -47,7 +45,8 @@ class PermissionService extends GetxService {
   Future<void> requestOnceOnHome() async {
     if (_askedOnce) return;
     _askedOnce = true;
-    (await SharedPreferences.getInstance()).setBool(_askedKey, true);
+    final sp = await SharedPreferences.getInstance();
+    await sp.setBool(_askedKey, true);
 
     final proceed = await _preAskDialog();
     if (proceed != true) {
@@ -73,12 +72,12 @@ class PermissionService extends GetxService {
       );
     }
 
-    // Only request notification if never asked before and not already denied
-    if (!_notifAskedOnce) {
+    // Only request notification once, ever
+    final notifAskedOnce = sp.getBool(_notifAskedKey) ?? false;
+    if (!notifAskedOnce) {
+      await sp.setBool(_notifAskedKey, true);
       final notifStatus = await Permission.notification.status;
-      if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied && !notifStatus.isDenied) {
-        _notifAskedOnce = true;
-        (await SharedPreferences.getInstance()).setBool(_notifAskedKey, true);
+      if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
         await Permission.notification.request();
       }
     }
@@ -104,14 +103,17 @@ class PermissionService extends GetxService {
     if (_state.value == MediaPermissionState.permanentlyDenied) {
       await _settingsDialog(
         title: 'Permission required'.tr,
-        message: 'Camera or Photos permission is permanently denied. Open Settings to enable.'.tr,
+        message:
+            'Camera or Photos permission is permanently denied. Open Settings to enable.'
+                .tr,
       );
       return false;
     }
 
     await _settingsDialog(
       title: 'Permission required'.tr,
-      message: 'Camera and Photos access is needed. Please allow from Settings.'.tr,
+      message:
+          'Camera and Photos access is needed. Please allow from Settings.'.tr,
     );
     return false;
   }
@@ -123,14 +125,17 @@ class PermissionService extends GetxService {
     if (status.isPermanentlyDenied) {
       await _settingsDialog(
         title: 'Camera Permission Required'.tr,
-        message: 'Camera access is permanently denied. Open Settings to enable.'.tr,
+        message:
+            'Camera access is permanently denied. Open Settings to enable.'.tr,
       );
       return false;
     }
 
     await _settingsDialog(
       title: 'Camera Permission Required'.tr,
-      message: 'Camera access is needed to take photos. Please allow from Settings.'.tr,
+      message:
+          'Camera access is needed to take photos. Please allow from Settings.'
+              .tr,
     );
     return false;
   }
@@ -146,14 +151,17 @@ class PermissionService extends GetxService {
     if (photos.isPermanentlyDenied) {
       await _settingsDialog(
         title: 'Gallery Permission Required'.tr,
-        message: 'Photos access is permanently denied. Open Settings to enable.'.tr,
+        message:
+            'Photos access is permanently denied. Open Settings to enable.'.tr,
       );
       return false;
     }
 
     await _settingsDialog(
       title: 'Gallery Permission Required'.tr,
-      message: 'Photos access is needed to pick images. Please allow from Settings.'.tr,
+      message:
+          'Photos access is needed to pick images. Please allow from Settings.'
+              .tr,
     );
     return false;
   }
@@ -205,12 +213,16 @@ class PermissionService extends GetxService {
           return AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
-              statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+              statusBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
             ),
             child: SafeArea(
               child: Dialog(
-                backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-                insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+                backgroundColor: isDark
+                    ? AppColors.darkProductCardColor
+                    : AppColors.lightBackgroundColor,
+                insetPadding:
+                    const EdgeInsets.symmetric(horizontal: 24),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
                   child: Column(
@@ -228,7 +240,11 @@ class PermissionService extends GetxService {
                       Text(
                         'Camera, Photos, and Notifications are needed so you can take photos, pick images, and receive order updates while shopping.'
                             .tr,
-                        style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87),
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.black87),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -268,12 +284,16 @@ class PermissionService extends GetxService {
           return AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
-              statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+              statusBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
             ),
             child: SafeArea(
               child: Dialog(
-                backgroundColor: isDark ? AppColors.darkProductCardColor : AppColors.lightBackgroundColor,
-                insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+                backgroundColor: isDark
+                    ? AppColors.darkProductCardColor
+                    : AppColors.lightBackgroundColor,
+                insetPadding:
+                    const EdgeInsets.symmetric(horizontal: 24),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
                   child: Column(
@@ -288,7 +308,14 @@ class PermissionService extends GetxService {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Text(message, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87)),
+                      Text(
+                        message,
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.black87),
+                      ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
