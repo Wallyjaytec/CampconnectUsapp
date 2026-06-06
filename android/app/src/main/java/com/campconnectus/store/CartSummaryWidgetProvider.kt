@@ -21,7 +21,7 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
             } catch (e: Exception) {
                 val views = RemoteViews(context.packageName, R.layout.cart_summary_widget_layout)
                 views.setTextViewText(R.id.widget_cart_items, "0 items")
-                views.setTextViewText(R.id.widget_cart_total, "\u20A60")
+                views.setTextViewText(R.id.widget_cart_total, "₦0")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
         }
@@ -36,7 +36,7 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.cart_summary_widget_layout)
 
             views.setTextViewText(R.id.widget_cart_items, "0 items")
-            views.setTextViewText(R.id.widget_cart_total, "\u20A60")
+            views.setTextViewText(R.id.widget_cart_total, "₦0")
 
             try {
                 val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
@@ -46,7 +46,7 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
                     val json = org.json.JSONObject(jsonStr)
                     val count = json.optInt("cartItems", 0)
                     val cartItems = if (count == 1) "1 item" else "$count items"
-                    val cartTotal = json.optString("cartTotal", "\u20A60")
+                    val cartTotal = json.optString("cartTotal", "₦0")
                     views.setTextViewText(R.id.widget_cart_items, cartItems)
                     views.setTextViewText(R.id.widget_cart_total, cartTotal)
                 }
@@ -58,7 +58,9 @@ class CartSummaryWidgetProvider : AppWidgetProvider() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val pending = PendingIntent.getActivity(
-                context, 0, intent,
+                context,
+                appWidgetId,
+                intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_cart_bar, pending)
