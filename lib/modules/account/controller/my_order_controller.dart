@@ -163,21 +163,18 @@ class OrderController extends GetxController {
         cartTotal: null,
         currencySymbol: currency.current?.symbol ?? '₦',
         latestOrderId: '${latest.orderCode}',
-        latestOrderAmount: '${currency.current?.symbol ?? '₦'}${latest.totalPayableAmount}',
+        latestOrderAmount: currency.format(latest.totalPayableAmount, applyConversion: true),
         latestOrderProduct: _mapStatusText(latest.deliveryStatus),
       );
     }
   }
 
   String _mapStatusText(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending': case '2': return 'Pending';
-      case 'processing': case '1': return 'Processing';
-      case 'ready_to_ship': case '3': return 'Ready to Ship';
-      case 'shipped': case '4': return 'Shipped';
-      case 'on_the_way': case '5': return 'On the Way';
-      case 'delivered': case '6': return 'Delivered';
-      default: return 'Ordered';
+    switch (status) {
+      case '1': return 'Delivered';
+      case '3': return 'Shipped';
+      case '2': return 'Pending';
+      default: return 'Pending';
     }
   }
 }
