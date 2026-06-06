@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/currency_service.dart';
 import '../../../core/services/widget_data_service.dart';
 import '../../../data/repositories/refund_repository.dart';
 import '../model/refund_request_model.dart';
@@ -174,11 +175,13 @@ class RefundRequestController extends GetxController {
   void _syncWidget() {
     final latest = items.isNotEmpty ? items.first : null;
     if (latest != null) {
+      final currency = Get.find<CurrencyService>();
       WidgetDataService.updateWidgetData(
         cartItems: 0,
-        cartTotal: '₦0',
+        cartTotal: '${currency.selected.symbol ?? '₦'}0',
+        currencySymbol: currency.selected.symbol ?? '₦',
         refundId: '#${latest.refundCode}',
-        refundAmount: '₦${latest.totalRefundAmount}',
+        refundAmount: '${currency.selected.symbol ?? '₦'}${latest.totalRefundAmount}',
         refundStatus: _mapRefundStatus(latest.paymentStatusLabel),
       );
     }
