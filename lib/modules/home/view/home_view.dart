@@ -11,7 +11,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:campconnectus_marketplace/core/services/api_service.dart';
 import 'package:campconnectus_marketplace/data/repositories/product_repository.dart';
@@ -145,10 +144,6 @@ class _HomeViewState extends State<HomeView> {
         await Get.putAsync<PermissionService>(() => PermissionService().init());
       }
       await PermissionService.I.requestOnceOnHome();
-      
-      Future.delayed(Duration(milliseconds: 500), () {
-        OneSignal.Notifications.requestPermission(true);
-      });
       
       if (Get.isRegistered<NotificationController>()) {
         await Get.find<NotificationController>().refreshList();
