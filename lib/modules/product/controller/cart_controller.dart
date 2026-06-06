@@ -528,7 +528,14 @@ class CartController extends GetxController {
 
   void _syncWidget() {
     final count = totalItemsCount;
-    final itemsText = count == 1 ? '1 item in cart'.tr : '$count items in cart'.tr;
+    final String itemsText;
+    if (count == 0) {
+      itemsText = '0 items in cart'.tr;
+    } else if (count == 1) {
+      itemsText = '1 item in cart'.tr;
+    } else {
+      itemsText = '$count ${'items in cart'.tr}';
+    }
     WidgetDataService.updateWidgetData(
       cartItems: totalItemsCount,
       cartTotal: money(grandTotal),
