@@ -77,10 +77,6 @@ class PermissionService extends GetxService {
     final notifAskedOnce = sp.getBool(_notifAskedKey) ?? false;
     if (!notifAskedOnce) {
       await sp.setBool(_notifAskedKey, true);
-      final notifStatus = await Permission.notification.status;
-      if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
-        await Permission.notification.request();
-      }
       await OneSignal.Notifications.requestPermission(true);
     }
   }
