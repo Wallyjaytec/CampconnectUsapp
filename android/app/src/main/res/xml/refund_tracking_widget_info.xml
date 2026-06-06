@@ -7,7 +7,7 @@
     android:maxResizeHeight="110dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/refund_tracking_widget_layout"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/widget_refund_preview"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
     android:label="Refund Tracking"
