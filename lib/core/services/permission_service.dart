@@ -20,8 +20,10 @@ class PermissionService extends GetxService {
   static PermissionService get I => Get.find<PermissionService>();
 
   static const _askedKey = 'perm_home_asked_once_v1';
+  static const _notifAskedKey = 'perm_notif_asked_once';
   final _state = MediaPermissionState.unknown.obs;
   bool _askedOnce = false;
+  bool _notifAskedOnce = false;
 
   MediaPermissionState get state => _state.value;
   bool get isAllowed =>
@@ -37,6 +39,7 @@ class PermissionService extends GetxService {
   Future<PermissionService> init() async {
     final sp = await SharedPreferences.getInstance();
     _askedOnce = sp.getBool(_askedKey) ?? false;
+    _notifAskedOnce = sp.getBool(_notifAskedKey) ?? false;
     await refreshStatus();
     return this;
   }
@@ -70,9 +73,14 @@ class PermissionService extends GetxService {
       );
     }
 
-    final notifStatus = await Permission.notification.status;
-    if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
-      await Permission.notification.request();
+    // Only request notification if never asked before and not already denied
+    if (!_notifAskedOnce) {
+      final notifStatus = await Permission.notification.status;
+      if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied && !notifStatus.isDenied) {
+        _notifAskedOnce = true;
+        (await SharedPreferences.getInstance()).setBool(_notifAskedKey, true);
+        await Permission.notification.request();
+      }
     }
   }
 
