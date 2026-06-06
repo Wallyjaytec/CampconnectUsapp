@@ -27,4 +27,10 @@
     <string name="no_orders">No orders yet</string>
     <string name="no_refunds">No refunds</string>
     <string name="checkout_btn">Proceed to Checkout  →</string>
+    <string name="section_cart">| Cart</string>
+    <string name="section_orders">| Orders</string>
+    <string name="section_refunds">| Refunds</string>
+    <string name="section_cart">| Cart</string>
+    <string name="section_orders">| Orders</string>
+    <string name="section_refunds">| Refunds</string>
 </resources>

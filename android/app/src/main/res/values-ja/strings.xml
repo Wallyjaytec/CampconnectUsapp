@@ -17,4 +17,10 @@
     <string name="no_orders">注文なし</string>
     <string name="no_refunds">返金なし</string>
     <string name="checkout_btn">チェックアウト  →</string>
+    <string name="section_cart">| カート</string>
+    <string name="section_orders">| 注文</string>
+    <string name="section_refunds">| 返金</string>
+    <string name="section_cart">| カート</string>
+    <string name="section_orders">| 注文</string>
+    <string name="section_refunds">| 返金</string>
 </resources>

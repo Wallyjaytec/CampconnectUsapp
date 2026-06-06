@@ -17,4 +17,10 @@
     <string name="no_orders">Keine Bestellungen</string>
     <string name="no_refunds">Keine Rückerstattungen</string>
     <string name="checkout_btn">Zur Kasse  →</string>
+    <string name="section_cart">| Warenkorb</string>
+    <string name="section_orders">| Bestellungen</string>
+    <string name="section_refunds">| Rückerstattungen</string>
+    <string name="section_cart">| Warenkorb</string>
+    <string name="section_orders">| Bestellungen</string>
+    <string name="section_refunds">| Rückerstattungen</string>
 </resources>

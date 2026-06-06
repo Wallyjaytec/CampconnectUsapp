@@ -17,4 +17,10 @@
     <string name="no_orders">暂无订单</string>
     <string name="no_refunds">暂无退款</string>
     <string name="checkout_btn">去结算  →</string>
+    <string name="section_cart">| 购物车</string>
+    <string name="section_orders">| 订单</string>
+    <string name="section_refunds">| 退款</string>
+    <string name="section_cart">| 购物车</string>
+    <string name="section_orders">| 订单</string>
+    <string name="section_refunds">| 退款</string>
 </resources>

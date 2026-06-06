@@ -17,4 +17,10 @@
     <string name="no_orders">कोई ऑर्डर नहीं</string>
     <string name="no_refunds">कोई रिफंड नहीं</string>
     <string name="checkout_btn">चेकआउट  →</string>
+    <string name="section_cart">| कार्ट</string>
+    <string name="section_orders">| ऑर्डर</string>
+    <string name="section_refunds">| रिफंड</string>
+    <string name="section_cart">| कार्ट</string>
+    <string name="section_orders">| ऑर्डर</string>
+    <string name="section_refunds">| रिफंड</string>
 </resources>

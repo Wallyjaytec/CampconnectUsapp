@@ -17,4 +17,10 @@
     <string name="no_orders">Aucune commande</string>
     <string name="no_refunds">Aucun remboursement</string>
     <string name="checkout_btn">Commander  →</string>
+    <string name="section_cart">| Panier</string>
+    <string name="section_orders">| Commandes</string>
+    <string name="section_refunds">| Remboursements</string>
+    <string name="section_cart">| Panier</string>
+    <string name="section_orders">| Commandes</string>
+    <string name="section_refunds">| Remboursements</string>
 </resources>

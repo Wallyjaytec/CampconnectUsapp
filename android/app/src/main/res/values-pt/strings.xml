@@ -17,4 +17,10 @@
     <string name="no_orders">Sem pedidos</string>
     <string name="no_refunds">Sem reembolsos</string>
     <string name="checkout_btn">Finalizar  →</string>
+    <string name="section_cart">| Carrinho</string>
+    <string name="section_orders">| Pedidos</string>
+    <string name="section_refunds">| Reembolsos</string>
+    <string name="section_cart">| Carrinho</string>
+    <string name="section_orders">| Pedidos</string>
+    <string name="section_refunds">| Reembolsos</string>
 </resources>

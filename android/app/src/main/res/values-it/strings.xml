@@ -17,4 +17,10 @@
     <string name="no_orders">Nessun ordine</string>
     <string name="no_refunds">Nessun rimborso</string>
     <string name="checkout_btn">Vai al Pagamento  →</string>
+    <string name="section_cart">| Carrello</string>
+    <string name="section_orders">| Ordini</string>
+    <string name="section_refunds">| Rimborsi</string>
+    <string name="section_cart">| Carrello</string>
+    <string name="section_orders">| Ordini</string>
+    <string name="section_refunds">| Rimborsi</string>
 </resources>

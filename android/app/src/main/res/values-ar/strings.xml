@@ -17,4 +17,7 @@
     <string name="no_orders">لا توجد طلبات</string>
     <string name="no_refunds">لا توجد مبالغ مستردة</string>
     <string name="checkout_btn">الدفع  →</string>
+    <string name="section_cart">| السلة</string>
+    <string name="section_orders">| الطلبات</string>
+    <string name="section_refunds">| المبالغ المستردة</string>
 </resources>
