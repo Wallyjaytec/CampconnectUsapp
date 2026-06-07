@@ -15,8 +15,8 @@ import 'package:campconnectus_marketplace/app.dart';
 import 'passcode_input_view.dart';
 
 class PasscodeLockScreen extends StatefulWidget {
-  final VoidCallback onUnlocked;
-  const PasscodeLockScreen({super.key, required this.onUnlocked});
+  final VoidCallback? onUnlocked;  // CHANGED: made optional
+  const PasscodeLockScreen({super.key, this.onUnlocked});  // CHANGED: removed required
   @override
   State<PasscodeLockScreen> createState() => _PasscodeLockScreenState();
 }
@@ -78,7 +78,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
     AppLifecycleService.instance.onPasscodeVerified();
-    widget.onUnlocked();
+    widget.onUnlocked?.call();  // CHANGED: safe call
   }
 
   void _onKeyPressed(String value) {
