@@ -3,7 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:get/get.dart';
 import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
-import 'package:campconnectus_marketplace/main.dart';
+import 'package:campconnectus_marketplace/app.dart';
 
 class AppLifecycleService extends WidgetsBindingObserver {
   static final AppLifecycleService instance = AppLifecycleService._internal();
