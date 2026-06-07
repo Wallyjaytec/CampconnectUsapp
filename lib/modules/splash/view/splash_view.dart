@@ -75,6 +75,37 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
+  void _navigateToShortcut(String dest) {
+    Get.offAllNamed(AppRoutes.bottomNavbarView);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      switch (dest) {
+        case 'search':
+          Get.toNamed(AppRoutes.searchView);
+          break;
+        case 'orders':
+          Get.toNamed(AppRoutes.myOrderListView);
+          break;
+        case 'cart':
+          Get.toNamed(AppRoutes.cartView);
+          break;
+        case 'wallet':
+          Get.toNamed(AppRoutes.myWalletView);
+          break;
+        case 'account':
+          if (Get.isRegistered<BottomNavbarController>()) {
+            Get.find<BottomNavbarController>().currentIndex.value = 4;
+          }
+          break;
+        case 'notifications':
+          Get.toNamed(AppRoutes.notificationsView);
+          break;
+        case 'refunds':
+          Get.toNamed(AppRoutes.refundRequestListView);
+          break;
+      }
+    });
+  }
+
   void _checkLockAndNavigate() async {
     if (_navigated) return;
 
@@ -82,6 +113,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (isLoggedIn) {
       hasPasscode = await PasscodeService.checkPasscodeOnServer();
     }
+
+    final box = GetStorage();
+    final shortcutDest = box.read<String>('shortcut_destination') ?? '';
+    final isFromShortcut = shortcutDest.isNotEmpty;
 
     if (hasPasscode) {
       _navigated = true;
@@ -104,11 +139,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         PushNotificationData.image = null;
       }
 
+      if (isFromShortcut) {
+        box.write('_pending_shortcut_after_unlock', shortcutDest);
+        box.remove('shortcut_destination');
+      }
+
       Get.offAll(() => PasscodeLockScreen(
         onUnlocked: () {
           isLockScreenShowing = false;
-          final box = GetStorage();
           box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+
+          final pendingShortcut = box.read<String>('_pending_shortcut_after_unlock') ?? '';
+          if (pendingShortcut.isNotEmpty) {
+            box.remove('_pending_shortcut_after_unlock');
+            _navigateToShortcut(pendingShortcut);
+            return;
+          }
 
           if (_pendingNotificationData != null) {
             final data = _pendingNotificationData!;
@@ -205,44 +251,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final shortcutDest = box.read<String>('shortcut_destination') ?? '';
     if (shortcutDest.isNotEmpty) {
       box.remove('shortcut_destination');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Future.delayed(const Duration(milliseconds: 300), () {
-        switch (shortcutDest) {
-          case 'search':
-            Get.toNamed(AppRoutes.searchView);
-            break;
-          case 'orders':
-            Get.toNamed(AppRoutes.myOrderListView);
-            break;
-          case 'cart':
-            Get.toNamed(AppRoutes.cartView);
-            break;
-          case 'wallet':
-            Get.toNamed(AppRoutes.myWalletView);
-            break;
-          case 'account':
-            if (Get.isRegistered<BottomNavbarController>()) {
-              Get.find<BottomNavbarController>().currentIndex.value = 4;
-            }
-            break;
-          case 'notifications':
-            Get.toNamed(AppRoutes.notificationsView);
-            break;
-          case 'refunds':
-            Get.toNamed(AppRoutes.refundRequestListView);
-            break;
-        }
-      });
+      _navigateToShortcut(shortcutDest);
       return;
     }
 
     if (!isLoggedIn) {
-      final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
-      if (!onboardingComplete) {
-        Get.offAllNamed(AppRoutes.languageSelect);
-      } else {
-        Get.offAllNamed(AppRoutes.bottomNavbarView);
-      }
+      Get.offAllNamed(AppRoutes.bottomNavbarView);
       return;
     }
 
@@ -282,11 +296,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       } else {
         Get.offAll(() => PasswordResetView(token: token));
       }
-      return;
-    }
-
-    if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
-      Get.offAllNamed(AppRoutes.languageSelect);
       return;
     }
 
