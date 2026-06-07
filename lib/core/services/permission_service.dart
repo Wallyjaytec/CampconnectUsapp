@@ -82,7 +82,10 @@ class PermissionService extends GetxService {
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
           ));
-      await OneSignal.Notifications.requestPermission(true);
+          final notifStatus = await Permission.notification.status;
+          if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
+            await Permission.notification.request();
+          }
           SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
