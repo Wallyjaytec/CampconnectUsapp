@@ -15,8 +15,8 @@ import 'package:campconnectus_marketplace/app.dart';
 import 'passcode_input_view.dart';
 
 class PasscodeLockScreen extends StatefulWidget {
-  final VoidCallback? onUnlocked;  // CHANGED: made optional
-  const PasscodeLockScreen({super.key, this.onUnlocked});  // CHANGED: removed required
+  final VoidCallback? onUnlocked;
+  const PasscodeLockScreen({super.key, this.onUnlocked});
   @override
   State<PasscodeLockScreen> createState() => _PasscodeLockScreenState();
 }
@@ -78,7 +78,12 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
     AppLifecycleService.instance.onPasscodeVerified();
-    widget.onUnlocked?.call();  // CHANGED: safe call
+    
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        widget.onUnlocked?.call();
+      }
+    });
   }
 
   void _onKeyPressed(String value) {
@@ -100,18 +105,30 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   Future<void> _verifyPasscode() async {
     if (_didUnlock || _checkingPasscode) return;
     _checkingPasscode = true;
-    final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
-    _checkingPasscode = false;
-    if (verified) {
-      _doUnlock();
-    } else {
-      _failedAttempts++;
-      setState(() => _passcode = '');
-      if (_failedAttempts >= 5) {
-        _startLockout();
+    
+    try {
+      final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+      _checkingPasscode = false;
+      
+      if (verified) {
+        _doUnlock();
       } else {
-        setState(() { _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; });
+        _failedAttempts++;
+        setState(() => _passcode = '');
+        if (_failedAttempts >= 5) {
+          _startLockout();
+        } else {
+          setState(() { 
+            _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; 
+          });
+        }
       }
+    } catch (e) {
+      _checkingPasscode = false;
+      setState(() { 
+        _errorMessage = 'Something went wrong. Please try again.'.tr;
+        _passcode = '';
+      });
     }
   }
 
