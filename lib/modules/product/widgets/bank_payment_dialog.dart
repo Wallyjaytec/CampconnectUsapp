@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,6 +37,13 @@ class BankPaymentDialog extends StatelessWidget {
       ),
     );
 
+    // Get bank instruction from active payment methods
+    final methods = controller.activePaymentMethods;
+    final bankMethod = methods.firstWhereOrNull(
+      (m) => m.name.trim().toLowerCase() == 'bank',
+    );
+    final instruction = (bankMethod?.instruction ?? '').trim();
+
     return Dialog(
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? AppColors.darkProductCardColor
@@ -68,6 +76,32 @@ class BankPaymentDialog extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
+
+                // ===== BANK INSTRUCTION BOX =====
+                if (instruction.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.primaryColor.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: HtmlWidget(
+                      instruction.tr,
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ),
+                // ==================================
+
+                const SizedBox(height: 6),
                 CustomTextFormField(
                   controller: controller.bankAccountNameCtrl,
                   hint: 'Account Name'.tr,
