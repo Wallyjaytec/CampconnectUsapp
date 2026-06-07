@@ -229,7 +229,6 @@ class AppPages {
       },
     ),
     GetPage(name: AppRoutes.passcodeSettingsView, page: () => const PasscodeSettingsView()),
-    // ADD THIS NEW ROUTE
     GetPage(
       name: AppRoutes.passcodeLockScreen,
       page: () => const PasscodeLockScreen(),
