@@ -35,7 +35,7 @@ class AppLifecycleService extends WidgetsBindingObserver {
   }
 
   void _checkAndShowPasscode() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     final passcodeEnabled = await PasscodeService.checkPasscodeOnServer();
     if (!passcodeEnabled) return;
@@ -44,9 +44,15 @@ class AppLifecycleService extends WidgetsBindingObserver {
     if (lastActive == null) return;
 
     final autoLockMinutes = PasscodeService.autoLockMinutes;
-    final diffMinutes = DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(lastActive)).inMinutes;
+    final diffSeconds = DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(lastActive)).inSeconds;
+    final diffMinutes = diffSeconds / 60;
 
-    final shouldShowPasscode = autoLockMinutes == 0 || diffMinutes >= autoLockMinutes;
+    bool shouldShowPasscode = false;
+    if (autoLockMinutes == 0) {
+      shouldShowPasscode = true;
+    } else if (diffMinutes >= autoLockMinutes) {
+      shouldShowPasscode = true;
+    }
 
     if (shouldShowPasscode && !isLockScreenShowing) {
       isLockScreenShowing = true;
