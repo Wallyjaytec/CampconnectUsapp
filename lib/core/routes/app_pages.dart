@@ -28,6 +28,7 @@ import 'package:campconnectus_marketplace/modules/product/view/recently_viewed_v
 import 'package:campconnectus_marketplace/modules/product/view/top_sale_product_view.dart';
 import 'package:campconnectus_marketplace/modules/seller/view/seller_view.dart';
 import 'package:campconnectus_marketplace/modules/settings/view/passcode_settings_view.dart';
+import 'package:campconnectus_marketplace/modules/settings/view/passcode_lock_screen.dart';
 import 'package:campconnectus_marketplace/modules/splash/view/splash_view.dart';
 
 import '../../modules/account/model/my_order_model.dart';
@@ -228,5 +229,10 @@ class AppPages {
       },
     ),
     GetPage(name: AppRoutes.passcodeSettingsView, page: () => const PasscodeSettingsView()),
+    // ADD THIS NEW ROUTE
+    GetPage(
+      name: AppRoutes.passcodeLockScreen,
+      page: () => const PasscodeLockScreen(),
+    ),
   ];
 }
