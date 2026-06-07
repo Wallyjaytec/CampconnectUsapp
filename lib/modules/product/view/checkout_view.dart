@@ -507,43 +507,31 @@ class CheckoutView extends GetView<CheckoutController> {
                   ),
                 ],
               ),
+              // ===== ONLY CHANGE IS HERE =====
               if (hasInstruction) ...[
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 if (isBank)
-                  SizedBox(
-                    height: 20,
-                    child: SingleChildScrollView(
-                      scrollDirection:
-                          Axis.horizontal,
-                      child: HtmlWidget(
-                        instruction.tr,
-                        textStyle:
-                            const TextStyle(
-                              fontSize: 11,
-                              color: AppColors
-                                  .greyColor,
-                              fontWeight:
-                                  FontWeight
-                                      .normal,
-                            ),
-                      ),
+                  HtmlWidget(
+                    instruction.tr,
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.greyColor,
+                      fontWeight: FontWeight.normal,
                     ),
                   )
                 else
                   Text(
                     instruction.tr,
                     maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 11,
-                      fontWeight:
-                          FontWeight.normal,
-                      color:
-                          AppColors.greyColor,
+                      fontWeight: FontWeight.normal,
+                      color: AppColors.greyColor,
                     ),
                   ),
               ],
+              // ===== END OF CHANGE =====
             ],
           ),
         ),
