@@ -451,36 +451,38 @@ class CheckoutView extends GetView<CheckoutController> {
                                   rawLogoUrl,
                                 );
                                 final hasLogo = rawLogoUrl.isNotEmpty;
-                                final instruction = (m.instruction ?? '')
-                                    .trim();
+                                final instruction = (m.instruction ?? '').trim();
                                 final hasInstruction = instruction.isNotEmpty;
-                                final isBank =
-                                    m.name.trim().toLowerCase() == 'bank';
+                                final isSelected = selectedId == m.id;
 
                                 return DropdownMenuItem<int>(
                                   value: m.id,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8.0,
+                                      vertical: 6.0,
                                     ),
                                     child: Row(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Icon(
-                                          (selectedId == m.id)
-                                              ? Icons.radio_button_checked
-                                              : Icons.radio_button_off,
-                                          size: 18,
-                                          color: (selectedId == m.id)
-                                              ? AppColors.primaryColor
-                                              : null,
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2),
+                                          child: Icon(
+                                            isSelected
+                                                ? Icons.radio_button_checked
+                                                : Icons.radio_button_off,
+                                            size: 18,
+                                            color: isSelected
+                                                ? AppColors.primaryColor
+                                                : null,
+                                          ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                                MainAxisAlignment.start,
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             mainAxisSize: MainAxisSize.min,
@@ -495,7 +497,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                                     const SizedBox(width: 8),
                                                   Expanded(
                                                     child: Text(
-                                                      (m.name).trim(),
+                                                      m.name.trim(),
                                                       maxLines: 1,
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -510,35 +512,36 @@ class CheckoutView extends GetView<CheckoutController> {
                                               ),
                                               if (hasInstruction) ...[
                                                 const SizedBox(height: 4),
-                                                if (isBank)
-                                                  SizedBox(
-                                                    width: double.infinity,
-                                                    child: HtmlWidget(
-                                                      instruction.tr,
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            AppColors.greyColor,
-                                                        fontWeight:
-                                                            FontWeight.normal,
+                                                // STATE 1 (dropdown open): full instruction, no limit
+                                                // STATE 2 (selected/closed): 1-line preview
+                                                // dropdown_button2 renders the selected item
+                                                // inside the button using the same widget, so
+                                                // we use isSelected to switch behaviour
+                                                isSelected
+                                                    ? Text(
+                                                        instruction.tr,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: const TextStyle(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.normal,
+                                                          color: AppColors
+                                                              .greyColor,
+                                                        ),
+                                                      )
+                                                    : HtmlWidget(
+                                                        instruction.tr,
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          fontSize: 11,
+                                                          color: AppColors
+                                                              .greyColor,
+                                                          fontWeight:
+                                                              FontWeight.normal,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  )
-                                                else
-                                                  Text(
-                                                    instruction.tr,
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow
-                                                        .ellipsis,
-                                                    style: const TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.normal,
-                                                      color:
-                                                          AppColors.greyColor,
-                                                    ),
-                                                  ),
                                               ],
                                             ],
                                           ),
@@ -548,49 +551,6 @@ class CheckoutView extends GetView<CheckoutController> {
                                   ),
                                 );
                               }).toList(),
-                              selectedItemBuilder: (context) {
-                                return methods.map((m) {
-                                  final instruction = (m.instruction ?? '')
-                                      .trim();
-                                  final hasInstruction =
-                                      instruction.isNotEmpty;
-
-                                  return Container(
-                                    alignment: Alignment.centerLeft,
-                                    constraints: const BoxConstraints(
-                                      maxHeight: 45,
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          m.name.trim(),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        if (hasInstruction)
-                                          Text(
-                                            instruction.tr,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.greyColor,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList();
-                              },
                               value: selectedId,
                               hint: Text(
                                 'Select Payment method'.tr,
@@ -632,7 +592,8 @@ class CheckoutView extends GetView<CheckoutController> {
                                 ),
                               ),
                               menuItemStyleData: const MenuItemStyleData(
-                                height: 65,
+                                // Remove fixed height so items can grow
+                                // to fit full instruction text
                                 padding: EdgeInsets.zero,
                               ),
                             ),
