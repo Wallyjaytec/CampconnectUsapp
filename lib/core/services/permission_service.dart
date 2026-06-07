@@ -77,7 +77,16 @@ class PermissionService extends GetxService {
     final notifAskedOnce = sp.getBool(_notifAskedKey) ?? false;
     if (!notifAskedOnce) {
       await sp.setBool(_notifAskedKey, true);
+          final isDark = Get.find<ThemeController>().isDarkMode.value;
+          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          ));
       await OneSignal.Notifications.requestPermission(true);
+          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          ));
     }
   }
 
