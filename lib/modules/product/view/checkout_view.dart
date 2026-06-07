@@ -458,88 +458,139 @@ class CheckoutView extends GetView<CheckoutController> {
                                     m.name.trim().toLowerCase() == 'bank';
 
                                 return DropdownMenuItem<int>(
-  value: m.id,
-  child: Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 8.0,
-    ),
-    child: Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.center,
-      children: [
-        Icon(
-          (selectedId == m.id)
-              ? Icons.radio_button_checked
-              : Icons.radio_button_off,
-          size: 18,
-          color: (selectedId == m.id)
-              ? AppColors.primaryColor
-              : null,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  if (hasLogo)
-                    _NetLogoBox(
-                      url: normalizedLogo,
-                    ),
-                  if (hasLogo)
-                    const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      (m.name).trim(),
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // ===== ONLY CHANGE IS HERE =====
-              if (hasInstruction) ...[
-                const SizedBox(height: 4),
-                if (isBank)
-                  HtmlWidget(
-                    instruction.tr,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.greyColor,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  )
-                else
-                  Text(
-                    instruction.tr,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.normal,
-                      color: AppColors.greyColor,
-                    ),
-                  ),
-              ],
-              // ===== END OF CHANGE =====
-            ],
-          ),
-        ),
-      ],
-    ),
-  ),
-);
+                                  value: m.id,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          (selectedId == m.id)
+                                              ? Icons.radio_button_checked
+                                              : Icons.radio_button_off,
+                                          size: 18,
+                                          color: (selectedId == m.id)
+                                              ? AppColors.primaryColor
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  if (hasLogo)
+                                                    _NetLogoBox(
+                                                      url: normalizedLogo,
+                                                    ),
+                                                  if (hasLogo)
+                                                    const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      (m.name).trim(),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              if (hasInstruction) ...[
+                                                const SizedBox(height: 4),
+                                                if (isBank)
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    child: HtmlWidget(
+                                                      instruction.tr,
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            AppColors.greyColor,
+                                                        fontWeight:
+                                                            FontWeight.normal,
+                                                      ),
+                                                    ),
+                                                  )
+                                                else
+                                                  Text(
+                                                    instruction.tr,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow
+                                                        .ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                      color:
+                                                          AppColors.greyColor,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
                               }).toList(),
+                              selectedItemBuilder: (context) {
+                                return methods.map((m) {
+                                  final instruction = (m.instruction ?? '')
+                                      .trim();
+                                  final hasInstruction =
+                                      instruction.isNotEmpty;
+
+                                  return Container(
+                                    alignment: Alignment.centerLeft,
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 45,
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          m.name.trim(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        if (hasInstruction)
+                                          Text(
+                                            instruction.tr,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.greyColor,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList();
+                              },
                               value: selectedId,
                               hint: Text(
                                 'Select Payment method'.tr,
