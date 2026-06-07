@@ -10,6 +10,7 @@ import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/api_service.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
+import 'package:campconnectus_marketplace/core/services/app_lifecycle_service.dart';
 import 'package:campconnectus_marketplace/app.dart';
 import 'passcode_input_view.dart';
 
@@ -76,6 +77,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
     _didUnlock = true;
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+    AppLifecycleService.instance.onPasscodeVerified();
     widget.onUnlocked();
   }
 
