@@ -1,331 +1,319 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:campconnectus_marketplace/core/constants/app_assets.dart';
+import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:campconnectus_marketplace/core/config/app_config.dart';
 import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
+import 'package:campconnectus_marketplace/core/services/api_service.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
-import 'package:campconnectus_marketplace/main.dart';
-import 'package:campconnectus_marketplace/modules/account/model/notification_model.dart';
-import 'package:campconnectus_marketplace/modules/account/view/notification_detail_view.dart';
-import 'package:campconnectus_marketplace/modules/bottom_navbar/controller/bottom_navbar_controller.dart';
-import 'package:campconnectus_marketplace/modules/settings/view/passcode_lock_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:campconnectus_marketplace/app.dart';
-import '../../auth/view/password_reset_view.dart';
-import '../../auth/view/verification_success_view.dart';
+import 'passcode_input_view.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class PasscodeLockScreen extends StatefulWidget {
+  final VoidCallback onUnlocked;
+  const PasscodeLockScreen({super.key, required this.onUnlocked});
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<PasscodeLockScreen> createState() => _PasscodeLockScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-  bool _navigated = false;
-  Map<String, dynamic>? _pendingNotificationData;
+class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBindingObserver {
+  String _errorMessage = '';
+  String _passcode = '';
+  int _failedAttempts = 0;
+  bool _isLockedOut = false;
+  int _lockoutSeconds = 0;
+  Timer? _lockoutTimer;
+  bool _didUnlock = false;
+  bool _checkingPasscode = false;
+  bool _biometricAvailable = false;
+  bool _biometricChecked = false;
 
   bool get isLoggedIn => (LoginService().token ?? '').isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    _slideAnimation = Tween<double>(begin: -300.0, end: 0.0).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeIn)));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (!mounted) return;
-
-      try {
-        const skipChannel = MethodChannel('com.campconnectus.store/skip_splash');
-        final dest = await skipChannel.invokeMethod<String>('shouldSkip');
-        if (dest != null && dest.isNotEmpty) {
-          final box = GetStorage();
-
-          final onboardingDone = box.read<bool>('onboarding_done') ?? false;
-          final languageSelected = box.read<bool>('language_selected') ?? false;
-          final countrySelected = box.read<bool>('country_selected') ?? false;
-          final currencySelected = box.read<bool>('currency_selected') ?? false;
-
-          if (!onboardingDone || !languageSelected || !countrySelected || !currencySelected) {
-            _controller.forward();
-            _checkLockAndNavigate();
-            return;
-          }
-
-          box.write('shortcut_destination', dest);
-          _controller.value = 1.0;
-          _navigated = true;
-          _navigateNormally();
-          return;
-        }
-      } catch (_) {}
-
-      _controller.forward();
-      _checkLockAndNavigate();
-    });
-  }
-
-  void _navigateToShortcut(String dest) {
-    Get.offAllNamed(AppRoutes.bottomNavbarView);
-    Future.delayed(const Duration(milliseconds: 300), () {
-      switch (dest) {
-        case 'search':
-          Get.toNamed(AppRoutes.searchView);
-          break;
-        case 'orders':
-          Get.toNamed(AppRoutes.myOrderListView);
-          break;
-        case 'cart':
-          Get.toNamed(AppRoutes.cartView);
-          break;
-        case 'wallet':
-          Get.toNamed(AppRoutes.myWalletView);
-          break;
-        case 'account':
-          if (Get.isRegistered<BottomNavbarController>()) {
-            Get.find<BottomNavbarController>().currentIndex.value = 4;
-          }
-          break;
-        case 'notifications':
-          Get.toNamed(AppRoutes.notificationsView);
-          break;
-        case 'refunds':
-          Get.toNamed(AppRoutes.refundRequestListView);
-          break;
-      }
-    });
-  }
-
-  void _checkLockAndNavigate() async {
-    if (_navigated) return;
-
-    bool hasPasscode = false;
-    if (isLoggedIn) {
-      hasPasscode = await PasscodeService.checkPasscodeOnServer();
-    }
-
-    final box = GetStorage();
-    final shortcutDest = box.read<String>('shortcut_destination') ?? '';
-    final isFromShortcut = shortcutDest.isNotEmpty;
-
-    if (hasPasscode) {
-      _navigated = true;
-      isLockScreenShowing = true;
-
-      if (pendingNotificationData != null) {
-        _pendingNotificationData = Map<String, dynamic>.from(pendingNotificationData!);
-        pendingNotificationData = null;
-      }
-      if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-        _pendingNotificationData = {
-          'notification_id': PushNotificationData.notificationId,
-          'notif_message': PushNotificationData.message ?? '',
-          'notif_title': PushNotificationData.title ?? '',
-          'notif_image': PushNotificationData.image ?? '',
-        };
-        PushNotificationData.notificationId = null;
-        PushNotificationData.message = null;
-        PushNotificationData.title = null;
-        PushNotificationData.image = null;
-      }
-
-      if (isFromShortcut) {
-        box.write('_pending_shortcut_after_unlock', shortcutDest);
-        box.remove('shortcut_destination');
-      }
-
-      Get.offAll(() => PasscodeLockScreen(
-        onUnlocked: () {
-          isLockScreenShowing = false;
-          box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-
-          final pendingShortcut = box.read<String>('_pending_shortcut_after_unlock') ?? '';
-          if (pendingShortcut.isNotEmpty) {
-            box.remove('_pending_shortcut_after_unlock');
-            _navigateToShortcut(pendingShortcut);
-            return;
-          }
-
-          if (_pendingNotificationData != null) {
-            final data = _pendingNotificationData!;
-            _pendingNotificationData = null;
-            final item = NotificationItem(
-              id: data['notification_id']!,
-              message: data['notif_message'] ?? '',
-              link: '',
-              time: 'Just now',
-              title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-              image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-            );
-            Get.offAllNamed(AppRoutes.bottomNavbarView);
-            Future.delayed(const Duration(milliseconds: 300), () {
-              Get.to(() => NotificationDetailView(item: item));
-            });
-          } else {
-            _navigateNormally();
-          }
-        },
-      ));
-      return;
-    }
-
-    Timer(const Duration(seconds: 3), () {
-      if (!mounted || _navigated) return;
-      _checkPushAndNavigate(attempts: 0);
-    });
-  }
-
-  void _checkPushAndNavigate({int attempts = 0}) {
-    if (!mounted || _navigated) return;
-
-    if (pendingNotificationData != null) {
-      final data = pendingNotificationData!;
-      pendingNotificationData = null;
-      _navigated = true;
-      final item = NotificationItem(
-        id: data['notification_id']!,
-        message: data['notif_message'] ?? '',
-        link: '',
-        time: 'Just now',
-        title: (data['notif_title'] != null && data['notif_title']!.isNotEmpty) ? data['notif_title'] : null,
-        image: (data['notif_image'] != null && data['notif_image']!.isNotEmpty) ? data['notif_image'] : null,
-      );
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Get.to(() => NotificationDetailView(item: item));
-      return;
-    }
-
-    if (PushNotificationData.notificationId != null && PushNotificationData.notificationId!.isNotEmpty) {
-      _navigated = true;
-      final item = NotificationItem(
-        id: PushNotificationData.notificationId!,
-        message: PushNotificationData.message ?? '',
-        link: '',
-        time: 'Just now',
-        title: (PushNotificationData.title != null && PushNotificationData.title!.isNotEmpty) ? PushNotificationData.title : null,
-        image: (PushNotificationData.image != null && PushNotificationData.image!.isNotEmpty) ? PushNotificationData.image : null,
-      );
-      PushNotificationData.notificationId = null;
-      PushNotificationData.message = null;
-      PushNotificationData.title = null;
-      PushNotificationData.image = null;
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Get.to(() => NotificationDetailView(item: item));
-      return;
-    }
-
-    if (attempts > 3) {
-      _navigated = true;
-      _navigateNormally();
-      return;
-    }
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _checkPushAndNavigate(attempts: attempts + 1);
-    });
-  }
-
-  void _navigateNormally() {
-    final box = GetStorage();
-
-    final onboardingComplete = box.read<bool>('onboarding_done') ?? false;
-    final languageSelected = box.read<bool>('language_selected') ?? false;
-    final countrySelected = box.read<bool>('country_selected') ?? false;
-    final currencySelected = box.read<bool>('currency_selected') ?? false;
-
-    if (!onboardingComplete || !languageSelected || !countrySelected || !currencySelected) {
-      Get.offAllNamed(AppRoutes.languageSelect);
-      return;
-    }
-
-    final shortcutDest = box.read<String>('shortcut_destination') ?? '';
-    if (shortcutDest.isNotEmpty) {
-      box.remove('shortcut_destination');
-      _navigateToShortcut(shortcutDest);
-      return;
-    }
-
-    if (!isLoggedIn) {
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      return;
-    }
-
-    final walletLink = box.read<bool>('deep_link_wallet') ?? false;
-    if (walletLink) {
-      box.remove('deep_link_wallet');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Future.delayed(const Duration(milliseconds: 300), () {
-        Get.toNamed(AppRoutes.myWalletView);
-      });
-      return;
-    }
-
-    final refundId = box.read<int>('deep_link_refund_id') ?? 0;
-    if (refundId > 0) {
-      box.remove('deep_link_refund_id');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: refundId);
-      return;
-    }
-
-    final orderId = box.read<int>('deep_link_order_id') ?? 0;
-    if (orderId > 0) {
-      box.remove('deep_link_order_id');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Get.toNamed(AppRoutes.myOrderDetailsView, arguments: {'order_id': orderId});
-      return;
-    }
-
-    final token = box.read<String>('deep_link_token') ?? '';
-    final type = box.read<String>('deep_link_type') ?? '';
-    if (token.isNotEmpty) {
-      box.remove('deep_link_token');
-      box.remove('deep_link_type');
-      if (type == 'email_verify') {
-        Get.offAll(() => VerificationSuccessView(code: token));
-      } else {
-        Get.offAll(() => PasswordResetView(token: token));
-      }
-      return;
-    }
-
-    Get.offAllNamed(AppRoutes.bottomNavbarView);
+    WidgetsBinding.instance.addObserver(this);
+    _checkBiometricAvailability();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _lockoutTimer?.cancel();
     super.dispose();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {}
+
+  Future<void> _checkBiometricAvailability() async {
+    if (!PasscodeService.useFingerprint) {
+      setState(() => _biometricChecked = true);
+      return;
+    }
+    try {
+      final localAuth = LocalAuthentication();
+      final canCheck = await localAuth.canCheckBiometrics;
+      final availableBiometrics = await localAuth.getAvailableBiometrics();
+      if (mounted) {
+        setState(() {
+          _biometricAvailable = canCheck && availableBiometrics.isNotEmpty;
+          _biometricChecked = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _biometricChecked = true);
+    }
+  }
+
+  void _doUnlock() {
+    if (!mounted || _didUnlock) return;
+    _didUnlock = true;
+    _lockoutTimer?.cancel();
+    GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+    widget.onUnlocked();
+  }
+
+  void _onKeyPressed(String value) {
+    if (_isLockedOut || _didUnlock || _checkingPasscode) return;
+    if (value == 'delete') {
+      if (_passcode.isNotEmpty) {
+        setState(() { _passcode = _passcode.substring(0, _passcode.length - 1); _errorMessage = ''; });
+      }
+    } else if (value == 'clear') {
+      setState(() { _passcode = ''; _errorMessage = ''; });
+    } else {
+      if (_passcode.length < 6) {
+        setState(() { _passcode += value; _errorMessage = ''; });
+        if (_passcode.length == 6) _verifyPasscode();
+      }
+    }
+  }
+
+  Future<void> _verifyPasscode() async {
+    if (_didUnlock || _checkingPasscode) return;
+    _checkingPasscode = true;
+    final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+    _checkingPasscode = false;
+    if (verified) {
+      _doUnlock();
+    } else {
+      _failedAttempts++;
+      setState(() => _passcode = '');
+      if (_failedAttempts >= 5) {
+        _startLockout();
+      } else {
+        setState(() { _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; });
+      }
+    }
+  }
+
+  void _startLockout() {
+    _isLockedOut = true;
+    _lockoutSeconds = 60;
+    _lockoutTimer?.cancel();
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) { timer.cancel(); return; }
+      setState(() {
+        _lockoutSeconds--;
+        _errorMessage = '${'Too many attempts. Please wait'.tr} ${_formatTime(_lockoutSeconds)}';
+      });
+      if (_lockoutSeconds <= 0) {
+        timer.cancel();
+        setState(() { _failedAttempts = 0; _isLockedOut = false; _errorMessage = ''; });
+      }
+    });
+  }
+
+  String _formatTime(int seconds) {
+    if (seconds < 60) return '0:${seconds.toString().padLeft(2, '0')}';
+    final min = seconds ~/ 60; final sec = seconds % 60;
+    return '$min:${sec.toString().padLeft(2, '0')}';
+  }
+
+  void _forgotPasscode() {
+    if (_isLockedOut || _didUnlock) return;
+    Get.to(() => _ForgotPasscodeScreen(onReset: (newPasscode) async {
+      final questions = await PasscodeService.fetchSecurityQuestions();
+      await PasscodeService.setPasscodeOnServer(
+        passcode: newPasscode,
+        question1: questions?['question1'] ?? '',
+        answer1: questions?['answer1'] ?? '',
+        question2: questions?['question2'] ?? '',
+        answer2: questions?['answer2'] ?? '',
+      );
+      await PasscodeService.setPasscodeEnabled(true);
+      _lockoutTimer?.cancel();
+      _failedAttempts = 0;
+      _checkingPasscode = false;
+      setState(() { _passcode = ''; _errorMessage = ''; _isLockedOut = false; });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Passcode reset successfully. Enter your new passcode.'.tr),
+            backgroundColor: AppColors.primaryColor,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }));
+  }
+
+  void _useBiometric() async {
+    if (_didUnlock) return;
+    try {
+      final localAuth = LocalAuthentication();
+      final canCheck = await localAuth.canCheckBiometrics;
+      if (!canCheck) return;
+      final authenticated = await localAuth.authenticate(
+        localizedReason: 'Unlock CampConnectUs Marketplace'.tr,
+        options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
+      );
+      if (authenticated && mounted && !_didUnlock) {
+        _lockoutTimer?.cancel();
+        _doUnlock();
+      }
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryColor,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) => Transform.translate(
-            offset: Offset(_slideAnimation.value, 0),
-            child: Opacity(opacity: _fadeAnimation.value, child: child)),
-          child: SizedBox(
-            width: 160,
-            height: 160,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Image.asset(AppAssets.appLogo, fit: BoxFit.contain))),
-        ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.darkCardColor : Colors.white,
+        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Spacer(),
+          Icon(Icons.lock_outline, size: 60, color: AppColors.primaryColor),
+          const SizedBox(height: 20),
+          Text('CampConnectUs Marketplace', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+          const SizedBox(height: 10),
+          Text('Enter Passcode'.tr, style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : Colors.grey)),
+          const SizedBox(height: 30),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(6, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey, width: 1.5), color: index < _passcode.length ? AppColors.primaryColor : Colors.transparent)))),
+          const SizedBox(height: 10),
+          if (_errorMessage.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20), child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center)),
+          const SizedBox(height: 40),
+          _buildKeypad(),
+          const SizedBox(height: 20),
+          if (PasscodeService.useFingerprint && _biometricChecked && _biometricAvailable)
+            InkWell(
+              onTap: _useBiometric,
+              child: Column(children: [
+                Icon(Icons.fingerprint, size: 40, color: AppColors.primaryColor),
+                const SizedBox(height: 8),
+                Text('Use Biometrics'.tr, style: TextStyle(color: AppColors.primaryColor)),
+              ]),
+            ),
+          const SizedBox(height: 20),
+          if (!_isLockedOut) TextButton(onPressed: _forgotPasscode, child: Text('Forgot Passcode?'.tr, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey))),
+          const Spacer(),
+        ]),
       ),
+    );
+  }
+
+  Widget _buildKeypad() {
+    return Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('1'), _buildKey('2'), _buildKey('3')]),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('4'), _buildKey('5'), _buildKey('6')]),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('7'), _buildKey('8'), _buildKey('9')]),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildKey('clear', text: 'Clear'.tr, isAction: true), _buildKey('0'), _buildKey('delete', text: '⌫', isAction: true)]),
+    ]);
+  }
+
+  Widget _buildKey(String value, {String? text, bool isAction = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(padding: const EdgeInsets.all(8.0), child: InkWell(onTap: () => _onKeyPressed(value), borderRadius: BorderRadius.circular(40), child: Container(width: 70, height: 70, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300, width: 1)), child: Center(child: text != null ? Text(text, style: TextStyle(fontSize: isAction ? 16 : 22, color: isAction ? AppColors.primaryColor : (isDark ? Colors.white : Colors.black))) : Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black))))));
+  }
+}
+
+class _ForgotPasscodeScreen extends StatefulWidget {
+  final Function(String) onReset;
+  const _ForgotPasscodeScreen({required this.onReset});
+  @override
+  State<_ForgotPasscodeScreen> createState() => _ForgotPasscodeScreenState();
+}
+
+class _ForgotPasscodeScreenState extends State<_ForgotPasscodeScreen> {
+  final _answer1Controller = TextEditingController();
+  final _answer2Controller = TextEditingController();
+  int _step = 1;
+  int _attemptsLeft = 3;
+  String? _errorMessage;
+  Map<String, dynamic>? _questions;
+
+  @override
+  void initState() { super.initState(); _loadQuestions(); }
+
+  Future<void> _loadQuestions() async {
+    final q = await PasscodeService.fetchSecurityQuestions();
+    if (mounted) setState(() => _questions = q);
+  }
+
+  @override
+  void dispose() { _answer1Controller.dispose(); _answer2Controller.dispose(); super.dispose(); }
+
+  void _submitAnswer() {
+    final answer = _step == 1 ? _answer1Controller.text.trim() : _answer2Controller.text.trim();
+    if (answer.isEmpty) { setState(() => _errorMessage = 'Please enter an answer'.tr); return; }
+    final storedAnswer = _step == 1 ? (_questions?['answer1'] ?? '') : (_questions?['answer2'] ?? '');
+    if (answer.toLowerCase() == storedAnswer.toLowerCase()) {
+      if (_step == 1) {
+        setState(() { _step = 2; _errorMessage = null; });
+        _answer2Controller.clear();
+      } else {
+        _showResetPasscode();
+      }
+    } else {
+      _attemptsLeft--;
+      if (_attemptsLeft <= 0) {
+        Get.back();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Too many failed attempts. Please try again later.'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 3)));
+      } else {
+        setState(() { _errorMessage = '${'Wrong answer'.tr}. $_attemptsLeft ${'tries remaining'.tr}.'; });
+      }
+    }
+  }
+
+  void _showResetPasscode() {
+    Get.to(() => PasscodeInputView(
+      title: 'Passcode Lock'.tr,
+      hintText: 'Create a new passcode'.tr,
+      onCompleted: (code) {
+        Get.back();
+        Get.back();
+        widget.onReset(code);
+      },
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final question = _step == 1 ? (_questions?['question1'] ?? '') : (_questions?['question2'] ?? '');
+    return Scaffold(
+      appBar: AppBar(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, automaticallyImplyLeading: false, leadingWidth: 44, leading: Material(color: Colors.transparent, shape: const CircleBorder(), clipBehavior: Clip.antiAlias, child: IconButton(onPressed: () { final nav = Navigator.of(context); if (nav.canPop()) { nav.pop(); return; } if (Get.key.currentState?.canPop() ?? false) { Get.back(); return; } Get.offAllNamed(AppRoutes.bottomNavbarView); }, icon: const Icon(Iconsax.arrow_left_2_copy, size: 20), splashRadius: 20)), centerTitle: false, titleSpacing: 0, title: Text('Forgot Passcode'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18))),
+      body: Padding(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('${'Step'.tr} $_step ${'of'.tr} 2', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Text('Answer your security question to reset your passcode.'.tr, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        const SizedBox(height: 30),
+        Text(question, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 10),
+        TextField(controller: _step == 1 ? _answer1Controller : _answer2Controller, decoration: InputDecoration(hintText: 'Your answer'.tr, border: const OutlineInputBorder()), onSubmitted: (_) => _submitAnswer()),
+        const SizedBox(height: 12),
+        SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _submitAnswer, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))), child: Text('Submit'.tr))),
+        if (_errorMessage != null) Padding(padding: const EdgeInsets.only(top: 20), child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 14))),
+      ])),
     );
   }
 }
