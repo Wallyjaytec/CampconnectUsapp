@@ -227,9 +227,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                   imageUrl: it.imageUrl,
                                   variantLine: controller.variantLine(it),
                                   storeName: it.shopName,
-                                  unitPriceText: formatCurrency(
-                                    it.unitPriceNum,
-                                  ),
+                                  unitPriceText: formatCurrency(it.unitPriceNum),
                                   lineTotalText: formatCurrency(it.lineTotal),
                                   quantity: it.quantity,
                                   isDark: isDark,
@@ -259,8 +257,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                       children: [
                                         Flexible(
                                           child: Text(
-                                            'Shipping not available for selected address'
-                                                .tr,
+                                            'Shipping not available for selected address'.tr,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
@@ -274,9 +271,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                           onTap: () =>
                                               controller.removeItemByUid(uid),
                                           child: Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 6,
-                                            ),
+                                            padding: const EdgeInsets.only(left: 6),
                                             child: Text(
                                               'Remove'.tr,
                                               style: const TextStyle(
@@ -354,10 +349,7 @@ class CheckoutView extends GetView<CheckoutController> {
 
                             if (i != sorted.length - 1)
                               Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 4,
-                                  bottom: 8,
-                                ),
+                                padding: const EdgeInsets.only(top: 4, bottom: 8),
                                 child: Divider(
                                   height: 0,
                                   thickness: 1,
@@ -373,7 +365,9 @@ class CheckoutView extends GetView<CheckoutController> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
                 _SectionCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,7 +402,9 @@ class CheckoutView extends GetView<CheckoutController> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
                 _SectionCard(
                   child: Obx(() {
                     final loading = controller.isLoadingPayments.value;
@@ -447,106 +443,123 @@ class CheckoutView extends GetView<CheckoutController> {
                               isExpanded: true,
                               items: methods.map((m) {
                                 final rawLogoUrl = (m.logo ?? '').trim();
-                                final normalizedLogo = AppConfig.assetUrl(
-                                  rawLogoUrl,
-                                );
+                                final normalizedLogo =
+                                    AppConfig.assetUrl(rawLogoUrl);
                                 final hasLogo = rawLogoUrl.isNotEmpty;
-                                final instruction = (m.instruction ?? '').trim();
+                                final instruction =
+                                    (m.instruction ?? '').trim();
                                 final hasInstruction = instruction.isNotEmpty;
                                 final isSelected = selectedId == m.id;
+                                final isLast = m == methods.last;
 
                                 return DropdownMenuItem<int>(
                                   value: m.id,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                      vertical: 6.0,
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 2),
-                                          child: Icon(
-                                            isSelected
-                                                ? Icons.radio_button_checked
-                                                : Icons.radio_button_off,
-                                            size: 18,
-                                            color: isSelected
-                                                ? AppColors.primaryColor
-                                                : null,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  if (hasLogo)
-                                                    _NetLogoBox(
-                                                      url: normalizedLogo,
-                                                    ),
-                                                  if (hasLogo)
-                                                    const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Text(
-                                                      m.name.trim(),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      border: !isLast
+                                          ? Border(
+                                              bottom: BorderSide(
+                                                color: isDark
+                                                    ? Colors.white10
+                                                    : const Color(0xFFE5E7EB),
+                                                width: 1,
                                               ),
-                                              if (hasInstruction) ...[
-                                                const SizedBox(height: 4),
-                                                // STATE 1 (dropdown open): full instruction, no limit
-                                                // STATE 2 (selected/closed): 1-line preview
-                                                // dropdown_button2 renders the selected item
-                                                // inside the button using the same widget, so
-                                                // we use isSelected to switch behaviour
-                                                isSelected
-                                                    ? Text(
-                                                        instruction.tr,
+                                            )
+                                          : const BoxDecoration().border ??
+                                              const Border(),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 12.0,
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 2),
+                                            child: Icon(
+                                              isSelected
+                                                  ? Icons.radio_button_checked
+                                                  : Icons.radio_button_off,
+                                              size: 18,
+                                              color: isSelected
+                                                  ? AppColors.primaryColor
+                                                  : null,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    if (hasLogo)
+                                                      _NetLogoBox(
+                                                        url: normalizedLogo,
+                                                      ),
+                                                    if (hasLogo)
+                                                      const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        m.name.trim(),
                                                         maxLines: 1,
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                         style: const TextStyle(
-                                                          fontSize: 11,
                                                           fontWeight:
-                                                              FontWeight.normal,
-                                                          color: AppColors
-                                                              .greyColor,
-                                                        ),
-                                                      )
-                                                    : HtmlWidget(
-                                                        instruction.tr,
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          fontSize: 11,
-                                                          color: AppColors
-                                                              .greyColor,
-                                                          fontWeight:
-                                                              FontWeight.normal,
+                                                              FontWeight.w600,
+                                                          fontSize: 14,
                                                         ),
                                                       ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                if (hasInstruction) ...[
+                                                  const SizedBox(height: 4),
+                                                  // Selected/closed → strip HTML, 1-line plain preview
+                                                  // Open list → full HtmlWidget, no line limit
+                                                  isSelected
+                                                      ? Text(
+                                                          _stripHtml(instruction).tr,
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .normal,
+                                                            color: AppColors
+                                                                .greyColor,
+                                                          ),
+                                                        )
+                                                      : HtmlWidget(
+                                                          instruction.tr,
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            fontSize: 11,
+                                                            color: AppColors
+                                                                .greyColor,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .normal,
+                                                          ),
+                                                        ),
+                                                ],
                                               ],
-                                            ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );
@@ -572,8 +585,8 @@ class CheckoutView extends GetView<CheckoutController> {
                                     barrierDismissible: true,
                                     builder: (dialogContext) =>
                                         BankPaymentDialog(
-                                          controller: controller,
-                                        ),
+                                      controller: controller,
+                                    ),
                                   );
                                 }
                               },
@@ -592,8 +605,6 @@ class CheckoutView extends GetView<CheckoutController> {
                                 ),
                               ),
                               menuItemStyleData: const MenuItemStyleData(
-                                // Remove fixed height so items can grow
-                                // to fit full instruction text
                                 padding: EdgeInsets.zero,
                               ),
                             ),
@@ -615,7 +626,9 @@ class CheckoutView extends GetView<CheckoutController> {
                     );
                   }),
                 ),
+
                 const SizedBox(height: 12),
+
                 Obx(() {
                   if (controller.isLoadingWallet.value) {
                     return const SizedBox.shrink();
@@ -680,7 +693,9 @@ class CheckoutView extends GetView<CheckoutController> {
                     ),
                   );
                 }),
+
                 SizedBox(height: controller.canPayWithWallet ? 12 : 0),
+
                 _SectionCard(
                   child: Column(
                     children: [
@@ -717,7 +732,8 @@ class CheckoutView extends GetView<CheckoutController> {
             top: false,
             child: Container(
               height: 68,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.darkCardColor
@@ -744,11 +760,13 @@ class CheckoutView extends GetView<CheckoutController> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 22),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 22),
                       ),
                       child: Text(
                         'Place Order'.tr,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                        style:
+                            const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -761,6 +779,83 @@ class CheckoutView extends GetView<CheckoutController> {
     );
   }
 }
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+String _stripHtml(String html) {
+  return html
+      .replaceAll(RegExp(r'<br\s*/?>'), ' ')
+      .replaceAll(RegExp(r'<[^>]+>'), '')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .trim();
+}
+
+void _openAttachment(BuildContext context, String? path) {
+  if (path == null || path.isEmpty) return;
+  Get.toNamed(
+    AppRoutes.fullScreenImageView,
+    arguments: {
+      'images': [path],
+      'index': 0,
+      'id': null,
+      'heroPrefix': 'checkoutAttachment',
+    },
+  );
+}
+
+String? _attachmentLabelFromRaw(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is Map) {
+    final name = raw['file_name']?.toString();
+    final id = raw['file_id']?.toString();
+    if (name != null && name.isNotEmpty) return name;
+    if (id != null && id.isNotEmpty) return 'Attachment #$id';
+    return 'Attachment';
+  }
+  if (raw is String) {
+    final s = raw.trim();
+    if (s.isEmpty || s == 'null') return null;
+    try {
+      final decoded = jsonDecode(s);
+      return _attachmentLabelFromRaw(decoded);
+    } catch (_) {
+      return s;
+    }
+  }
+  if (raw is int) return 'Attachment #$raw';
+  return raw.toString();
+}
+
+String? _attachmentPathFromRaw(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is Map) {
+    final p = raw['path']?.toString();
+    if (p != null && p.isNotEmpty) return p;
+    final name = raw['file_name']?.toString();
+    if (name != null &&
+        (name.startsWith('http://') || name.startsWith('https://'))) {
+      return name;
+    }
+    return null;
+  }
+  if (raw is String) {
+    final s = raw.trim();
+    if (s.isEmpty || s == 'null') return null;
+    try {
+      final decoded = jsonDecode(s);
+      return _attachmentPathFromRaw(decoded);
+    } catch (_) {
+      if (s.startsWith('http://') || s.startsWith('https://')) return s;
+      return null;
+    }
+  }
+  return null;
+}
+
+// ── Reusable widgets ──────────────────────────────────────────────────────────
 
 class _NetLogoBox extends StatelessWidget {
   const _NetLogoBox({required this.url});
@@ -787,7 +882,6 @@ class _ModeRadio extends StatelessWidget {
     required this.selected,
     required this.onTap,
   });
-
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -821,7 +915,6 @@ class _BillingModeTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
   });
-
   final String title;
   final bool selected;
   final VoidCallback onTap;
@@ -842,7 +935,8 @@ class _BillingModeTile extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -854,11 +948,13 @@ class _BillingModeTile extends StatelessWidget {
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.child});
   final Widget child;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 2),
+      padding:
+          const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 2),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
         borderRadius: BorderRadius.circular(12),
@@ -871,6 +967,7 @@ class _SectionCard extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
   final String text;
+
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -888,7 +985,8 @@ class _RowLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ts = TextStyle(fontWeight: bold ? FontWeight.w800 : FontWeight.w600);
+    final ts =
+        TextStyle(fontWeight: bold ? FontWeight.w800 : FontWeight.w600);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: Row(
@@ -970,7 +1068,9 @@ class _CheckoutProductTile extends StatelessWidget {
                     unitPriceText,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                      color: isDark
+                          ? Colors.white70
+                          : const Color(0xFF6B7280),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -978,7 +1078,9 @@ class _CheckoutProductTile extends StatelessWidget {
                     '  |  ',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                      color: isDark
+                          ? Colors.white70
+                          : const Color(0xFF6B7280),
                     ),
                   ),
                   Text(
@@ -996,7 +1098,9 @@ class _CheckoutProductTile extends StatelessWidget {
                   variantLine,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                    color: isDark
+                        ? Colors.white70
+                        : const Color(0xFF6B7280),
                   ),
                 ),
               Row(
@@ -1078,9 +1182,8 @@ class _CheckoutFullShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark ? const Color(0xFF1E293B) : const Color(0xFFE5E7EB);
-    final highlight = isDark
-        ? const Color(0xFF334155)
-        : const Color(0xFFF3F4F6);
+    final highlight =
+        isDark ? const Color(0xFF334155) : const Color(0xFFF3F4F6);
 
     return Column(
       children: [
@@ -1108,54 +1211,56 @@ class _CheckoutFullShimmer extends StatelessWidget {
   }
 
   static Widget _block(Color base, {double titleW = 120}) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _line(base, w: titleW, h: 16),
-      const SizedBox(height: 12),
-      _line(base, w: double.infinity, h: 42, r: 10),
-      const SizedBox(height: 8),
-      _line(base, w: double.infinity, h: 42, r: 10),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _line(base, w: titleW, h: 16),
+          const SizedBox(height: 12),
+          _line(base, w: double.infinity, h: 42, r: 10),
+          const SizedBox(height: 8),
+          _line(base, w: double.infinity, h: 42, r: 10),
+        ],
+      );
 
   static Widget _products(Color base) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _line(base, w: 140, h: 16),
-      const SizedBox(height: 12),
-      _productRow(base),
-      const SizedBox(height: 12),
-      _productRow(base),
-      const SizedBox(height: 12),
-      _productRow(base),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _line(base, w: 140, h: 16),
+          const SizedBox(height: 12),
+          _productRow(base),
+          const SizedBox(height: 12),
+          _productRow(base),
+          const SizedBox(height: 12),
+          _productRow(base),
+        ],
+      );
 
   static Widget _note(Color base) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _line(base, w: 140, h: 16),
-      const SizedBox(height: 12),
-      _line(base, w: double.infinity, h: 72, r: 10),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _line(base, w: 140, h: 16),
+          const SizedBox(height: 12),
+          _line(base, w: double.infinity, h: 72, r: 10),
+        ],
+      );
 
   static Widget _summary(Color base) => Column(
-    children: [
-      _row(base),
-      const SizedBox(height: 8),
-      _row(base),
-      const Divider(height: 16, thickness: 2),
-      _row(base),
-    ],
-  );
+        children: [
+          _row(base),
+          const SizedBox(height: 8),
+          _row(base),
+          const Divider(height: 16, thickness: 2),
+          _row(base),
+        ],
+      );
 
-  static Widget _shimmerCard(Color base, Color hl, {required Widget child}) {
+  static Widget _shimmerCard(Color base, Color hl,
+      {required Widget child}) {
     return Shimmer.fromColors(
       baseColor: base,
       highlightColor: hl,
       child: Container(
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 8),
+        padding:
+            const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 8),
         decoration: BoxDecoration(
           color: base,
           borderRadius: BorderRadius.circular(12),
@@ -1165,12 +1270,8 @@ class _CheckoutFullShimmer extends StatelessWidget {
     );
   }
 
-  static Widget _line(
-    Color base, {
-    double w = 100,
-    double h = 12,
-    double r = 6,
-  }) {
+  static Widget _line(Color base,
+      {double w = 100, double h = 12, double r = 6}) {
     return Container(
       width: w,
       height: h,
@@ -1222,7 +1323,8 @@ class _CheckoutFullShimmer extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(child: _line(base, w: double.infinity, h: 10)),
+                  Expanded(
+                      child: _line(base, w: double.infinity, h: 10)),
                   const SizedBox(width: 10),
                   _line(base, w: 40, h: 10),
                 ],
@@ -1242,13 +1344,15 @@ class _BottomBarShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark ? const Color(0xFF1E293B) : const Color(0xFFE5E7EB);
-    final hl = isDark ? const Color(0xFF334155) : const Color(0xFFF3F4F6);
+    final hl =
+        isDark ? const Color(0xFF334155) : const Color(0xFFF3F4F6);
 
     return SafeArea(
       top: false,
       child: Container(
         height: 68,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF0B1220) : Colors.white,
         ),
@@ -1281,73 +1385,4 @@ class _BottomBarShimmer extends StatelessWidget {
       ),
     );
   }
-}
-
-void _openAttachment(BuildContext context, String? path) {
-  if (path == null || path.isEmpty) return;
-
-  Get.toNamed(
-    AppRoutes.fullScreenImageView,
-    arguments: {
-      'images': [path],
-      'index': 0,
-      'id': null,
-      'heroPrefix': 'checkoutAttachment',
-    },
-  );
-}
-
-String? _attachmentLabelFromRaw(dynamic raw) {
-  if (raw == null) return null;
-
-  if (raw is Map) {
-    final name = raw['file_name']?.toString();
-    final id = raw['file_id']?.toString();
-    if (name != null && name.isNotEmpty) return name;
-    if (id != null && id.isNotEmpty) return 'Attachment #$id';
-    return 'Attachment';
-  }
-
-  if (raw is String) {
-    final s = raw.trim();
-    if (s.isEmpty || s == 'null') return null;
-    try {
-      final decoded = jsonDecode(s);
-      return _attachmentLabelFromRaw(decoded);
-    } catch (_) {
-      return s;
-    }
-  }
-
-  if (raw is int) return 'Attachment #$raw';
-  return raw.toString();
-}
-
-String? _attachmentPathFromRaw(dynamic raw) {
-  if (raw == null) return null;
-
-  if (raw is Map) {
-    final p = raw['path']?.toString();
-    if (p != null && p.isNotEmpty) return p;
-    final name = raw['file_name']?.toString();
-    if (name != null &&
-        (name.startsWith('http://') || name.startsWith('https://'))) {
-      return name;
-    }
-    return null;
-  }
-
-  if (raw is String) {
-    final s = raw.trim();
-    if (s.isEmpty || s == 'null') return null;
-    try {
-      final decoded = jsonDecode(s);
-      return _attachmentPathFromRaw(decoded);
-    } catch (_) {
-      if (s.startsWith('http://') || s.startsWith('https://')) return s;
-      return null;
-    }
-  }
-
-  return null;
 }
