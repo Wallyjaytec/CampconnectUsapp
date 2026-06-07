@@ -6,6 +6,7 @@ import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
+import 'package:campconnectus_marketplace/core/services/app_lifecycle_service.dart';
 import 'package:campconnectus_marketplace/main.dart';
 import 'package:campconnectus_marketplace/modules/account/model/notification_model.dart';
 import 'package:campconnectus_marketplace/modules/account/view/notification_detail_view.dart';
@@ -117,6 +118,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final box = GetStorage();
     final shortcutDest = box.read<String>('shortcut_destination') ?? '';
     final isFromShortcut = shortcutDest.isNotEmpty;
+    
+    final hasDeepLink = box.read<int>('deep_link_order_id') != null ||
+                        box.read<int>('deep_link_refund_id') != null ||
+                        box.read<bool>('deep_link_wallet') == true;
 
     if (hasPasscode) {
       _navigated = true;
@@ -143,11 +148,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         box.write('_pending_shortcut_after_unlock', shortcutDest);
         box.remove('shortcut_destination');
       }
+      if (hasDeepLink) {
+        box.write('_pending_deeplink_after_unlock', true);
+      }
 
       Get.offAll(() => PasscodeLockScreen(
         onUnlocked: () {
           isLockScreenShowing = false;
           box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+          AppLifecycleService.instance.onPasscodeVerified();
 
           final pendingShortcut = box.read<String>('_pending_shortcut_after_unlock') ?? '';
           if (pendingShortcut.isNotEmpty) {
