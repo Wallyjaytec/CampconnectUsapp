@@ -13,6 +13,7 @@ import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/currency_service.dart';
 import 'package:campconnectus_marketplace/core/services/connectivity_service.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
+import 'package:campconnectus_marketplace/core/services/app_lifecycle_service.dart';
 import 'package:campconnectus_marketplace/data/repositories/site_settings_properties_repository.dart';
 import 'package:campconnectus_marketplace/modules/auth/controller/auth_controller.dart';
 import 'app.dart';
@@ -227,6 +228,8 @@ Future<void> main() async {
   });
 
   await GetStorage.init();
+
+  AppLifecycleService.instance.init();
 
   final box = GetStorage();
 
