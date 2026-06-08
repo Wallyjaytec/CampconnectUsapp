@@ -311,32 +311,44 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
+    // Only process deep links if app was just opened from a notification
+    // (within last 10 seconds), otherwise clear stale data
+    final lastActive = box.read<int>('_last_active_time') ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isRecent = (now - lastActive) < 10000; // 10 seconds
+
     final walletLink = box.read<bool>('deep_link_wallet') ?? false;
     if (walletLink) {
       box.remove('deep_link_wallet');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Future.delayed(const Duration(milliseconds: 300), () {
-        Get.toNamed(AppRoutes.myWalletView);
-      });
-      return;
+      if (isRecent) {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Future.delayed(const Duration(milliseconds: 300), () {
+          Get.toNamed(AppRoutes.myWalletView);
+        });
+        return;
+      }
     }
 
     final refundId = box.read<int>('deep_link_refund_id') ?? 0;
     if (refundId > 0) {
       box.remove('deep_link_refund_id');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Get.toNamed(AppRoutes.refundRequestDetailsView,
-          arguments: refundId);
-      return;
+      if (isRecent) {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Get.toNamed(AppRoutes.refundRequestDetailsView,
+            arguments: refundId);
+        return;
+      }
     }
 
     final orderId = box.read<int>('deep_link_order_id') ?? 0;
     if (orderId > 0) {
       box.remove('deep_link_order_id');
-      Get.offAllNamed(AppRoutes.bottomNavbarView);
-      Get.toNamed(AppRoutes.myOrderDetailsView,
-          arguments: {'order_id': orderId});
-      return;
+      if (isRecent) {
+        Get.offAllNamed(AppRoutes.bottomNavbarView);
+        Get.toNamed(AppRoutes.myOrderDetailsView,
+            arguments: {'order_id': orderId});
+        return;
+      }
     }
 
     final token = box.read<String>('deep_link_token') ?? '';
@@ -344,12 +356,14 @@ class _SplashScreenState extends State<SplashScreen>
     if (token.isNotEmpty) {
       box.remove('deep_link_token');
       box.remove('deep_link_type');
-      if (type == 'email_verify') {
-        Get.offAll(() => VerificationSuccessView(code: token));
-      } else {
-        Get.offAll(() => PasswordResetView(token: token));
+      if (isRecent) {
+        if (type == 'email_verify') {
+          Get.offAll(() => VerificationSuccessView(code: token));
+        } else {
+          Get.offAll(() => PasswordResetView(token: token));
+        }
+        return;
       }
-      return;
     }
 
     Get.offAllNamed(AppRoutes.bottomNavbarView);
