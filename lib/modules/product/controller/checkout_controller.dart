@@ -359,10 +359,12 @@ class CheckoutController extends GetxController {
   }
 
   Future<void> _loadPickupPoints() async {
-    try {
-      final map = await _checkoutRepo.fetchActivePickupPoints();
+  try {
+    final map = await _checkoutRepo.fetchActivePickupPoints(
+      productsJsonString: _productsJsonString(),
+    );
 
-      if (Get.context == null) return;
+    if (Get.context == null) return;
 
       final resp = PickupPointResponse.fromJson(map);
       if (resp.success) {
