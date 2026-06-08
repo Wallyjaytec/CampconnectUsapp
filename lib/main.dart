@@ -13,9 +13,10 @@ import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/currency_service.dart';
 import 'package:campconnectus_marketplace/core/services/connectivity_service.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
-import 'package:campconnectus_marketplace/core/services/app_lifecycle_service.dart';
+import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
 import 'package:campconnectus_marketplace/data/repositories/site_settings_properties_repository.dart';
 import 'package:campconnectus_marketplace/modules/auth/controller/auth_controller.dart';
+import 'package:campconnectus_marketplace/modules/settings/view/passcode_lock_screen.dart';
 import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/services/api_service.dart';
@@ -25,10 +26,10 @@ import 'data/repositories/cart_repository.dart';
 import 'data/repositories/category_repository.dart';
 import 'data/repositories/product_repository.dart';
 import 'modules/account/controller/notifications_controller.dart';
+import 'modules/bottom_navbar/controller/bottom_navbar_controller.dart';
 import 'modules/category/controller/category_controller.dart';
 import 'modules/product/controller/cart_controller.dart';
 import 'modules/product/controller/new_product_list_controller.dart';
-import 'modules/bottom_navbar/controller/bottom_navbar_controller.dart';
 
 final _appLinks = AppLinks();
 
@@ -109,35 +110,61 @@ void _handleDeepLink(Uri uri, GetStorage box) {
 void _navigateOrStore(String dest, GetStorage box) {
   final context = Get.context;
   if (context != null && ModalRoute.of(context) != null) {
-    switch (dest) {
-      case 'search':
-        Get.toNamed(AppRoutes.searchView);
-        break;
-      case 'orders':
-        Get.toNamed(AppRoutes.myOrderListView);
-        break;
-      case 'cart':
-        Get.toNamed(AppRoutes.cartView);
-        break;
-      case 'wallet':
-        Get.toNamed(AppRoutes.myWalletView);
-        break;
-      case 'refunds':
-        Get.toNamed(AppRoutes.refundRequestListView);
-        break;
-      case 'account':
-        if (Get.isRegistered<BottomNavbarController>()) {
-          Get.find<BottomNavbarController>().currentIndex.value = 4;
-        } else {
-          Get.toNamed(AppRoutes.bottomNavbarView);
-        }
-        break;
-      case 'notifications':
-        Get.toNamed(AppRoutes.notificationsView);
-        break;
+    // FIX: App is already running — check passcode before navigating directly.
+    // Without this, widgets/shortcuts bypass the lock screen entirely.
+    if (PasscodeService.isPasscodeEnabled() && !isLockScreenShowing) {
+      box.write('shortcut_destination', dest);
+      isLockScreenShowing = true;
+      Get.to(() => PasscodeLockScreen(
+            onUnlocked: () {
+              isLockScreenShowing = false;
+              box.write('_last_active_time',
+                  DateTime.now().millisecondsSinceEpoch);
+              final pending =
+                  box.read<String>('shortcut_destination') ?? '';
+              if (pending.isNotEmpty) {
+                box.remove('shortcut_destination');
+                _doNavigate(pending);
+              }
+            },
+          ));
+    } else {
+      // No passcode or lock already showing — navigate directly
+      _doNavigate(dest);
     }
   } else {
+    // App is cold starting — store for splash to pick up
     box.write('shortcut_destination', dest);
+  }
+}
+
+void _doNavigate(String dest) {
+  switch (dest) {
+    case 'search':
+      Get.toNamed(AppRoutes.searchView);
+      break;
+    case 'orders':
+      Get.toNamed(AppRoutes.myOrderListView);
+      break;
+    case 'cart':
+      Get.toNamed(AppRoutes.cartView);
+      break;
+    case 'wallet':
+      Get.toNamed(AppRoutes.myWalletView);
+      break;
+    case 'refunds':
+      Get.toNamed(AppRoutes.refundRequestListView);
+      break;
+    case 'account':
+      if (Get.isRegistered<BottomNavbarController>()) {
+        Get.find<BottomNavbarController>().currentIndex.value = 4;
+      } else {
+        Get.toNamed(AppRoutes.bottomNavbarView);
+      }
+      break;
+    case 'notifications':
+      Get.toNamed(AppRoutes.notificationsView);
+      break;
   }
 }
 
@@ -154,8 +181,10 @@ Future<void> main() async {
   });
 
   try {
-    const channel = MethodChannel('com.campconnectus.store/onesignal');
-    final result = await channel.invokeMethod('getColdStartNotification');
+    const channel =
+        MethodChannel('com.campconnectus.store/onesignal');
+    final result =
+        await channel.invokeMethod('getColdStartNotification');
     if (result != null && result is Map) {
       final notificationId = result['notification_id']?.toString();
       if (notificationId != null && notificationId.isNotEmpty) {
@@ -172,7 +201,8 @@ Future<void> main() async {
   OneSignal.Notifications.addClickListener((event) {
     final additionalData = event.notification.additionalData;
     if (additionalData != null) {
-      final notificationId = additionalData['notification_id']?.toString();
+      final notificationId =
+          additionalData['notification_id']?.toString();
       final orderId = additionalData['order_id']?.toString();
       final refundId = additionalData['refund_id']?.toString();
       final type = additionalData['type']?.toString();
@@ -182,9 +212,12 @@ Future<void> main() async {
       if (notificationId != null && notificationId.isNotEmpty) {
         pendingNotificationData = {
           'notification_id': notificationId,
-          'notif_message': additionalData['notif_message']?.toString() ?? '',
-          'notif_title': additionalData['notif_title']?.toString() ?? '',
-          'notif_image': additionalData['notif_image']?.toString() ?? '',
+          'notif_message':
+              additionalData['notif_message']?.toString() ?? '',
+          'notif_title':
+              additionalData['notif_title']?.toString() ?? '',
+          'notif_image':
+              additionalData['notif_image']?.toString() ?? '',
         };
 
         PushNotificationData.notificationId = notificationId;
@@ -212,7 +245,8 @@ Future<void> main() async {
         final id = int.tryParse(refundId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_refund_id', id);
-          Get.toNamed(AppRoutes.refundRequestDetailsView, arguments: id);
+          Get.toNamed(AppRoutes.refundRequestDetailsView,
+              arguments: id);
         }
         if (Get.isRegistered<NotificationController>()) {
           Get.find<NotificationController>().refreshList();
@@ -228,8 +262,6 @@ Future<void> main() async {
   });
 
   await GetStorage.init();
-
-  AppLifecycleService.instance.init();
 
   final box = GetStorage();
 
@@ -256,9 +288,11 @@ Future<void> main() async {
 
   Get.put(ThemeController(), permanent: true);
 
-  await Get.putAsync<ConnectivityService>(() => ConnectivityService().init());
+  await Get.putAsync<ConnectivityService>(
+      () => ConnectivityService().init());
 
-  final savedLanguage = box.read<String>('selected_language_api_code');
+  final savedLanguage =
+      box.read<String>('selected_language_api_code');
   if (savedLanguage != null && savedLanguage.isNotEmpty) {
     try {
       await LanguageService.load(savedLanguage);
@@ -267,7 +301,8 @@ Future<void> main() async {
 
   try {
     Get.put(
-        LanguageController(SiteSettingsPropertiesRepository(ApiService())),
+        LanguageController(
+            SiteSettingsPropertiesRepository(ApiService())),
         permanent: true);
   } catch (_) {}
 
@@ -280,17 +315,20 @@ Future<void> main() async {
         permanent: true);
   } catch (_) {}
 
-  Get.put<NotificationController>(NotificationController(), permanent: true);
+  Get.put<NotificationController>(NotificationController(),
+      permanent: true);
   Get.put(CategoryController(CategoryRepository(ApiService())));
   Get.put<NewProductListController>(
       NewProductListController(ProductRepository(ApiService())),
       permanent: true);
   Get.put(CartRepository(ApiService()), permanent: true);
-  Get.put<CartController>(CartController(CartRepository(ApiService())),
+  Get.put<CartController>(
+      CartController(CartRepository(ApiService())),
       permanent: true);
   Get.put(AuthController(), permanent: true);
 
-  final savedApiCode = box.read<String>(AppConfig.kLangCode) ?? 'en';
+  final savedApiCode =
+      box.read<String>(AppConfig.kLangCode) ?? 'en';
 
   try {
     await LanguageService.load(savedApiCode);
