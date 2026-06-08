@@ -4,12 +4,11 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/repositories/contact_repository.dart';
-import '../model/contact_message_model.dart';
 
-class ContactController extends GetxController {
+class RequestFeatureController extends GetxController {
   final ContactRepository _repository;
 
-  ContactController({required ContactRepository repository})
+  RequestFeatureController({required ContactRepository repository})
     : _repository = repository;
 
   final nameController = TextEditingController();
@@ -68,7 +67,7 @@ class ContactController extends GetxController {
     selectedFiles.removeAt(index);
   }
 
-  Future<void> submitContactForm() async {
+  Future<void> submitRequestFeature() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final subject = subjectController.text.trim();
@@ -108,11 +107,11 @@ class ContactController extends GetxController {
     isLoading.value = true;
 
     try {
-      final ContactMessageResponse response = await _repository
+      final response = await _repository
           .sendContactMessage(
             name: name,
             email: email,
-            subject: subject,
+            subject: 'Feature Request: $subject',
             message: message,
             files: selectedFiles.isNotEmpty ? selectedFiles.toList() : null,
           );
