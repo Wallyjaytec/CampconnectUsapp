@@ -243,14 +243,14 @@ class AuthController extends GetxController {
       final redirect = args?['redirect'] as String?;
 
       if (hasPasscode) {
-        isLockScreenShowing = true;
+        PasscodeService.isLockScreenShowing = true;
         Get.offAll(() => PasscodeLockScreen(
           onUnlocked: () {
             final box = GetStorage();
             box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
             Get.offAllNamed(AppRoutes.bottomNavbarView);
             Future.delayed(const Duration(milliseconds: 500), () {
-              isLockScreenShowing = false;
+              PasscodeService.isLockScreenShowing = false;
             });
             if (redirect != null && redirect.isNotEmpty) {
               Future.delayed(const Duration(milliseconds: 100), () {
