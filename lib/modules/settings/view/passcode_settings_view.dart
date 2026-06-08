@@ -16,9 +16,9 @@ class PasscodeSettingsView extends StatefulWidget {
 
 class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
   bool _passcodeEnabled = false;
-  bool _useFingerprint = PasscodeService.useFingerprint;
-  int _autoLockMinutes = PasscodeService.autoLockMinutes;
-  bool _taskSwitcherShow = PasscodeService.taskSwitcherPreview == 'show';
+  bool _useFingerprint = false;
+  int _autoLockMinutes = 0;
+  bool _taskSwitcherShow = true;
   final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
@@ -29,12 +29,16 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
 
   void _refreshState() async {
     final enabled = await PasscodeService.checkPasscodeOnServer();
+    final fingerprint = PasscodeService.useFingerprint;
+    final autoLock = PasscodeService.autoLockMinutes;
+    final taskSwitcher = PasscodeService.taskSwitcherPreview == 'show';
+    
     if (mounted) {
       setState(() {
         _passcodeEnabled = enabled;
-        _useFingerprint = PasscodeService.useFingerprint;
-        _autoLockMinutes = PasscodeService.autoLockMinutes;
-        _taskSwitcherShow = PasscodeService.taskSwitcherPreview == 'show';
+        _useFingerprint = fingerprint;
+        _autoLockMinutes = autoLock;
+        _taskSwitcherShow = taskSwitcher;
       });
     }
   }
@@ -45,14 +49,22 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         final canCheck = await _localAuth.canCheckBiometrics;
         if (!canCheck) {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No biometrics available on this device'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
+          setState(() => _useFingerprint = false);
           return;
         }
         final authenticated = await _localAuth.authenticate(localizedReason: 'Authenticate to enable biometric unlock'.tr);
-        if (authenticated) { setState(() => _useFingerprint = true); PasscodeService.setUseFingerprint(true); }
-      } catch (_) {}
+        if (authenticated) { 
+          setState(() => _useFingerprint = true); 
+          await PasscodeService.setUseFingerprint(true);
+        } else {
+          setState(() => _useFingerprint = false);
+        }
+      } catch (_) {
+        setState(() => _useFingerprint = false);
+      }
     } else {
       setState(() => _useFingerprint = false);
-      PasscodeService.setUseFingerprint(false);
+      await PasscodeService.setUseFingerprint(false);
     }
   }
 
@@ -82,7 +94,10 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       ),
     );
 
-    if (result != null) { setState(() => _autoLockMinutes = result); PasscodeService.setAutoLockMinutes(result); }
+    if (result != null) { 
+      setState(() => _autoLockMinutes = result); 
+      await PasscodeService.setAutoLockMinutes(result);
+    }
   }
 
   Future<void> _handlePasscodeToggle(bool value) async {
@@ -95,8 +110,11 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       if (questionsData == null) { if (mounted) setState(() => _passcodeEnabled = false); return; }
       final success = await PasscodeService.setPasscodeOnServer(passcode: passcode.toString(), question1: questionsData['question1'], answer1: questionsData['answer1'], question2: questionsData['question2'], answer2: questionsData['answer2']);
       if (mounted) {
-        setState(() { _passcodeEnabled = success; _taskSwitcherShow = false; });
-        PasscodeService.setTaskSwitcherPreview('hide');
+        setState(() { 
+          _passcodeEnabled = success; 
+          _taskSwitcherShow = false; 
+        });
+        await PasscodeService.setTaskSwitcherPreview('hide');
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Passcode enabled successfully'.tr : 'Failed to enable passcode'.tr), backgroundColor: success ? AppColors.primaryColor : Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
       }
     } else {
@@ -106,7 +124,15 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
       if (isCorrect) {
         final disabled = await PasscodeService.disablePasscodeOnServer();
         if (mounted) {
-          setState(() { _passcodeEnabled = !disabled; _useFingerprint = false; _autoLockMinutes = 0; _taskSwitcherShow = true; });
+          setState(() { 
+            _passcodeEnabled = !disabled; 
+            _useFingerprint = false; 
+            _autoLockMinutes = 0; 
+            _taskSwitcherShow = true; 
+          });
+          await PasscodeService.setUseFingerprint(false);
+          await PasscodeService.setAutoLockMinutes(0);
+          await PasscodeService.setTaskSwitcherPreview('show');
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(disabled ? 'Passcode disabled'.tr : 'Failed to disable'.tr), backgroundColor: disabled ? AppColors.primaryColor : Colors.red, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
         }
       } else {
@@ -139,9 +165,12 @@ class _PasscodeSettingsViewState extends State<PasscodeSettingsView> {
         SwitchListTile(secondary: const Icon(Iconsax.lock, color: AppColors.primaryColor, size: 20), title: Text('Passcode Lock'.tr), activeColor: AppColors.primaryColor, value: _passcodeEnabled, onChanged: _handlePasscodeToggle),
         const Divider(),
         ListTile(leading: Icon(Iconsax.key, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Change Passcode'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey), onTap: _passcodeEnabled ? _changePasscode : null),
-        SwitchListTile(secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Unlock with Biometrics'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400, inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300, value: _passcodeEnabled ? _useFingerprint : false, onChanged: _passcodeEnabled ? _handleFingerprintToggle : null),
+        SwitchListTile(secondary: Icon(Icons.fingerprint, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Unlock with Biometrics'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400, inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300, value: _passcodeEnabled && _useFingerprint, onChanged: _passcodeEnabled ? _handleFingerprintToggle : null),
         ListTile(leading: Icon(Iconsax.timer_1, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('Auto-lock'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), subtitle: Text(_autoLockMinutes == 0 ? 'Immediately'.tr : '$_autoLockMinutes min', style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), trailing: Icon(Iconsax.arrow_right_3_copy, size: 18, color: _passcodeEnabled ? null : Colors.grey), onTap: _passcodeEnabled ? _showAutoLockPicker : null),
-        SwitchListTile(secondary: Icon(Iconsax.eye, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('App in Task Switcher'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400, inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300, value: _passcodeEnabled ? _taskSwitcherShow : false, onChanged: _passcodeEnabled ? (val) { setState(() => _taskSwitcherShow = val); PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide'); } : null),
+        SwitchListTile(secondary: Icon(Iconsax.eye, color: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, size: 20), title: Text('App in Task Switcher'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), subtitle: Text(_taskSwitcherShow ? 'Show'.tr : 'Hide'.tr, style: TextStyle(color: _passcodeEnabled ? null : Colors.grey)), activeColor: _passcodeEnabled ? AppColors.primaryColor : Colors.grey, inactiveThumbColor: _passcodeEnabled ? null : Colors.grey.shade400, inactiveTrackColor: _passcodeEnabled ? null : Colors.grey.shade300, value: _passcodeEnabled && _taskSwitcherShow, onChanged: _passcodeEnabled ? (val) async { 
+          setState(() => _taskSwitcherShow = val); 
+          await PasscodeService.setTaskSwitcherPreview(val ? 'show' : 'hide');
+        } : null),
       ]),
     );
   }
