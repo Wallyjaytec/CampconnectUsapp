@@ -87,15 +87,18 @@ class CheckoutView extends GetView<CheckoutController> {
                             controller.setDeliveryMode(DeliveryMode.home),
                       ),
                       const SizedBox(height: 6),
-                      _ModeRadio(
-                        label: 'Collect from Store'.tr,
-                        selected:
-                            controller.deliveryMode.value ==
-                            DeliveryMode.pickup,
-                        onTap: () =>
-                            controller.setDeliveryMode(DeliveryMode.pickup),
-                      ),
-                      const SizedBox(height: 8),
+Obx(() {
+  if (controller.pickupPoints.isEmpty) return const SizedBox.shrink();
+  return _ModeRadio(
+    label: 'Collect from Store'.tr,
+    selected:
+        controller.deliveryMode.value ==
+        DeliveryMode.pickup,
+    onTap: () =>
+        controller.setDeliveryMode(DeliveryMode.pickup),
+  );
+}),
+const SizedBox(height: 8),
                     ],
                   ),
                 ),
