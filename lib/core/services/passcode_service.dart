@@ -9,6 +9,7 @@ class PasscodeService {
   static const String _autoLockKey = 'auto_lock_minutes';
   static const String _taskSwitcherKey = 'task_switcher_preview';
   static const String _passcodeEnabledKey = 'passcode_enabled';
+  static bool isLockScreenShowing = false;
 
   static GetStorage? _box;
   static GetStorage get box {
