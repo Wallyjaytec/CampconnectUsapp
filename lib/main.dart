@@ -46,8 +46,6 @@ String debugOneSignal = '';
 
 String? _lastMethodChannelLink;
 
-bool isLockScreenShowing = false;
-
 Future<void> updateOneSignalIdOnServer(String playerId) async {
   try {
     final login = LoginService();
@@ -112,14 +110,12 @@ void _handleDeepLink(Uri uri, GetStorage box) {
 void _navigateOrStore(String dest, GetStorage box) {
   final context = Get.context;
   if (context != null && ModalRoute.of(context) != null) {
-    // FIX: App is already running — check passcode before navigating directly.
-    // Without this, widgets/shortcuts bypass the lock screen entirely.
-    if (PasscodeService.isPasscodeEnabled() && !isLockScreenShowing) {
+    if (PasscodeService.isPasscodeEnabled() && !PasscodeService.isLockScreenShowing) {
       box.write('shortcut_destination', dest);
-      isLockScreenShowing = true;
+      PasscodeService.isLockScreenShowing = true;
       Get.to(() => PasscodeLockScreen(
             onUnlocked: () {
-              isLockScreenShowing = false;
+              PasscodeService.isLockScreenShowing = false;
               box.write('_last_active_time',
                   DateTime.now().millisecondsSinceEpoch);
               final pending =
@@ -131,11 +127,9 @@ void _navigateOrStore(String dest, GetStorage box) {
             },
           ));
     } else {
-      // No passcode or lock already showing — navigate directly
       _doNavigate(dest);
     }
   } else {
-    // App is cold starting — store for splash to pick up
     box.write('shortcut_destination', dest);
   }
 }
@@ -209,7 +203,7 @@ Future<void> main() async {
       final refundId = additionalData['refund_id']?.toString();
       final type = additionalData['type']?.toString();
 
-      if (isLockScreenShowing) return;
+      if (PasscodeService.isLockScreenShowing) return;
 
       if (notificationId != null && notificationId.isNotEmpty) {
         pendingNotificationData = {
@@ -365,15 +359,14 @@ Future<void> main() async {
   }
 
   // Check passcode lock on cold start
-  if (PasscodeService.isPasscodeEnabled() && !isLockScreenShowing) {
-    isLockScreenShowing = true;
+  if (PasscodeService.isPasscodeEnabled() && !PasscodeService.isLockScreenShowing) {
+    PasscodeService.isLockScreenShowing = true;
     runApp(GetMaterialApp(
       debugShowCheckedModeBanner: false,
       home: PasscodeLockScreen(
         onUnlocked: () {
-          isLockScreenShowing = false;
+          PasscodeService.isLockScreenShowing = false;
           box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-          // Handle any pending deep links
           final pending = box.read<String>('shortcut_destination') ?? '';
           if (pending.isNotEmpty) {
             box.remove('shortcut_destination');
