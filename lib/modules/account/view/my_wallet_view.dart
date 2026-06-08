@@ -108,31 +108,31 @@ class _MyWalletViewState extends State<MyWalletView> {
                 Text('Transaction History'.tr, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
               ]),
               const SizedBox(height: 10),
-SingleChildScrollView(
-  scrollDirection: Axis.horizontal,
-  child: Row(children: [
-    _FilterChip(label: 'All'.tr, selected: c.filterType.value == 'all' && c.filterMethod.value == 'all' && c.filterStatus.value == 'all' && c.dateFrom.value.isEmpty, onTap: c.clearFilters),
-    const SizedBox(width: 8),
-    _FilterChip(label: 'Credit'.tr, selected: c.filterType.value == 'credit', onTap: () => c.setFilterType('credit')),
-    const SizedBox(width: 8),
-    _FilterChip(label: 'Debit'.tr, selected: c.filterType.value == 'debit', onTap: () => c.setFilterType('debit')),
-    const SizedBox(width: 8),
-    _FilterChip(label: 'Online'.tr, selected: c.filterMethod.value == 'online', onTap: () => c.setFilterMethod('online')),
-    const SizedBox(width: 8),
-    _FilterChip(label: 'Offline'.tr, selected: c.filterMethod.value == 'offline', onTap: () => c.setFilterMethod('offline')),
-    const SizedBox(width: 8),
-    _FilterChip(label: 'Pending'.tr, selected: c.filterStatus.value == 'pending', onTap: () => c.setFilterStatus('pending')),
-    const SizedBox(width: 8),
-    _FilterChip(label: 'Declined'.tr, selected: c.filterStatus.value == 'declined', onTap: () => c.setFilterStatus('declined')),
-    const SizedBox(width: 8),
-    _FilterChip(
-      label: c.dateFrom.value.isEmpty ? 'Date'.tr : '${c.dateFrom.value} - ${c.dateTo.value}',
-      selected: c.dateFrom.value.isNotEmpty,
-      onTap: _pickDateRange,
-      icon: Iconsax.calendar_1_copy,
-    ),
-  ]),
-),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  _FilterChip(label: 'All'.tr, selected: c.filterType.value == 'all' && c.filterMethod.value == 'all' && c.filterStatus.value == 'all' && c.dateFrom.value.isEmpty, onTap: c.clearFilters),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Credit'.tr, selected: c.filterType.value == 'credit', onTap: () => c.setFilterType('credit')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Debit'.tr, selected: c.filterType.value == 'debit', onTap: () => c.setFilterType('debit')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Online'.tr, selected: c.filterMethod.value == 'online', onTap: () => c.setFilterMethod('online')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Offline'.tr, selected: c.filterMethod.value == 'offline', onTap: () => c.setFilterMethod('offline')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Pending'.tr, selected: c.filterStatus.value == 'pending', onTap: () => c.setFilterStatus('pending')),
+                  const SizedBox(width: 8),
+                  _FilterChip(label: 'Declined'.tr, selected: c.filterStatus.value == 'declined', onTap: () => c.setFilterStatus('declined')),
+                  const SizedBox(width: 8),
+                  _FilterChip(
+                    label: c.dateFrom.value.isEmpty ? 'Date'.tr : '${c.dateFrom.value} - ${c.dateTo.value}',
+                    selected: c.dateFrom.value.isNotEmpty,
+                    onTap: _pickDateRange,
+                    icon: Iconsax.calendar_1_copy,
+                  ),
+                ]),
+              ),
               const SizedBox(height: 12),
               if (c.items.isEmpty && !c.isLoading.value)
                 _EmptyTransactionsView()
@@ -223,7 +223,7 @@ class _TransactionCard extends StatelessWidget {
       Positioned(left: 10, top: 28, child: _Line(label: 'Time'.tr, value: tx.time)),
       Positioned(left: 10, top: 46, child: _Line(label: 'Amount'.tr, value: formatCurrency(tx.rechargeAmount, applyConversion: true))),
       Positioned(left: 10, top: 64, child: _TypeLine(type: tx.type)),
-      Positioned(left: 10, top: 82, child: _Line(label: 'Payment Option'.tr, value: capFirst(tx.paymentMethod))),
+      Positioned(left: 10, top: 82, child: _Line(label: 'Payment Option'.tr, value: capFirst(tx.paymentMethod).tr)),
     ]));
   }
 }
