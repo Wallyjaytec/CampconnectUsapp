@@ -10,13 +10,12 @@ import 'package:campconnectus_marketplace/core/routes/app_routes.dart';
 import 'package:campconnectus_marketplace/core/services/api_service.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/core/services/passcode_service.dart';
-import 'package:campconnectus_marketplace/core/services/app_lifecycle_service.dart';
 import 'package:campconnectus_marketplace/app.dart';
 import 'passcode_input_view.dart';
 
 class PasscodeLockScreen extends StatefulWidget {
-  final VoidCallback? onUnlocked;
-  const PasscodeLockScreen({super.key, this.onUnlocked});
+  final VoidCallback onUnlocked;
+  const PasscodeLockScreen({super.key, required this.onUnlocked});
   @override
   State<PasscodeLockScreen> createState() => _PasscodeLockScreenState();
 }
@@ -77,13 +76,7 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
     _didUnlock = true;
     _lockoutTimer?.cancel();
     GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
-    AppLifecycleService.instance.onPasscodeVerified();
-    
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        widget.onUnlocked?.call();
-      }
-    });
+    widget.onUnlocked();
   }
 
   void _onKeyPressed(String value) {
@@ -105,30 +98,18 @@ class _PasscodeLockScreenState extends State<PasscodeLockScreen> with WidgetsBin
   Future<void> _verifyPasscode() async {
     if (_didUnlock || _checkingPasscode) return;
     _checkingPasscode = true;
-    
-    try {
-      final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
-      _checkingPasscode = false;
-      
-      if (verified) {
-        _doUnlock();
+    final verified = await PasscodeService.verifyPasscodeOnServer(_passcode);
+    _checkingPasscode = false;
+    if (verified) {
+      _doUnlock();
+    } else {
+      _failedAttempts++;
+      setState(() => _passcode = '');
+      if (_failedAttempts >= 5) {
+        _startLockout();
       } else {
-        _failedAttempts++;
-        setState(() => _passcode = '');
-        if (_failedAttempts >= 5) {
-          _startLockout();
-        } else {
-          setState(() { 
-            _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; 
-          });
-        }
+        setState(() { _errorMessage = '${'Wrong passcode'.tr}. ${5 - _failedAttempts} ${'tries remaining'.tr}.'; });
       }
-    } catch (e) {
-      _checkingPasscode = false;
-      setState(() { 
-        _errorMessage = 'Something went wrong. Please try again.'.tr;
-        _passcode = '';
-      });
     }
   }
 
