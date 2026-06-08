@@ -46,6 +46,8 @@ String debugOneSignal = '';
 
 String? _lastMethodChannelLink;
 
+bool isLockScreenShowing = false;
+
 Future<void> updateOneSignalIdOnServer(String playerId) async {
   try {
     final login = LoginService();
@@ -362,5 +364,25 @@ Future<void> main() async {
     Get.find<NetworkService>().isConnected.refresh();
   }
 
-  runApp(MyApp(initialLocaleCode: savedApiCode));
+  // Check passcode lock on cold start
+  if (PasscodeService.isPasscodeEnabled() && !isLockScreenShowing) {
+    isLockScreenShowing = true;
+    runApp(GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: PasscodeLockScreen(
+        onUnlocked: () {
+          isLockScreenShowing = false;
+          box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+          // Handle any pending deep links
+          final pending = box.read<String>('shortcut_destination') ?? '';
+          if (pending.isNotEmpty) {
+            box.remove('shortcut_destination');
+            _doNavigate(pending);
+          }
+        },
+      ),
+    ));
+  } else {
+    runApp(MyApp(initialLocaleCode: savedApiCode));
+  }
 }
