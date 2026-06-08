@@ -22,8 +22,14 @@ class CheckoutRepository {
     return _api.postJson(AppConfig.getShippingOptionsUrl(), body: body);
   }
 
-  Future<Map<String, dynamic>> fetchActivePickupPoints() async {
-    return await _api.postJson(AppConfig.activePickupPointsUrl());
+  Future<Map<String, dynamic>> fetchActivePickupPoints({
+    String? productsJsonString,
+  }) async {
+    final body = <String, dynamic>{};
+    if (productsJsonString != null && productsJsonString.isNotEmpty) {
+      body['products'] = productsJsonString;
+    }
+    return await _api.postJson(AppConfig.activePickupPointsUrl(), body: body);
   }
 
   Future<Map<String, dynamic>> fetchActivePaymentMethods({
