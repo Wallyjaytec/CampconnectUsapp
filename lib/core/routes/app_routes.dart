@@ -52,5 +52,4 @@ class AppRoutes {
   static const followingProductsView = '/following_products_view';
   static const recentlyViewedView = '/recently_viewed_view';
   static const passcodeSettingsView = '/passcode_settings_view';
-  static const passcodeLockScreen = '/passcode_lock_screen';
 }
