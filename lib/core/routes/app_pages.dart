@@ -9,6 +9,7 @@ import 'package:campconnectus_marketplace/modules/account/view/my_wallet_view.da
 import 'package:campconnectus_marketplace/modules/account/view/pending_reviews_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/privacy_policy_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/report_seller_view.dart';
+import 'package:campconnectus_marketplace/modules/account/view/request_feature_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/settings_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/terms_conditions_view.dart';
 import 'package:campconnectus_marketplace/modules/onboarding/view/country_select_view.dart';
@@ -184,6 +185,7 @@ class AppPages {
     GetPage(name: AppRoutes.followSellerView, page: () => const FollowSellerView()),
     GetPage(name: AppRoutes.reportSellerView, page: () => const ReportSellerView()),
     GetPage(name: AppRoutes.contactUsView, page: () => const ContactUsView()),
+    GetPage(name: AppRoutes.requestFeatureView, page: () => const RequestFeatureView()),
     GetPage(name: AppRoutes.guestCheckoutView, page: () => const GuestCheckoutView()),
     GetPage(
       name: AppRoutes.orderSummaryView,
