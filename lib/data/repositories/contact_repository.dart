@@ -45,4 +45,40 @@ class ContactRepository {
 
     return ContactMessageResponse.fromJson(json);
   }
+
+  Future<ContactMessageResponse> sendFeatureRequest({
+    required String name,
+    required String email,
+    required String subject,
+    required String message,
+    List<PlatformFile>? files,
+  }) async {
+    final fields = <String, String>{
+      'name': name,
+      'email': email,
+      'subject': subject,
+      'message': message,
+      'type': 'feature_request',
+    };
+
+    List<http.MultipartFile>? multipartFiles;
+    if (files != null && files.isNotEmpty) {
+      multipartFiles = [];
+      for (final file in files) {
+        if (file.path != null) {
+          multipartFiles.add(
+            await http.MultipartFile.fromPath('attachments[]', file.path!),
+          );
+        }
+      }
+    }
+
+    final json = await _apiService.postMultipart(
+      AppConfig.storeContactMessageUrl(),
+      fields: fields,
+      files: multipartFiles,
+    );
+
+    return ContactMessageResponse.fromJson(json);
+  }
 }
