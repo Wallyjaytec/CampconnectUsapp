@@ -127,6 +127,12 @@ String _translateMessage(String msg) {
     return translated;
   }
   
+  if (msg.contains('Tracking id is')) {
+    final parts = msg.split('Tracking id is');
+    final translated = '${'Your package has been handed over to a logistics partner. Tracking id is'.tr} ${parts.last.trim()}';
+    return translated;
+  }
+  
   if (msg.contains('credited to your wallet')) {
     final parts = msg.split('credited to your wallet');
     final amount = parts.first.trim();
