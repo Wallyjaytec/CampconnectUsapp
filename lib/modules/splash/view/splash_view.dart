@@ -139,7 +139,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (hasPasscode) {
       _navigated = true;
-      isLockScreenShowing = true;
+      PasscodeService.isLockScreenShowing = true;
 
       if (pendingNotificationData != null) {
         _pendingNotificationData =
@@ -167,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen>
 
       Get.offAll(() => PasscodeLockScreen(
             onUnlocked: () {
-              isLockScreenShowing = false;
+              PasscodeService.isLockScreenShowing = false;
               box.write('_last_active_time',
                   DateTime.now().millisecondsSinceEpoch);
 
