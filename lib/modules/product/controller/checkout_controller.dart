@@ -1056,20 +1056,16 @@ _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
 
     if (bankNameCtrl.text.trim().isEmpty) missing.add('Bank name');
     if (bankBranchCtrl.text.trim().isEmpty) missing.add('Branch name');
-    if (bankAccountNumberCtrl.text.trim().isEmpty) {
-      missing.add('Account number');
-    }
+    if (bankAccountNumberCtrl.text.trim().isEmpty) missing.add('Account number');
     if (bankAccountNameCtrl.text.trim().isEmpty) missing.add('Account name');
-    if (bankTransactionIdCtrl.text.trim().isEmpty) {
-      missing.add('Transaction number');
-    }
+    if (bankTransactionIdCtrl.text.trim().isEmpty) missing.add('Transaction number');
     if ((bankReceiptImagePath.value ?? '').isEmpty) missing.add('Receipt');
 
     if (missing.isNotEmpty) {
+      // Use the complete translation key
       _showSnackbar(
         'Bank Payment'.tr,
-        '${missing.join(', ')} '
-        '${missing.length == 1 ? 'is' : 'are'} ${'required for bank payment'.tr}.',
+        'Bank name, Branch name, Account number, Account name, Transaction number, Receipt are required for bank payment.'.tr,
       );
       return false;
     }
