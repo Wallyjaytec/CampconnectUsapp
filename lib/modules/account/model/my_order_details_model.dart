@@ -172,10 +172,13 @@ class OrderProductItem {
 
   String get shippingLabel {
     if (deliveryMode == 'pickup') return '';
-    if (shippingType == 'driver') return 'Local Driver';
-    if (carrierName != null && carrierName!.isNotEmpty) return carrierName!;
-    if (shippingName != null && shippingName!.isNotEmpty) return shippingName!;
-    if (trackingUrl != null) return 'Carrier';
+    // Only show shipping details if order has been shipped/delivered
+    if (deliveryStatus == '2' || deliveryStatus == '3') {
+      if (shippingType == 'driver') return 'Local Driver';
+      if (carrierName != null && carrierName!.isNotEmpty) return carrierName!;
+      if (shippingName != null && shippingName!.isNotEmpty) return shippingName!;
+      if (trackingUrl != null) return 'Carrier';
+    }
     return 'Pending';
   }
 }
