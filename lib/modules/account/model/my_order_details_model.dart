@@ -147,47 +147,21 @@ class OrderProductItem {
     this.shippingName,
   });
 
-  static double _d(dynamic v) {
-    if (v == null) return 0;
-    if (v is num) return v.toDouble();
-    if (v is String) return double.tryParse(v) ?? 0;
-    return 0;
-  }
-
-  static int _i(dynamic v) {
-    if (v == null) return 0;
-    if (v is num) return v.toInt();
-    if (v is String) return int.tryParse(v) ?? 0;
-    return 0;
-  }
+  static double _d(dynamic v) { if (v == null) return 0; if (v is num) return v.toDouble(); if (v is String) return double.tryParse(v) ?? 0; return 0; }
+  static int _i(dynamic v) { if (v == null) return 0; if (v is num) return v.toInt(); if (v is String) return int.tryParse(v) ?? 0; return 0; }
 
   factory OrderProductItem.fromJson(Map<String, dynamic> j) {
     return OrderProductItem(
-      id: _i(j['id']),
-      productId: _i(j['product_id']),
-      name: j['name']?.toString() ?? '',
-      permalink: j['permalink']?.toString() ?? '',
-      variant: j['variant']?.toString(),
-      unitPrice: _d(j['unit_price']),
-      quantity: _i(j['quantity']),
-      shippingCost: _d(j['shipping_cost']),
-      tax: _d(j['tax']),
-      image: j['image']?.toString() ?? '',
-      returnStatus: ReturnStatus.fromJson(j['return_status'] as Map<String, dynamic>?),
-      canReturn: _i(j['can_return']),
-      canCancel: _i(j['can_cancel']),
-      deliveredDate: j['delivered_date']?.toString(),
-      deliveryStatus: j['delivery_status']?.toString() ?? '',
+      id: _i(j['id']), productId: _i(j['product_id']), name: j['name']?.toString() ?? '', permalink: j['permalink']?.toString() ?? '',
+      variant: j['variant']?.toString(), unitPrice: _d(j['unit_price']), quantity: _i(j['quantity']),
+      shippingCost: _d(j['shipping_cost']), tax: _d(j['tax']), image: j['image']?.toString() ?? '',
+      returnStatus: ReturnStatus.fromJson(j['return_status'] as Map<String, dynamic>?), canReturn: _i(j['can_return']), canCancel: _i(j['can_cancel']),
+      deliveredDate: j['delivered_date']?.toString(), deliveryStatus: j['delivery_status']?.toString() ?? '',
       trackingList: (j['tracking_list'] as List? ?? const []).map((e) => TrackingItem.fromJson(Map<String, dynamic>.from(e))).toList(),
-      shop: ShopInfo.fromJson(j['shop'] as Map<String, dynamic>?),
-      attachment: j['attatchment'] ?? j['attachment'],
-      trackingId: j['tracking_id']?.toString(),
-      shippingContact: j['shipping_contact']?.toString(),
-      shippingType: j['shipping_type']?.toString(),
-      deliveryMode: j['delivery_mode']?.toString(),
-      pickupPoint: j['pickup_point'] != null ? PickupPointInfo.fromJson(Map<String, dynamic>.from(j['pickup_point'])) : null,
-      trackingUrl: j['tracking_url']?.toString(),
-      shippingName: j['shipping']?['name']?.toString(),
+      shop: ShopInfo.fromJson(j['shop'] as Map<String, dynamic>?), attachment: j['attatchment'] ?? j['attachment'],
+      trackingId: j['tracking_id']?.toString(), shippingContact: j['shipping_contact']?.toString(), shippingType: j['shipping_type']?.toString(),
+      deliveryMode: j['delivery_mode']?.toString(), pickupPoint: j['pickup_point'] != null ? PickupPointInfo.fromJson(Map<String, dynamic>.from(j['pickup_point'])) : null,
+      trackingUrl: j['tracking_url']?.toString(), shippingName: j['shipping']?['name']?.toString(),
     );
   }
 
@@ -195,100 +169,43 @@ class OrderProductItem {
 
   String get shippingLabel {
     if (deliveryMode == 'pickup') return '';
-    if (shippingType == 'driver') return 'Local Driver'.tr;
+    if (shippingType == 'driver') return 'Local Driver';
     if (shippingName != null && shippingName!.isNotEmpty) return shippingName!;
-    if (trackingUrl != null) return 'Carrier'.tr;
-    return 'Pending'.tr;
+    if (trackingUrl != null) return 'Carrier';
+    return 'Pending';
   }
 }
 
 class OrderDetailsData {
-  final int id;
-  final String orderCode;
-  final String paymentStatus;
-  final String paymentStatusLabel;
-  final String deliveryStatusLabel;
-  final String paymentMethod;
-  final String deliveryStatus;
-  final double subTotal;
-  final double totalTax;
-  final double totalDeliveryCost;
-  final double totalDiscount;
-  final double totalPayableAmount;
-  final String orderDate;
-  final OrderAddress billingDetails;
-  final OrderAddress shippingDetails;
-  final List<OrderProductItem> products;
-  final int canCancel;
-  final String? note;
-  final int paymentRequired;
+  final int id; final String orderCode; final String paymentStatus; final String paymentStatusLabel; final String deliveryStatusLabel;
+  final String paymentMethod; final String deliveryStatus; final double subTotal; final double totalTax; final double totalDeliveryCost;
+  final double totalDiscount; final double totalPayableAmount; final String orderDate; final OrderAddress billingDetails;
+  final OrderAddress shippingDetails; final List<OrderProductItem> products; final int canCancel; final String? note; final int paymentRequired;
 
-  OrderDetailsData({
-    required this.id,
-    required this.orderCode,
-    required this.paymentStatus,
-    required this.paymentStatusLabel,
-    required this.deliveryStatusLabel,
-    required this.paymentMethod,
-    required this.deliveryStatus,
-    required this.subTotal,
-    required this.totalTax,
-    required this.totalDeliveryCost,
-    required this.totalDiscount,
-    required this.totalPayableAmount,
-    required this.orderDate,
-    required this.billingDetails,
-    required this.shippingDetails,
-    required this.products,
-    required this.canCancel,
-    required this.note,
-    required this.paymentRequired,
-  });
+  OrderDetailsData({required this.id, required this.orderCode, required this.paymentStatus, required this.paymentStatusLabel, required this.deliveryStatusLabel, required this.paymentMethod, required this.deliveryStatus, required this.subTotal, required this.totalTax, required this.totalDeliveryCost, required this.totalDiscount, required this.totalPayableAmount, required this.orderDate, required this.billingDetails, required this.shippingDetails, required this.products, required this.canCancel, required this.note, required this.paymentRequired});
 
   static double _d(dynamic v) => (v is num) ? v.toDouble() : double.tryParse(v?.toString() ?? '') ?? 0.0;
-
   static int _i(dynamic v) => (v is String) ? int.tryParse(v) ?? 0 : (v ?? 0);
 
   factory OrderDetailsData.fromMap(Map<String, dynamic> j) {
     final productsData = (j['products']?['data'] as List?) ?? const [];
     return OrderDetailsData(
-      id: _i(j['id']),
-      orderCode: j['order_code']?.toString() ?? '',
-      paymentStatus: j['payment_status']?.toString() ?? '',
-      paymentStatusLabel: j['payment_status_label']?.toString() ?? '',
-      deliveryStatusLabel: j['delivery_status_label']?.toString() ?? '',
-      paymentMethod: j['payment_method']?.toString() ?? '',
-      deliveryStatus: j['delivery_status']?.toString() ?? '',
-      subTotal: _d(j['sub_total']),
-      totalTax: _d(j['total_tax']),
-      totalDeliveryCost: _d(j['total_delivery_cost']),
-      totalDiscount: _d(j['total_discount']),
-      totalPayableAmount: _d(j['total_payable_amount']),
-      orderDate: j['order_date']?.toString() ?? '',
+      id: _i(j['id']), orderCode: j['order_code']?.toString() ?? '', paymentStatus: j['payment_status']?.toString() ?? '',
+      paymentStatusLabel: j['payment_status_label']?.toString() ?? '', deliveryStatusLabel: j['delivery_status_label']?.toString() ?? '',
+      paymentMethod: j['payment_method']?.toString() ?? '', deliveryStatus: j['delivery_status']?.toString() ?? '',
+      subTotal: _d(j['sub_total']), totalTax: _d(j['total_tax']), totalDeliveryCost: _d(j['total_delivery_cost']),
+      totalDiscount: _d(j['total_discount']), totalPayableAmount: _d(j['total_payable_amount']), orderDate: j['order_date']?.toString() ?? '',
       billingDetails: OrderAddress.fromJson(j['billing_details'] as Map<String, dynamic>?),
       shippingDetails: OrderAddress.fromJson(j['shipping_details'] as Map<String, dynamic>?),
       products: productsData.map((e) => OrderProductItem.fromJson(Map<String, dynamic>.from(e))).toList(),
-      canCancel: _i(j['can_cancel']),
-      note: j['note']?.toString(),
-      paymentRequired: _i(j['payment_required']),
+      canCancel: _i(j['can_cancel']), note: j['note']?.toString(), paymentRequired: _i(j['payment_required']),
     );
   }
 }
 
 class OrderDetailsResponse {
-  final OrderDetailsData data;
-  final bool success;
-  final int status;
-
+  final OrderDetailsData data; final bool success; final int status;
   OrderDetailsResponse({required this.data, required this.success, required this.status});
-
-  factory OrderDetailsResponse.fromMap(Map<String, dynamic> map) {
-    return OrderDetailsResponse(
-      data: OrderDetailsData.fromMap(Map<String, dynamic>.from(map['data'] ?? {})),
-      success: map['success'] == true,
-      status: (map['status'] is String) ? int.tryParse(map['status']) ?? 0 : (map['status'] ?? 0),
-    );
-  }
-
+  factory OrderDetailsResponse.fromMap(Map<String, dynamic> map) => OrderDetailsResponse(data: OrderDetailsData.fromMap(Map<String, dynamic>.from(map['data'] ?? {})), success: map['success'] == true, status: (map['status'] is String) ? int.tryParse(map['status']) ?? 0 : (map['status'] ?? 0));
   static OrderDetailsResponse fromJsonString(String s) => OrderDetailsResponse.fromMap(json.decode(s) as Map<String, dynamic>);
 }
