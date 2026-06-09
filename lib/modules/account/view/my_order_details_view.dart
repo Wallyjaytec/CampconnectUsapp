@@ -114,7 +114,6 @@ class MyOrderDetailsView extends StatelessWidget {
       const SizedBox(height: 8),
       _productActions(context, p, delivered),
       const SizedBox(height: 10),
-      // Per-package address
       if (isPickup && p.pickupPoint != null)
         _PackageAddress(icon: Iconsax.location, title: 'Pickup Point'.tr, lines: [p.pickupPoint!.name, p.pickupPoint!.phone, p.pickupPoint!.location, p.pickupPoint!.zoneName])
       else
@@ -133,7 +132,7 @@ class MyOrderDetailsView extends StatelessWidget {
         Text('${formatCurrency(p.unitPrice, applyConversion: true)} x${p.quantity}', style: const TextStyle(fontSize: 12)),
         Text(formatCurrency(p.lineTotal, applyConversion: true), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         Row(children: [Text('${'Sold by'.tr} : ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)), Flexible(child: Text(p.shop.shopName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)))]),
-        if (hasAttachmentText) InkWell(onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath) : null, child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor), const SizedBox(width: 4), Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13)))]))),
+        if (hasAttachmentText) InkWell(onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null, child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor), const SizedBox(width: 4), Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13)))]))),
       ])),
     ]);
   }
@@ -152,14 +151,12 @@ class MyOrderDetailsView extends StatelessWidget {
     });
   }
 
-  String _assetOrAbsolute(String path) { if (path.startsWith('http')) return path; if (path.startsWith('/')) return '${AppConfig.baseUrl}$path'; return '${AppConfig.baseUrl}/$path'; }
-
   Widget _addressCard(BuildContext context, String title, OrderAddress a) => Container(decoration: BoxDecoration(color: Get.theme.brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10), margin: const EdgeInsets.only(top: 10, left: 12, right: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w700)), const SizedBox(height: 2), _kv('Name'.tr, a.name), _kv('Phone'.tr, a.phone), _kv('Address'.tr, a.address), _kv('City'.tr, a.city), _kv('State'.tr, a.state), _kv('Postal Code'.tr, a.postalCode), _kv('Country'.tr, a.country)]));
   Widget _kv(String k, String v) => Padding(padding: const EdgeInsets.only(bottom: 0), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SizedBox(width: 110, child: Text(k, style: TextStyle(fontSize: 12, color: Colors.grey.shade700))), const SizedBox(width: 6), Expanded(child: Text(v.isEmpty ? '-' : v, style: const TextStyle(fontSize: 13)))]));
 
   Widget _summaryCard(BuildContext context, OrderDetailsData d) => Container(decoration: BoxDecoration(color: Get.theme.brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10), margin: const EdgeInsets.only(top: 10, left: 12, right: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Total Summary'.tr, style: const TextStyle(fontWeight: FontWeight.w700)), _sumRow('Subtotal'.tr, formatCurrency(d.subTotal, applyConversion: true)), _sumRow('Shipping Cost'.tr, formatCurrency(d.totalDeliveryCost, applyConversion: true)), _sumRow('Tax'.tr, formatCurrency(d.totalTax, applyConversion: true)), _sumRow('Discount'.tr, '- ${formatCurrency(d.totalDiscount, applyConversion: true)}'), const Divider(), _sumRow('Total'.tr, formatCurrency(d.totalPayableAmount, applyConversion: true), bold: true), const SizedBox(height: 8), if (d.paymentMethod.isNotEmpty) Row(children: [Text('${'Payment method'.tr}: ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)), Text(d.paymentMethod, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor))])]));
   Widget _sumRow(String k, String v, {bool bold = false}) => Padding(padding: const EdgeInsets.symmetric(vertical: 0), child: Row(children: [Expanded(child: Text(k, style: TextStyle(fontSize: 13, color: Colors.grey.shade700))), Text(v, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.w700 : FontWeight.w500))]));
-  Widget _fullScreenShimmer(BuildContext context) { final isDark = Theme.of(context).brightness == Brightness.dark; final base = isDark ? Colors.grey.shade800 : Colors.grey.shade300; final highlight = isDark ? Colors.grey.shade700 : Colors.grey.shade100; return Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: SingleChildScrollView(padding: EdgeInsets.zero, child: Column(children: List.generate(6, (i) => Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), height: [90, 190, 190, 140, 140, 160][i], decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12))))))); }
+  Widget _fullScreenShimmer(BuildContext context) { final isDark = Theme.of(context).brightness == Brightness.dark; final base = isDark ? Colors.grey.shade800 : Colors.grey.shade300; final highlight = isDark ? Colors.grey.shade700 : Colors.grey.shade100; return Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: SingleChildScrollView(padding: EdgeInsets.zero, child: Column(children: List.generate(6, (i) => Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), height: [90.0, 190.0, 190.0, 140.0, 140.0, 160.0][i], decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12))))))); }
 
   @override
   Widget build(BuildContext context) {
@@ -179,25 +176,14 @@ class MyOrderDetailsView extends StatelessWidget {
 }
 
 class _PackageAddress extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final List<String> lines;
+  final IconData icon; final String title; final List<String> lines;
   const _PackageAddress({required this.icon, required this.title, required this.lines});
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(8)),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(icon, size: 16, color: AppColors.primaryColor), const SizedBox(width: 8),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-          const SizedBox(height: 4),
-          ...lines.where((l) => l.trim().isNotEmpty).map((l) => Text(l, style: const TextStyle(fontSize: 12, color: AppColors.greyColor))),
-        ])),
-      ]),
-    );
+    return Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(8)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Icon(icon, size: 16, color: AppColors.primaryColor), const SizedBox(width: 8),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)), const SizedBox(height: 4), ...lines.where((l) => l.trim().isNotEmpty).map((l) => Text(l, style: const TextStyle(fontSize: 12, color: AppColors.greyColor)))])),
+    ]));
   }
 }
 
