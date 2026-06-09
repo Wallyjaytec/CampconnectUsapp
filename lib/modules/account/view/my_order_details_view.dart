@@ -132,7 +132,25 @@ class MyOrderDetailsView extends StatelessWidget {
         Text('${formatCurrency(p.unitPrice, applyConversion: true)} x${p.quantity}', style: const TextStyle(fontSize: 12)),
         Text(formatCurrency(p.lineTotal, applyConversion: true), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         Row(children: [Text('${'Sold by'.tr} : ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)), Flexible(child: Text(p.shop.shopName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)))]),
-        if (hasAttachmentText) InkWell(onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null, child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor), const SizedBox(width: 4), Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13)))]))),
+        if (hasAttachmentText)
+          InkWell(
+            onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    'View attachment'.tr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ])),
     ]);
   }
