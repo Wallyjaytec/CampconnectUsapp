@@ -39,7 +39,12 @@ class MyOrderDetailsView extends StatelessWidget {
     ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Order ID copied'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), duration: const Duration(seconds: 2)));
   }
 
-  int _stepFromDeliveryCode(String code) { switch (code) { case '1': return 3; case '3': return 2; case '2': default: return 1; } }
+  int _stepFromDeliveryCode(String code, {bool isPickup = false}) { 
+    if (isPickup) {
+      switch (code) { case '4': return 2; case '5': return 3; case '2': default: return 1; }
+    }
+    switch (code) { case '1': return 3; case '3': return 2; case '2': default: return 1; } 
+  }
 
   bool _shouldShowUnpaidBanner(OrderDetailsData d) {
     final method = (d.paymentMethod).toLowerCase().trim(); final label = (d.paymentStatusLabel).toLowerCase().trim(); final rawStatus = (d.paymentStatus).toString().trim().toLowerCase(); final statusInt = int.tryParse(rawStatus);
@@ -74,14 +79,14 @@ class MyOrderDetailsView extends StatelessWidget {
     return Row(spacing: 8, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_returnStatusChip(context, p), if (delivered) OutlinedButton(onPressed: () { final oid = Get.find<OrderDetailsController>().order.value?.id; if (oid == null || oid == 0) { Get.snackbar('Error'.tr, 'Order not found'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); return; } showDialog(context: context, barrierDismissible: false, builder: (ctx) => ReviewDialog(orderId: oid, productId: p.productId, productName: '', productImage: '')); }, style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)), child: Text('Write a review'.tr))]);
   }
 
-  Widget _stepperWithShimmer(BuildContext context, int currentStep, String firstLabel) {
+  Widget _stepperWithShimmer(BuildContext context, int currentStep, String firstLabel, {String secondLabel = 'Shipped', String thirdLabel = 'Delivered'}) {
     Widget dot(bool active, String label) => Column(children: [Container(width: 28, height: 28, decoration: BoxDecoration(color: active ? AppColors.primaryColor : Colors.transparent, border: Border.all(color: active ? AppColors.primaryColor : Colors.grey), shape: BoxShape.circle), alignment: Alignment.center, child: Text(label, style: TextStyle(fontSize: 12, color: active ? Colors.white : Colors.grey.shade700))), const SizedBox(height: 6)]);
     Widget shimmerLine() => Shimmer.fromColors(baseColor: AppColors.primaryColor.withValues(alpha: 0.45), highlightColor: AppColors.primaryColor.withValues(alpha: 0.95), period: const Duration(milliseconds: 1200), child: Container(height: 2, color: AppColors.primaryColor));
     Widget solidLine(Color color) => Container(height: 2, color: color);
     Widget leftLine() => (currentStep == 1) ? shimmerLine() : (currentStep >= 2) ? solidLine(AppColors.primaryColor) : solidLine(Colors.grey.shade400);
     Widget rightLine() => (currentStep == 2) ? shimmerLine() : (currentStep >= 3) ? solidLine(AppColors.primaryColor) : solidLine(Colors.grey.shade400);
     Widget line(Widget child) => Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 3), child: SizedBox(height: 2, child: child)));
-    return Column(children: [Row(children: [dot(currentStep >= 1, '1'), line(leftLine()), dot(currentStep >= 2, '2'), line(rightLine()), dot(currentStep >= 3, '3')]), const SizedBox(height: 4), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(firstLabel.tr, style: TextStyle(fontSize: 12, color: currentStep == 1 ? AppColors.primaryColor : Colors.grey, fontWeight: currentStep == 1 ? FontWeight.w600 : FontWeight.normal)), Text('Shipped'.tr, style: TextStyle(fontSize: 12, color: currentStep == 2 ? AppColors.primaryColor : Colors.grey, fontWeight: currentStep == 2 ? FontWeight.w600 : FontWeight.normal)), Text('Delivered'.tr, style: TextStyle(fontSize: 12, color: currentStep == 3 ? AppColors.primaryColor : Colors.grey, fontWeight: currentStep == 3 ? FontWeight.w600 : FontWeight.normal))])]);
+    return Column(children: [Row(children: [dot(currentStep >= 1, '1'), line(leftLine()), dot(currentStep >= 2, '2'), line(rightLine()), dot(currentStep >= 3, '3')]), const SizedBox(height: 4), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(firstLabel.tr, style: TextStyle(fontSize: 12, color: currentStep == 1 ? AppColors.primaryColor : Colors.grey, fontWeight: currentStep == 1 ? FontWeight.w600 : FontWeight.normal)), Text(secondLabel.tr, style: TextStyle(fontSize: 12, color: currentStep == 2 ? AppColors.primaryColor : Colors.grey, fontWeight: currentStep == 2 ? FontWeight.w600 : FontWeight.normal)), Text(thirdLabel.tr, style: TextStyle(fontSize: 12, color: currentStep == 3 ? AppColors.primaryColor : Colors.grey, fontWeight: currentStep == 3 ? FontWeight.w600 : FontWeight.normal))])]);
   }
 
   Widget _packageCard({required BuildContext context, required int index, required OrderDetailsData d, required OrderProductItem p, required OrderDetailsController c}) {
@@ -100,9 +105,12 @@ class MyOrderDetailsView extends StatelessWidget {
       ]));
     }
 
-    final step = _stepFromDeliveryCode(p.deliveryStatus);
+    final step = _stepFromDeliveryCode(p.deliveryStatus, isPickup: isPickup);
     final delivered = step >= 3;
-    String firstLabelFromCode(String code) => (code == '1' || code == '3') ? 'Processing' : 'Pending';
+    String firstLabelFromCode(String code) {
+      if (isPickup) return 'Pending';
+      return (code == '1' || code == '3') ? 'Processing' : 'Pending';
+    }
 
     return Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
@@ -124,7 +132,9 @@ class MyOrderDetailsView extends StatelessWidget {
       if (p.trackingUrl != null && p.trackingUrl!.isNotEmpty)
         Padding(padding: const EdgeInsets.only(top: 8), child: Center(child: OutlinedButton.icon(onPressed: () => _openUrl(p.trackingUrl!), icon: const Icon(Iconsax.truck_fast, size: 16), label: Text('Track Order'.tr), style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor))))),
       const SizedBox(height: 10),
-      _stepperWithShimmer(context, step.clamp(1, 3), firstLabelFromCode(p.deliveryStatus)),
+      _stepperWithShimmer(context, step.clamp(1, 3), firstLabelFromCode(p.deliveryStatus),
+        secondLabel: isPickup ? 'Available for Pickup' : 'Shipped',
+        thirdLabel: 'Delivered'),
       const SizedBox(height: 6),
       _trackingPanel(context: context, pkgIndex: index, tracking: p.trackingList, c: c, isFinalStatus: delivered || cancelled),
       const SizedBox(height: 12),
