@@ -31,6 +31,14 @@ class MyOrderDetailsView extends StatelessWidget {
     final contactRegExp = RegExp(r'^(.*Contact:)\s*(\+?[\d\s]+)$');
     final match = contactRegExp.firstMatch(msg);
     if (match != null) { final prefix = match.group(1)!; final number = match.group(2)!; return '${prefix.tr} $number'; }
+    final trackingRegExp = RegExp(r'^(.*?)(\.?\s*Tracking id is\s+)(\S+)$', caseSensitive: false);
+    final trackMatch = trackingRegExp.firstMatch(msg);
+    if (trackMatch != null) {
+      final base = trackMatch.group(1)!;
+      final label = trackMatch.group(2)!;
+      final id = trackMatch.group(3)!;
+      return '${base.tr}$label$id';
+    }
     return msg.tr;
   }
 
@@ -76,7 +84,15 @@ class MyOrderDetailsView extends StatelessWidget {
   }
 
   Widget _productActions(BuildContext context, OrderProductItem p, bool delivered) {
-    return Row(spacing: 8, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_returnStatusChip(context, p), if (delivered) OutlinedButton(onPressed: () { final oid = Get.find<OrderDetailsController>().order.value?.id; if (oid == null || oid == 0) { Get.snackbar('Error'.tr, 'Order not found'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); return; } showDialog(context: context, barrierDismissible: false, builder: (ctx) => ReviewDialog(orderId: oid, productId: p.productId, productName: '', productImage: '')); }, style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)), child: Text('Write a review'.tr))]);
+    final hasReturn = p.canReturn == 1;
+    return Row(
+      spacing: 8,
+      mainAxisAlignment: hasReturn ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+      children: [
+        _returnStatusChip(context, p),
+        if (delivered) OutlinedButton(onPressed: () { final oid = Get.find<OrderDetailsController>().order.value?.id; if (oid == null || oid == 0) { Get.snackbar('Error'.tr, 'Order not found'.tr, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP, colorText: AppColors.whiteColor); return; } showDialog(context: context, barrierDismissible: false, builder: (ctx) => ReviewDialog(orderId: oid, productId: p.productId, productName: '', productImage: '')); }, style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)), child: Text('Write a review'.tr)),
+      ],
+    );
   }
 
   Widget _stepperWithShimmer(BuildContext context, int currentStep, String firstLabel, {String secondLabel = 'Shipped', String thirdLabel = 'Delivered'}) {
