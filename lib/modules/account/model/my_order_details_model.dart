@@ -172,8 +172,8 @@ class OrderProductItem {
 
   String get shippingLabel {
     if (deliveryMode == 'pickup') return 'N/A';
-    // Only show shipping details if order has been shipped
-    if (deliveryStatus == '3') {
+    // Only show shipping details if order has been shipped or delivered
+    if (deliveryStatus == '3' || deliveryStatus == '1') {
       if (shippingType == 'driver') return 'Local Driver';
       if (carrierName != null && carrierName!.isNotEmpty) return carrierName!;
       if (shippingName != null && shippingName!.isNotEmpty) return shippingName!;
