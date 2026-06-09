@@ -5,6 +5,7 @@ class PickupPoint {
   final String phone;
   final int zoneId;
   final String zoneName;
+  final int? sellerId;
 
   PickupPoint({
     required this.id,
@@ -13,6 +14,7 @@ class PickupPoint {
     required this.phone,
     required this.zoneId,
     required this.zoneName,
+    this.sellerId,
   });
 
   factory PickupPoint.fromJson(Map<String, dynamic> j) {
@@ -26,8 +28,9 @@ class PickupPoint {
       name: j['name']?.toString() ?? '',
       location: j['location']?.toString() ?? '',
       phone: j['phone']?.toString() ?? '',
-      zoneId: i(j['zone_id']),
+      zoneId: i(j['zone_id'] ?? j['zone']),
       zoneName: j['zone_name']?.toString() ?? '',
+      sellerId: j['seller_id'] != null ? i(j['seller_id']) : null,
     );
   }
 }
@@ -46,9 +49,7 @@ class PickupPointResponse {
   factory PickupPointResponse.fromJson(Map<String, dynamic> j) {
     final arr = (j['data'] as List?) ?? const [];
     return PickupPointResponse(
-      data: arr
-          .map((e) => PickupPoint.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      data: arr.map((e) => PickupPoint.fromJson(e as Map<String, dynamic>)).toList(),
       success: j['success'] == true,
       status: (j['status'] as num?)?.toInt() ?? 0,
     );
