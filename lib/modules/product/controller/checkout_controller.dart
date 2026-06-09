@@ -217,6 +217,10 @@ class CheckoutController extends GetxController {
     if (useWallet) { wp = 1; pid = 2; }
     else { wp = 2; pid = selectedPaymentMethodId.value; if (pid == null) { _showSnackbar('Payment'.tr, 'Please choose a payment method'.tr); return; } if (!_validateBankFields()) return; }
     final body = <String, dynamic>{'payment_id': pid, 'note': noteCtrl.text.trim(), 'wallet_payment': wp, 'origin': 'app', 'billing_address': (selectedBillingId.value ?? 0).toString(), 'shipping_address': (selectedShippingId.value ?? 0).toString(), 'products': _productsJsonForCheckout(), 'coupon_discounts': jsonEncode(appliedCoupons)};
+    if (items.any((it) => getProductDeliveryMode(it.uid) == DeliveryMode.pickup)) {
+      final ppId = productPickupId.values.firstWhereOrNull((id) => id != null);
+      if (ppId != null) body['pickup_point'] = ppId.toString();
+    }
     if (!useWallet && isBankPaymentSelected) { body['bank_name'] = bankNameCtrl.text.trim(); body['branch_name'] = bankBranchCtrl.text.trim(); body['account_number'] = bankAccountNumberCtrl.text.trim(); body['account_name'] = bankAccountNameCtrl.text.trim(); body['transaction_number'] = bankTransactionIdCtrl.text.trim(); final path = bankReceiptImagePath.value; if (path != null && path.isNotEmpty) body['receipt'] = path; }
     isScreenLoading.value = true;
     try { final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body); if (Get.context == null) return; await _handleOrderResponse(resp); }
@@ -240,7 +244,8 @@ class CheckoutController extends GetxController {
         'uid': uidVal, 'tax': tax, 'product_id': it.id, 'quantity': it.quantity,
         'unitPrice': unitPrice, 'oldPrice': oldPrice, 'variant_code': it.variantCode,
         'variant': it.variant, 'image': it.image,
-        'shipping_cost': method?.cost ?? 0.0, 'shipping_rate_id': method?.id ?? 0,
+        'shipping_cost': mode == DeliveryMode.pickup ? 0.0 : (method?.cost ?? 0.0),
+        'shipping_rate_id': mode == DeliveryMode.pickup ? 0 : (method?.id ?? 0),
         'attatchment': attachmentId,
         'delivery_mode': mode == DeliveryMode.pickup ? 'pickup' : 'home',
         'pickup_point_id': pickupId ?? 0,
