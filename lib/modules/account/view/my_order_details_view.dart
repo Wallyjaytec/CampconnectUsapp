@@ -105,9 +105,11 @@ class MyOrderDetailsView extends StatelessWidget {
     String firstLabelFromCode(String code) => (code == '1' || code == '3') ? 'Processing' : 'Pending';
 
     return Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Expanded(child: Text('${'Package'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w600)))]),
-      if (!isPickup)
-        Padding(padding: const EdgeInsets.only(top: 2), child: Text('${'Shipping'.tr}: ${p.shippingLabel}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600))),
+      Row(children: [
+        Expanded(child: Text('${'Package'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w600))),
+        if (!isPickup)
+          Text('${'Shipping'.tr}: ${p.shippingLabel.tr}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+      ]),
       if (p.trackingUrl != null && p.trackingUrl!.isNotEmpty)
         Padding(padding: const EdgeInsets.only(top: 8), child: Center(child: OutlinedButton.icon(onPressed: () => _openUrl(p.trackingUrl!), icon: const Icon(Iconsax.truck_fast, size: 16), label: Text('Track Order'.tr), style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor))))),
       const SizedBox(height: 10),
