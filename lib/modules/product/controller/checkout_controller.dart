@@ -59,7 +59,6 @@ class CheckoutController extends GetxController {
   final RxList<PickupPoint> pickupPoints = <PickupPoint>[].obs;
   final RxnInt selectedPickupId = RxnInt();
 
-  // Per-product delivery mode tracking
   final RxMap<String, DeliveryMode> productDeliveryMode = <String, DeliveryMode>{}.obs;
   final RxMap<String, int?> productPickupId = <String, int?>{}.obs;
 
@@ -105,7 +104,6 @@ class CheckoutController extends GetxController {
   final RxBool isLoadingPayments = false.obs;
   final RxString paymentError = ''.obs;
   final RxnInt selectedPaymentMethodId = RxnInt();
-  final RxBool isPaymentDropdownOpen = false.obs;
 
   final RxBool isLoadingWallet = false.obs;
   final RxString walletError = ''.obs;
@@ -302,14 +300,92 @@ class CheckoutController extends GetxController {
   bool get isBankPaymentSelected { final id = selectedPaymentMethodId.value; if (id == null) return false; final m = activePaymentMethods.firstWhereOrNull((e) => e.id == id); if (m == null) return false; return m.name.toLowerCase().contains('bank') || (m.instruction ?? '').toLowerCase().contains('bank'); }
 
   void selectShippingFor(String uid) {
-    final op = optionsByUid[uid]; if (op == null) return; final cur = selectedMethodByUid[uid]; final defId = op.defaultOption?.id; final methods = op.methods.isEmpty && op.defaultOption != null ? [op.defaultOption!] : op.methods; if (methods.isEmpty) return; final ctx = Get.context; if (ctx == null) return;
-    showDialog(context: ctx, builder: (dc) => AlertDialog(title: Text('Select shipping option'.tr), content: SizedBox(width: double.maxFinite, child: ListView.builder(shrinkWrap: true, itemCount: methods.length, itemBuilder: (_, i) { final m = methods[i]; return ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(cur == m.id ? Icons.radio_button_checked : Icons.radio_button_off), title: m.title.trim().isNotEmpty ? Text(m.title) : null, subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (m.cost.isFinite && m.cost >= 0) Text('${'Cost'.tr}: ${formatCurrency(m.cost)}'), if (m.shippingTime.trim().isNotEmpty) Text('${'Time'.tr}: ${m.shippingTime}'), if (defId == m.id) Text('default'.tr, style: const TextStyle(fontWeight: FontWeight.w700))]), onTap: () { selectedMethodByUid[uid] = m.id; Navigator.of(dc).pop(); }); }))), actions: [TextButton(onPressed: () => Navigator.of(dc).pop(), child: Text('close'.tr))]));
+    final op = optionsByUid[uid];
+    if (op == null) return;
+    final current = selectedMethodByUid[uid];
+    final defaultId = op.defaultOption?.id;
+    final methods = op.methods.isEmpty && op.defaultOption != null
+        ? [op.defaultOption!]
+        : op.methods;
+    if (methods.isEmpty) return;
+    final ctx = Get.context;
+    if (ctx == null) return;
+
+    showDialog(
+      context: ctx,
+      builder: (dc) => AlertDialog(
+        title: Text('Select shipping option'.tr),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: methods.length,
+            itemBuilder: (_, i) {
+              final m = methods[i];
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(current == m.id
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off),
+                title: m.title.trim().isNotEmpty ? Text(m.title) : null,
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (m.cost.isFinite && m.cost >= 0)
+                      Text('${'Cost'.tr}: ${formatCurrency(m.cost)}'),
+                    if (m.shippingTime.trim().isNotEmpty)
+                      Text('${'Time'.tr}: ${m.shippingTime}'),
+                    if (defaultId == m.id)
+                      Text('default'.tr,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                  ],
+                ),
+                onTap: () {
+                  selectedMethodByUid[uid] = m.id;
+                  Navigator.of(dc).pop();
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dc).pop(),
+            child: Text('close'.tr),
+          ),
+        ],
+      ),
+    );
   }
 
   void removeItemByUid(String uid) { final r = items.firstWhereOrNull((e) => e.uid == uid); items.removeWhere((e) => e.uid == uid); notAvailableUids.remove(uid); selectedMethodByUid.remove(uid); optionsByUid.remove(uid); _taxByUid.remove(uid); productDeliveryMode.remove(uid); productPickupId.remove(uid); if (r != null) _uidByProductId.remove(r.id); }
 
-  Future<void> _handleOrderResponse(Map<String, dynamic> resp) async { /* unchanged */ }
-  Future<void> _afterOrderSuccess(int? orderId) async { /* unchanged */ }
+  Future<void> _handleOrderResponse(Map<String, dynamic> resp) async {
+    final success = resp['success'] == true || resp['status']?.toString().toLowerCase() == 'success';
+    if (!success) { _showSnackbar('Checkout'.tr, resp['message']?.toString() ?? resp['error']?.toString() ?? 'Server error'); return; }
+    final orderId = _extractOrderId(resp); final responseUrl = _extractRedirectUrl(resp);
+    if (responseUrl.isEmpty) { await _afterOrderSuccess(orderId); return; }
+    if (Get.isRegistered<CustomerDashboardController>()) Get.find<CustomerDashboardController>().fetchDashboard();
+    _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
+    final result = await Get.to<PaymentPageResult?>(() => OrderPayWebView(initialUrl: responseUrl, successUrlContains: const ['payment/success','payment-success','status=success','payment_status=success','redirect_status=succeeded','succeeded','success=true','paid'], cancelUrlContains: const ['payment/cancel','payment-cancel','status=cancel','status=cancelled','payment_status=cancelled','canceled','cancelled'], failedUrlContains: const ['payment/fail','payment/failed','payment-error','status=failed','status=error','payment_status=failed'], pendingUrlContains: const ['pending','processing','awaiting']));
+    if (Get.context == null) return;
+    switch (result?.status) {
+      case PaymentPageResultStatus.success: await _afterOrderSuccess(orderId); break;
+      default: _showSnackbar('Payment'.tr, 'Payment was not completed'.tr);
+    }
+  }
+
+  Future<void> _afterOrderSuccess(int? orderId) async {
+    if (orderId == null || orderId <= 0) { _showSnackbar('Orders'.tr, 'Could not find order id'.tr); return; }
+    _clearAfterOrder();
+    if (Get.isRegistered<CartController>()) Get.find<CartController>().clearAfterOrder();
+    _loadWalletSummary();
+    if (Get.isRegistered<CustomerDashboardController>()) Get.find<CustomerDashboardController>().fetchDashboard();
+    _showSnackbar('Order placed successfully'.tr, 'Thank you'.tr);
+    _goToOrderSummary(orderId);
+  }
+
   void _goToOrderSummary(int orderId) => Get.offNamed(AppRoutes.orderSummaryView, arguments: orderId);
   String _extractRedirectUrl(Map<String, dynamic> resp) { final u = (resp['redirect_url'] ?? resp['response_url'] ?? '').toString().trim(); return u.isEmpty || u.toLowerCase() == 'none' || u.toLowerCase() == 'null' ? '' : u; }
   int? _extractOrderId(Map<String, dynamic> resp) { final d = resp['order_id']; if (d is int) return d; if (d is String) { final p = int.tryParse(d); if (p != null) return p; } try { final dt = resp['data']; if (dt is Map && dt['order_id'] != null) { final v = dt['order_id']; if (v is int) return v; if (v is String) return int.tryParse(v); } } catch (_) {} return null; }
