@@ -41,7 +41,7 @@ class MyOrderDetailsView extends StatelessWidget {
 
   int _stepFromDeliveryCode(String code, {bool isPickup = false}) { 
     if (isPickup) {
-      switch (code) { case '4': return 2; case '5': return 3; case '2': default: return 1; }
+      switch (code) { case '7': return 2; case '8': return 3; case '2': default: return 1; }
     }
     switch (code) { case '1': return 3; case '3': return 2; case '2': default: return 1; } 
   }
