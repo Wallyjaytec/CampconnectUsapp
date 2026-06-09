@@ -113,6 +113,7 @@ class OrderProductItem {
   final dynamic attachment;
   final String? trackingId;
   final String? shippingContact;
+  final String? carrierName;
   final String? shippingType;
   final String? deliveryMode;
   final PickupPointInfo? pickupPoint;
@@ -140,6 +141,7 @@ class OrderProductItem {
     this.attachment,
     this.trackingId,
     this.shippingContact,
+    this.carrierName,
     this.shippingType,
     this.deliveryMode,
     this.pickupPoint,
@@ -159,7 +161,8 @@ class OrderProductItem {
       deliveredDate: j['delivered_date']?.toString(), deliveryStatus: j['delivery_status']?.toString() ?? '',
       trackingList: (j['tracking_list'] as List? ?? const []).map((e) => TrackingItem.fromJson(Map<String, dynamic>.from(e))).toList(),
       shop: ShopInfo.fromJson(j['shop'] as Map<String, dynamic>?), attachment: j['attatchment'] ?? j['attachment'],
-      trackingId: j['tracking_id']?.toString(), shippingContact: j['shipping_contact']?.toString(), shippingType: j['shipping_type']?.toString(),
+      trackingId: j['tracking_id']?.toString(), shippingContact: j['shipping_contact']?.toString(), carrierName: j['carrier_name']?.toString(),
+      shippingType: j['shipping_type']?.toString(),
       deliveryMode: j['delivery_mode']?.toString(), pickupPoint: j['pickup_point'] != null ? PickupPointInfo.fromJson(Map<String, dynamic>.from(j['pickup_point'])) : null,
       trackingUrl: j['tracking_url']?.toString(), shippingName: j['shipping']?['name']?.toString(),
     );
@@ -170,6 +173,7 @@ class OrderProductItem {
   String get shippingLabel {
     if (deliveryMode == 'pickup') return '';
     if (shippingType == 'driver') return 'Local Driver';
+    if (carrierName != null && carrierName!.isNotEmpty) return carrierName!;
     if (shippingName != null && shippingName!.isNotEmpty) return shippingName!;
     if (trackingUrl != null) return 'Carrier';
     return 'Pending';
