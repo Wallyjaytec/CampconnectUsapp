@@ -108,7 +108,18 @@ class MyOrderDetailsView extends StatelessWidget {
       Row(children: [
         Expanded(child: Text('${'Package'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w600))),
         if (!isPickup)
-          Text('${'Shipping'.tr}: ${p.shippingLabel.tr}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+          RichText(
+            text: TextSpan(
+              text: '${'Shipping'.tr}: ',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black),
+              children: [
+                TextSpan(
+                  text: p.shippingLabel.tr,
+                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
       ]),
       if (p.trackingUrl != null && p.trackingUrl!.isNotEmpty)
         Padding(padding: const EdgeInsets.only(top: 8), child: Center(child: OutlinedButton.icon(onPressed: () => _openUrl(p.trackingUrl!), icon: const Icon(Iconsax.truck_fast, size: 16), label: Text('Track Order'.tr), style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor))))),
