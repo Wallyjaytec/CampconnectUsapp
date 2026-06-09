@@ -11,6 +11,7 @@ import 'package:campconnectus_marketplace/shared/widgets/cart_icon_widget.dart';
 import 'package:campconnectus_marketplace/shared/widgets/notification_icon_widget.dart';
 import 'package:campconnectus_marketplace/shared/widgets/search_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -104,7 +105,24 @@ class MyOrderDetailsView extends StatelessWidget {
     String firstLabelFromCode(String code) => (code == '1' || code == '3') ? 'Processing' : 'Pending';
 
     return Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Expanded(child: Text('${'Package'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w600))), if (p.shippingType == 'logistics' && p.trackingId != null && p.trackingId!.isNotEmpty) Text('${'Tracking ID'.tr}: ${p.trackingId}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)), if (p.shippingType == 'driver' && p.shippingContact != null && p.shippingContact!.isNotEmpty) Text('${'Driver Phone'.tr}: ${p.shippingContact}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12))]),
+      Row(children: [Expanded(child: Text('${'Package'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w600)))]),
+      if (!isPickup)
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Text('${'Shipping'.tr}: ${p.shippingLabel}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        ),
+      if (p.trackingUrl != null && p.trackingUrl!.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Center(
+            child: OutlinedButton.icon(
+              onPressed: () => _openUrl(p.trackingUrl!),
+              icon: const Icon(Iconsax.truck_fast, size: 16),
+              label: Text('Track Order'.tr),
+              style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor)),
+            ),
+          ),
+        ),
       const SizedBox(height: 10),
       _stepperWithShimmer(context, step.clamp(1, 3), firstLabelFromCode(p.deliveryStatus)),
       const SizedBox(height: 6),
@@ -115,30 +133,9 @@ class MyOrderDetailsView extends StatelessWidget {
       _productActions(context, p, delivered),
       const SizedBox(height: 10),
       if (isPickup && p.pickupPoint != null)
-        _PackageAddress(
-          icon: Iconsax.location,
-          title: 'Pickup Point'.tr,
-          fields: {
-            'Name'.tr: p.pickupPoint!.name,
-            'Phone'.tr: p.pickupPoint!.phone,
-            'Address'.tr: p.pickupPoint!.location,
-            'Zone'.tr: p.pickupPoint!.zoneName,
-          },
-        )
+        _PackageAddress(icon: Iconsax.location, title: 'Pickup Point'.tr, fields: {'Name'.tr: p.pickupPoint!.name, 'Phone'.tr: p.pickupPoint!.phone, 'Address'.tr: p.pickupPoint!.location, 'Zone'.tr: p.pickupPoint!.zoneName})
       else
-        _PackageAddress(
-          icon: Iconsax.truck_fast,
-          title: 'Shipping Address'.tr,
-          fields: {
-            'Name'.tr: d.shippingDetails.name,
-            'Phone'.tr: d.shippingDetails.phone,
-            'Address'.tr: d.shippingDetails.address,
-            'City'.tr: d.shippingDetails.city,
-            'State'.tr: d.shippingDetails.state,
-            'Postal Code'.tr: d.shippingDetails.postalCode,
-            'Country'.tr: d.shippingDetails.country,
-          },
-        ),
+        _PackageAddress(icon: Iconsax.truck_fast, title: 'Shipping Address'.tr, fields: {'Name'.tr: d.shippingDetails.name, 'Phone'.tr: d.shippingDetails.phone, 'Address'.tr: d.shippingDetails.address, 'City'.tr: d.shippingDetails.city, 'State'.tr: d.shippingDetails.state, 'Postal Code'.tr: d.shippingDetails.postalCode, 'Country'.tr: d.shippingDetails.country}),
       if (p.canCancel == 1 && !delivered) Align(alignment: Alignment.centerRight, child: OutlinedButton(onPressed: () => c.cancelItem(p.id), style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)), child: Text('Cancel Order'.tr))),
     ]));
   }
@@ -153,15 +150,7 @@ class MyOrderDetailsView extends StatelessWidget {
         Text('${formatCurrency(p.unitPrice, applyConversion: true)} x${p.quantity}', style: const TextStyle(fontSize: 12)),
         Text(formatCurrency(p.lineTotal, applyConversion: true), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         Row(children: [Text('${'Sold by'.tr} : ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)), Flexible(child: Text(p.shop.shopName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)))]),
-        if (hasAttachmentText)
-          InkWell(
-            onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null,
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor),
-              const SizedBox(width: 4),
-              Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13))),
-            ]),
-          ),
+        if (hasAttachmentText) InkWell(onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null, child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor), const SizedBox(width: 4), Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13)))]))),
       ])),
     ]);
   }
@@ -180,37 +169,12 @@ class MyOrderDetailsView extends StatelessWidget {
     });
   }
 
+  void _openUrl(String url) async { final uri = Uri.tryParse(url); if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication); }
+
   Widget _addressCard(BuildContext context, String title, OrderAddress a) => Container(decoration: BoxDecoration(color: Get.theme.brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10), margin: const EdgeInsets.only(top: 10, left: 12, right: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w700)), const SizedBox(height: 2), _kv('Name'.tr, a.name), _kv('Phone'.tr, a.phone), _kv('Address'.tr, a.address), _kv('City'.tr, a.city), _kv('State'.tr, a.state), _kv('Postal Code'.tr, a.postalCode), _kv('Country'.tr, a.country)]));
   Widget _kv(String k, String v) => Padding(padding: const EdgeInsets.only(bottom: 0), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SizedBox(width: 110, child: Text(k, style: TextStyle(fontSize: 12, color: Colors.grey.shade700))), const SizedBox(width: 6), Expanded(child: Text(v.isEmpty ? '-' : v, style: const TextStyle(fontSize: 13)))]));
 
-  Widget _summaryCard(BuildContext context, OrderDetailsData d) => Container(
-  decoration: BoxDecoration(
-    color: Get.theme.brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor,
-    borderRadius: BorderRadius.circular(12),
-  ),
-  padding: const EdgeInsets.all(10),
-  margin: const EdgeInsets.only(top: 10, left: 12, right: 12),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text('Total Summary'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
-      _sumRow('Subtotal'.tr, formatCurrency(d.subTotal, applyConversion: true)),
-      _sumRow('Shipping Cost'.tr, formatCurrency(d.totalDeliveryCost, applyConversion: true)),
-      _sumRow('Tax'.tr, formatCurrency(d.totalTax, applyConversion: true)),
-      _sumRow('Discount'.tr, '- ${formatCurrency(d.totalDiscount, applyConversion: true)}'),
-      const Divider(),
-      _sumRow('Total'.tr, formatCurrency(d.totalPayableAmount, applyConversion: true), bold: true),
-      const SizedBox(height: 8),
-      if (d.paymentMethod.isNotEmpty)
-        Row(
-          children: [
-            Text('${'Payment method'.tr}: ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
-            Text(d.paymentMethod.tr, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)),
-          ],
-        ),
-    ],
-  ),
-);
+  Widget _summaryCard(BuildContext context, OrderDetailsData d) => Container(decoration: BoxDecoration(color: Get.theme.brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10), margin: const EdgeInsets.only(top: 10, left: 12, right: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Total Summary'.tr, style: const TextStyle(fontWeight: FontWeight.w700)), _sumRow('Subtotal'.tr, formatCurrency(d.subTotal, applyConversion: true)), _sumRow('Shipping Cost'.tr, formatCurrency(d.totalDeliveryCost, applyConversion: true)), _sumRow('Tax'.tr, formatCurrency(d.totalTax, applyConversion: true)), _sumRow('Discount'.tr, '- ${formatCurrency(d.totalDiscount, applyConversion: true)}'), const Divider(), _sumRow('Total'.tr, formatCurrency(d.totalPayableAmount, applyConversion: true), bold: true), const SizedBox(height: 8), if (d.paymentMethod.isNotEmpty) Row(children: [Text('${'Payment method'.tr}: ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)), Text(d.paymentMethod.tr, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor))])]));
   Widget _sumRow(String k, String v, {bool bold = false}) => Padding(padding: const EdgeInsets.symmetric(vertical: 0), child: Row(children: [Expanded(child: Text(k, style: TextStyle(fontSize: 13, color: Colors.grey.shade700))), Text(v, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.w700 : FontWeight.w500))]));
   Widget _fullScreenShimmer(BuildContext context) { final isDark = Theme.of(context).brightness == Brightness.dark; final base = isDark ? Colors.grey.shade800 : Colors.grey.shade300; final highlight = isDark ? Colors.grey.shade700 : Colors.grey.shade100; return Shimmer.fromColors(baseColor: base, highlightColor: highlight, child: SingleChildScrollView(padding: EdgeInsets.zero, child: Column(children: List.generate(6, (i) => Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), height: [90.0, 190.0, 190.0, 140.0, 140.0, 160.0][i], decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12))))))); }
 
@@ -232,25 +196,10 @@ class MyOrderDetailsView extends StatelessWidget {
 }
 
 class _PackageAddress extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Map<String, String> fields;
+  final IconData icon; final String title; final Map<String, String> fields;
   const _PackageAddress({required this.icon, required this.title, required this.fields});
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(8)),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(icon, size: 16, color: AppColors.primaryColor), const SizedBox(width: 8),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-          const SizedBox(height: 4),
-          ...fields.entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 2), child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 12, color: AppColors.greyColor)))),
-        ])),
-      ]),
-    );
-  }
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(8)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, size: 16, color: AppColors.primaryColor), const SizedBox(width: 8), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)), const SizedBox(height: 4), ...fields.entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 2), child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 12, color: AppColors.greyColor))))]))]));
 }
 
 class _TimelineItem extends StatelessWidget {
@@ -259,25 +208,8 @@ class _TimelineItem extends StatelessWidget {
   Color get _dotColor => isFirst ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.5);
   Color get _lineColor => isFinalStatus ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.5);
   @override
-  Widget build(BuildContext context) {
-    final displayMessage = view._translateTrackingMessage(message);
-    return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 24, child: Column(children: [const SizedBox(height: 2), _AnimatedDot(isActive: isFirst, dotColor: _dotColor), if (!isLast) Expanded(child: Container(width: 2, color: _lineColor))])),
-      const SizedBox(width: 10),
-      Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _dotColor)), const SizedBox(height: 4), HtmlWidget(displayMessage, textStyle: const TextStyle(fontSize: 13))]))),
-    ]));
-  }
+  Widget build(BuildContext context) { final displayMessage = view._translateTrackingMessage(message); return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SizedBox(width: 24, child: Column(children: [const SizedBox(height: 2), _AnimatedDot(isActive: isFirst, dotColor: _dotColor), if (!isLast) Expanded(child: Container(width: 2, color: _lineColor))])), const SizedBox(width: 10), Expanded(child: Padding(padding: EdgeInsets.only(bottom: isLast ? 0 : 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _dotColor)), const SizedBox(height: 4), HtmlWidget(displayMessage, textStyle: const TextStyle(fontSize: 13))])))])); }
 }
 
-class _AnimatedDot extends StatefulWidget {
-  final bool isActive; final Color dotColor;
-  const _AnimatedDot({required this.isActive, required this.dotColor});
-  @override State<_AnimatedDot> createState() => _AnimatedDotState();
-}
-
-class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderStateMixin {
-  late AnimationController _controller; late Animation<double> _animation;
-  @override void initState() { super.initState(); if (widget.isActive) { _controller = AnimationController(duration: const Duration(milliseconds: 1500), vsync: this)..repeat(reverse: true); _animation = Tween<double>(begin: 1.0, end: 1.3).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)); } }
-  @override void dispose() { if (widget.isActive) _controller.dispose(); super.dispose(); }
-  @override Widget build(BuildContext context) { if (!widget.isActive) return Container(width: 10, height: 10, decoration: BoxDecoration(color: widget.dotColor, shape: BoxShape.circle)); return AnimatedBuilder(animation: _animation, builder: (context, child) => Transform.scale(scale: _animation.value, child: Container(width: 10, height: 10, decoration: BoxDecoration(color: widget.dotColor, shape: BoxShape.circle, boxShadow: [BoxShadow(color: widget.dotColor.withValues(alpha: 0.6), blurRadius: 8 * _animation.value, spreadRadius: 2 * _animation.value)])))); }
-}
+class _AnimatedDot extends StatefulWidget { final bool isActive; final Color dotColor; const _AnimatedDot({required this.isActive, required this.dotColor}); @override State<_AnimatedDot> createState() => _AnimatedDotState(); }
+class _AnimatedDotState extends State<_AnimatedDot> with SingleTickerProviderStateMixin { late AnimationController _controller; late Animation<double> _animation; @override void initState() { super.initState(); if (widget.isActive) { _controller = AnimationController(duration: const Duration(milliseconds: 1500), vsync: this)..repeat(reverse: true); _animation = Tween<double>(begin: 1.0, end: 1.3).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)); } } @override void dispose() { if (widget.isActive) _controller.dispose(); super.dispose(); } @override Widget build(BuildContext context) { if (!widget.isActive) return Container(width: 10, height: 10, decoration: BoxDecoration(color: widget.dotColor, shape: BoxShape.circle)); return AnimatedBuilder(animation: _animation, builder: (context, child) => Transform.scale(scale: _animation.value, child: Container(width: 10, height: 10, decoration: BoxDecoration(color: widget.dotColor, shape: BoxShape.circle, boxShadow: [BoxShadow(color: widget.dotColor.withValues(alpha: 0.6), blurRadius: 8 * _animation.value, spreadRadius: 2 * _animation.value)])))); } }
