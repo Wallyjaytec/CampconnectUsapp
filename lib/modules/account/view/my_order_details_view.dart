@@ -107,22 +107,9 @@ class MyOrderDetailsView extends StatelessWidget {
     return Container(margin: const EdgeInsets.fromLTRB(12, 8, 12, 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [Expanded(child: Text('${'Package'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w600)))]),
       if (!isPickup)
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text('${'Shipping'.tr}: ${p.shippingLabel}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-        ),
+        Padding(padding: const EdgeInsets.only(top: 2), child: Text('${'Shipping'.tr}: ${p.shippingLabel}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600))),
       if (p.trackingUrl != null && p.trackingUrl!.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Center(
-            child: OutlinedButton.icon(
-              onPressed: () => _openUrl(p.trackingUrl!),
-              icon: const Icon(Iconsax.truck_fast, size: 16),
-              label: Text('Track Order'.tr),
-              style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor)),
-            ),
-          ),
-        ),
+        Padding(padding: const EdgeInsets.only(top: 8), child: Center(child: OutlinedButton.icon(onPressed: () => _openUrl(p.trackingUrl!), icon: const Icon(Iconsax.truck_fast, size: 16), label: Text('Track Order'.tr), style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryColor, side: const BorderSide(color: AppColors.primaryColor))))),
       const SizedBox(height: 10),
       _stepperWithShimmer(context, step.clamp(1, 3), firstLabelFromCode(p.deliveryStatus)),
       const SizedBox(height: 6),
@@ -150,7 +137,15 @@ class MyOrderDetailsView extends StatelessWidget {
         Text('${formatCurrency(p.unitPrice, applyConversion: true)} x${p.quantity}', style: const TextStyle(fontSize: 12)),
         Text(formatCurrency(p.lineTotal, applyConversion: true), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         Row(children: [Text('${'Sold by'.tr} : ', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)), Flexible(child: Text(p.shop.shopName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.primaryColor)))]),
-        if (hasAttachmentText) InkWell(onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null, child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor), const SizedBox(width: 4), Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13)))]))),
+        if (hasAttachmentText)
+          InkWell(
+            onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null,
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor),
+              const SizedBox(width: 4),
+              Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13))),
+            ]),
+          ),
       ])),
     ]);
   }
