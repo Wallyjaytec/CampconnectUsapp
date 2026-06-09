@@ -45,7 +45,6 @@ class CheckoutController extends GetxController {
   final RxList<Map<String, dynamic>> appliedCoupons = <Map<String, dynamic>>[].obs;
 
   final Rx<DeliveryMode> deliveryMode = DeliveryMode.home.obs;
-  bool get isPickupSelected => deliveryMode.value == DeliveryMode.pickup;
   final Rx<BillingMode> billingMode = BillingMode.sameAsShipping.obs;
 
   final RxList<CustomerAddress> allAddresses = <CustomerAddress>[].obs;
@@ -57,7 +56,6 @@ class CheckoutController extends GetxController {
   final RxnInt selectedBillingId = RxnInt();
 
   final RxList<PickupPoint> pickupPoints = <PickupPoint>[].obs;
-  final RxnInt selectedPickupId = RxnInt();
 
   final RxMap<String, DeliveryMode> productDeliveryMode = <String, DeliveryMode>{}.obs;
   final RxMap<String, int?> productPickupId = <String, int?>{}.obs;
@@ -76,13 +74,15 @@ class CheckoutController extends GetxController {
     if (pickupPoints.isEmpty) return false;
     final item = items.firstWhereOrNull((e) => e.uid == uid);
     if (item == null) return false;
+    final productId = item.id;
     final sellerId = int.tryParse(item.seller) ?? 0;
-    return pickupPoints.any((pp) => pp.sellerId == sellerId || pp.sellerId == null);
+    return pickupPoints.any((pp) => 
+      pp.productIds.contains(productId) || 
+      (pp.sellerId == sellerId && pp.productIds.isEmpty)
+    );
   }
 
-  int? getProductPickupId(String uid) {
-    return productPickupId[uid];
-  }
+  int? getProductPickupId(String uid) => productPickupId[uid];
 
   void setProductPickupId(String uid, int? id) {
     productPickupId[uid] = id;
@@ -91,13 +91,10 @@ class CheckoutController extends GetxController {
 
   final RxBool isLoadingOptions = false.obs;
   final RxString optionsError = ''.obs;
-
   final Map<String, ShippingOptionsForProduct> optionsByUid = {};
   final RxSet<String> notAvailableUids = <String>{}.obs;
   final RxMap<String, int> selectedMethodByUid = <String, int>{}.obs;
-
   final RxMap<String, double> _taxByUid = <String, double>{}.obs;
-
   final Map<int, String> _uidByProductId = {};
 
   final RxList<ActivePaymentMethod> activePaymentMethods = <ActivePaymentMethod>[].obs;
@@ -113,26 +110,15 @@ class CheckoutController extends GetxController {
   final noteCtrl = TextEditingController();
   final _fmt = NumberFormat.decimalPattern();
   String get _symbol {
-    try {
-      final svc = Get.find<CurrencyService>();
-      return (svc.current?.symbol ?? '\$').trim();
-    } catch (_) { return '\$'; }
+    try { return (Get.find<CurrencyService>().current?.symbol ?? '\$').trim(); }
+    catch (_) { return '\$'; }
   }
 
   String money(num v) => '$_symbol ${_fmt.format(v)}';
 
   void _showSnackbar(String title, String message) {
-    final context = Get.context;
-    if (context == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating,
-        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.whiteColor)),
-          Text(message, style: const TextStyle(color: AppColors.whiteColor)),
-        ]),
-      ),
-    );
+    final c = Get.context; if (c == null) return;
+    ScaffoldMessenger.of(c).showSnackBar(SnackBar(backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.whiteColor)), Text(message, style: const TextStyle(color: AppColors.whiteColor))])));
   }
 
   List<String> formattedAddressLines(CustomerAddress a) {
@@ -148,13 +134,11 @@ class CheckoutController extends GetxController {
     double sum = 0.0;
     for (final it in _countedItems) {
       if (getProductDeliveryMode(it.uid) == DeliveryMode.pickup) continue;
-      final uid = it.uid; final op = optionsByUid[uid];
-      if (op == null) continue;
+      final op = optionsByUid[it.uid]; if (op == null) continue;
       if (op.methods.isEmpty) { if (op.defaultOption != null) sum += op.defaultOption!.cost; continue; }
-      final selectedId = selectedMethodByUid[uid] ?? op.defaultOption?.id ?? (op.methods.isNotEmpty ? op.methods.first.id : null);
-      if (selectedId == null) continue;
-      final m = op.methods.firstWhereOrNull((x) => x.id == selectedId);
-      sum += m?.cost ?? op.defaultOption?.cost ?? 0.0;
+      final sid = selectedMethodByUid[it.uid] ?? op.defaultOption?.id ?? (op.methods.isNotEmpty ? op.methods.first.id : null);
+      if (sid == null) continue;
+      sum += op.methods.firstWhereOrNull((x) => x.id == sid)?.cost ?? op.defaultOption?.cost ?? 0.0;
     }
     return sum;
   }
@@ -167,14 +151,8 @@ class CheckoutController extends GetxController {
   String variantLine(CartListItem it) { final v = (it.variant ?? '').trim(); return v.isEmpty ? '' : v; }
 
   String addressLabel(CustomerAddress a) {
-    final parts = <String>[a.name, '• ${a.phone}', if (a.address.isNotEmpty) a.address, if (a.city?.name != null && a.city!.name.isNotEmpty) a.city!.name, if (a.postalCode.isNotEmpty) a.postalCode];
-    return parts.where((e) => e.trim().isNotEmpty).join(', ');
-  }
-
-  String? get destinationLabel {
-    final s = selectedShipping; if (s == null) return null;
-    final parts = <String?>[s.city?.name, s.state?.name, s.country?.name].whereType<String>().map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    return parts.isEmpty ? null : parts.join(', ');
+    final p = <String>[a.name, '• ${a.phone}', if (a.address.isNotEmpty) a.address, if (a.city?.name != null && a.city!.name.isNotEmpty) a.city!.name, if (a.postalCode.isNotEmpty) a.postalCode];
+    return p.where((e) => e.trim().isNotEmpty).join(', ');
   }
 
   CustomerAddress? get selectedShipping => activeAddresses.firstWhereOrNull((a) => a.id == selectedShippingId.value);
@@ -184,9 +162,9 @@ class CheckoutController extends GetxController {
   ShippingMethod? selectedMethodFor(String uid) {
     final op = optionsByUid[uid]; if (op == null) return null;
     if (op.methods.isEmpty) return op.defaultOption;
-    final selectedId = selectedMethodByUid[uid] ?? op.defaultOption?.id ?? (op.methods.isNotEmpty ? op.methods.first.id : null);
-    if (selectedId == null) return null;
-    return op.methods.firstWhereOrNull((x) => x.id == selectedId) ?? op.defaultOption;
+    final sid = selectedMethodByUid[uid] ?? op.defaultOption?.id ?? (op.methods.isNotEmpty ? op.methods.first.id : null);
+    if (sid == null) return null;
+    return op.methods.firstWhereOrNull((x) => x.id == sid) ?? op.defaultOption;
   }
 
   @override
@@ -207,10 +185,10 @@ class CheckoutController extends GetxController {
     try {
       final list = await _addressRepo.getAllCustomerAddresses(); if (Get.context == null) return;
       allAddresses.assignAll(list);
-      final shippingDefault = activeAddresses.firstWhereOrNull((a) => a.defaultShipping == 2);
-      final billingDefault = activeAddresses.firstWhereOrNull((a) => a.defaultBilling == 2);
-      if (shippingDefault != null) selectedShippingId.value = shippingDefault.id;
-      if (billingDefault != null) selectedBillingId.value = billingDefault.id;
+      final sd = activeAddresses.firstWhereOrNull((a) => a.defaultShipping == 2);
+      final bd = activeAddresses.firstWhereOrNull((a) => a.defaultBilling == 2);
+      if (sd != null) selectedShippingId.value = sd.id;
+      if (bd != null) selectedBillingId.value = bd.id;
       if (selectedShippingId.value == null && activeAddresses.isNotEmpty) selectedShippingId.value = activeAddresses.first.id;
       if (billingMode.value == BillingMode.sameAsShipping) selectedBillingId.value = selectedShippingId.value;
       else { if (selectedBillingId.value == null && activeAddresses.isNotEmpty) selectedBillingId.value = activeAddresses.first.id; }
@@ -235,11 +213,10 @@ class CheckoutController extends GetxController {
     if (selectedShipping == null) { _showSnackbar('Address'.tr, 'Please select a shipping address'.tr); return; }
     if (selectedBilling == null) { _showSnackbar('Address'.tr, 'Please select a billing address'.tr); return; }
     if (useWallet && !canPayWithWallet) { _showSnackbar('Wallet'.tr, 'Insufficient wallet balance'.tr); return; }
-    late int walletPayment; int? paymentId;
-    if (useWallet) { walletPayment = 1; paymentId = 2; }
-    else { walletPayment = 2; paymentId = selectedPaymentMethodId.value; if (paymentId == null) { _showSnackbar('Payment'.tr, 'Please choose a payment method'.tr); return; } if (!_validateBankFields()) return; }
-    final note = noteCtrl.text.trim();
-    final body = <String, dynamic>{'payment_id': paymentId, 'note': note, 'wallet_payment': walletPayment, 'origin': 'app', 'billing_address': (selectedBillingId.value ?? 0).toString(), 'shipping_address': (selectedShippingId.value ?? 0).toString(), 'products': _productsJsonForCheckout(), 'coupon_discounts': jsonEncode(appliedCoupons)};
+    late int wp; int? pid;
+    if (useWallet) { wp = 1; pid = 2; }
+    else { wp = 2; pid = selectedPaymentMethodId.value; if (pid == null) { _showSnackbar('Payment'.tr, 'Please choose a payment method'.tr); return; } if (!_validateBankFields()) return; }
+    final body = <String, dynamic>{'payment_id': pid, 'note': noteCtrl.text.trim(), 'wallet_payment': wp, 'origin': 'app', 'billing_address': (selectedBillingId.value ?? 0).toString(), 'shipping_address': (selectedShippingId.value ?? 0).toString(), 'products': _productsJsonForCheckout(), 'coupon_discounts': jsonEncode(appliedCoupons)};
     if (!useWallet && isBankPaymentSelected) { body['bank_name'] = bankNameCtrl.text.trim(); body['branch_name'] = bankBranchCtrl.text.trim(); body['account_number'] = bankAccountNumberCtrl.text.trim(); body['account_name'] = bankAccountNameCtrl.text.trim(); body['transaction_number'] = bankTransactionIdCtrl.text.trim(); final path = bankReceiptImagePath.value; if (path != null && path.isNotEmpty) body['receipt'] = path; }
     isScreenLoading.value = true;
     try { final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body); if (Get.context == null) return; await _handleOrderResponse(resp); }
@@ -247,7 +224,7 @@ class CheckoutController extends GetxController {
     finally { isScreenLoading.value = false; }
   }
 
-  String _productsJsonString() { return jsonEncode(items.map((e) => e.toApiModel().toJson()).toList()); }
+  String _productsJsonString() => jsonEncode(items.map((e) => e.toApiModel().toJson()).toList());
 
   String _productsJsonForCheckout() {
     final payload = <Map<String, dynamic>>[];
@@ -300,63 +277,18 @@ class CheckoutController extends GetxController {
   bool get isBankPaymentSelected { final id = selectedPaymentMethodId.value; if (id == null) return false; final m = activePaymentMethods.firstWhereOrNull((e) => e.id == id); if (m == null) return false; return m.name.toLowerCase().contains('bank') || (m.instruction ?? '').toLowerCase().contains('bank'); }
 
   void selectShippingFor(String uid) {
-    final op = optionsByUid[uid];
-    if (op == null) return;
-    final current = selectedMethodByUid[uid];
-    final defaultId = op.defaultOption?.id;
-    final methods = op.methods.isEmpty && op.defaultOption != null
-        ? [op.defaultOption!]
-        : op.methods;
-    if (methods.isEmpty) return;
-    final ctx = Get.context;
-    if (ctx == null) return;
-
-    showDialog(
-      context: ctx,
-      builder: (dc) => AlertDialog(
-        title: Text('Select shipping option'.tr),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: methods.length,
-            itemBuilder: (_, i) {
-              final m = methods[i];
-              return ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(current == m.id
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_off),
-                title: m.title.trim().isNotEmpty ? Text(m.title) : null,
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (m.cost.isFinite && m.cost >= 0)
-                      Text('${'Cost'.tr}: ${formatCurrency(m.cost)}'),
-                    if (m.shippingTime.trim().isNotEmpty)
-                      Text('${'Time'.tr}: ${m.shippingTime}'),
-                    if (defaultId == m.id)
-                      Text('default'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
-                  ],
-                ),
-                onTap: () {
-                  selectedMethodByUid[uid] = m.id;
-                  Navigator.of(dc).pop();
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dc).pop(),
-            child: Text('close'.tr),
-          ),
-        ],
-      ),
-    );
+    final op = optionsByUid[uid]; if (op == null) return;
+    final cur = selectedMethodByUid[uid]; final defId = op.defaultOption?.id;
+    final methods = op.methods.isEmpty && op.defaultOption != null ? [op.defaultOption!] : op.methods;
+    if (methods.isEmpty) return; final ctx = Get.context; if (ctx == null) return;
+    showDialog(context: ctx, builder: (dc) => AlertDialog(
+      title: Text('Select shipping option'.tr),
+      content: SizedBox(width: double.maxFinite, child: ListView.builder(shrinkWrap: true, itemCount: methods.length, itemBuilder: (_, i) {
+        final m = methods[i];
+        return ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(cur == m.id ? Icons.radio_button_checked : Icons.radio_button_off), title: m.title.trim().isNotEmpty ? Text(m.title) : null, subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (m.cost.isFinite && m.cost >= 0) Text('${'Cost'.tr}: ${formatCurrency(m.cost)}'), if (m.shippingTime.trim().isNotEmpty) Text('${'Time'.tr}: ${m.shippingTime}'), if (defId == m.id) Text('default'.tr, style: const TextStyle(fontWeight: FontWeight.w700))]), onTap: () { selectedMethodByUid[uid] = m.id; Navigator.of(dc).pop(); });
+      })),
+      actions: [TextButton(onPressed: () => Navigator.of(dc).pop(), child: Text('close'.tr))],
+    ));
   }
 
   void removeItemByUid(String uid) { final r = items.firstWhereOrNull((e) => e.uid == uid); items.removeWhere((e) => e.uid == uid); notAvailableUids.remove(uid); selectedMethodByUid.remove(uid); optionsByUid.remove(uid); _taxByUid.remove(uid); productDeliveryMode.remove(uid); productPickupId.remove(uid); if (r != null) _uidByProductId.remove(r.id); }
@@ -370,22 +302,10 @@ class CheckoutController extends GetxController {
     _showSnackbar('Redirecting'.tr, 'Redirecting to payment page'.tr);
     final result = await Get.to<PaymentPageResult?>(() => OrderPayWebView(initialUrl: responseUrl, successUrlContains: const ['payment/success','payment-success','status=success','payment_status=success','redirect_status=succeeded','succeeded','success=true','paid'], cancelUrlContains: const ['payment/cancel','payment-cancel','status=cancel','status=cancelled','payment_status=cancelled','canceled','cancelled'], failedUrlContains: const ['payment/fail','payment/failed','payment-error','status=failed','status=error','payment_status=failed'], pendingUrlContains: const ['pending','processing','awaiting']));
     if (Get.context == null) return;
-    switch (result?.status) {
-      case PaymentPageResultStatus.success: await _afterOrderSuccess(orderId); break;
-      default: _showSnackbar('Payment'.tr, 'Payment was not completed'.tr);
-    }
+    switch (result?.status) { case PaymentPageResultStatus.success: await _afterOrderSuccess(orderId); default: _showSnackbar('Payment'.tr, 'Payment was not completed'.tr); }
   }
 
-  Future<void> _afterOrderSuccess(int? orderId) async {
-    if (orderId == null || orderId <= 0) { _showSnackbar('Orders'.tr, 'Could not find order id'.tr); return; }
-    _clearAfterOrder();
-    if (Get.isRegistered<CartController>()) Get.find<CartController>().clearAfterOrder();
-    _loadWalletSummary();
-    if (Get.isRegistered<CustomerDashboardController>()) Get.find<CustomerDashboardController>().fetchDashboard();
-    _showSnackbar('Order placed successfully'.tr, 'Thank you'.tr);
-    _goToOrderSummary(orderId);
-  }
-
+  Future<void> _afterOrderSuccess(int? orderId) async { if (orderId == null || orderId <= 0) { _showSnackbar('Orders'.tr, 'Could not find order id'.tr); return; } _clearAfterOrder(); if (Get.isRegistered<CartController>()) Get.find<CartController>().clearAfterOrder(); _loadWalletSummary(); if (Get.isRegistered<CustomerDashboardController>()) Get.find<CustomerDashboardController>().fetchDashboard(); _showSnackbar('Order placed successfully'.tr, 'Thank you'.tr); _goToOrderSummary(orderId); }
   void _goToOrderSummary(int orderId) => Get.offNamed(AppRoutes.orderSummaryView, arguments: orderId);
   String _extractRedirectUrl(Map<String, dynamic> resp) { final u = (resp['redirect_url'] ?? resp['response_url'] ?? '').toString().trim(); return u.isEmpty || u.toLowerCase() == 'none' || u.toLowerCase() == 'null' ? '' : u; }
   int? _extractOrderId(Map<String, dynamic> resp) { final d = resp['order_id']; if (d is int) return d; if (d is String) { final p = int.tryParse(d); if (p != null) return p; } try { final dt = resp['data']; if (dt is Map && dt['order_id'] != null) { final v = dt['order_id']; if (v is int) return v; if (v is String) return int.tryParse(v); } } catch (_) {} return null; }
@@ -399,19 +319,7 @@ class CheckoutController extends GetxController {
   final TextEditingController bankTransactionIdCtrl = TextEditingController();
   final RxnString bankReceiptImagePath = RxnString();
 
-  bool _validateBankFields() {
-    if (!isBankPaymentSelected) return true;
-    final missing = <String>[];
-    if (bankNameCtrl.text.trim().isEmpty) missing.add('Bank name');
-    if (bankBranchCtrl.text.trim().isEmpty) missing.add('Branch name');
-    if (bankAccountNumberCtrl.text.trim().isEmpty) missing.add('Account number');
-    if (bankAccountNameCtrl.text.trim().isEmpty) missing.add('Account name');
-    if (bankTransactionIdCtrl.text.trim().isEmpty) missing.add('Transaction number');
-    if ((bankReceiptImagePath.value ?? '').isEmpty) missing.add('Receipt');
-    if (missing.isNotEmpty) { _showSnackbar('Bank Payment'.tr, '${missing.join(', ')} required'); return false; }
-    return true;
-  }
-
+  bool _validateBankFields() { if (!isBankPaymentSelected) return true; final m = <String>[]; if (bankNameCtrl.text.trim().isEmpty) m.add('Bank name'); if (bankBranchCtrl.text.trim().isEmpty) m.add('Branch name'); if (bankAccountNumberCtrl.text.trim().isEmpty) m.add('Account number'); if (bankAccountNameCtrl.text.trim().isEmpty) m.add('Account name'); if (bankTransactionIdCtrl.text.trim().isEmpty) m.add('Transaction number'); if ((bankReceiptImagePath.value ?? '').isEmpty) m.add('Receipt'); if (m.isNotEmpty) { _showSnackbar('Bank Payment'.tr, '${m.join(', ')} required'); return false; } return true; }
   void resetBankForm() { bankAccountNameCtrl.clear(); bankAccountNumberCtrl.clear(); bankNameCtrl.clear(); bankBranchCtrl.clear(); bankTransactionIdCtrl.clear(); bankReceiptImagePath.value = null; }
 
   @override
