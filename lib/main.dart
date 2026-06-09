@@ -86,15 +86,22 @@ void _handleDeepLink(Uri uri, GetStorage box) {
   } else if (uri.host == 'cart') {
     _navigateOrStore('cart', box);
   } else if (uri.host == 'wallet') {
-    _navigateOrStore('wallet', box);
+    box.write('deep_link_wallet', true);
+    box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
   } else if (uri.host == 'refunds') {
     _navigateOrStore('refunds', box);
   } else if (uri.host == 'order' && uri.pathSegments.isNotEmpty) {
     final orderId = int.tryParse(uri.pathSegments.first) ?? 0;
-    if (orderId > 0) box.write('deep_link_order_id', orderId);
+    if (orderId > 0) {
+      box.write('deep_link_order_id', orderId);
+      box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+    }
   } else if (uri.host == 'refund' && uri.pathSegments.isNotEmpty) {
     final refundId = int.tryParse(uri.pathSegments.first) ?? 0;
-    if (refundId > 0) box.write('deep_link_refund_id', refundId);
+    if (refundId > 0) {
+      box.write('deep_link_refund_id', refundId);
+      box.write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
+    }
   } else {
     final token = uri.queryParameters['u'] ?? '';
     if (token.isNotEmpty) {
@@ -231,6 +238,7 @@ Future<void> main() async {
         final id = int.tryParse(orderId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_order_id', id);
+          GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
           Get.toNamed(AppRoutes.myOrderDetailsView,
               arguments: {'order_id': id});
         }
@@ -241,6 +249,7 @@ Future<void> main() async {
         final id = int.tryParse(refundId) ?? 0;
         if (id > 0) {
           GetStorage().write('deep_link_refund_id', id);
+          GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
           Get.toNamed(AppRoutes.refundRequestDetailsView,
               arguments: id);
         }
@@ -249,6 +258,7 @@ Future<void> main() async {
         }
       } else if (type == 'wallet') {
         GetStorage().write('deep_link_wallet', true);
+        GetStorage().write('_last_active_time', DateTime.now().millisecondsSinceEpoch);
         if (Get.isRegistered<NotificationController>()) {
           Get.find<NotificationController>().refreshList();
         }
