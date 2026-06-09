@@ -218,7 +218,10 @@ class CheckoutController extends GetxController {
     else { wp = 2; pid = selectedPaymentMethodId.value; if (pid == null) { _showSnackbar('Payment'.tr, 'Please choose a payment method'.tr); return; } if (!_validateBankFields()) return; }
     final body = <String, dynamic>{'payment_id': pid, 'note': noteCtrl.text.trim(), 'wallet_payment': wp, 'origin': 'app', 'billing_address': (selectedBillingId.value ?? 0).toString(), 'shipping_address': (selectedShippingId.value ?? 0).toString(), 'products': _productsJsonForCheckout(), 'coupon_discounts': jsonEncode(appliedCoupons)};
     if (items.any((it) => getProductDeliveryMode(it.uid) == DeliveryMode.pickup)) {
-      final ppId = productPickupId.values.firstWhereOrNull((id) => id != null);
+      int? ppId;
+      for (final id in productPickupId.values) {
+        if (id != null) { ppId = id; break; }
+      }
       if (ppId != null) body['pickup_point'] = ppId.toString();
     }
     if (!useWallet && isBankPaymentSelected) { body['bank_name'] = bankNameCtrl.text.trim(); body['branch_name'] = bankBranchCtrl.text.trim(); body['account_number'] = bankAccountNumberCtrl.text.trim(); body['account_name'] = bankAccountNameCtrl.text.trim(); body['transaction_number'] = bankTransactionIdCtrl.text.trim(); final path = bankReceiptImagePath.value; if (path != null && path.isNotEmpty) body['receipt'] = path; }
