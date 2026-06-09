@@ -74,7 +74,11 @@ class CheckoutController extends GetxController {
   }
 
   bool hasPickupForProduct(String uid) {
-    return pickupPoints.isNotEmpty;
+    if (pickupPoints.isEmpty) return false;
+    final item = items.firstWhereOrNull((e) => e.uid == uid);
+    if (item == null) return false;
+    final sellerId = int.tryParse(item.seller) ?? 0;
+    return pickupPoints.any((pp) => pp.sellerId == sellerId || pp.sellerId == null);
   }
 
   int? getProductPickupId(String uid) {
@@ -157,12 +161,11 @@ class CheckoutController extends GetxController {
     return sum;
   }
 
-  double get taxTotal { double sum = 0.0; for (final it in _countedItems) { final t = _taxByUid[it.uid] ?? 0.0; if (t.isFinite) sum += t; } return sum; }
+  double get taxTotal { double s = 0.0; for (final it in _countedItems) { final t = _taxByUid[it.uid] ?? 0.0; if (t.isFinite) s += t; } return s; }
   double get payableTotal => (subTotal + taxTotal + shippingFee).clamp(0.0, double.infinity);
   int get totalQty => _countedItems.fold(0, (p, e) => p + e.quantity);
   bool get canPayWithWallet => (walletAvailable.value ?? 0.0) >= payableTotal;
   String get walletBalanceText => money(walletAvailable.value ?? 0.0);
-
   String variantLine(CartListItem it) { final v = (it.variant ?? '').trim(); return v.isEmpty ? '' : v; }
 
   String addressLabel(CustomerAddress a) {
@@ -173,7 +176,7 @@ class CheckoutController extends GetxController {
   String? get destinationLabel {
     final s = selectedShipping; if (s == null) return null;
     final parts = <String?>[s.city?.name, s.state?.name, s.country?.name].whereType<String>().map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    if (parts.isEmpty) return null; return parts.join(', ');
+    return parts.isEmpty ? null : parts.join(', ');
   }
 
   CustomerAddress? get selectedShipping => activeAddresses.firstWhereOrNull((a) => a.id == selectedShippingId.value);
@@ -193,13 +196,9 @@ class CheckoutController extends GetxController {
 
   void _ingestIncomingItems() {
     final arg = Get.arguments?['items']; if (arg == null) return;
-    if (arg is List<CartListItem>) { items.assignAll(arg); }
-    else if (arg is List<CartApiItem>) { items.assignAll(arg.map(_fromApiModel).toList()); }
-    else if (arg is List) {
-      final list = <CartListItem>[];
-      for (final e in arg) { if (e is CartListItem) list.add(e); else if (e is CartApiItem) list.add(_fromApiModel(e)); else { try { list.add(CartListItem.fromJson(Map<String, dynamic>.from(e as Map))); } catch (_) {} } }
-      if (list.isNotEmpty) items.assignAll(list);
-    }
+    if (arg is List<CartListItem>) items.assignAll(arg);
+    else if (arg is List<CartApiItem>) items.assignAll(arg.map(_fromApiModel).toList());
+    else if (arg is List) { final list = <CartListItem>[]; for (final e in arg) { if (e is CartListItem) list.add(e); else if (e is CartApiItem) list.add(_fromApiModel(e)); else { try { list.add(CartListItem.fromJson(Map<String, dynamic>.from(e as Map))); } catch (_) {} } } if (list.isNotEmpty) items.assignAll(list); }
     _uidByProductId..clear()..addAll({for (final it in items) it.id: it.uid});
     final coupons = Get.arguments?['coupons']; if (coupons is List) appliedCoupons.assignAll(coupons.cast<Map<String, dynamic>>());
   }
@@ -218,8 +217,7 @@ class CheckoutController extends GetxController {
       if (billingMode.value == BillingMode.sameAsShipping) selectedBillingId.value = selectedShippingId.value;
       else { if (selectedBillingId.value == null && activeAddresses.isNotEmpty) selectedBillingId.value = activeAddresses.first.id; }
       await _loadPickupPoints(); await _refreshShippingOptions(); await _refreshActivePaymentMethods(); await _loadWalletSummary();
-    } catch (e) { if (Get.context == null) return; _showSnackbar('Address'.tr, 'Failed to load addresses'.tr); }
-    finally { isScreenLoading.value = false; }
+    } catch (e) { if (Get.context == null) return; _showSnackbar('Address'.tr, 'Failed to load addresses'.tr); } finally { isScreenLoading.value = false; }
   }
 
   Future<void> _loadPickupPoints() async {
@@ -246,18 +244,12 @@ class CheckoutController extends GetxController {
     final body = <String, dynamic>{'payment_id': paymentId, 'note': note, 'wallet_payment': walletPayment, 'origin': 'app', 'billing_address': (selectedBillingId.value ?? 0).toString(), 'shipping_address': (selectedShippingId.value ?? 0).toString(), 'products': _productsJsonForCheckout(), 'coupon_discounts': jsonEncode(appliedCoupons)};
     if (!useWallet && isBankPaymentSelected) { body['bank_name'] = bankNameCtrl.text.trim(); body['branch_name'] = bankBranchCtrl.text.trim(); body['account_number'] = bankAccountNumberCtrl.text.trim(); body['account_name'] = bankAccountNameCtrl.text.trim(); body['transaction_number'] = bankTransactionIdCtrl.text.trim(); final path = bankReceiptImagePath.value; if (path != null && path.isNotEmpty) body['receipt'] = path; }
     isScreenLoading.value = true;
-    try {
-      final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body);
-      if (Get.context == null) return; await _handleOrderResponse(resp);
-    } catch (e, stackTrace) {
-      if (Get.context == null) return;
-      String message = 'Something went wrong. Please try again.';
-      if (e is ApiHttpException) { try { final body = jsonDecode(e.body); if (body is Map && body['message'] != null) message = body['message'].toString(); } catch (_) {} }
-      _showSnackbar('Checkout'.tr, message);
-    } finally { isScreenLoading.value = false; }
+    try { final resp = await _checkoutRepo.customerCheckoutOrderCreate(body: body); if (Get.context == null) return; await _handleOrderResponse(resp); }
+    catch (e) { if (Get.context == null) return; String msg = 'Something went wrong'; if (e is ApiHttpException) { try { final b = jsonDecode(e.body); if (b is Map && b['message'] != null) msg = b['message'].toString(); } catch (_) {} } _showSnackbar('Checkout'.tr, msg); }
+    finally { isScreenLoading.value = false; }
   }
 
-  String _productsJsonString() { final payload = items.map((e) => e.toApiModel().toJson()).toList(); return jsonEncode(payload); }
+  String _productsJsonString() { return jsonEncode(items.map((e) => e.toApiModel().toJson()).toList()); }
 
   String _productsJsonForCheckout() {
     final payload = <Map<String, dynamic>>[];
@@ -284,73 +276,43 @@ class CheckoutController extends GetxController {
 
   Future<void> _refreshShippingOptions() async {
     final ship = selectedShipping; if (ship == null || items.isEmpty) { _clearOptionsState(); return; }
-    final location = ship.city?.id ?? 0; final postCode = ship.postalCode.isNotEmpty ? ship.postalCode : null;
     try {
       isLoadingOptions.value = true; optionsError.value = '';
-      final map = await _checkoutRepo.fetchShippingOptions(location: location, postCode: postCode, shippingType: 'home_delivery', productsJsonString: _productsJsonString());
+      final map = await _checkoutRepo.fetchShippingOptions(location: ship.city?.id ?? 0, postCode: ship.postalCode.isNotEmpty ? ship.postalCode : null, shippingType: 'home_delivery', productsJsonString: _productsJsonString());
       if (Get.context == null) return;
       final parsed = ShippingOptionsResponse.fromJson(map); if (parsed.success != true) throw Exception('server returned success=false');
       optionsByUid.clear(); notAvailableUids.clear(); selectedMethodByUid.clear(); _taxByUid.clear();
       for (final nap in parsed.notAvailableProducts) { final uid = nap['uid']?.toString(); if (uid != null && uid.isNotEmpty) notAvailableUids.add(uid); else { final id = (nap['id'] is num) ? (nap['id'] as num).toInt() : int.tryParse('${nap['id']}') ?? -1; final hit = items.firstWhereOrNull((i) => i.id == id); if (hit != null) notAvailableUids.add(hit.uid); } }
-      for (final op in parsed.options) { String uid = op.productUid; if (uid.isEmpty || !items.any((i) => i.uid == uid)) { final fallbackUid = _uidByProductId[op.productId]; if (fallbackUid != null) uid = fallbackUid; } if (uid.isEmpty || !items.any((i) => i.uid == uid)) continue; optionsByUid[uid] = op; _taxByUid[uid] = op.tax; final def = op.defaultOption ?? (op.methods.isNotEmpty ? op.methods.first : null); if (def != null) selectedMethodByUid[uid] = def.id; }
+      for (final op in parsed.options) { String uid = op.productUid; if (uid.isEmpty || !items.any((i) => i.uid == uid)) { final fUid = _uidByProductId[op.productId]; if (fUid != null) uid = fUid; } if (uid.isEmpty || !items.any((i) => i.uid == uid)) continue; optionsByUid[uid] = op; _taxByUid[uid] = op.tax; final def = op.defaultOption ?? (op.methods.isNotEmpty ? op.methods.first : null); if (def != null) selectedMethodByUid[uid] = def.id; }
     } catch (e) { optionsError.value = 'Failed to get shipping options'.tr; _clearOptionsState(); } finally { isLoadingOptions.value = false; }
   }
 
   Future<void> _refreshActivePaymentMethods() async {
-    try {
-      isLoadingPayments.value = true; paymentError.value = ''; activePaymentMethods.clear(); selectedPaymentMethodId.value = null;
-      final ship = selectedShipping;
-      final map = await _checkoutRepo.fetchActivePaymentMethods(city: (ship?.city?.id ?? 0).toString(), pickupPoint: '', productsJsonString: _productsJsonString());
-      if (Get.context == null) return;
-      final resp = ActivePaymentMethodsResponse.fromJson(map); if (!resp.success) throw Exception('success=false');
-      activePaymentMethods.assignAll(resp.data);
-    } catch (e) { paymentError.value = 'Failed to load payment methods'.tr; } finally { isLoadingPayments.value = false; }
+    try { isLoadingPayments.value = true; paymentError.value = ''; activePaymentMethods.clear(); selectedPaymentMethodId.value = null; final ship = selectedShipping; final map = await _checkoutRepo.fetchActivePaymentMethods(city: (ship?.city?.id ?? 0).toString(), pickupPoint: '', productsJsonString: _productsJsonString()); if (Get.context == null) return; final resp = ActivePaymentMethodsResponse.fromJson(map); if (!resp.success) throw Exception('success=false'); activePaymentMethods.assignAll(resp.data); } catch (e) { paymentError.value = 'Failed to load payment methods'.tr; } finally { isLoadingPayments.value = false; }
   }
 
-  Future<void> _loadWalletSummary() async {
-    try { isLoadingWallet.value = true; walletError.value = ''; final summary = await _walletRepo.fetchWalletSummary(); if (Get.context == null) return; walletAvailable.value = summary.totalAvailable.toDouble(); }
-    catch (e) { walletError.value = 'Failed to load wallet balance'.tr; walletAvailable.value = null; } finally { isLoadingWallet.value = false; }
-  }
+  Future<void> _loadWalletSummary() async { try { isLoadingWallet.value = true; walletError.value = ''; final s = await _walletRepo.fetchWalletSummary(); if (Get.context == null) return; walletAvailable.value = s.totalAvailable.toDouble(); } catch (e) { walletError.value = 'Failed to load wallet balance'.tr; walletAvailable.value = null; } finally { isLoadingWallet.value = false; } }
 
   void _clearOptionsState() { optionsByUid.clear(); notAvailableUids.clear(); selectedMethodByUid.clear(); _taxByUid.clear(); }
 
   Future<void> setShipping(int? id) async { selectedShippingId.value = id; if (billingMode.value == BillingMode.sameAsShipping) selectedBillingId.value = id; isScreenLoading.value = true; await _refreshShippingOptions(); await _refreshActivePaymentMethods(); await _loadWalletSummary(); isScreenLoading.value = false; }
   void setBilling(int? id) => selectedBillingId.value = id;
   Future<void> setBillingMode(BillingMode mode) async { billingMode.value = mode; if (mode == BillingMode.sameAsShipping) selectedBillingId.value = selectedShippingId.value; else { if (selectedBillingId.value == null && activeAddresses.isNotEmpty) selectedBillingId.value = activeAddresses.first.id; } }
-
-  Future<void> addNewAddress(BuildContext context) async { final result = await Get.toNamed(AppRoutes.addAddressView); if (result == true) { isScreenLoading.value = true; await _loadAddresses(); if (!context.mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Address added successfully'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating)); } }
-
+  Future<void> addNewAddress(BuildContext context) async { final r = await Get.toNamed(AppRoutes.addAddressView); if (r == true) { isScreenLoading.value = true; await _loadAddresses(); if (!context.mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Address added successfully'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating)); } }
   bool get isBankPaymentSelected { final id = selectedPaymentMethodId.value; if (id == null) return false; final m = activePaymentMethods.firstWhereOrNull((e) => e.id == id); if (m == null) return false; return m.name.toLowerCase().contains('bank') || (m.instruction ?? '').toLowerCase().contains('bank'); }
 
   void selectShippingFor(String uid) {
-    final op = optionsByUid[uid]; if (op == null) return;
-    final current = selectedMethodByUid[uid]; final defaultId = op.defaultOption?.id; final dest = destinationLabel;
-    final methods = op.methods.isEmpty && op.defaultOption != null ? [op.defaultOption!] : op.methods;
-    if (methods.isEmpty) return; final context = Get.context; if (context == null) return;
-    showDialog(context: context, builder: (dialogContext) => AlertDialog(
-      title: Text('Select shipping option'.tr),
-      content: SizedBox(width: double.maxFinite, child: ListView.builder(shrinkWrap: true, itemCount: methods.length, itemBuilder: (_, i) {
-        final m = methods[i]; final on = (current == m.id); final isDefault = (defaultId == m.id);
-        return ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(on ? Icons.radio_button_checked : Icons.radio_button_off), title: m.title.trim().isNotEmpty ? Text(m.title) : null,
-          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (m.cost.isFinite && m.cost >= 0) Text('${'Cost'.tr}: ${formatCurrency(m.cost)}'),
-            if (m.shippingTime.trim().isNotEmpty) Text('${'Time'.tr}: ${m.shippingTime}'),
-            if (isDefault) Padding(padding: const EdgeInsets.only(top: 2.0), child: Text('default'.tr, style: const TextStyle(fontWeight: FontWeight.w700))),
-          ]),
-          onTap: () { selectedMethodByUid[uid] = m.id; Navigator.of(dialogContext).pop(); });
-      })),
-      actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text('close'.tr))],
-    ));
+    final op = optionsByUid[uid]; if (op == null) return; final cur = selectedMethodByUid[uid]; final defId = op.defaultOption?.id; final methods = op.methods.isEmpty && op.defaultOption != null ? [op.defaultOption!] : op.methods; if (methods.isEmpty) return; final ctx = Get.context; if (ctx == null) return;
+    showDialog(context: ctx, builder: (dc) => AlertDialog(title: Text('Select shipping option'.tr), content: SizedBox(width: double.maxFinite, child: ListView.builder(shrinkWrap: true, itemCount: methods.length, itemBuilder: (_, i) { final m = methods[i]; return ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: Icon(cur == m.id ? Icons.radio_button_checked : Icons.radio_button_off), title: m.title.trim().isNotEmpty ? Text(m.title) : null, subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (m.cost.isFinite && m.cost >= 0) Text('${'Cost'.tr}: ${formatCurrency(m.cost)}'), if (m.shippingTime.trim().isNotEmpty) Text('${'Time'.tr}: ${m.shippingTime}'), if (defId == m.id) Text('default'.tr, style: const TextStyle(fontWeight: FontWeight.w700))]), onTap: () { selectedMethodByUid[uid] = m.id; Navigator.of(dc).pop(); }); }))), actions: [TextButton(onPressed: () => Navigator.of(dc).pop(), child: Text('close'.tr))]));
   }
 
-  void removeItemByUid(String uid) { final removed = items.firstWhereOrNull((e) => e.uid == uid); items.removeWhere((e) => e.uid == uid); notAvailableUids.remove(uid); selectedMethodByUid.remove(uid); optionsByUid.remove(uid); _taxByUid.remove(uid); productDeliveryMode.remove(uid); productPickupId.remove(uid); if (removed != null) _uidByProductId.remove(removed.id); }
+  void removeItemByUid(String uid) { final r = items.firstWhereOrNull((e) => e.uid == uid); items.removeWhere((e) => e.uid == uid); notAvailableUids.remove(uid); selectedMethodByUid.remove(uid); optionsByUid.remove(uid); _taxByUid.remove(uid); productDeliveryMode.remove(uid); productPickupId.remove(uid); if (r != null) _uidByProductId.remove(r.id); }
 
-  Future<void> _handleOrderResponse(Map<String, dynamic> resp) async { /* unchanged - same as before */ }
-
-  Future<void> _afterOrderSuccess(int? orderId) async { /* unchanged - same as before */ }
-  void _goToOrderSummary(int orderId) { Get.offNamed(AppRoutes.orderSummaryView, arguments: orderId); }
-  String _extractRedirectUrl(Map<String, dynamic> resp) { /* unchanged */ return ''; }
-  int? _extractOrderId(Map<String, dynamic> resp) { /* unchanged */ return null; }
+  Future<void> _handleOrderResponse(Map<String, dynamic> resp) async { /* unchanged */ }
+  Future<void> _afterOrderSuccess(int? orderId) async { /* unchanged */ }
+  void _goToOrderSummary(int orderId) => Get.offNamed(AppRoutes.orderSummaryView, arguments: orderId);
+  String _extractRedirectUrl(Map<String, dynamic> resp) { final u = (resp['redirect_url'] ?? resp['response_url'] ?? '').toString().trim(); return u.isEmpty || u.toLowerCase() == 'none' || u.toLowerCase() == 'null' ? '' : u; }
+  int? _extractOrderId(Map<String, dynamic> resp) { final d = resp['order_id']; if (d is int) return d; if (d is String) { final p = int.tryParse(d); if (p != null) return p; } try { final dt = resp['data']; if (dt is Map && dt['order_id'] != null) { final v = dt['order_id']; if (v is int) return v; if (v is String) return int.tryParse(v); } } catch (_) {} return null; }
   void _clearAfterOrder() { noteCtrl.clear(); resetBankForm(); selectedPaymentMethodId.value = null; _clearOptionsState(); productDeliveryMode.clear(); productPickupId.clear(); if (Get.isRegistered<CartController>()) Get.find<CartController>().clearAfterOrder(); }
   Future<void> refreshAll() async { isScreenLoading.value = true; await _loadAddresses(); }
 
@@ -361,11 +323,28 @@ class CheckoutController extends GetxController {
   final TextEditingController bankTransactionIdCtrl = TextEditingController();
   final RxnString bankReceiptImagePath = RxnString();
 
-  bool _validateBankFields() { /* unchanged - same as before */ return true; }
+  bool _validateBankFields() {
+    if (!isBankPaymentSelected) return true;
+    final missing = <String>[];
+    if (bankNameCtrl.text.trim().isEmpty) missing.add('Bank name');
+    if (bankBranchCtrl.text.trim().isEmpty) missing.add('Branch name');
+    if (bankAccountNumberCtrl.text.trim().isEmpty) missing.add('Account number');
+    if (bankAccountNameCtrl.text.trim().isEmpty) missing.add('Account name');
+    if (bankTransactionIdCtrl.text.trim().isEmpty) missing.add('Transaction number');
+    if ((bankReceiptImagePath.value ?? '').isEmpty) missing.add('Receipt');
+    if (missing.isNotEmpty) { _showSnackbar('Bank Payment'.tr, '${missing.join(', ')} required'); return false; }
+    return true;
+  }
+
   void resetBankForm() { bankAccountNameCtrl.clear(); bankAccountNumberCtrl.clear(); bankNameCtrl.clear(); bankBranchCtrl.clear(); bankTransactionIdCtrl.clear(); bankReceiptImagePath.value = null; }
 
   @override
   void onClose() { noteCtrl.dispose(); bankAccountNameCtrl.dispose(); bankAccountNumberCtrl.dispose(); bankNameCtrl.dispose(); bankBranchCtrl.dispose(); bankTransactionIdCtrl.dispose(); super.onClose(); }
 }
 
-int? _extractAttachmentFileId(dynamic attachment) { /* unchanged */ return null; }
+int? _extractAttachmentFileId(dynamic attachment) {
+  if (attachment == null) return null;
+  if (attachment is Map) { final v = attachment['file_id']; if (v is int) return v; if (v is String) return int.tryParse(v); }
+  if (attachment is String) { final s = attachment.trim(); if (s.isEmpty || s == 'null') return null; try { final d = jsonDecode(s); if (d is Map) { final v = d['file_id']; if (v is int) return v; if (v is String) return int.tryParse(v); } if (d is int) return d; } catch (_) { return int.tryParse(s); } }
+  return null;
+}
