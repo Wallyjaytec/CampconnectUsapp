@@ -171,9 +171,9 @@ class OrderProductItem {
   double get lineTotal => unitPrice * quantity;
 
   String get shippingLabel {
-    if (deliveryMode == 'pickup') return '';
-    // Only show shipping details if order has been shipped/delivered
-    if (deliveryStatus == '2' || deliveryStatus == '3') {
+    if (deliveryMode == 'pickup') return 'N/A';
+    // Only show shipping details if order has been shipped
+    if (deliveryStatus == '3') {
       if (shippingType == 'driver') return 'Local Driver';
       if (carrierName != null && carrierName!.isNotEmpty) return carrierName!;
       if (shippingName != null && shippingName!.isNotEmpty) return shippingName!;
