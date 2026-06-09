@@ -115,9 +115,30 @@ class MyOrderDetailsView extends StatelessWidget {
       _productActions(context, p, delivered),
       const SizedBox(height: 10),
       if (isPickup && p.pickupPoint != null)
-        _PackageAddress(icon: Iconsax.location, title: 'Pickup Point'.tr, lines: [p.pickupPoint!.name, p.pickupPoint!.phone, p.pickupPoint!.location, p.pickupPoint!.zoneName])
+        _PackageAddress(
+          icon: Iconsax.location,
+          title: 'Pickup Point'.tr,
+          fields: {
+            'Name'.tr: p.pickupPoint!.name,
+            'Phone'.tr: p.pickupPoint!.phone,
+            'Address'.tr: p.pickupPoint!.location,
+            'Zone'.tr: p.pickupPoint!.zoneName,
+          },
+        )
       else
-        _PackageAddress(icon: Iconsax.truck_fast, title: 'Home Delivery'.tr, lines: [d.shippingDetails.name, d.shippingDetails.phone, d.shippingDetails.address, '${d.shippingDetails.city}, ${d.shippingDetails.state}, ${d.shippingDetails.country}']),
+        _PackageAddress(
+          icon: Iconsax.truck_fast,
+          title: 'Shipping Address'.tr,
+          fields: {
+            'Name'.tr: d.shippingDetails.name,
+            'Phone'.tr: d.shippingDetails.phone,
+            'Address'.tr: d.shippingDetails.address,
+            'City'.tr: d.shippingDetails.city,
+            'State'.tr: d.shippingDetails.state,
+            'Postal Code'.tr: d.shippingDetails.postalCode,
+            'Country'.tr: d.shippingDetails.country,
+          },
+        ),
       if (p.canCancel == 1 && !delivered) Align(alignment: Alignment.centerRight, child: OutlinedButton(onPressed: () => c.cancelItem(p.id), style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)), child: Text('Cancel Order'.tr))),
     ]));
   }
@@ -135,21 +156,11 @@ class MyOrderDetailsView extends StatelessWidget {
         if (hasAttachmentText)
           InkWell(
             onTap: canOpenAttachment ? () => _openAttachment(context, attachmentPath!) : null,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    'View attachment'.tr,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Iconsax.document_copy, size: 14, color: AppColors.greyColor),
+              const SizedBox(width: 4),
+              Flexible(child: Text('View attachment'.tr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primaryColor, fontSize: 13))),
+            ]),
           ),
       ])),
     ]);
@@ -194,14 +205,24 @@ class MyOrderDetailsView extends StatelessWidget {
 }
 
 class _PackageAddress extends StatelessWidget {
-  final IconData icon; final String title; final List<String> lines;
-  const _PackageAddress({required this.icon, required this.title, required this.lines});
+  final IconData icon;
+  final String title;
+  final Map<String, String> fields;
+  const _PackageAddress({required this.icon, required this.title, required this.fields});
   @override
   Widget build(BuildContext context) {
-    return Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(8)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(icon, size: 16, color: AppColors.primaryColor), const SizedBox(width: 8),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)), const SizedBox(height: 4), ...lines.where((l) => l.trim().isNotEmpty).map((l) => Text(l, style: const TextStyle(fontSize: 12, color: AppColors.greyColor)))])),
-    ]));
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(8)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(icon, size: 16, color: AppColors.primaryColor), const SizedBox(width: 8),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+          const SizedBox(height: 4),
+          ...fields.entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 2), child: Text('${e.key}: ${e.value}', style: const TextStyle(fontSize: 12, color: AppColors.greyColor)))),
+        ])),
+      ]),
+    );
   }
 }
 
