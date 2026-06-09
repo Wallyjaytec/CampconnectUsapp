@@ -4,6 +4,7 @@ import '../../../core/services/follow_store_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
@@ -128,6 +129,23 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> _syncLanguageToServer(String apiCode) async {
+    try {
+      final token = storage.token;
+      if (token == null || token.isEmpty) return;
+      final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/ecommerce-core/customer/update-language');
+      await http.post(
+        uri,
+        headers: {
+          'Authorization': '${storage.tokenType} $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'language': apiCode}),
+      );
+    } catch (_) {}
+  }
+
   Future<void> register() async {
     if (!isRemember.value) {
       _showSnackbar('Terms'.tr, 'You must accept the terms and conditions'.tr);
@@ -223,6 +241,13 @@ class AuthController extends GetxController {
       }
       storage.saveLoginUser(loginRes.user);
       storage.saveDashboardContent(loginRes.dashboardContent);
+      
+      // Sync language preference to server
+      final box = GetStorage();
+      final savedLang = box.read<String>('selected_language_api_code');
+      if (savedLang != null && savedLang.isNotEmpty) {
+        _syncLanguageToServer(savedLang);
+      }
       
       // Link OneSignal subscription to user ID
       final userId = loginRes.user?.id;
