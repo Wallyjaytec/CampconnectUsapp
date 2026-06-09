@@ -495,7 +495,7 @@ class CheckoutView extends GetView<CheckoutController> {
                     const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      (m.name).trim().tr.tr,
+                      (m.name).trim().tr,
                       maxLines: 1,
                       overflow:
                           TextOverflow.ellipsis,
