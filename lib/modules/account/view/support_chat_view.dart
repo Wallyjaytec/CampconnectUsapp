@@ -75,10 +75,10 @@ class _SupportChatViewState extends State<SupportChatView>
   void initState() {
     super.initState();
 
-    _typingAnimCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
-    _dot1 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.4)));
-    _dot2 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.2, 0.6)));
-    _dot3 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.4, 0.8)));
+    _typingAnimCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+    _dot1 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.33)));
+    _dot2 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.33, 0.66)));
+    _dot3 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.66, 1.0)));
 
     final args = Get.arguments;
     if (args is Map) {
@@ -140,18 +140,19 @@ class _SupportChatViewState extends State<SupportChatView>
   }
 
   void _startTypingAnimation() {
-    _typingAnimCtrl.repeat(reverse: true);
+    _typingAnimCtrl.repeat();
     _playTypingSound();
   }
 
   void _stopTypingAnimation() {
     _typingAnimCtrl.stop();
+    _typingAnimCtrl.reset();
     _stopTypingSound();
   }
 
   void _playTypingSound() {
     try {
-      _audioPlayer.setSource(AssetSource('sounds/typing_sounds.m4a'));
+      _audioPlayer.setSource(AssetSource('sounds/typing_sound.m4a'));
       _audioPlayer.setReleaseMode(ReleaseMode.loop);
       _audioPlayer.resume();
     } catch (_) {}
@@ -213,13 +214,25 @@ class _SupportChatViewState extends State<SupportChatView>
             _history.add({'role': 'assistant', 'content': data['reply']});
             if (data['action'] == 'agent_closed') _chatEnded = true;
           });
+        } else {
+          setState(() {
+            _stopTypingAnimation();
+            _isTyping = false;
+            _messages.add({'role': 'bot', 'text': 'Sorry, I could not process that. Please try again.'.tr, 'time': DateTime.now()});
+          });
         }
+      } else {
+        setState(() {
+          _stopTypingAnimation();
+          _isTyping = false;
+          _messages.add({'role': 'bot', 'text': 'Sorry, something went wrong. Please try again.'.tr, 'time': DateTime.now()});
+        });
       }
-    } catch (_) {
+    } catch (e) {
       setState(() {
         _stopTypingAnimation();
         _isTyping = false;
-        _messages.add({'role': 'bot', 'text': 'Sorry, something went wrong. Please try again.'.tr, 'time': DateTime.now()});
+        _messages.add({'role': 'bot', 'text': 'Sorry, something went wrong. Please check your connection.'.tr, 'time': DateTime.now()});
       });
     }
 
@@ -359,7 +372,7 @@ class _SupportChatViewState extends State<SupportChatView>
     final userTextColor = isDark ? Colors.white : Colors.grey.shade900;
     final botTextColor = isDark ? Colors.white : Colors.grey.shade900;
     final botBubbleColor = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200;
-    final userBubbleColor = isDark ? AppColors.primaryColor.withValues(alpha: 0.3) : AppColors.primaryColor.withValues(alpha: 0.15);
+    final userBubbleColor = isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -592,9 +605,9 @@ class _SupportChatViewState extends State<SupportChatView>
               animation: _typingAnimCtrl,
               builder: (ctx, child) {
                 return Row(mainAxisSize: MainAxisSize.min, children: [
-                  _buildDot(_dot1, 0), const SizedBox(width: 4),
-                  _buildDot(_dot2, 1), const SizedBox(width: 4),
-                  _buildDot(_dot3, 2),
+                  _buildDot(_dot1), const SizedBox(width: 4),
+                  _buildDot(_dot2), const SizedBox(width: 4),
+                  _buildDot(_dot3),
                 ]);
               },
             ),
@@ -604,17 +617,17 @@ class _SupportChatViewState extends State<SupportChatView>
     );
   }
 
-  Widget _buildDot(Animation<double> anim, int index) {
+  Widget _buildDot(Animation<double> anim) {
     return AnimatedBuilder(
       animation: anim,
       builder: (ctx, child) {
-        final offset = sin((anim.value * 2 * pi));
+        final offset = anim.value * 4;
         return Transform.translate(
-          offset: Offset(0, offset * 3),
+          offset: Offset(0, offset),
           child: Container(
             width: 7, height: 7,
             decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.3 + (anim.value * 0.7)),
+              color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)),
               shape: BoxShape.circle,
             ),
           ),
