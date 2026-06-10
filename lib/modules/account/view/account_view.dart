@@ -353,6 +353,8 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.headphone, "Customer Support".tr, () => Get.toNamed(AppRoutes.supportView)),
                     _menuItem(Iconsax.message_add, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.lamp_on, "Request Feature".tr, () => Get.toNamed(AppRoutes.requestFeatureView)),
+                    _menuItem(Iconsax.message_question, "F.A.Q".tr, () => Get.toNamed(AppRoutes.faqView)),
+                    _menuItem(Iconsax.clipboard_text, "Return Policy".tr, () => Get.toNamed(AppRoutes.returnPolicyView)),
                     _menuItem(Iconsax.message_question, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
                     _menuItem(Iconsax.info_circle, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
                     _menuItem(Iconsax.profile_delete, "Close Account".tr, () => _showCloseAccountDialog()),
@@ -400,6 +402,8 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.headphone, "Customer Support".tr, () => _showLoginPrompt(redirectTo: AppRoutes.supportView)),
                     _menuItem(Iconsax.message_add, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.lamp_on, "Request Feature".tr, () => Get.toNamed(AppRoutes.requestFeatureView)),
+                    _menuItem(Iconsax.message_question, "F.A.Q".tr, () => Get.toNamed(AppRoutes.faqView)),
+                    _menuItem(Iconsax.clipboard_text, "Return Policy".tr, () => Get.toNamed(AppRoutes.returnPolicyView)),
                     _menuItem(Iconsax.message_question, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
                     _menuItem(Iconsax.info_circle, "Terms and Conditions".tr, () => Get.toNamed(AppRoutes.termsConditionsView)),
                     _menuItem(Iconsax.user_add, "Register".tr, () => Get.toNamed(AppRoutes.signupView)),
@@ -461,7 +465,7 @@ class _HeaderTexts extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isLoggedIn) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Guest User'.tr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+        Text('Welcome Guest User'.tr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
         Text('Please login to manage your account'.tr, style: const TextStyle(fontSize: 14, color: Colors.white70)),
       ]);
     }
