@@ -49,6 +49,7 @@ dependencies:
   app_settings: ^5.1.1
   package_info_plus: ^8.1.2
   local_auth: ^2.3.0
+  audioplayers: ^6.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -67,6 +68,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/logo/
+    - assets/sounds/
     - assets/countries.json
   fonts:
     - family: Roboto
