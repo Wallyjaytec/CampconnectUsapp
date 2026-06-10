@@ -212,6 +212,15 @@ class CheckoutController extends GetxController {
     if (_countedItems.isEmpty) { _showSnackbar('Checkout'.tr, 'No items to checkout'.tr); return; }
     if (selectedShipping == null) { _showSnackbar('Address'.tr, 'Please select a shipping address'.tr); return; }
     if (selectedBilling == null) { _showSnackbar('Address'.tr, 'Please select a billing address'.tr); return; }
+    for (final it in _countedItems) {
+      if (getProductDeliveryMode(it.uid) == DeliveryMode.pickup) {
+        final ppId = getProductPickupId(it.uid);
+        if (ppId == null || ppId == 0) {
+          _showSnackbar('Pickup'.tr, 'Please select a pickup point for all pickup items'.tr);
+          return;
+        }
+      }
+    }
     if (useWallet && !canPayWithWallet) { _showSnackbar('Wallet'.tr, 'Insufficient wallet balance'.tr); return; }
     late int wp; int? pid;
     if (useWallet) { wp = 1; pid = 2; }
