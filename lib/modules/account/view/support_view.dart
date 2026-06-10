@@ -45,37 +45,49 @@ class SupportView extends StatelessWidget {
         centerTitle: false,
         titleSpacing: 0,
         title: Text('Customer Support'.tr,
-            style:
-                const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
+            style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
       body: Column(
         children: [
           Expanded(
-            child: hasHistory
-                ? _buildHistory(context, chats)
-                : _buildWelcome(),
+            child: hasHistory ? _buildHistory(context, chats) : _buildWelcome(),
           ),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Get.toNamed(AppRoutes.supportChatView);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                children: [
+                  if (hasHistory)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: OutlinedButton(
+                          onPressed: () => Get.toNamed(AppRoutes.supportHistoryView),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppColors.primaryColor),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text('Chat History'.tr,
+                              style: const TextStyle(color: AppColors.primaryColor, fontSize: 14)),
+                        ),
+                      ),
+                    ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => Get.toNamed(AppRoutes.supportChatView),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text('New Conversation'.tr,
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                    ),
                   ),
-                  child: Text('New Conversation'.tr,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600)),
-                ),
+                ],
               ),
             ),
           ),
@@ -93,8 +105,7 @@ class SupportView extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(50),
-              child: Image.asset('assets/icons/customer_support.png',
-                  width: 80, height: 80),
+              child: Image.asset('assets/icons/customer_support.png', width: 80, height: 80),
             ),
             const SizedBox(height: 12),
             Row(
@@ -103,20 +114,17 @@ class SupportView extends StatelessWidget {
                 Flexible(
                   child: Text('CampConnectUs Virtual Assistant'.tr,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(width: 4),
-                Image.asset('assets/images/verifybadge.png',
-                    width: 18, height: 18),
+                Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
               ],
             ),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 16),
             Text(
-              "👋 Welcome! We're here to help you with any issue you're facing. Take a deep breath, we'll sort everything out together."
-                  .tr,
+              "👋 Welcome! We're here to help you with any issue you're facing. Take a deep breath, we'll sort everything out together.".tr,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
@@ -124,8 +132,7 @@ class SupportView extends StatelessWidget {
             _buildSuggestions(),
             const SizedBox(height: 16),
             Text(
-              'Tap below to start a new conversation with our virtual assistant.'
-                  .tr,
+              'Tap below to start a new conversation with our virtual assistant.'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
@@ -150,13 +157,8 @@ class SupportView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '💡 ${'Frequently Asked'.tr}',
-          style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700),
-        ),
+        Text('💡 ${'Frequently Asked'.tr}',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -165,12 +167,9 @@ class SupportView extends StatelessWidget {
             return ActionChip(
               label: Text(s.tr, style: const TextStyle(fontSize: 11)),
               onPressed: () => _startChatWithSuggestion(s),
-              backgroundColor:
-                  AppColors.primaryColor.withValues(alpha: 0.08),
-              side: BorderSide(
-                  color: AppColors.primaryColor.withValues(alpha: 0.2)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
+              side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             );
           }).toList(),
         ),
@@ -186,23 +185,16 @@ class SupportView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Text('Chat History'.tr,
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700)),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
           ),
         ),
         ...chats.reversed.map((chat) {
           final lastMsg = chat['last_message'] ?? '';
-          final time = chat['time'] != null
-              ? _formatTime(DateTime.parse(chat['time']))
-              : '';
+          final time = chat['time'] != null ? _formatTime(DateTime.parse(chat['time'])) : '';
 
           return InkWell(
             onTap: () {
-              final messages =
-                  (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ??
-                      [];
+              final messages = (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ?? [];
               Get.toNamed(AppRoutes.supportChatView, arguments: messages);
             },
             child: Container(
@@ -218,8 +210,7 @@ class SupportView extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(25),
-                    child: Image.asset('assets/icons/customer_support.png',
-                        width: 40, height: 40),
+                    child: Image.asset('assets/icons/customer_support.png', width: 40, height: 40),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -228,30 +219,19 @@ class SupportView extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Flexible(
-                              child: Text('CampConnectUs Virtual Assistant',
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600)),
+                            Flexible(
+                              child: Text('CampConnectUs Virtual Assistant'.tr,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                             ),
                             const SizedBox(width: 4),
-                            Image.asset('assets/images/verifybadge.png',
-                                width: 14, height: 14),
+                            Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
                             const Spacer(),
-                            Text(time,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade600)),
+                            Text(time, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          lastMsg.toString(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade600),
-                        ),
+                        Text(lastMsg.toString(), maxLines: 1, overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                       ],
                     ),
                   ),
