@@ -34,9 +34,11 @@ class _SupportChatViewState extends State<SupportChatView>
   bool _isTyping = false;
   bool _chatEnded = false;
   bool _showSuggestions = true;
+  bool _isAgentConnected = false;
   DateTime? _chatStartTime;
   String? _chatId;
   Timer? _timer;
+  Timer? _typingDelayTimer;
 
   late AnimationController _typingAnimCtrl;
   late Animation<double> _dot1;
@@ -69,6 +71,14 @@ class _SupportChatViewState extends State<SupportChatView>
       if (fullName.isNotEmpty) return fullName.split(' ').first;
     } catch (_) {}
     return '';
+  }
+
+  String get _userFullName {
+    try {
+      final ctrl = Get.find<CustomerBasicInfoController>();
+      return ctrl.name.value.trim();
+    } catch (_) {}
+    return 'You'.tr;
   }
 
   @override
@@ -117,6 +127,7 @@ class _SupportChatViewState extends State<SupportChatView>
   @override
   void dispose() {
     _timer?.cancel();
+    _typingDelayTimer?.cancel();
     _typingAnimCtrl.dispose();
     _audioPlayer.dispose();
     _msgCtrl.dispose();
@@ -191,9 +202,16 @@ class _SupportChatViewState extends State<SupportChatView>
     if (prefill == null) _msgCtrl.clear();
     _scrollToBottom();
 
+    // Show typing for 6 seconds minimum
     setState(() => _isTyping = true);
     _startTypingAnimation();
     _scrollToBottom();
+
+    final completer = Completer<void>();
+    _typingDelayTimer = Timer(const Duration(seconds: 6), () => completer.complete());
+    await completer.future;
+
+    if (!mounted) return;
 
     try {
       final uri = Uri.parse(AppConfig.chatbotChatUrl());
@@ -202,7 +220,8 @@ class _SupportChatViewState extends State<SupportChatView>
           body: jsonEncode({
             'message': text,
             'history': _history.sublist(0, max(0, _history.length - 1)),
-          }));
+          }))
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -218,27 +237,31 @@ class _SupportChatViewState extends State<SupportChatView>
           setState(() {
             _stopTypingAnimation();
             _isTyping = false;
-            _messages.add({'role': 'bot', 'text': 'Sorry, I could not process that. Please try again.'.tr, 'time': DateTime.now()});
+            _messages.add({'role': 'bot', 'text': _errorMessage(), 'time': DateTime.now()});
           });
         }
       } else {
         setState(() {
           _stopTypingAnimation();
           _isTyping = false;
-          _messages.add({'role': 'bot', 'text': 'Sorry, something went wrong. Please try again.'.tr, 'time': DateTime.now()});
+          _messages.add({'role': 'bot', 'text': _errorMessage(), 'time': DateTime.now()});
         });
       }
     } catch (e) {
       setState(() {
         _stopTypingAnimation();
         _isTyping = false;
-        _messages.add({'role': 'bot', 'text': 'Sorry, something went wrong. Please check your connection.'.tr, 'time': DateTime.now()});
+        _messages.add({'role': 'bot', 'text': _errorMessage(), 'time': DateTime.now()});
       });
     }
 
     setState(() => _isLoading = false);
     _scrollToBottom();
     _saveChat();
+  }
+
+  String _errorMessage() {
+    return "We're sorry for the inconvenience. Currently we are unable to reply. Please request an agent or contact us on:\n\n📧 support@campconnectus.store\n📞 +2348155763709, +2348144317152\n\nThank you.".tr;
   }
 
   void _saveChat() {
@@ -313,15 +336,21 @@ class _SupportChatViewState extends State<SupportChatView>
   }
 
   void _showCopyOption(String text, Offset position) {
+    HapticFeedback.mediumImpact();
     showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      position: RelativeRect.fromLTRB(position.dx - 80, position.dy - 30, position.dx, position.dy),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      constraints: const BoxConstraints(maxWidth: 100, maxHeight: 35),
       items: [
         PopupMenuItem(
-          child: Row(children: [
-            const Icon(Iconsax.copy_copy, size: 18),
-            const SizedBox(width: 8),
-            Text('Copy'.tr),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          height: 30,
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Iconsax.copy_copy, size: 14, color: Colors.black87),
+            const SizedBox(width: 6),
+            Text('Copy'.tr, style: const TextStyle(fontSize: 12, color: Colors.black87)),
           ]),
           onTap: () {
             Clipboard.setData(ClipboardData(text: text));
@@ -454,6 +483,15 @@ class _SupportChatViewState extends State<SupportChatView>
                     ),
                   ),
                   const SizedBox(width: 6),
+                  if (_isAgentConnected)
+                    Container(
+                      decoration: BoxDecoration(color: AppColors.primaryColor, borderRadius: BorderRadius.circular(25)),
+                      child: IconButton(
+                        icon: const Icon(Iconsax.microphone_2, size: 20, color: Colors.white),
+                        onPressed: () {},
+                      ),
+                    ),
+                  if (_isAgentConnected) const SizedBox(width: 4),
                   Container(
                     decoration: BoxDecoration(color: AppColors.primaryColor, borderRadius: BorderRadius.circular(25)),
                     child: IconButton(
@@ -516,6 +554,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor,
       {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
+    final name = isBot ? 'Luca' : (_userFullName.isNotEmpty ? _userFullName : 'You'.tr);
     if (isBot) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
@@ -528,8 +567,8 @@ class _SupportChatViewState extends State<SupportChatView>
               child: GestureDetector(
                 onLongPressStart: (details) => _showCopyOption(text, details.globalPosition),
                 child: Container(
-                  constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  constraints: BoxConstraints(maxWidth: screenWidth * 0.75, minWidth: 60),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: botBubbleColor,
                     borderRadius: const BorderRadius.only(
@@ -538,6 +577,8 @@ class _SupportChatViewState extends State<SupportChatView>
                     ),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))),
+                    const SizedBox(height: 2),
                     Text(text, style: TextStyle(fontSize: 14, color: botTextColor)),
                     const SizedBox(height: 2),
                     Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
@@ -559,8 +600,8 @@ class _SupportChatViewState extends State<SupportChatView>
               child: GestureDetector(
                 onLongPressStart: (details) => _showCopyOption(text, details.globalPosition),
                 child: Container(
-                  constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  constraints: BoxConstraints(maxWidth: screenWidth * 0.75, minWidth: 60),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: userBubbleColor,
                     borderRadius: const BorderRadius.only(
@@ -569,6 +610,8 @@ class _SupportChatViewState extends State<SupportChatView>
                     ),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))),
+                    const SizedBox(height: 2),
                     Text(text, style: TextStyle(fontSize: 14, color: userTextColor)),
                     const SizedBox(height: 2),
                     Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
