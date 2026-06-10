@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
@@ -9,27 +8,6 @@ import '../../../shared/widgets/back_icon_widget.dart';
 
 class SupportView extends StatelessWidget {
   const SupportView({super.key});
-
-  String _formatTime(DateTime dt) {
-    final now = DateTime.now();
-    final diff = now.difference(dt);
-    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) {
-      return DateFormat('h:mm a').format(dt);
-    }
-    if (diff.inDays == 1) return 'Yesterday'.tr;
-    if (diff.inDays < 7) return '${diff.inDays} ${'days ago'.tr}';
-    return DateFormat('dd/MM/yyyy').format(dt);
-  }
-
-  void _startChatWithSuggestion(String question) {
-    Get.toNamed(AppRoutes.supportChatView, arguments: [
-      {
-        'role': 'user',
-        'text': question,
-        'time': DateTime.now().toIso8601String()
-      }
-    ]);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +27,7 @@ class SupportView extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: hasHistory ? _buildHistory(context, chats) : _buildWelcome(),
-          ),
+          Expanded(child: _buildWelcome()),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -97,9 +73,20 @@ class SupportView extends StatelessWidget {
   }
 
   Widget _buildWelcome() {
+    final suggestions = [
+      'How do I track my order?',
+      'What is the return policy?',
+      'How to request a refund?',
+      'How to recharge my wallet?',
+      'What payment methods are available?',
+      'How to close my account?',
+      'How to report a seller?',
+      'What shipping methods do you offer?',
+    ];
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -129,7 +116,25 @@ class SupportView extends StatelessWidget {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
             const SizedBox(height: 16),
-            _buildSuggestions(),
+            Text('💡 ${'Frequently Asked'.tr}',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: suggestions.map((s) {
+                return ActionChip(
+                  label: Text(s.tr, style: const TextStyle(fontSize: 11)),
+                  onPressed: () {
+                    Get.toNamed(AppRoutes.supportChatView, arguments: [
+                      {'role': 'user', 'text': s, 'time': DateTime.now().toIso8601String()}
+                    ]);
+                  },
+                  backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
+                  side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                );
+              }).toList(),
+            ),
             const SizedBox(height: 16),
             Text(
               'Tap below to start a new conversation with our virtual assistant.'.tr,
@@ -139,114 +144,6 @@ class SupportView extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSuggestions() {
-    final suggestions = [
-      'How do I track my order?',
-      'What is the return policy?',
-      'How to request a refund?',
-      'How to recharge my wallet?',
-      'What payment methods are available?',
-      'How to close my account?',
-      'How to report a seller?',
-      'What shipping methods do you offer?',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('💡 ${'Frequently Asked'.tr}',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: suggestions.map((s) {
-            return ActionChip(
-              label: Text(s.tr, style: const TextStyle(fontSize: 11)),
-              onPressed: () => _startChatWithSuggestion(s),
-              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
-              side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistory(BuildContext context, List chats) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Text('Chat History'.tr,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
-          ),
-        ),
-        ...chats.reversed.map((chat) {
-          final lastMsg = chat['last_message'] ?? '';
-          final time = chat['time'] != null ? _formatTime(DateTime.parse(chat['time'])) : '';
-
-          return InkWell(
-            onTap: () {
-              final messages = (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-              final chatId = chat['id']?.toString();
-              final startTime = chat['chat_start'] != null ? DateTime.parse(chat['chat_start']) : null;
-              Get.toNamed(AppRoutes.supportChatView, arguments: {
-                'messages': messages,
-                'chatId': chatId,
-                'chatStartTime': startTime?.toIso8601String(),
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkCardColor
-                    : AppColors.lightCardColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: Image.asset('assets/icons/customer_support.png', width: 40, height: 40),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text('CampConnectUs Virtual Assistant'.tr,
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                            ),
-                            const SizedBox(width: 4),
-                            Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
-                            const Spacer(),
-                            Text(time, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(lastMsg.toString(), maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ],
     );
   }
 }
