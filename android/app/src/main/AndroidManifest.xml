@@ -9,7 +9,8 @@
     <application
         android:label="CampConnectUs Marketplace"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
 
         <meta-data android:name="com.onesignal.NotificationIcon" android:value="ic_stat_onesignal_default" />
 
