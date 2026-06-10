@@ -50,6 +50,7 @@ class AppRoutes {
   static const privacyPolicyView = '/privacy_policy_view';
   static const termsConditionsView = '/terms_conditions_view';
   static const faqView = '/faq_view';
+  static const returnPolicyView = '/return_policy_view';
   static const refundRequestDetailsView = '/refund_request_details_view';
   static const followingProductsView = '/following_products_view';
   static const recentlyViewedView = '/recently_viewed_view';
