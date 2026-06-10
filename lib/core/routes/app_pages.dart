@@ -3,6 +3,8 @@ import 'package:campconnectus_marketplace/modules/account/view/coupons_view.dart
 import 'package:campconnectus_marketplace/modules/account/view/edit_address_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/faq_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/return_policy_view.dart';
+import 'package:campconnectus_marketplace/modules/account/view/support_view.dart';
+import 'package:campconnectus_marketplace/modules/account/view/support_chat_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/follow_seller_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/my_address_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/my_order_details_view.dart';
@@ -182,6 +184,8 @@ class AppPages {
     ),
     GetPage(name: AppRoutes.sellerView, page: () => const SellerView()),
     GetPage(name: AppRoutes.returnPolicyView, page: () => const ReturnPolicyView()),
+    GetPage(name: AppRoutes.supportView, page: () => const SupportView()),
+    GetPage(name: AppRoutes.supportChatView, page: () => const SupportChatView()),
     GetPage(name: AppRoutes.refundRequestListView, page: () => const RefundRequestListView()),
     GetPage(name: AppRoutes.pendingReviewsView, page: () => const PendingReviewsView()),
     GetPage(name: AppRoutes.couponsView, page: () => const CouponsView()),
