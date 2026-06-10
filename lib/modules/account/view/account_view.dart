@@ -6,6 +6,7 @@ import 'package:campconnectus_marketplace/core/constants/app_colors.dart';
 import 'package:campconnectus_marketplace/core/services/api_service.dart';
 import 'package:campconnectus_marketplace/core/services/login_service.dart';
 import 'package:campconnectus_marketplace/modules/account/view/settings_view.dart';
+import 'package:campconnectus_marketplace/modules/account/view/support_view.dart';
 import 'package:campconnectus_marketplace/shared/widgets/cart_icon_widget.dart';
 import 'package:campconnectus_marketplace/shared/widgets/notification_icon_widget.dart';
 import 'package:campconnectus_marketplace/shared/widgets/search_icon_widget.dart';
@@ -349,6 +350,7 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.danger, "Report a Seller".tr, () => Get.toNamed(AppRoutes.reportSellerView)),
                     _menuItem(Iconsax.undo, "Refund Requests".tr, () => Get.toNamed(AppRoutes.refundRequestListView)),
                     _menuItem(Iconsax.setting, "Settings".tr, () => Get.toNamed(AppRoutes.settingsView)),
+                    _menuItem(Iconsax.headphone, "Customer Support".tr, () => Get.toNamed(AppRoutes.supportView)),
                     _menuItem(Iconsax.message_add, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.lamp_on, "Request Feature".tr, () => Get.toNamed(AppRoutes.requestFeatureView)),
                     _menuItem(Iconsax.message_question, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
@@ -395,6 +397,7 @@ class AccountView extends StatelessWidget {
                     _menuItem(Iconsax.danger, "Report a Seller".tr, () => _showLoginPrompt(redirectTo: AppRoutes.reportSellerView)),
                     _menuItem(Iconsax.undo, "Refund Requests".tr, () => _showLoginPrompt(redirectTo: AppRoutes.refundRequestListView)),
                     _menuItem(Iconsax.setting, "Settings".tr, () => _showLoginPrompt(redirectTo: AppRoutes.settingsView)),
+                    _menuItem(Iconsax.headphone, "Customer Support".tr, () => _showLoginPrompt(redirectTo: AppRoutes.supportView)),
                     _menuItem(Iconsax.message_add, "Contact Us".tr, () => Get.toNamed(AppRoutes.contactUsView)),
                     _menuItem(Iconsax.lamp_on, "Request Feature".tr, () => Get.toNamed(AppRoutes.requestFeatureView)),
                     _menuItem(Iconsax.message_question, "Privacy Policy".tr, () => Get.toNamed(AppRoutes.privacyPolicyView)),
