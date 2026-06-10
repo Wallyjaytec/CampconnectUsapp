@@ -17,14 +17,7 @@ import '../../../shared/widgets/back_icon_widget.dart';
 import '../controller/customer_basic_info_controller.dart';
 
 class SupportChatView extends StatefulWidget {
-  final List<Map<String, dynamic>>? existingMessages;
-  final String? existingChatId;
-  final DateTime? existingChatStartTime;
-  const SupportChatView(
-      {super.key,
-      this.existingMessages,
-      this.existingChatId,
-      this.existingChatStartTime});
+  const SupportChatView({super.key});
 
   @override
   State<SupportChatView> createState() => _SupportChatViewState();
@@ -54,9 +47,7 @@ class _SupportChatViewState extends State<SupportChatView>
   String get _userAvatar {
     try {
       final ctrl = Get.find<CustomerBasicInfoController>();
-      if (ctrl.pickedImagePath.value.isNotEmpty) {
-        return ctrl.pickedImagePath.value;
-      }
+      if (ctrl.pickedImagePath.value.isNotEmpty) return ctrl.pickedImagePath.value;
       if (ctrl.avatarUrl.value.isNotEmpty) return ctrl.avatarUrl.value;
     } catch (_) {}
     return '';
@@ -84,32 +75,36 @@ class _SupportChatViewState extends State<SupportChatView>
   void initState() {
     super.initState();
 
-    _typingAnimCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1400));
+    _typingAnimCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+    _dot1 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.4)));
+    _dot2 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.2, 0.6)));
+    _dot3 = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.4, 0.8)));
 
-    _dot1 = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.4)));
-    _dot2 = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.2, 0.6)));
-    _dot3 = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.4, 0.8)));
+    final args = Get.arguments;
+    if (args is Map) {
+      if (args['messages'] != null) {
+        final msgs = (args['messages'] as List).cast<Map<String, dynamic>>();
+        _messages.addAll(msgs);
+        _showSuggestions = false;
+        for (final m in msgs) {
+          _history.add({'role': m['role'], 'content': m['text']});
+        }
+      }
+      _chatId = args['chatId']?.toString();
+      _chatStartTime = args['chatStartTime'] != null ? DateTime.parse(args['chatStartTime'].toString()) : null;
+    } else if (args is List) {
+      _messages.addAll(args.cast<Map<String, dynamic>>());
+      _showSuggestions = false;
+      for (final m in args) {
+        _history.add({'role': m['role'], 'content': m['text']});
+      }
+    }
 
-    if (widget.existingChatId != null) {
-      _chatId = widget.existingChatId;
-      _chatStartTime = widget.existingChatStartTime;
-    } else {
+    if (_chatId == null) {
       _chatStartTime = DateTime.now();
       _chatId = _chatStartTime!.millisecondsSinceEpoch.toString();
     }
     _startTimer();
-
-    if (widget.existingMessages != null && widget.existingMessages!.isNotEmpty) {
-      _messages.addAll(widget.existingMessages!);
-      _showSuggestions = false;
-      for (final m in widget.existingMessages!) {
-        _history.add({'role': m['role'], 'content': m['text']});
-      }
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
@@ -139,8 +134,7 @@ class _SupportChatViewState extends State<SupportChatView>
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollCtrl.hasClients) {
         _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut);
+            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
       }
     });
   }
@@ -215,11 +209,7 @@ class _SupportChatViewState extends State<SupportChatView>
           setState(() {
             _stopTypingAnimation();
             _isTyping = false;
-            _messages.add({
-              'role': 'bot',
-              'text': data['reply'],
-              'time': DateTime.now()
-            });
+            _messages.add({'role': 'bot', 'text': data['reply'], 'time': DateTime.now()});
             _history.add({'role': 'assistant', 'content': data['reply']});
             if (data['action'] == 'agent_closed') _chatEnded = true;
           });
@@ -229,11 +219,7 @@ class _SupportChatViewState extends State<SupportChatView>
       setState(() {
         _stopTypingAnimation();
         _isTyping = false;
-        _messages.add({
-          'role': 'bot',
-          'text': 'Sorry, something went wrong. Please try again.'.tr,
-          'time': DateTime.now()
-        });
+        _messages.add({'role': 'bot', 'text': 'Sorry, something went wrong. Please try again.'.tr, 'time': DateTime.now()});
       });
     }
 
@@ -245,15 +231,13 @@ class _SupportChatViewState extends State<SupportChatView>
   void _saveChat() {
     if (_messages.length < 2) return;
     final chats = box.read<List>('support_chats') ?? [];
-
     chats.removeWhere((c) => c['id'] == _chatId);
 
     final lastMsg = _messages.last;
     final lastText = lastMsg['text'].toString();
     chats.add({
       'id': _chatId,
-      'last_message':
-          lastText.length > 50 ? '${lastText.substring(0, 50)}...' : lastText,
+      'last_message': lastText.length > 50 ? '${lastText.substring(0, 50)}...' : lastText,
       'time': DateTime.now().toIso8601String(),
       'messages': List.from(_messages),
       'chat_start': _chatStartTime?.toIso8601String(),
@@ -299,9 +283,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   String _formatChatTime(DateTime dt) {
     final now = DateTime.now();
-    if (dt.day == now.day &&
-        dt.month == now.month &&
-        dt.year == now.year) {
+    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) {
       return DateFormat('h:mm a').format(dt);
     }
     return DateFormat('dd/MM/yyyy').format(dt);
@@ -313,17 +295,14 @@ class _SupportChatViewState extends State<SupportChatView>
       return DateFormat('h:mm a').format(dt);
     }
     if (now.difference(dt).inDays == 1) return 'Yesterday'.tr;
-    if (now.difference(dt).inDays < 7) {
-      return '${now.difference(dt).inDays} ${'days ago'.tr}';
-    }
+    if (now.difference(dt).inDays < 7) return '${now.difference(dt).inDays} ${'days ago'.tr}';
     return DateFormat('dd/MM/yyyy').format(dt);
   }
 
   void _showCopyOption(String text, Offset position) {
     showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(
-          position.dx, position.dy, position.dx + 1, position.dy + 1),
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
       items: [
         PopupMenuItem(
           child: Row(children: [
@@ -349,24 +328,15 @@ class _SupportChatViewState extends State<SupportChatView>
             ListTile(
               leading: const Icon(Iconsax.camera_copy),
               title: Text('Take a photo'.tr),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showAgentOnlyFeature();
-              },
+              onTap: () { Navigator.pop(ctx); _showAgentOnlyFeature(); },
             ),
             ListTile(
               leading: const Icon(Iconsax.gallery_copy),
               title: Text('Upload a file'.tr),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showAgentOnlyFeature();
-              },
+              onTap: () { Navigator.pop(ctx); _showAgentOnlyFeature(); },
             ),
             const SizedBox(height: 12),
-            Center(
-                child: TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text('Cancel'.tr))),
+            Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr))),
             const SizedBox(height: 8),
           ],
         ),
@@ -377,8 +347,7 @@ class _SupportChatViewState extends State<SupportChatView>
   void _showAgentOnlyFeature() {
     if (Get.context == null) return;
     ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
-      content: Text(
-          'File sharing is available when connected to an agent.'.tr),
+      content: Text('File sharing is available when connected to an agent.'.tr),
       backgroundColor: AppColors.primaryColor,
       behavior: SnackBarBehavior.floating,
     ));
@@ -389,11 +358,8 @@ class _SupportChatViewState extends State<SupportChatView>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final userTextColor = isDark ? Colors.white : Colors.grey.shade900;
     final botTextColor = isDark ? Colors.white : Colors.grey.shade900;
-    final botBubbleColor =
-        isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200;
-    final userBubbleColor = isDark
-        ? AppColors.primaryColor.withValues(alpha: 0.3)
-        : AppColors.primaryColor.withValues(alpha: 0.15);
+    final botBubbleColor = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200;
+    final userBubbleColor = isDark ? AppColors.primaryColor.withValues(alpha: 0.3) : AppColors.primaryColor.withValues(alpha: 0.15);
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -403,9 +369,7 @@ class _SupportChatViewState extends State<SupportChatView>
         leading: const BackIconWidget(),
         centerTitle: false,
         titleSpacing: 0,
-        title: Text('Virtual Assistant'.tr,
-            style:
-                const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
+        title: Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
       body: Column(
         children: [
@@ -413,37 +377,18 @@ class _SupportChatViewState extends State<SupportChatView>
             child: ListView.builder(
               controller: _scrollCtrl,
               padding: const EdgeInsets.all(12),
-              itemCount: _messages.length +
-                  (_isTyping ? 1 : 0) +
-                  1 +
-                  (_showSuggestions && _messages.length == 1 ? 1 : 0),
+              itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0),
               itemBuilder: (ctx, i) {
-                if (i == 0 && _chatStartTime != null) {
-                  return _buildTimeHeader(_chatStartTime!);
-                }
+                if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
                 final msgIndex = i - 1;
-                if (_showSuggestions &&
-                    _messages.length == 1 &&
-                    msgIndex == _messages.length) {
-                  return _buildSuggestions();
-                }
-                if (_isTyping &&
-                    msgIndex ==
-                        _messages.length +
-                            (_showSuggestions && _messages.length == 1
-                                ? 1
-                                : 0)) {
-                  return _buildTypingBubble(botBubbleColor);
-                }
+                if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
+                if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
                 if (msgIndex < _messages.length) {
                   final msg = _messages[msgIndex];
                   final isBot = msg['role'] == 'bot';
                   final time = msg['time'] as DateTime;
-                  return _buildMessageRow(isBot, msg['text'], time,
-                      userTextColor, botTextColor,
-                      userBubbleColor: userBubbleColor,
-                      botBubbleColor: botBubbleColor,
-                      screenWidth: screenWidth);
+                  return _buildMessageRow(isBot, msg['text'], time, userTextColor, botTextColor,
+                      userBubbleColor: userBubbleColor, botBubbleColor: botBubbleColor, screenWidth: screenWidth);
                 }
                 return const SizedBox.shrink();
               },
@@ -453,14 +398,9 @@ class _SupportChatViewState extends State<SupportChatView>
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(children: [
-                Text('── ${'Chat Ended'.tr} ──',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade500)),
+                Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
                 const SizedBox(height: 4),
-                Text('Please start a new conversation later.'.tr,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey.shade500)),
+                Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
               ]),
             ),
           if (!_chatEnded)
@@ -471,18 +411,12 @@ class _SupportChatViewState extends State<SupportChatView>
                   const SizedBox(width: 4),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkCardColor
-                          : AppColors.lightCardColor,
+                      color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: IconButton(
-                      icon: Icon(Iconsax.link_21_copy,
-                          size: 20,
-                          color: _isLoading
-                              ? Colors.grey.shade400
-                              : AppColors.primaryColor),
+                      icon: Icon(Iconsax.link_21_copy, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor),
                       onPressed: _isLoading ? null : _showAttachSheet,
                     ),
                   ),
@@ -490,9 +424,7 @@ class _SupportChatViewState extends State<SupportChatView>
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkCardColor
-                            : AppColors.lightCardColor,
+                        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
@@ -502,8 +434,7 @@ class _SupportChatViewState extends State<SupportChatView>
                         decoration: InputDecoration(
                           hintText: 'Type a message...'.tr,
                           border: InputBorder.none,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
                         onSubmitted: (_) => _sendMessage(),
                       ),
@@ -511,12 +442,9 @@ class _SupportChatViewState extends State<SupportChatView>
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(25)),
+                    decoration: BoxDecoration(color: AppColors.primaryColor, borderRadius: BorderRadius.circular(25)),
                     child: IconButton(
-                      icon: const Icon(Iconsax.send_1_copy,
-                          size: 20, color: Colors.white),
+                      icon: const Icon(Iconsax.send_1_copy, size: 20, color: Colors.white),
                       onPressed: _isLoading ? null : () => _sendMessage(),
                     ),
                   ),
@@ -532,8 +460,7 @@ class _SupportChatViewState extends State<SupportChatView>
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text(_formatHeaderTime(time),
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+        child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
       ),
     );
   }
@@ -555,26 +482,17 @@ class _SupportChatViewState extends State<SupportChatView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text('💡 ${'Frequently Asked'.tr}',
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600)),
+          Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
           const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.end,
+            spacing: 8, runSpacing: 8, alignment: WrapAlignment.end,
             children: suggestions.map((s) {
               return ActionChip(
                 label: Text(s.tr, style: const TextStyle(fontSize: 11)),
                 onPressed: () => _sendMessage(prefill: s),
-                backgroundColor:
-                    AppColors.primaryColor.withValues(alpha: 0.08),
-                side: BorderSide(
-                    color: AppColors.primaryColor.withValues(alpha: 0.2)),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
+                backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
+                side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               );
             }).toList(),
           ),
@@ -583,60 +501,34 @@ class _SupportChatViewState extends State<SupportChatView>
     );
   }
 
-  Widget _buildMessageRow(
-      bool isBot, String text, DateTime time, Color userTextColor,
-      Color botTextColor,
-      {required Color userBubbleColor,
-      required Color botBubbleColor,
-      required double screenWidth}) {
+  Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor,
+      {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
     if (isBot) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.asset('assets/icons/customer_support.png',
-                  width: 28, height: 28),
-            ),
+            ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
             const SizedBox(width: 6),
             Flexible(
               child: GestureDetector(
-                onLongPressStart: (details) {
-                  _showCopyOption(text, details.globalPosition);
-                },
+                onLongPressStart: (details) => _showCopyOption(text, details.globalPosition),
                 child: Container(
-                  constraints:
-                      BoxConstraints(maxWidth: screenWidth * 0.75),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                  constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: botBubbleColor,
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(4),
-                      topRight: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
+                      topLeft: Radius.circular(4), topRight: Radius.circular(16),
+                      bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(text,
-                          style: TextStyle(
-                              fontSize: 14, color: botTextColor)),
-                      const SizedBox(height: 2),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Text(_formatChatTime(time),
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade500)),
-                      ),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(text, style: TextStyle(fontSize: 14, color: botTextColor)),
+                    const SizedBox(height: 2),
+                    Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                  ]),
                 ),
               ),
             ),
@@ -652,40 +544,22 @@ class _SupportChatViewState extends State<SupportChatView>
             const Expanded(child: SizedBox()),
             Flexible(
               child: GestureDetector(
-                onLongPressStart: (details) {
-                  _showCopyOption(text, details.globalPosition);
-                },
+                onLongPressStart: (details) => _showCopyOption(text, details.globalPosition),
                 child: Container(
-                  constraints:
-                      BoxConstraints(maxWidth: screenWidth * 0.75),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                  constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: userBubbleColor,
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(4),
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
+                      topLeft: Radius.circular(16), topRight: Radius.circular(4),
+                      bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(text,
-                          style: TextStyle(
-                              fontSize: 14, color: userTextColor)),
-                      const SizedBox(height: 2),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Text(_formatChatTime(time),
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade500)),
-                      ),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(text, style: TextStyle(fontSize: 14, color: userTextColor)),
+                    const SizedBox(height: 2),
+                    Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                  ]),
                 ),
               ),
             ),
@@ -693,16 +567,9 @@ class _SupportChatViewState extends State<SupportChatView>
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: _hasUserAvatar
-                  ? Image.network(_userAvatar,
-                      width: 28,
-                      height: 28,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Image.asset(
-                          'assets/icons/profile.png',
-                          width: 28,
-                          height: 28))
-                  : Image.asset('assets/icons/profile.png',
-                      width: 28, height: 28),
+                  ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28))
+                  : Image.asset('assets/icons/profile.png', width: 28, height: 28),
             ),
           ],
         ),
@@ -716,32 +583,19 @@ class _SupportChatViewState extends State<SupportChatView>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.asset('assets/icons/customer_support.png',
-                width: 28, height: 28),
-          ),
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
           const SizedBox(width: 6),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: botBubbleColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(color: botBubbleColor, borderRadius: BorderRadius.circular(16)),
             child: AnimatedBuilder(
               animation: _typingAnimCtrl,
               builder: (ctx, child) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildDot(_dot1, 0),
-                    const SizedBox(width: 4),
-                    _buildDot(_dot2, 1),
-                    const SizedBox(width: 4),
-                    _buildDot(_dot3, 2),
-                  ],
-                );
+                return Row(mainAxisSize: MainAxisSize.min, children: [
+                  _buildDot(_dot1, 0), const SizedBox(width: 4),
+                  _buildDot(_dot2, 1), const SizedBox(width: 4),
+                  _buildDot(_dot3, 2),
+                ]);
               },
             ),
           ),
@@ -758,8 +612,7 @@ class _SupportChatViewState extends State<SupportChatView>
         return Transform.translate(
           offset: Offset(0, offset * 3),
           child: Container(
-            width: 7,
-            height: 7,
+            width: 7, height: 7,
             decoration: BoxDecoration(
               color: Colors.grey.withValues(alpha: 0.3 + (anim.value * 0.7)),
               shape: BoxShape.circle,
