@@ -221,7 +221,7 @@ class _SupportChatViewState extends State<SupportChatView>
             'message': text,
             'history': _history.sublist(0, max(0, _history.length - 1)),
           }))
-          .timeout(const Duration(seconds: 20));
+          .timeout(const Duration(seconds: 35));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
