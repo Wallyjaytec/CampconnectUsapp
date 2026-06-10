@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:campconnectus_marketplace/modules/account/view/coupons_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/edit_address_view.dart';
+import 'package:campconnectus_marketplace/modules/account/view/faq_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/follow_seller_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/my_address_view.dart';
 import 'package:campconnectus_marketplace/modules/account/view/my_order_details_view.dart';
@@ -206,6 +207,7 @@ class AppPages {
     GetPage(name: AppRoutes.notificationsView, page: () => const NotificationsView()),
     GetPage(name: AppRoutes.privacyPolicyView, page: () => const PrivacyPolicyView()),
     GetPage(name: AppRoutes.termsConditionsView, page: () => const TermsConditionsView()),
+    GetPage(name: AppRoutes.faqView, page: () => const FaqView()),
     GetPage(
       name: AppRoutes.refundRequestDetailsView,
       page: () {
