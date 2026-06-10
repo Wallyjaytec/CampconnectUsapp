@@ -6,12 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:campconnectus_marketplace/core/utils/currency_formatters.dart';
 import 'package:campconnectus_marketplace/shared/widgets/cart_icon_widget.dart';
 import 'package:campconnectus_marketplace/shared/widgets/notification_icon_widget.dart';
 import 'package:campconnectus_marketplace/shared/widgets/search_icon_widget.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -203,7 +203,26 @@ class MyOrderDetailsView extends StatelessWidget {
     });
   }
 
-  void _openUrl(String url) async { final uri = Uri.tryParse(url); if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication); }
+  void _openUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      Navigator.push(
+        Get.context!,
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(
+              title: Text('Track Order'.tr),
+            ),
+            body: WebViewWidget(
+              controller: WebViewController()
+                ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                ..loadRequest(uri),
+            ),
+          ),
+        ),
+      );
+    }
+  }
 
   Widget _addressCard(BuildContext context, String title, OrderAddress a) => Container(decoration: BoxDecoration(color: Get.theme.brightness == Brightness.dark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10), margin: const EdgeInsets.only(top: 10, left: 12, right: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w700)), const SizedBox(height: 2), _kv('Name'.tr, a.name), _kv('Phone'.tr, a.phone), _kv('Address'.tr, a.address), _kv('City'.tr, a.city), _kv('State'.tr, a.state), _kv('Postal Code'.tr, a.postalCode), _kv('Country'.tr, a.country)]));
   Widget _kv(String k, String v) => Padding(padding: const EdgeInsets.only(bottom: 0), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SizedBox(width: 110, child: Text(k, style: TextStyle(fontSize: 12, color: Colors.grey.shade700))), const SizedBox(width: 6), Expanded(child: Text(v.isEmpty ? '-' : v, style: const TextStyle(fontSize: 13)))]));
