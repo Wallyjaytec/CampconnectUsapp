@@ -21,6 +21,16 @@ class SupportView extends StatelessWidget {
     return DateFormat('dd/MM/yyyy').format(dt);
   }
 
+  void _startChatWithSuggestion(String question) {
+    Get.toNamed(AppRoutes.supportChatView, arguments: [
+      {
+        'role': 'user',
+        'text': question,
+        'time': DateTime.now().toIso8601String()
+      }
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final box = GetStorage();
@@ -41,7 +51,9 @@ class SupportView extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: hasHistory ? _buildHistory(chats) : _buildWelcome(),
+            child: hasHistory
+                ? _buildHistory(context, chats)
+                : _buildWelcome(),
           ),
           SafeArea(
             child: Padding(
@@ -75,7 +87,7 @@ class SupportView extends StatelessWidget {
   Widget _buildWelcome() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -108,7 +120,9 @@ class SupportView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
+            _buildSuggestions(),
+            const SizedBox(height: 16),
             Text(
               'Tap below to start a new conversation with our virtual assistant.'
                   .tr,
@@ -121,7 +135,50 @@ class SupportView extends StatelessWidget {
     );
   }
 
-  Widget _buildHistory(List chats) {
+  Widget _buildSuggestions() {
+    final suggestions = [
+      'How do I track my order?',
+      'What is the return policy?',
+      'How to request a refund?',
+      'How to recharge my wallet?',
+      'What payment methods are available?',
+      'How to close my account?',
+      'How to report a seller?',
+      'What shipping methods do you offer?',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '💡 ${'Frequently Asked'.tr}',
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: suggestions.map((s) {
+            return ActionChip(
+              label: Text(s.tr, style: const TextStyle(fontSize: 11)),
+              onPressed: () => _startChatWithSuggestion(s),
+              backgroundColor:
+                  AppColors.primaryColor.withValues(alpha: 0.08),
+              side: BorderSide(
+                  color: AppColors.primaryColor.withValues(alpha: 0.2)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHistory(BuildContext context, List chats) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -146,8 +203,7 @@ class SupportView extends StatelessWidget {
               final messages =
                   (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ??
                       [];
-              Get.toNamed(AppRoutes.supportChatView,
-                  arguments: messages);
+              Get.toNamed(AppRoutes.supportChatView, arguments: messages);
             },
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -173,8 +229,7 @@ class SupportView extends StatelessWidget {
                         Row(
                           children: [
                             const Flexible(
-                              child: Text(
-                                  'CampConnectUs Virtual Assistant',
+                              child: Text('CampConnectUs Virtual Assistant',
                                   style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600)),
