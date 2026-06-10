@@ -88,6 +88,8 @@ class _OrderPayWebViewState extends State<OrderPayWebView> {
     'stripe.com',
     'sslcommerz.com',
     'paystack.co',
+    'paystack.com',
+    'checkout.paystack.com',
     'mollie.com',
     'paddle.com',
     'mercadopago.com',
