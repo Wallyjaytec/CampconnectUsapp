@@ -21,6 +21,8 @@ class SupportHistoryView extends StatelessWidget {
     return DateFormat('dd/MM/yyyy').format(dt);
   }
 
+  Future<void> _refresh() async {}
+
   @override
   Widget build(BuildContext context) {
     final box = GetStorage();
@@ -36,72 +38,83 @@ class SupportHistoryView extends StatelessWidget {
         title: Text('Chat History'.tr,
             style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
-      body: chats.isEmpty
-          ? Center(
-              child: Text('No chat history yet.'.tr,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
-            )
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: chats.reversed.map((chat) {
-                final lastMsg = chat['last_message'] ?? '';
-                final time = chat['time'] != null ? _formatTime(DateTime.parse(chat['time'])) : '';
-
-                return InkWell(
-                  onTap: () {
-                    final messages = (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-                    final chatId = chat['id']?.toString();
-                    final startTime = chat['chat_start'] != null ? DateTime.parse(chat['chat_start']) : null;
-                    Get.toNamed(AppRoutes.supportChatView, arguments: {
-                      'messages': messages,
-                      'chatId': chatId,
-                      'chatStartTime': startTime?.toIso8601String(),
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.darkCardColor
-                          : AppColors.lightCardColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: Image.asset('assets/icons/customer_support.png', width: 40, height: 40),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Flexible(
-                                    child: Text('CampConnectUs Virtual Assistant',
-                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
-                                  const Spacer(),
-                                  Text(time, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(lastMsg.toString(), maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        color: AppColors.primaryColor,
+        child: chats.isEmpty
+            ? ListView(
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                  Center(
+                    child: Text('No chat history yet.'.tr,
+                        style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
                   ),
-                );
-              }).toList(),
-            ),
+                ],
+              )
+            : ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: chats.reversed.map((chat) {
+                  final lastMsg = chat['last_message'] ?? '';
+                  final time = chat['time'] != null ? _formatTime(DateTime.parse(chat['time'])) : '';
+
+                  return InkWell(
+                    onTap: () {
+                      final messages = (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+                      final chatId = chat['id']?.toString();
+                      final startTime = chat['chat_start'] != null ? DateTime.parse(chat['chat_start']) : null;
+                      Get.toNamed(AppRoutes.supportChatView, arguments: {
+                        'messages': messages,
+                        'chatId': chatId,
+                        'chatStartTime': startTime?.toIso8601String(),
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkCardColor
+                            : AppColors.lightCardColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: Image.asset('assets/icons/customer_support.png', width: 40, height: 40),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text('CampConnectUs Virtual Assistant',
+                                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
+                                    const SizedBox(width: 8),
+                                    Text(time, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(lastMsg.toString(), maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+      ),
     );
   }
 }
