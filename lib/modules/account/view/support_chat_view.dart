@@ -8,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -17,7 +18,13 @@ import '../controller/customer_basic_info_controller.dart';
 
 class SupportChatView extends StatefulWidget {
   final List<Map<String, dynamic>>? existingMessages;
-  const SupportChatView({super.key, this.existingMessages});
+  final String? existingChatId;
+  final DateTime? existingChatStartTime;
+  const SupportChatView(
+      {super.key,
+      this.existingMessages,
+      this.existingChatId,
+      this.existingChatStartTime});
 
   @override
   State<SupportChatView> createState() => _SupportChatViewState();
@@ -35,15 +42,21 @@ class _SupportChatViewState extends State<SupportChatView>
   bool _chatEnded = false;
   bool _showSuggestions = true;
   DateTime? _chatStartTime;
+  String? _chatId;
   Timer? _timer;
 
   late AnimationController _typingAnimCtrl;
-  late Animation<double> _typingAnim;
+  late Animation<double> _dot1;
+  late Animation<double> _dot2;
+  late Animation<double> _dot3;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   String get _userAvatar {
     try {
       final ctrl = Get.find<CustomerBasicInfoController>();
-      if (ctrl.pickedImagePath.value.isNotEmpty) return ctrl.pickedImagePath.value;
+      if (ctrl.pickedImagePath.value.isNotEmpty) {
+        return ctrl.pickedImagePath.value;
+      }
       if (ctrl.avatarUrl.value.isNotEmpty) return ctrl.avatarUrl.value;
     } catch (_) {}
     return '';
@@ -70,12 +83,25 @@ class _SupportChatViewState extends State<SupportChatView>
   @override
   void initState() {
     super.initState();
-    _chatStartTime = DateTime.now();
-    _startTimer();
 
     _typingAnimCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 800));
-    _typingAnim = Tween<double>(begin: 0.0, end: 1.0).animate(_typingAnimCtrl);
+        vsync: this, duration: const Duration(milliseconds: 1400));
+
+    _dot1 = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.4)));
+    _dot2 = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.2, 0.6)));
+    _dot3 = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.4, 0.8)));
+
+    if (widget.existingChatId != null) {
+      _chatId = widget.existingChatId;
+      _chatStartTime = widget.existingChatStartTime;
+    } else {
+      _chatStartTime = DateTime.now();
+      _chatId = _chatStartTime!.millisecondsSinceEpoch.toString();
+    }
+    _startTimer();
 
     if (widget.existingMessages != null && widget.existingMessages!.isNotEmpty) {
       _messages.addAll(widget.existingMessages!);
@@ -97,6 +123,7 @@ class _SupportChatViewState extends State<SupportChatView>
   void dispose() {
     _timer?.cancel();
     _typingAnimCtrl.dispose();
+    _audioPlayer.dispose();
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
@@ -120,10 +147,26 @@ class _SupportChatViewState extends State<SupportChatView>
 
   void _startTypingAnimation() {
     _typingAnimCtrl.repeat(reverse: true);
+    _playTypingSound();
   }
 
   void _stopTypingAnimation() {
     _typingAnimCtrl.stop();
+    _stopTypingSound();
+  }
+
+  void _playTypingSound() {
+    try {
+      _audioPlayer.setSource(AssetSource('sounds/typing_sounds.m4a'));
+      _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      _audioPlayer.resume();
+    } catch (_) {}
+  }
+
+  void _stopTypingSound() {
+    try {
+      _audioPlayer.stop();
+    } catch (_) {}
   }
 
   void _sendWelcomeMessage() {
@@ -133,11 +176,7 @@ class _SupportChatViewState extends State<SupportChatView>
         : '${'Hello'.tr}! ${'I\'m Luca, your CampConnectUs Virtual Assistant. Just pick a topic or feel free to type your question.'.tr}';
 
     setState(() {
-      _messages.add({
-        'role': 'bot',
-        'text': greeting,
-        'time': DateTime.now()
-      });
+      _messages.add({'role': 'bot', 'text': greeting, 'time': DateTime.now()});
       _history.add({'role': 'assistant', 'content': greeting});
     });
     _scrollToBottom();
@@ -205,16 +244,14 @@ class _SupportChatViewState extends State<SupportChatView>
 
   void _saveChat() {
     if (_messages.length < 2) return;
-    final chatId = _chatStartTime?.millisecondsSinceEpoch.toString() ??
-        DateTime.now().millisecondsSinceEpoch.toString();
     final chats = box.read<List>('support_chats') ?? [];
 
-    chats.removeWhere((c) => c['id'] == chatId);
+    chats.removeWhere((c) => c['id'] == _chatId);
 
     final lastMsg = _messages.last;
     final lastText = lastMsg['text'].toString();
     chats.add({
-      'id': chatId,
+      'id': _chatId,
       'last_message':
           lastText.length > 50 ? '${lastText.substring(0, 50)}...' : lastText,
       'time': DateTime.now().toIso8601String(),
@@ -262,9 +299,9 @@ class _SupportChatViewState extends State<SupportChatView>
 
   String _formatChatTime(DateTime dt) {
     final now = DateTime.now();
-    final diff = now.difference(dt);
-    if (diff.inSeconds < 60) return DateFormat('h:mm a').format(dt);
-    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) {
+    if (dt.day == now.day &&
+        dt.month == now.month &&
+        dt.year == now.year) {
       return DateFormat('h:mm a').format(dt);
     }
     return DateFormat('dd/MM/yyyy').format(dt);
@@ -276,9 +313,30 @@ class _SupportChatViewState extends State<SupportChatView>
       return DateFormat('h:mm a').format(dt);
     }
     if (now.difference(dt).inDays == 1) return 'Yesterday'.tr;
-    if (now.difference(dt).inDays < 7)
+    if (now.difference(dt).inDays < 7) {
       return '${now.difference(dt).inDays} ${'days ago'.tr}';
+    }
     return DateFormat('dd/MM/yyyy').format(dt);
+  }
+
+  void _showCopyOption(String text, Offset position) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+          position.dx, position.dy, position.dx + 1, position.dy + 1),
+      items: [
+        PopupMenuItem(
+          child: Row(children: [
+            const Icon(Iconsax.copy_copy, size: 18),
+            const SizedBox(width: 8),
+            Text('Copy'.tr),
+          ]),
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: text));
+          },
+        ),
+      ],
+    );
   }
 
   void _showAttachSheet() {
@@ -326,22 +384,17 @@ class _SupportChatViewState extends State<SupportChatView>
     ));
   }
 
-  void _copyMessage(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    if (Get.context == null) return;
-    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
-      content: Text('Copied'.tr),
-      backgroundColor: AppColors.primaryColor,
-      duration: const Duration(seconds: 1),
-      behavior: SnackBarBehavior.floating,
-    ));
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final userTextColor = isDark ? Colors.white : Colors.grey.shade900;
     final botTextColor = isDark ? Colors.white : Colors.grey.shade900;
+    final botBubbleColor =
+        isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200;
+    final userBubbleColor = isDark
+        ? AppColors.primaryColor.withValues(alpha: 0.3)
+        : AppColors.primaryColor.withValues(alpha: 0.15);
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
@@ -365,24 +418,32 @@ class _SupportChatViewState extends State<SupportChatView>
                   1 +
                   (_showSuggestions && _messages.length == 1 ? 1 : 0),
               itemBuilder: (ctx, i) {
-                if (i == 0 && _chatStartTime != null)
+                if (i == 0 && _chatStartTime != null) {
                   return _buildTimeHeader(_chatStartTime!);
+                }
                 final msgIndex = i - 1;
                 if (_showSuggestions &&
                     _messages.length == 1 &&
-                    msgIndex == _messages.length)
+                    msgIndex == _messages.length) {
                   return _buildSuggestions();
+                }
                 if (_isTyping &&
                     msgIndex ==
                         _messages.length +
-                            (_showSuggestions && _messages.length == 1 ? 1 : 0))
-                  return _buildTypingBubble();
+                            (_showSuggestions && _messages.length == 1
+                                ? 1
+                                : 0)) {
+                  return _buildTypingBubble(botBubbleColor);
+                }
                 if (msgIndex < _messages.length) {
                   final msg = _messages[msgIndex];
                   final isBot = msg['role'] == 'bot';
                   final time = msg['time'] as DateTime;
-                  return _buildMessageRow(
-                      isBot, msg['text'], time, userTextColor, botTextColor);
+                  return _buildMessageRow(isBot, msg['text'], time,
+                      userTextColor, botTextColor,
+                      userBubbleColor: userBubbleColor,
+                      botBubbleColor: botBubbleColor,
+                      screenWidth: screenWidth);
                 }
                 return const SizedBox.shrink();
               },
@@ -522,8 +583,12 @@ class _SupportChatViewState extends State<SupportChatView>
     );
   }
 
-  Widget _buildMessageRow(bool isBot, String text, DateTime time,
-      Color userTextColor, Color botTextColor) {
+  Widget _buildMessageRow(
+      bool isBot, String text, DateTime time, Color userTextColor,
+      Color botTextColor,
+      {required Color userBubbleColor,
+      required Color botBubbleColor,
+      required double screenWidth}) {
     if (isBot) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
@@ -538,13 +603,16 @@ class _SupportChatViewState extends State<SupportChatView>
             const SizedBox(width: 6),
             Flexible(
               child: GestureDetector(
-                onLongPress: () => _copyMessage(text),
+                onLongPressStart: (details) {
+                  _showCopyOption(text, details.globalPosition);
+                },
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 300),
+                  constraints:
+                      BoxConstraints(maxWidth: screenWidth * 0.75),
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: botBubbleColor,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(4),
                       topRight: Radius.circular(16),
@@ -584,13 +652,16 @@ class _SupportChatViewState extends State<SupportChatView>
             const Expanded(child: SizedBox()),
             Flexible(
               child: GestureDetector(
-                onLongPress: () => _copyMessage(text),
+                onLongPressStart: (details) {
+                  _showCopyOption(text, details.globalPosition);
+                },
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 300),
+                  constraints:
+                      BoxConstraints(maxWidth: screenWidth * 0.75),
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.15),
+                    color: userBubbleColor,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(4),
@@ -639,7 +710,7 @@ class _SupportChatViewState extends State<SupportChatView>
     }
   }
 
-  Widget _buildTypingBubble() {
+  Widget _buildTypingBubble(Color botBubbleColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -652,36 +723,50 @@ class _SupportChatViewState extends State<SupportChatView>
           ),
           const SizedBox(width: 6),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: botBubbleColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: AnimatedBuilder(
-              animation: _typingAnim,
+              animation: _typingAnimCtrl,
               builder: (ctx, child) {
                 return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(7, (i) {
-                      final offset =
-                          (sin((_typingAnim.value * 2 * pi) + (i * 0.5)) + 1) /
-                              2;
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        width: 5,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey
-                              .withValues(alpha: 0.2 + (offset * 0.8)),
-                          shape: BoxShape.circle,
-                        ),
-                      );
-                    }));
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildDot(_dot1, 0),
+                    const SizedBox(width: 4),
+                    _buildDot(_dot2, 1),
+                    const SizedBox(width: 4),
+                    _buildDot(_dot3, 2),
+                  ],
+                );
               },
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDot(Animation<double> anim, int index) {
+    return AnimatedBuilder(
+      animation: anim,
+      builder: (ctx, child) {
+        final offset = sin((anim.value * 2 * pi));
+        return Transform.translate(
+          offset: Offset(0, offset * 3),
+          child: Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.3 + (anim.value * 0.7)),
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
     );
   }
 }
