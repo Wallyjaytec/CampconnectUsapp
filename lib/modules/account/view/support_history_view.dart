@@ -45,15 +45,18 @@ class SupportHistoryView extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: chats.reversed.map((chat) {
                 final lastMsg = chat['last_message'] ?? '';
-                final time = chat['time'] != null
-                    ? _formatTime(DateTime.parse(chat['time']))
-                    : '';
+                final time = chat['time'] != null ? _formatTime(DateTime.parse(chat['time'])) : '';
 
                 return InkWell(
                   onTap: () {
-                    final messages =
-                        (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-                    Get.toNamed(AppRoutes.supportChatView, arguments: messages);
+                    final messages = (chat['messages'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+                    final chatId = chat['id']?.toString();
+                    final startTime = chat['chat_start'] != null ? DateTime.parse(chat['chat_start']) : null;
+                    Get.toNamed(AppRoutes.supportChatView, arguments: {
+                      'messages': messages,
+                      'chatId': chatId,
+                      'chatStartTime': startTime?.toIso8601String(),
+                    });
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
@@ -68,8 +71,7 @@ class SupportHistoryView extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(25),
-                          child: Image.asset('assets/icons/customer_support.png',
-                              width: 40, height: 40),
+                          child: Image.asset('assets/icons/customer_support.png', width: 40, height: 40),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -83,17 +85,13 @@ class SupportHistoryView extends StatelessWidget {
                                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                                   ),
                                   const SizedBox(width: 4),
-                                  Image.asset('assets/images/verifybadge.png',
-                                      width: 14, height: 14),
+                                  Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
                                   const Spacer(),
-                                  Text(time,
-                                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                  Text(time, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Text(lastMsg.toString(),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              Text(lastMsg.toString(), maxLines: 1, overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                             ],
                           ),
