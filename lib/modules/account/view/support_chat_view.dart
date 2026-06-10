@@ -31,11 +31,11 @@ class _SupportChatViewState extends State<SupportChatView>
   bool _isLoading = false;
   bool _isTyping = false;
   bool _chatEnded = false;
+  bool _showSuggestions = true;
   DateTime? _chatStartTime;
 
   late AnimationController _typingAnimCtrl;
   late Animation<double> _typingAnim;
-  Timer? _typingTimer;
 
   String get _userAvatar {
     try {
@@ -66,16 +66,18 @@ class _SupportChatViewState extends State<SupportChatView>
 
     if (widget.existingMessages != null && widget.existingMessages!.isNotEmpty) {
       _messages.addAll(widget.existingMessages!);
+      _showSuggestions = false;
       for (final m in widget.existingMessages!) {
         _history.add({'role': m['role'], 'content': m['text']});
       }
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
   @override
   void dispose() {
     _typingAnimCtrl.dispose();
-    _typingTimer?.cancel();
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
@@ -99,16 +101,17 @@ class _SupportChatViewState extends State<SupportChatView>
     _typingAnimCtrl.stop();
   }
 
-  Future<void> _sendMessage() async {
-    final text = _msgCtrl.text.trim();
+  Future<void> _sendMessage({String? prefill}) async {
+    final text = prefill ?? _msgCtrl.text.trim();
     if (text.isEmpty || _isLoading || _chatEnded) return;
 
     setState(() {
+      _showSuggestions = false;
       _messages.add({'role': 'user', 'text': text, 'time': DateTime.now()});
       _history.add({'role': 'user', 'content': text});
       _isLoading = true;
     });
-    _msgCtrl.clear();
+    if (prefill == null) _msgCtrl.clear();
     _scrollToBottom();
 
     setState(() => _isTyping = true);
@@ -267,20 +270,23 @@ class _SupportChatViewState extends State<SupportChatView>
             child: ListView.builder(
               controller: _scrollCtrl,
               padding: const EdgeInsets.all(12),
-              itemCount: _messages.length + (_isTyping ? 1 : 0) + 1,
+              itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0),
               itemBuilder: (ctx, i) {
                 if (i == 0 && _chatStartTime != null) {
                   return _buildTimeHeader(_chatStartTime!);
                 }
                 final msgIndex = i - 1;
-                if (_isTyping && msgIndex == _messages.length) {
-                  return _buildTypingBubble(isDark);
+                if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) {
+                  return _buildSuggestions();
+                }
+                if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) {
+                  return _buildTypingBubble();
                 }
                 if (msgIndex < _messages.length) {
                   final msg = _messages[msgIndex];
                   final isBot = msg['role'] == 'bot';
                   final time = msg['time'] as DateTime;
-                  return _buildMessageRow(isBot, msg['text'], time, isDark);
+                  return _buildMessageRow(isBot, msg['text'], time);
                 }
                 return const SizedBox.shrink();
               },
@@ -358,7 +364,7 @@ class _SupportChatViewState extends State<SupportChatView>
                       child: IconButton(
                         icon: const Icon(Iconsax.send_1_copy,
                             size: 20, color: Colors.white),
-                        onPressed: _isLoading ? null : _sendMessage,
+                        onPressed: _isLoading ? null : () => _sendMessage(),
                       ),
                     ),
                   ],
@@ -380,8 +386,54 @@ class _SupportChatViewState extends State<SupportChatView>
     );
   }
 
-  Widget _buildMessageRow(
-      bool isBot, String text, DateTime time, bool isDark) {
+  Widget _buildSuggestions() {
+    final suggestions = [
+      'How do I track my order?',
+      'What is the return policy?',
+      'How to request a refund?',
+      'How to recharge my wallet?',
+      'What payment methods are available?',
+      'How to close my account?',
+      'How to report a seller?',
+      'What shipping methods do you offer?',
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            '💡 ${'Frequently Asked'.tr}',
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.end,
+            children: suggestions.map((s) {
+              return ActionChip(
+                label: Text(s.tr, style: const TextStyle(fontSize: 11)),
+                onPressed: () => _sendMessage(prefill: s),
+                backgroundColor:
+                    AppColors.primaryColor.withValues(alpha: 0.08),
+                side: BorderSide(
+                    color: AppColors.primaryColor.withValues(alpha: 0.2)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageRow(bool isBot, String text, DateTime time) {
     if (isBot) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -473,7 +525,7 @@ class _SupportChatViewState extends State<SupportChatView>
     }
   }
 
-  Widget _buildTypingBubble(bool isDark) {
+  Widget _buildTypingBubble() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
