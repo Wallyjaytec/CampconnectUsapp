@@ -5,6 +5,8 @@ class AppConfig {
   static const String baseUrl = 'https://campconnectus.store';
 
   //api endpoint
+  static const String chatbotHistoryPath = '/api/v1/ecommerce-core/chatbot/history';
+static String chatbotHistoryUrl() => '$baseUrl$chatbotHistoryPath';
   static const String verifyResetTokenPath =
     '/api/v1/ecommerce-core/auth/verify-customer-reset-password-token';
 static const String resetPasswordPath =
