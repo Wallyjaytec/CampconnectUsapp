@@ -9,6 +9,10 @@ import '../../../shared/widgets/back_icon_widget.dart';
 class SupportView extends StatelessWidget {
   const SupportView({super.key});
 
+  Future<void> _refresh() async {
+    // Refresh storage data
+  }
+
   @override
   Widget build(BuildContext context) {
     final box = GetStorage();
@@ -25,49 +29,53 @@ class SupportView extends StatelessWidget {
         title: Text('Customer Support'.tr,
             style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
-      body: Column(
-        children: [
-          Expanded(child: _buildWelcome()),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  if (hasHistory)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 44,
-                        child: OutlinedButton(
-                          onPressed: () => Get.toNamed(AppRoutes.supportHistoryView),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.primaryColor),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        color: AppColors.primaryColor,
+        child: Column(
+          children: [
+            Expanded(child: _buildWelcome()),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    if (hasHistory)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: () => Get.toNamed(AppRoutes.supportHistoryView),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: AppColors.primaryColor),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: Text('Chat History'.tr,
+                                style: const TextStyle(color: AppColors.primaryColor, fontSize: 14)),
                           ),
-                          child: Text('Chat History'.tr,
-                              style: const TextStyle(color: AppColors.primaryColor, fontSize: 14)),
                         ),
                       ),
-                    ),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => Get.toNamed(AppRoutes.supportChatView),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => Get.toNamed(AppRoutes.supportChatView),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text('New Conversation'.tr,
+                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                       ),
-                      child: Text('New Conversation'.tr,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -86,6 +94,7 @@ class SupportView extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -95,18 +104,13 @@ class SupportView extends StatelessWidget {
               child: Image.asset('assets/icons/customer_support.png', width: 80, height: 80),
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text('CampConnectUs Virtual Assistant'.tr,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                ),
-                const SizedBox(width: 4),
-                Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
-              ],
-            ),
+            Text('CampConnectUs Virtual Assistant',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 16),
