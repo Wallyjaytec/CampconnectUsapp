@@ -61,6 +61,7 @@ class PermissionService extends GetxService {
       final storage = await Permission.storage.request();
       if (storage.isGranted) photos = PermissionStatus.granted;
     }
+    await Permission.microphone.request();
 
     _updateFromStatuses(cam, photos);
 
@@ -73,23 +74,22 @@ class PermissionService extends GetxService {
       );
     }
 
-    // Only request notification once, ever
     final notifAskedOnce = sp.getBool(_notifAskedKey) ?? false;
     if (!notifAskedOnce) {
       await sp.setBool(_notifAskedKey, true);
-          final isDark = Get.find<ThemeController>().isDarkMode.value;
-          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-          ));
-          final notifStatus = await Permission.notification.status;
-          if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
-            await Permission.notification.request();
-          }
-          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-          ));
+      final isDark = Get.find<ThemeController>().isDarkMode.value;
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      ));
+      final notifStatus = await Permission.notification.status;
+      if (!notifStatus.isGranted && !notifStatus.isPermanentlyDenied) {
+        await Permission.notification.request();
+      }
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      ));
     }
   }
 
@@ -176,6 +176,29 @@ class PermissionService extends GetxService {
     return false;
   }
 
+  Future<bool> canUseMicrophoneOrExplain() async {
+    final status = await Permission.microphone.status;
+    if (status.isGranted) return true;
+
+    if (status.isPermanentlyDenied) {
+      await _settingsDialog(
+        title: 'Microphone Permission Required'.tr,
+        message:
+            'Microphone access is permanently denied. Open Settings to enable.'
+                .tr,
+      );
+      return false;
+    }
+
+    await _settingsDialog(
+      title: 'Microphone Permission Required'.tr,
+      message:
+          'Microphone access is needed for voice messages. Please allow from Settings.'
+              .tr,
+    );
+    return false;
+  }
+
   Future<void> askAgainFromSettingsLikeEntry() async {
     final cam = await Permission.camera.request();
     PermissionStatus photos = await Permission.photos.request();
@@ -248,7 +271,7 @@ class PermissionService extends GetxService {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Camera, Photos, and Notifications are needed so you can take photos, pick images, and receive order updates while shopping.'
+                        'Camera, Photos, Microphone and Notifications are needed so you can take photos, pick images, record audio and receive order updates while shopping.'
                             .tr,
                         style: TextStyle(
                             fontSize: 14,
