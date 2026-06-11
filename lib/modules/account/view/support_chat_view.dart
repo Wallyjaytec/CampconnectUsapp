@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart' hide ImageSource;
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:cached_network_image/cached_network_image.dart';
@@ -222,13 +222,18 @@ class _SupportChatViewState extends State<SupportChatView>
             setState(() {
               _agentName = name;
               _stopTypingIndicator();
+              _messages.add({
+                'role': 'bot',
+                'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}',
+                'time': DateTime.now(),
+                'type': 'text',
+              });
             });
             continue;
           }
           
           // Check for chat ended message
-          if (msgText.contains('chat session has been ended') || 
-              msgText.contains('This chat session has been ended')) {
+          if (msgText.contains('chat session has been ended')) {
             setState(() {
               _chatEnded = true;
               _isAgentConnected = false;
@@ -249,9 +254,6 @@ class _SupportChatViewState extends State<SupportChatView>
           setState(() {
             _stopTypingIndicator();
             _typingIndicatorTimer?.cancel();
-            _typingIndicatorTimer = Timer(const Duration(seconds: 3), () {
-              // Resume typing indicator after 3 seconds
-            });
             
             if (msgType == 'image') {
               _messages.add({
@@ -268,6 +270,14 @@ class _SupportChatViewState extends State<SupportChatView>
                 'agentName': agentName,
                 'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
                 'type': 'voice',
+              });
+            } else if (msgType == 'file') {
+              _messages.add({
+                'role': 'bot',
+                'text': msgText,
+                'agentName': agentName,
+                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
+                'type': 'file',
               });
             } else {
               _messages.add({
@@ -305,7 +315,6 @@ class _SupportChatViewState extends State<SupportChatView>
     if ((text.isEmpty && imagePath == null) || _isLoading || _chatEnded) return;
     
     if (imagePath != null) {
-      // Send image
       setState(() {
         _messages.add({'role': 'user', 'text': imagePath, 'time': DateTime.now(), 'type': 'image'});
       });
@@ -332,7 +341,6 @@ class _SupportChatViewState extends State<SupportChatView>
         }
         
         final uri = Uri.parse(AppConfig.chatbotChatUrl());
-        var body = <String, dynamic>{'message': imagePath != null ? '[Image sent]' : text, 'history': _history.sublist(0, max(0, _history.length - 1))};
         
         if (imagePath != null) {
           var request = http.MultipartRequest('POST', uri);
@@ -345,7 +353,7 @@ class _SupportChatViewState extends State<SupportChatView>
           await http.post(uri, headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ${token ?? ''}',
-          }, body: jsonEncode(body)).timeout(const Duration(seconds: 35));
+          }, body: jsonEncode({'message': text, 'history': _history.sublist(0, max(0, _history.length - 1))})).timeout(const Duration(seconds: 35));
         }
       } catch (e) {}
       if (mounted) setState(() => _isLoading = false);
@@ -431,21 +439,18 @@ class _SupportChatViewState extends State<SupportChatView>
     final ok = await PermissionService.I.canUseMicrophoneOrExplain();
     if (ok) {
       if (_isRecording) {
-        // Stop recording
         setState(() => _isRecording = false);
+        if (Get.context != null) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Voice recording sent'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating));
+        }
       } else {
-        // Start recording
         setState(() => _isRecording = true);
         if (Get.context != null) {
           ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Recording started...'.tr), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 1)));
         }
-        // Auto-stop after 60 seconds
         Future.delayed(const Duration(seconds: 60), () {
           if (mounted && _isRecording) {
             setState(() => _isRecording = false);
-            if (Get.context != null) {
-              ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Voice recording sent'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating));
-            }
           }
         });
       }
@@ -596,7 +601,33 @@ class _SupportChatViewState extends State<SupportChatView>
                   if (msgType == 'image')
                     ClipRRect(borderRadius: BorderRadius.circular(8), child: CachedNetworkImage(imageUrl: text.startsWith('http') ? text : AppConfig.assetUrl(text), width: screenWidth * 0.6, fit: BoxFit.cover, errorWidget: (_, __, ___) => const Icon(Iconsax.gallery_remove)))
                   else if (msgType == 'voice')
-                    Row(mainAxisSize: MainAxisSize.min, children: [Icon(Iconsax.musicnote, size: 20, color: AppColors.primaryColor), const SizedBox(width: 8), Text('🎤 Voice message'.tr, style: TextStyle(fontSize: 14, color: AppColors.primaryColor, fontStyle: FontStyle.italic))])
+                    GestureDetector(
+                      onTap: () {
+                        try {
+                          _audioPlayer.stop();
+                          _audioPlayer.play(UrlSource(text));
+                        } catch (_) {}
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Iconsax.play_circle, size: 22, color: AppColors.primaryColor),
+                          const SizedBox(width: 8),
+                          Text('🎤 Tap to play'.tr, style: const TextStyle(fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w500)),
+                        ]),
+                      ),
+                    )
+                  else if (msgType == 'file')
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Iconsax.document, size: 22, color: AppColors.primaryColor),
+                        const SizedBox(width: 8),
+                        Flexible(child: Text(text.split('\n').first, style: const TextStyle(fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w500))),
+                      ]),
+                    )
                   else
                     HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
                   const SizedBox(height: 2),
