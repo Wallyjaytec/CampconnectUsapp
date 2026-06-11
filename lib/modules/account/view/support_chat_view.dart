@@ -107,12 +107,14 @@ class _SupportChatViewState extends State<SupportChatView>
       }
       _chatId = args['chatId']?.toString();
       _chatStartTime = args['chatStartTime'] != null ? DateTime.parse(args['chatStartTime'].toString()) : null;
-    } else if (args is List) {
-      final msgs = args.cast<Map<String, dynamic>>();
-      _messages.addAll(msgs);
-      _showSuggestions = false;
-      for (final m in msgs) {
-        _history.add({'role': m['role'], 'content': m['text']});
+    } else if (args is List && args.isNotEmpty) {
+      if (args.first is Map) {
+        final msgs = args.cast<Map<String, dynamic>>();
+        _messages.addAll(msgs);
+        _showSuggestions = false;
+        for (final m in msgs) {
+          _history.add({'role': m['role'], 'content': m['text']});
+        }
       }
     }
 
@@ -229,14 +231,15 @@ class _SupportChatViewState extends State<SupportChatView>
               }))
           .timeout(const Duration(seconds: 35));
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          if (!mounted) return;
           setState(() {
             _stopTypingAnimation();
             _isTyping = false;
-            _messages.add({'role': 'bot', 'text': data['reply'], 'time': DateTime.now()});
+            _messages.add({'role': 'bot', 'text': _cleanMarkdown(data['reply']), 'time': DateTime.now()});
             _history.add({'role': 'assistant', 'content': data['reply']});
           });
         } else {
@@ -248,6 +251,20 @@ class _SupportChatViewState extends State<SupportChatView>
     } catch (e) {
       _showError();
     }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      _scrollToBottom();
+      _saveChat();
+    }
+  }
+
+  String _cleanMarkdown(String text) {
+    return text
+        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), '$1')
+        .replaceAll(RegExp(r'\*(.*?)\*'), '$1')
+        .replaceAll(RegExp(r'__(.*?)__'), '$1')
+        .replaceAll(RegExp(r'_(.*?)_'), '$1');
   }
 
   void _showError() {
@@ -260,10 +277,10 @@ class _SupportChatViewState extends State<SupportChatView>
         'text': "We're sorry for the inconvenience. Currently we are unable to reply. Please request an agent or contact us:\n\n📧 support@campconnectus.store\n📞 +2348155763709, +2348144317152\n\nThank you.".tr,
         'time': DateTime.now()
       });
+      _isLoading = false;
     });
     _scrollToBottom();
     _saveChat();
-    setState(() => _isLoading = false);
   }
 
   void _saveChat() {
@@ -378,14 +395,14 @@ class _SupportChatViewState extends State<SupportChatView>
                 title: Text('Take a photo'.tr),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showAgentOnlyFeature();
+                  _showFileNotAvailable();
                 }),
             ListTile(
                 leading: const Icon(Iconsax.gallery_copy),
                 title: Text('Upload a file'.tr),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showAgentOnlyFeature();
+                  _showFileNotAvailable();
                 }),
             const SizedBox(height: 12),
             Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr))),
@@ -396,18 +413,29 @@ class _SupportChatViewState extends State<SupportChatView>
     );
   }
 
-  void _showAgentOnlyFeature() {
+  void _showFileNotAvailable() {
     if (Get.context == null) return;
     ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
       content: Text('File sharing is available when connected to an agent.'.tr),
       backgroundColor: AppColors.primaryColor,
       behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 3),
+    ));
+  }
+
+  void _showAudioNotAvailable() {
+    if (Get.context == null) return;
+    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
+      content: Text('Voice messaging is available when connected to an agent.'.tr),
+      backgroundColor: AppColors.primaryColor,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 3),
     ));
   }
 
   Future<void> _onMicPressed() async {
     if (!_isAgentConnected) {
-      _showAgentOnlyFeature();
+      _showAudioNotAvailable();
       return;
     }
     final ok = await PermissionService.I.canUseMicrophoneOrExplain();
