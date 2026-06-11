@@ -9,11 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/login_service.dart';
+import '../../../core/services/permission_service.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
 import '../controller/customer_basic_info_controller.dart';
 
@@ -410,9 +410,8 @@ class _SupportChatViewState extends State<SupportChatView>
       _showAgentOnlyFeature();
       return;
     }
-    final status = await Permission.microphone.request();
-    if (status.isGranted) {
-      // Start recording - to be implemented
+    final ok = await PermissionService.I.canUseMicrophoneOrExplain();
+    if (ok) {
       if (Get.context == null) return;
       ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
         content: Text('Voice recording coming soon.'.tr),
@@ -428,8 +427,7 @@ class _SupportChatViewState extends State<SupportChatView>
     final userTextColor = isDark ? Colors.white : Colors.grey.shade900;
     final botTextColor = isDark ? Colors.white : Colors.grey.shade900;
     final botBubbleColor = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200;
-    final userBubbleColor =
-        isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
+    final userBubbleColor = isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -446,8 +444,7 @@ class _SupportChatViewState extends State<SupportChatView>
           child: ListView.builder(
             controller: _scrollCtrl,
             padding: const EdgeInsets.all(12),
-            itemCount:
-                _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0),
+            itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0),
             itemBuilder: (ctx, i) {
               if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
               final msgIndex = i - 1;
@@ -469,11 +466,9 @@ class _SupportChatViewState extends State<SupportChatView>
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(children: [
-              Text('── ${'Chat Ended'.tr} ──',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
+              Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
               const SizedBox(height: 4),
-              Text('Please start a new conversation later.'.tr,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+              Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
             ]),
           ),
         if (!_chatEnded)
@@ -488,8 +483,7 @@ class _SupportChatViewState extends State<SupportChatView>
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(color: Colors.grey.shade300)),
                   child: IconButton(
-                      icon: Icon(Iconsax.link_21_copy,
-                          size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor),
+                      icon: Icon(Iconsax.link_21_copy, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor),
                       onPressed: _isLoading ? null : _showAttachSheet),
                 ),
                 const SizedBox(width: 6),
@@ -515,8 +509,8 @@ class _SupportChatViewState extends State<SupportChatView>
                       color: _isAgentConnected ? AppColors.primaryColor : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(25)),
                   child: IconButton(
-                      icon: Icon(Iconsax.microphone_2,
-                          size: 20, color: _isAgentConnected ? Colors.white : Colors.grey.shade500),
+                      icon: Icon(Iconsax.microphone_2, size: 20,
+                          color: _isAgentConnected ? Colors.white : Colors.grey.shade500),
                       onPressed: _onMicPressed),
                 ),
                 const SizedBox(width: 4),
@@ -556,8 +550,7 @@ class _SupportChatViewState extends State<SupportChatView>
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text('💡 ${'Frequently Asked'.tr}',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+        Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: suggestions.map((s) {
           return ActionChip(
@@ -578,9 +571,7 @@ class _SupportChatViewState extends State<SupportChatView>
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
           const SizedBox(width: 6),
           Flexible(
             child: GestureDetector(
@@ -590,21 +581,13 @@ class _SupportChatViewState extends State<SupportChatView>
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                     color: botBubbleColor,
-                    borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(4),
-                        topRight: Radius.circular(16),
-                        bottomLeft: Radius.circular(16),
-                        bottomRight: Radius.circular(16))),
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(name,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))),
+                  Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))),
                   const SizedBox(height: 2),
                   Text(text, style: TextStyle(fontSize: 14, color: botTextColor)),
                   const SizedBox(height: 2),
-                  Align(
-                      alignment: Alignment.bottomRight,
-                      child: Text(_formatChatTime(time),
-                          style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                  Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
                 ]),
               ),
             ),
@@ -624,22 +607,13 @@ class _SupportChatViewState extends State<SupportChatView>
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                     color: userBubbleColor,
-                    borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(4),
-                        bottomLeft: Radius.circular(16),
-                        bottomRight: Radius.circular(16))),
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(name,
-                      style: TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))),
+                  Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))),
                   const SizedBox(height: 2),
                   Text(text, style: TextStyle(fontSize: 14, color: userTextColor)),
                   const SizedBox(height: 2),
-                  Align(
-                      alignment: Alignment.bottomRight,
-                      child: Text(_formatChatTime(time),
-                          style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                  Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
                 ]),
               ),
             ),
@@ -648,8 +622,7 @@ class _SupportChatViewState extends State<SupportChatView>
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: _hasUserAvatar
-                ? Image.network(_userAvatar,
-                    width: 28, height: 28, fit: BoxFit.cover,
+                ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28))
                 : Image.asset('assets/icons/profile.png', width: 28, height: 28),
           ),
@@ -662,9 +635,7 @@ class _SupportChatViewState extends State<SupportChatView>
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
+        ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
         const SizedBox(width: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -673,10 +644,8 @@ class _SupportChatViewState extends State<SupportChatView>
             animation: _typingAnimCtrl,
             builder: (ctx, child) {
               return Row(mainAxisSize: MainAxisSize.min, children: [
-                _buildDot(_dot1),
-                const SizedBox(width: 4),
-                _buildDot(_dot2),
-                const SizedBox(width: 4),
+                _buildDot(_dot1), const SizedBox(width: 4),
+                _buildDot(_dot2), const SizedBox(width: 4),
                 _buildDot(_dot3),
               ]);
             },
@@ -694,8 +663,7 @@ class _SupportChatViewState extends State<SupportChatView>
         return Transform.translate(
           offset: Offset(0, offset),
           child: Container(
-            width: 7,
-            height: 7,
+            width: 7, height: 7,
             decoration: BoxDecoration(
               color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)),
               shape: BoxShape.circle,
