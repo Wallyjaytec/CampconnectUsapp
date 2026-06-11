@@ -115,7 +115,6 @@ class _SupportChatViewState extends State<SupportChatView>
       _chatId = args['chatId']?.toString();
       _chatStartTime = args['chatStartTime'] != null ? DateTime.parse(args['chatStartTime'].toString()) : null;
     } else if (args is List && args.isNotEmpty) {
-      // Original behavior: receive messages list and auto-send
       if (args.first is Map) {
         final msgs = args.cast<Map<String, dynamic>>();
         _showSuggestions = false;
@@ -308,7 +307,6 @@ class _SupportChatViewState extends State<SupportChatView>
     if (prefill == null && imagePath == null) _msgCtrl.clear();
     _scrollToBottom();
 
-    // If agent connected, just forward message - no bot response
     if (_isAgentConnected) {
       setState(() => _isLoading = true);
       try {
@@ -329,7 +327,6 @@ class _SupportChatViewState extends State<SupportChatView>
       return;
     }
 
-    // Normal bot flow
     setState(() { _isLoading = true; _isTyping = true; });
     _startTypingAnimation();
     _scrollToBottom();
@@ -384,9 +381,7 @@ class _SupportChatViewState extends State<SupportChatView>
       return;
     }
     setState(() => _isRecording = !_isRecording);
-    if (_isRecording) {
-      HapticFeedback.mediumImpact();
-    }
+    if (_isRecording) HapticFeedback.mediumImpact();
   }
 
   void _cancelRecording() {
@@ -485,7 +480,6 @@ class _SupportChatViewState extends State<SupportChatView>
               final msgType = msg['type']?.toString() ?? 'text';
               final agentName = msg['agentName']?.toString();
               
-              // System messages centered
               if (role == 'system') {
                 final isEnd = msgType == 'system_end';
                 final isReassure = msgType == 'system_reassure';
@@ -518,7 +512,7 @@ class _SupportChatViewState extends State<SupportChatView>
     return Row(children: [
       const SizedBox(width: 4),
       if (_isAgentConnected)
-        Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: _isAgentConnected ? AppColors.primaryColor : Colors.grey.shade400), onPressed: _showAttachSheet)),
+        Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: AppColors.primaryColor), onPressed: _showAttachSheet)),
       if (_isAgentConnected) const SizedBox(width: 6),
       Expanded(child: Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: TextField(
         controller: _msgCtrl, enabled: !_chatEnded,
@@ -580,14 +574,7 @@ class _SupportChatViewState extends State<SupportChatView>
                 Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   if (name.isNotEmpty) Padding(padding: EdgeInsets.only(right: showCopy ? 22 : 0), child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7)))),
                   const SizedBox(height: 2),
-                  if (msgType == 'image')
-                    ClipRRect(borderRadius: BorderRadius.circular(8), child: CachedNetworkImage(imageUrl: text.startsWith('http') ? text : text, width: screenWidth * 0.6, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(width: screenWidth * 0.6, height: 150, color: Colors.grey.shade300, child: const Center(child: Icon(Iconsax.gallery_remove, size: 40))))),
-                  else if (msgType == 'voice')
-                    _buildVoiceBubble(text, isBot),
-                  else if (msgType == 'file')
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document, size: 22, color: AppColors.primaryColor), const SizedBox(width: 8), Flexible(child: Text(text.split('\n').first, style: const TextStyle(fontSize: 13, color: AppColors.primaryColor)))])),
-                  if (msgType == 'text')
-                    HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
+                  _buildMessageContent(msgType, text, formattedText, isBot, botTextColor, userTextColor, screenWidth),
                   const SizedBox(height: 2),
                   Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
                 ]),
@@ -602,6 +589,26 @@ class _SupportChatViewState extends State<SupportChatView>
         ],
       ]),
     );
+  }
+
+  Widget _buildMessageContent(String msgType, String text, String formattedText, bool isBot, Color botTextColor, Color userTextColor, double screenWidth) {
+    if (msgType == 'image') {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: CachedNetworkImage(imageUrl: text.startsWith('http') ? text : text, width: screenWidth * 0.6, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(width: screenWidth * 0.6, height: 150, color: Colors.grey.shade300, child: const Center(child: Icon(Iconsax.gallery_remove, size: 40)))),
+      );
+    }
+    if (msgType == 'voice') {
+      return _buildVoiceBubble(text, isBot);
+    }
+    if (msgType == 'file') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document, size: 22, color: AppColors.primaryColor), const SizedBox(width: 8), Flexible(child: Text(text.split('\n').first, style: const TextStyle(fontSize: 13, color: AppColors.primaryColor)))]),
+      );
+    }
+    return HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor));
   }
 
   Widget _buildVoiceBubble(String text, bool isBot) {
