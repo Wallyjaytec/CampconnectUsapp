@@ -303,7 +303,7 @@ class OrderDetailsController extends GetxController {
               ListTile(
                 leading: Icon(Iconsax.wallet_3_copy, color: AppColors.primaryColor),
                 title: Text('Pay with Wallet'.tr),
-                subtitle: Text('Balance: ${formatCurrency(walletBalance, applyConversion: true)}'),
+                subtitle: Text('Balance'.tr}: ${formatCurrency(walletBalance, applyConversion: true)}'),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 tileColor: AppColors.primaryColor.withValues(alpha: 0.05),
                 onTap: () {
