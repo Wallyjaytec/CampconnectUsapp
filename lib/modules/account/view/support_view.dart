@@ -72,7 +72,7 @@ class _SupportViewState extends State<SupportView> {
       ClipRRect(borderRadius: BorderRadius.circular(50), child: Image.asset('assets/icons/customer_support.png', width: 80, height: 80)),
       const SizedBox(height: 12),
       Row(mainAxisSize: MainAxisSize.min, children: [
-        Flexible(child: Text('CampConnectUs Virtual Assistant', textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600))),
+        Flexible(child: Text('CampConnectUs Virtual Assistant'.tr, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600))),
         const SizedBox(width: 4),
         Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
       ]),
