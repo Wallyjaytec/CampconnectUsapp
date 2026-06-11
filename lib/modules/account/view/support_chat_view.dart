@@ -178,7 +178,7 @@ class _SupportChatViewState extends State<SupportChatView>
   }
 
   Future<void> _sendMessage({String? prefill}) async {
-    final text = prefill ?? _msgCtrl.text.trim();
+    final text = (prefill ?? _msgCtrl.text.trim()).tr;
     if (text.isEmpty || _isLoading || _chatEnded) return;
     setState(() { _showSuggestions = false; _messages.add({'role': 'user', 'text': text, 'time': DateTime.now()}); _history.add({'role': 'user', 'content': text}); _isLoading = true; });
     if (prefill == null) _msgCtrl.clear();
@@ -217,15 +217,38 @@ class _SupportChatViewState extends State<SupportChatView>
     chats.removeWhere((c) => c['id'] == _chatId);
     final lastMsg = _messages.last; final lastText = lastMsg['text'].toString();
     chats.add({'id': _chatId, 'last_message': lastText.length > 50 ? '${lastText.substring(0, 50)}...' : lastText, 'time': DateTime.now().toIso8601String(), 'messages': List.from(_messages), 'chat_start': _chatStartTime?.toIso8601String()});
-    box.write('support_chats', chats); _syncToServer();
+    box.write('support_chats', chats);
+    if (chats.isNotEmpty) _syncToServer();
   }
 
   Future<void> _syncToServer() async {
-    try { final token = LoginService().token; if (token == null || token.isEmpty) return; await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'save', 'chats': box.read<List>('support_chats') ?? []})); } catch (_) {}
+    try {
+      final token = LoginService().token;
+      if (token == null || token.isEmpty) return;
+      final chats = box.read<List>('support_chats');
+      if (chats == null || chats.isEmpty) return;
+      final uri = Uri.parse(AppConfig.chatbotHistoryUrl());
+      await http.post(uri, headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'save', 'chats': chats}));
+    } catch (_) {}
   }
 
   Future<void> _loadFromServer() async {
-    try { final token = LoginService().token; if (token == null || token.isEmpty) return; final resp = await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'})); final data = jsonDecode(resp.body); if (data['success'] == true && data['chats'] != null) { final serverChats = data['chats'] as List; if (serverChats.isNotEmpty) box.write('support_chats', serverChats); } } catch (_) {}
+    try {
+      String? token;
+      for (int i = 0; i < 5; i++) {
+        token = LoginService().token;
+        if (token != null && token.isNotEmpty) break;
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      if (token == null || token.isEmpty) return;
+      final uri = Uri.parse(AppConfig.chatbotHistoryUrl());
+      final resp = await http.post(uri, headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'}));
+      final data = jsonDecode(resp.body);
+      if (data['success'] == true && data['chats'] != null) {
+        final serverChats = data['chats'] as List;
+        if (serverChats.isNotEmpty) box.write('support_chats', serverChats);
+      }
+    } catch (_) {}
   }
 
   String _formatChatTime(DateTime dt) { final now = DateTime.now(); if (dt.day == now.day && dt.month == now.month && dt.year == now.year) return DateFormat('h:mm a').format(dt); return DateFormat('dd/MM/yyyy').format(dt); }
@@ -237,9 +260,7 @@ class _SupportChatViewState extends State<SupportChatView>
     setState(() => _copyVisibleIndex = null);
   }
 
-  void _dismissCopy() {
-    if (_copyVisibleIndex != null) setState(() => _copyVisibleIndex = null);
-  }
+  void _dismissCopy() { if (_copyVisibleIndex != null) setState(() => _copyVisibleIndex = null); }
 
   void _showAttachSheet() {
     showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -299,7 +320,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   Widget _buildTimeHeader(DateTime time) => Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))));
   
-  Widget _buildSuggestions() { final s = ['How do I track my order?','What is the return policy?','How to request a refund?','How to recharge my wallet?','What payment methods are available?','How to close my account?','How to report a seller?','What shipping methods do you offer?']; return Padding(padding: const EdgeInsets.only(bottom: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)), const SizedBox(height: 8), Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: s.map((x) => ActionChip(label: Text(x.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: x), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList())])); }
+  Widget _buildSuggestions() { final s = ['How do I track my order?','What is the return policy?','How to request a refund?','How to recharge my wallet?','What payment methods are available?','How to close my account?','How to report a seller?','What shipping methods do you offer?']; return Padding(padding: const EdgeInsets.only(bottom: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)), const SizedBox(height: 8), Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: s.map((x) => ActionChip(label: Text(x.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: x.tr), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList())])); }
 
   Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor, {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth, required int msgIndex, required Color copyIconColor}) {
     final name = isBot ? 'Luca' : _userFullName;
@@ -332,28 +353,15 @@ class _SupportChatViewState extends State<SupportChatView>
                 ),
                 child: Stack(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(right: showCopy ? 22 : 0),
-                          child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7))),
-                        ),
-                        const SizedBox(height: 2),
-                        HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
-                        const SizedBox(height: 2),
-                        Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
-                      ],
-                    ),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                      Padding(padding: EdgeInsets.only(right: showCopy ? 22 : 0), child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7)))),
+                      const SizedBox(height: 2),
+                      HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
+                      const SizedBox(height: 2),
+                      Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                    ]),
                     if (showCopy)
-                      Positioned(
-                        top: 0, right: 0,
-                        child: GestureDetector(
-                          onTap: () => _copyMessage(text),
-                          child: Icon(Iconsax.copy_copy, size: 18, color: copyIconColor),
-                        ),
-                      ),
+                      Positioned(top: 0, right: 0, child: GestureDetector(onTap: () => _copyMessage(text), child: Icon(Iconsax.copy_copy, size: 18, color: copyIconColor))),
                   ],
                 ),
               ),
