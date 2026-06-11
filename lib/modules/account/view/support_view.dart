@@ -16,11 +16,6 @@ class SupportView extends StatefulWidget {
 class _SupportViewState extends State<SupportView> {
   final box = GetStorage();
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Future<void> _refresh() async {
     setState(() {});
   }
@@ -28,8 +23,6 @@ class _SupportViewState extends State<SupportView> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final chats = box.read<List>('support_chats') ?? [];
-    final hasHistory = chats.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -45,17 +38,16 @@ class _SupportViewState extends State<SupportView> {
           child: Column(children: [
             _buildWelcome(),
             const SizedBox(height: 16),
-            if (hasHistory)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(width: double.infinity, height: 44,
-                  child: OutlinedButton(
-                    onPressed: () => Get.toNamed(AppRoutes.supportHistoryView)?.then((_) => setState(() {})),
-                    style: OutlinedButton.styleFrom(backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200, side: BorderSide(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: Text('Chat History'.tr, style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade700, fontSize: 14)),
-                  ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(width: double.infinity, height: 44,
+                child: OutlinedButton(
+                  onPressed: () => Get.toNamed(AppRoutes.supportHistoryView)?.then((_) => setState(() {})),
+                  style: OutlinedButton.styleFrom(backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200, side: BorderSide(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: Text('Chat History'.tr, style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade700, fontSize: 14)),
                 ),
               ),
+            ),
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
