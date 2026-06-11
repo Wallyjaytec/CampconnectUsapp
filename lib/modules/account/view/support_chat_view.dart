@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
@@ -239,7 +240,7 @@ class _SupportChatViewState extends State<SupportChatView>
           setState(() {
             _stopTypingAnimation();
             _isTyping = false;
-            _messages.add({'role': 'bot', 'text': _cleanMarkdown(data['reply']), 'time': DateTime.now()});
+            _messages.add({'role': 'bot', 'text': data['reply'], 'time': DateTime.now()});
             _history.add({'role': 'assistant', 'content': data['reply']});
           });
         } else {
@@ -259,12 +260,11 @@ class _SupportChatViewState extends State<SupportChatView>
     }
   }
 
-  String _cleanMarkdown(String text) {
+  String _formatMarkdown(String text) {
     return text
-        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), '$1')
-        .replaceAll(RegExp(r'\*(.*?)\*'), '$1')
-        .replaceAll(RegExp(r'__(.*?)__'), '$1')
-        .replaceAll(RegExp(r'_(.*?)_'), '$1');
+        .replaceAllMapped(RegExp(r'\*\*(.*?)\*\*'), (m) => '<b>${m.group(1)}</b>')
+        .replaceAllMapped(RegExp(r'__(.*?)__'), (m) => '<b>${m.group(1)}</b>')
+        .replaceAll('\n', '<br>');
   }
 
   void _showError() {
@@ -595,6 +595,7 @@ class _SupportChatViewState extends State<SupportChatView>
   Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor,
       {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
     final name = isBot ? 'Luca' : _userFullName;
+    final formattedText = _formatMarkdown(text);
     if (isBot) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
@@ -613,7 +614,7 @@ class _SupportChatViewState extends State<SupportChatView>
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))),
                   const SizedBox(height: 2),
-                  Text(text, style: TextStyle(fontSize: 14, color: botTextColor)),
+                  HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: botTextColor)),
                   const SizedBox(height: 2),
                   Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
                 ]),
@@ -639,7 +640,7 @@ class _SupportChatViewState extends State<SupportChatView>
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))),
                   const SizedBox(height: 2),
-                  Text(text, style: TextStyle(fontSize: 14, color: userTextColor)),
+                  HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: userTextColor)),
                   const SizedBox(height: 2),
                   Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
                 ]),
