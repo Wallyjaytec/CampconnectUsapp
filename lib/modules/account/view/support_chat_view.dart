@@ -41,6 +41,7 @@ class _SupportChatViewState extends State<SupportChatView>
   String? _chatId;
   Timer? _timer;
   Timer? _typingDelayTimer;
+  Timer? _agentPollTimer;
   final AudioPlayer _audioPlayer = AudioPlayer();
   int? _copyVisibleIndex;
 
@@ -136,6 +137,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   @override
   void dispose() {
+    _stopAgentPolling();
     _stopTypingAnimation();
     _saveChat();
     _syncToServer();
@@ -168,6 +170,45 @@ class _SupportChatViewState extends State<SupportChatView>
     _typingDelayTimer?.cancel();
   }
 
+  void _startAgentPolling() {
+    _isAgentConnected = true;
+    _agentPollTimer?.cancel();
+    _agentPollTimer = Timer.periodic(const Duration(seconds: 5), (_) { _pollAgentReplies(); });
+  }
+
+  void _stopAgentPolling() {
+    _agentPollTimer?.cancel();
+    _isAgentConnected = false;
+  }
+
+  Future<void> _pollAgentReplies() async {
+    try {
+      final token = LoginService().token;
+      if (token == null || token.isEmpty) return;
+      final uri = Uri.parse(AppConfig.agentPollRepliesUrl());
+      final resp = await http.post(uri, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+      final data = jsonDecode(resp.body);
+      if (data['success'] == true && data['replies'] != null) {
+        for (final reply in data['replies']) {
+          setState(() {
+            _messages.add({
+              'role': 'bot',
+              'text': reply['message'],
+              'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
+            });
+          });
+        }
+        if ((data['replies'] as List).isNotEmpty) {
+          _scrollToBottom();
+          _saveChat();
+        }
+      }
+    } catch (_) {}
+  }
+
   void _sendWelcomeMessage() {
     final name = _firstName;
     final greeting = name.isNotEmpty
@@ -196,7 +237,13 @@ class _SupportChatViewState extends State<SupportChatView>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          setState(() { _stopTypingAnimation(); _isTyping = false; _messages.add({'role': 'bot', 'text': data['reply'], 'time': DateTime.now()}); _history.add({'role': 'assistant', 'content': data['reply']}); });
+          setState(() {
+            _stopTypingAnimation();
+            _isTyping = false;
+            _messages.add({'role': 'bot', 'text': data['reply'], 'time': DateTime.now()});
+            _history.add({'role': 'assistant', 'content': data['reply']});
+            if (data['action'] == 'agent_connected') _startAgentPolling();
+          });
         } else { _showError(); }
       } else { _showError(); }
     } catch (e) { _showError(); }
@@ -223,43 +270,27 @@ class _SupportChatViewState extends State<SupportChatView>
 
   Future<void> _syncToServer() async {
     try {
-      final token = LoginService().token;
-      if (token == null || token.isEmpty) return;
-      final chats = box.read<List>('support_chats');
-      if (chats == null || chats.isEmpty) return;
-      final uri = Uri.parse(AppConfig.chatbotHistoryUrl());
-      await http.post(uri, headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'save', 'chats': chats}));
+      final token = LoginService().token; if (token == null || token.isEmpty) return;
+      final chats = box.read<List>('support_chats'); if (chats == null || chats.isEmpty) return;
+      await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'save', 'chats': chats}));
     } catch (_) {}
   }
 
   Future<void> _loadFromServer() async {
     try {
       String? token;
-      for (int i = 0; i < 5; i++) {
-        token = LoginService().token;
-        if (token != null && token.isNotEmpty) break;
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
+      for (int i = 0; i < 5; i++) { token = LoginService().token; if (token != null && token.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); }
       if (token == null || token.isEmpty) return;
-      final uri = Uri.parse(AppConfig.chatbotHistoryUrl());
-      final resp = await http.post(uri, headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'}));
+      final resp = await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'}));
       final data = jsonDecode(resp.body);
-      if (data['success'] == true && data['chats'] != null) {
-        final serverChats = data['chats'] as List;
-        if (serverChats.isNotEmpty) box.write('support_chats', serverChats);
-      }
+      if (data['success'] == true && data['chats'] != null) { final serverChats = data['chats'] as List; if (serverChats.isNotEmpty) box.write('support_chats', serverChats); }
     } catch (_) {}
   }
 
   String _formatChatTime(DateTime dt) { final now = DateTime.now(); if (dt.day == now.day && dt.month == now.month && dt.year == now.year) return DateFormat('h:mm a').format(dt); return DateFormat('dd/MM/yyyy').format(dt); }
   String _formatHeaderTime(DateTime dt) { final now = DateTime.now(); if (dt.day == now.day && dt.month == now.month && dt.year == now.year) return DateFormat('h:mm a').format(dt); if (now.difference(dt).inDays == 1) return 'Yesterday'.tr; if (now.difference(dt).inDays < 7) return '${now.difference(dt).inDays} ${'days ago'.tr}'; return DateFormat('dd/MM/yyyy').format(dt); }
 
-  void _copyMessage(String text) {
-    HapticFeedback.mediumImpact();
-    Clipboard.setData(ClipboardData(text: text));
-    setState(() => _copyVisibleIndex = null);
-  }
-
+  void _copyMessage(String text) { HapticFeedback.mediumImpact(); Clipboard.setData(ClipboardData(text: text)); setState(() => _copyVisibleIndex = null); }
   void _dismissCopy() { if (_copyVisibleIndex != null) setState(() => _copyVisibleIndex = null); }
 
   void _showAttachSheet() {
@@ -305,9 +336,9 @@ class _SupportChatViewState extends State<SupportChatView>
           if (_chatEnded) Padding(padding: const EdgeInsets.all(24), child: Column(children: [Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)), const SizedBox(height: 4), Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))])),
           if (!_chatEnded) SafeArea(child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [
             const SizedBox(width: 4),
-            Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor), onPressed: _isLoading ? null : _showAttachSheet)),
+            Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: _isAgentConnected ? (_isLoading ? Colors.grey.shade400 : AppColors.primaryColor) : Colors.grey.shade400), onPressed: _isAgentConnected && !_isLoading ? _showAttachSheet : null)),
             const SizedBox(width: 6),
-            Expanded(child: Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()))),
+            Expanded(child: Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: _isAgentConnected ? 'Message agent...'.tr : 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()))),
             const SizedBox(width: 6),
             Container(decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : (isDark ? Colors.grey.shade700 : Colors.grey.shade300), borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : (isDark ? Colors.grey.shade500 : Colors.grey.shade500)), onPressed: _onMicPressed)),
             const SizedBox(width: 4),
@@ -328,51 +359,36 @@ class _SupportChatViewState extends State<SupportChatView>
     final showCopy = _copyVisibleIndex == msgIndex;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (isBot) ...[
-            ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
-            const SizedBox(width: 6),
-          ] else
-            const Expanded(child: SizedBox()),
-          Flexible(
-            child: GestureDetector(
-              onLongPressStart: (_) {
-                HapticFeedback.mediumImpact();
-                setState(() => _copyVisibleIndex = msgIndex);
-              },
-              child: Container(
-                constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isBot ? botBubbleColor : userBubbleColor,
-                  borderRadius: isBot
-                      ? const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))
-                      : const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
-                ),
-                child: Stack(
-                  children: [
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                      Padding(padding: EdgeInsets.only(right: showCopy ? 22 : 0), child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7)))),
-                      const SizedBox(height: 2),
-                      HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
-                      const SizedBox(height: 2),
-                      Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
-                    ]),
-                    if (showCopy)
-                      Positioned(top: 0, right: 0, child: GestureDetector(onTap: () => _copyMessage(text), child: Icon(Iconsax.copy_copy, size: 18, color: copyIconColor))),
-                  ],
-                ),
-              ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (isBot) ...[
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
+          const SizedBox(width: 6),
+        ] else const Expanded(child: SizedBox()),
+        Flexible(
+          child: GestureDetector(
+            onLongPressStart: (_) { HapticFeedback.mediumImpact(); setState(() => _copyVisibleIndex = msgIndex); },
+            child: Container(
+              constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(color: isBot ? botBubbleColor : userBubbleColor, borderRadius: isBot ? const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)) : const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
+              child: Stack(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Padding(padding: EdgeInsets.only(right: showCopy ? 22 : 0), child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7)))),
+                  const SizedBox(height: 2),
+                  HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
+                  const SizedBox(height: 2),
+                  Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                ]),
+                if (showCopy) Positioned(top: 0, right: 0, child: GestureDetector(onTap: () => _copyMessage(text), child: Icon(Iconsax.copy_copy, size: 18, color: copyIconColor))),
+              ]),
             ),
           ),
-          if (!isBot) ...[
-            const SizedBox(width: 6),
-            ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
-          ],
+        ),
+        if (!isBot) ...[
+          const SizedBox(width: 6),
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
         ],
-      ),
+      ]),
     );
   }
 
