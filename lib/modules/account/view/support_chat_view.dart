@@ -26,7 +26,7 @@ class SupportChatView extends StatefulWidget {
 }
 
 class _SupportChatViewState extends State<SupportChatView>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final TextEditingController _msgCtrl = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
   final List<Map<String, dynamic>> _messages = [];
@@ -88,6 +88,7 @@ class _SupportChatViewState extends State<SupportChatView>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _typingAnimCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     _dot1 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.33)));
@@ -133,6 +134,11 @@ class _SupportChatViewState extends State<SupportChatView>
     _loadFromServer();
   }
 
+  @override
+  void didChangePlatformBrightness() {
+    if (mounted) setState(() {});
+  }
+
   void _preloadAudio() {
     try {
       _audioPlayer.setSource(AssetSource('sounds/typing_sound.m4a'));
@@ -142,6 +148,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _typingDelayTimer?.cancel();
     _typingAnimCtrl.dispose();
@@ -179,9 +186,7 @@ class _SupportChatViewState extends State<SupportChatView>
   void _stopTypingAnimation() {
     _typingAnimCtrl.stop();
     _typingAnimCtrl.reset();
-    try {
-      _audioPlayer.stop();
-    } catch (_) {}
+    try { _audioPlayer.stop(); } catch (_) {}
   }
 
   void _cancelRequest() {
@@ -232,13 +237,9 @@ class _SupportChatViewState extends State<SupportChatView>
 
     try {
       final uri = Uri.parse(AppConfig.chatbotChatUrl());
-      final response = await http
-          .post(uri,
+      final response = await http.post(uri,
               headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'message': text,
-                'history': _history.sublist(0, max(0, _history.length - 1)),
-              }))
+              body: jsonEncode({'message': text, 'history': _history.sublist(0, max(0, _history.length - 1))}))
           .timeout(const Duration(seconds: 35));
 
       if (!mounted || !_isLoading) return;
@@ -252,15 +253,9 @@ class _SupportChatViewState extends State<SupportChatView>
             _messages.add({'role': 'bot', 'text': data['reply'], 'time': DateTime.now()});
             _history.add({'role': 'assistant', 'content': data['reply']});
           });
-        } else {
-          _showError();
-        }
-      } else {
-        _showError();
-      }
-    } catch (e) {
-      _showError();
-    }
+        } else { _showError(); }
+      } else { _showError(); }
+    } catch (e) { _showError(); }
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -272,96 +267,58 @@ class _SupportChatViewState extends State<SupportChatView>
   String _formatMarkdown(String text) {
     return text
         .replaceAllMapped(RegExp(r'\*\*(.*?)\*\*'), (m) => '<b>${m.group(1)}</b>')
-        .replaceAllMapped(RegExp(r'__(.*?)__'), (m) => '<b>${m.group(1)}</b>')
         .replaceAll('\n', '<br>');
   }
 
   void _showError() {
     if (!mounted) return;
     setState(() {
-      _stopTypingAnimation();
-      _isTyping = false;
-      _messages.add({
-        'role': 'bot',
-        'text': "We're sorry for the inconvenience. Currently we are unable to reply. Please request an agent or contact us:\n\n📧 support@campconnectus.store\n📞 +2348155763709, +2348144317152\n\nThank you.".tr,
-        'time': DateTime.now()
-      });
+      _stopTypingAnimation(); _isTyping = false;
+      _messages.add({'role': 'bot', 'text': "We're sorry for the inconvenience. Currently we are unable to reply. Please request an agent or contact us:\n\n📧 support@campconnectus.store\n📞 +2348155763709, +2348144317152\n\nThank you.".tr, 'time': DateTime.now()});
       _isLoading = false;
     });
-    _scrollToBottom();
-    _saveChat();
+    _scrollToBottom(); _saveChat();
   }
 
   void _saveChat() {
     if (_messages.length < 2) return;
     final chats = box.read<List>('support_chats') ?? [];
     chats.removeWhere((c) => c['id'] == _chatId);
-
     final lastMsg = _messages.last;
     final lastText = lastMsg['text'].toString();
-    chats.add({
-      'id': _chatId,
-      'last_message': lastText.length > 50 ? '${lastText.substring(0, 50)}...' : lastText,
-      'time': DateTime.now().toIso8601String(),
-      'messages': List.from(_messages),
-      'chat_start': _chatStartTime?.toIso8601String(),
-    });
-
+    chats.add({'id': _chatId, 'last_message': lastText.length > 50 ? '${lastText.substring(0, 50)}...' : lastText, 'time': DateTime.now().toIso8601String(), 'messages': List.from(_messages), 'chat_start': _chatStartTime?.toIso8601String()});
     box.write('support_chats', chats);
     _syncToServer();
   }
 
   Future<void> _syncToServer() async {
     try {
-      final token = LoginService().token;
-      if (token == null || token.isEmpty) return;
-      final uri = Uri.parse(AppConfig.chatbotHistoryUrl());
-      await http.post(uri,
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'action': 'save',
-            'chats': box.read<List>('support_chats') ?? [],
-          }));
+      final token = LoginService().token; if (token == null || token.isEmpty) return;
+      await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'save', 'chats': box.read<List>('support_chats') ?? []}));
     } catch (_) {}
   }
 
   Future<void> _loadFromServer() async {
     try {
-      final token = LoginService().token;
-      if (token == null || token.isEmpty) return;
-      final uri = Uri.parse(AppConfig.chatbotHistoryUrl());
-      final resp = await http.post(uri,
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({'action': 'load'}));
+      final token = LoginService().token; if (token == null || token.isEmpty) return;
+      final resp = await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'}));
       final data = jsonDecode(resp.body);
       if (data['success'] == true && data['chats'] != null) {
         final serverChats = data['chats'] as List;
-        if (serverChats.isNotEmpty) {
-          box.write('support_chats', serverChats);
-        }
+        if (serverChats.isNotEmpty) box.write('support_chats', serverChats);
       }
     } catch (_) {}
   }
 
   String _formatChatTime(DateTime dt) {
     final now = DateTime.now();
-    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) {
-      return DateFormat('h:mm a').format(dt);
-    }
+    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) return DateFormat('h:mm a').format(dt);
     return DateFormat('dd/MM/yyyy').format(dt);
   }
 
   String _formatHeaderTime(DateTime dt) {
     final now = DateTime.now();
-    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) {
-      return DateFormat('h:mm a').format(dt);
-    }
+    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) return DateFormat('h:mm a').format(dt);
     if (now.difference(dt).inDays == 1) return 'Yesterday'.tr;
     if (now.difference(dt).inDays < 7) return '${now.difference(dt).inDays} ${'days ago'.tr}';
     return DateFormat('dd/MM/yyyy').format(dt);
@@ -376,80 +333,36 @@ class _SupportChatViewState extends State<SupportChatView>
       color: isDark ? Colors.grey.shade800 : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       constraints: const BoxConstraints(minWidth: 90, maxWidth: 90, maxHeight: 32),
-      items: [
-        PopupMenuItem(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          height: 28,
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Iconsax.copy_copy, size: 13, color: isDark ? Colors.white : Colors.black87),
-            const SizedBox(width: 5),
-            Text('Copy'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white : Colors.black87)),
-          ]),
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: text));
-          },
-        ),
-      ],
+      items: [PopupMenuItem(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0), height: 28, child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Iconsax.copy_copy, size: 13, color: isDark ? Colors.white : Colors.black87), const SizedBox(width: 5), Text('Copy'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white : Colors.black87))]), onTap: () => Clipboard.setData(ClipboardData(text: text)))],
     );
   }
 
   void _showAttachSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-                leading: const Icon(Iconsax.camera_copy),
-                title: Text('Take a photo'.tr),
-                onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
-            ListTile(
-                leading: const Icon(Iconsax.gallery_copy),
-                title: Text('Upload a file'.tr),
-                onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
-            const SizedBox(height: 12),
-            Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr))),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
+    showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      ListTile(leading: const Icon(Iconsax.camera_copy), title: Text('Take a photo'.tr), onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
+      ListTile(leading: const Icon(Iconsax.gallery_copy), title: Text('Upload a file'.tr), onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
+      const SizedBox(height: 12),
+      Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr))),
+      const SizedBox(height: 8),
+    ])));
   }
 
   void _showFileNotAvailable() {
     if (Get.context == null) return;
-    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
-      content: Text('File sharing is available when connected to an agent.'.tr),
-      backgroundColor: AppColors.primaryColor,
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 3),
-    ));
+    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('File sharing is available when connected to an agent.'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 3)));
   }
 
   void _showAudioNotAvailable() {
     if (Get.context == null) return;
-    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
-      content: Text('Voice messaging is available when connected to an agent.'.tr),
-      backgroundColor: AppColors.primaryColor,
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 3),
-    ));
+    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Voice messaging is available when connected to an agent.'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 3)));
   }
 
   Future<void> _onMicPressed() async {
-    if (!_isAgentConnected) {
-      _showAudioNotAvailable();
-      return;
-    }
+    if (!_isAgentConnected) { _showAudioNotAvailable(); return; }
     final ok = await PermissionService.I.canUseMicrophoneOrExplain();
     if (ok) {
       if (Get.context == null) return;
-      ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
-        content: Text('Voice recording coming soon.'.tr),
-        backgroundColor: AppColors.primaryColor,
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Voice recording coming soon.'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -463,175 +376,74 @@ class _SupportChatViewState extends State<SupportChatView>
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(),
-        centerTitle: false, titleSpacing: 0,
-        title: Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
-      ),
+      appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0, title: Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18))),
       body: Column(children: [
         Expanded(
-          child: ListView.builder(
-            controller: _scrollCtrl, padding: const EdgeInsets.all(12),
-            itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0),
-            itemBuilder: (ctx, i) {
-              if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
-              final msgIndex = i - 1;
-              if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
-              if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
-              if (msgIndex < _messages.length) {
-                final msg = _messages[msgIndex];
-                final isBot = msg['role'] == 'bot';
-                final time = msg['time'] as DateTime;
-                return _buildMessageRow(isBot, msg['text'], time, userTextColor, botTextColor,
-                    userBubbleColor: userBubbleColor, botBubbleColor: botBubbleColor, screenWidth: screenWidth);
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+          child: ListView.builder(controller: _scrollCtrl, padding: const EdgeInsets.all(12), itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0), itemBuilder: (ctx, i) {
+            if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
+            final msgIndex = i - 1;
+            if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
+            if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
+            if (msgIndex < _messages.length) {
+              final msg = _messages[msgIndex]; final isBot = msg['role'] == 'bot'; final time = msg['time'] as DateTime;
+              return _buildMessageRow(isBot, msg['text'], time, userTextColor, botTextColor, userBubbleColor: userBubbleColor, botBubbleColor: botBubbleColor, screenWidth: screenWidth);
+            }
+            return const SizedBox.shrink();
+          }),
         ),
-        if (_chatEnded)
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(children: [
-              Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
-              const SizedBox(height: 4),
-              Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-            ]),
-          ),
-        if (!_chatEnded)
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(children: [
-                const SizedBox(width: 4),
-                Container(
-                  decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)),
-                  child: IconButton(
-                      icon: Icon(Iconsax.attach_circle, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor),
-                      onPressed: _isLoading ? null : _showAttachSheet),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)),
-                    child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : Colors.grey.shade300, borderRadius: BorderRadius.circular(25)),
-                  child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : Colors.grey.shade500), onPressed: _onMicPressed),
-                ),
-                const SizedBox(width: 4),
-                Container(
-                    decoration: BoxDecoration(color: _isLoading ? Colors.red : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)),
-                    child: IconButton(
-                        icon: Icon(_isLoading ? Iconsax.close_circle : Iconsax.send_1_copy, size: 20, color: Colors.white),
-                        onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
-              ]),
-            ),
-          ),
+        if (_chatEnded) Padding(padding: const EdgeInsets.all(24), child: Column(children: [Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)), const SizedBox(height: 4), Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))])),
+        if (!_chatEnded) SafeArea(child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [
+          const SizedBox(width: 4),
+          Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor), onPressed: _isLoading ? null : _showAttachSheet)),
+          const SizedBox(width: 6),
+          Expanded(child: Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()))),
+          const SizedBox(width: 6),
+          Container(decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : (isDark ? Colors.grey.shade700 : Colors.grey.shade300), borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : (isDark ? Colors.grey.shade500 : Colors.grey.shade500)), onPressed: _onMicPressed)),
+          const SizedBox(width: 4),
+          Container(decoration: BoxDecoration(color: _isLoading ? Colors.orange : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(_isLoading ? Iconsax.stop_circle : Iconsax.send_1_copy, size: 20, color: Colors.white), onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
+        ]))),
       ]),
     );
   }
 
-  Widget _buildTimeHeader(DateTime time) {
-    return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))));
-  }
+  Widget _buildTimeHeader(DateTime time) => Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))));
 
   Widget _buildSuggestions() {
     final suggestions = ['How do I track my order?', 'What is the return policy?', 'How to request a refund?', 'How to recharge my wallet?', 'What payment methods are available?', 'How to close my account?', 'How to report a seller?', 'What shipping methods do you offer?'];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
-        const SizedBox(height: 8),
-        Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: suggestions.map((s) {
-          return ActionChip(label: Text(s.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: s), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)));
-        }).toList()),
-      ]),
-    );
+    return Padding(padding: const EdgeInsets.only(bottom: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+      const SizedBox(height: 8),
+      Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: suggestions.map((s) => ActionChip(label: Text(s.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: s), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList()),
+    ]));
   }
 
-  Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor,
-      {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
+  Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor, {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
     final name = isBot ? 'Luca' : _userFullName;
     final formattedText = _formatMarkdown(text);
     if (isBot) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
-          const SizedBox(width: 6),
-          Flexible(
-            child: GestureDetector(
-              onLongPressStart: (details) => _showCopyOption(text, details.globalPosition),
-              child: Container(
-                constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: botBubbleColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))),
-                  const SizedBox(height: 2),
-                  HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: botTextColor)),
-                  const SizedBox(height: 2),
-                  Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
-                ]),
-              ),
-            ),
-          ),
-        ]),
-      );
+      return Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
+        const SizedBox(width: 6),
+        Flexible(child: GestureDetector(onLongPressStart: (d) => _showCopyOption(text, d.globalPosition), child: Container(constraints: BoxConstraints(maxWidth: screenWidth * 0.75), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: botBubbleColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))), const SizedBox(height: 2), HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: botTextColor)), const SizedBox(height: 2), Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)))])))),
+      ]));
     } else {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Expanded(child: SizedBox()),
-          Flexible(
-            child: GestureDetector(
-              onLongPressStart: (details) => _showCopyOption(text, details.globalPosition),
-              child: Container(
-                constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: userBubbleColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))),
-                  const SizedBox(height: 2),
-                  HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: userTextColor)),
-                  const SizedBox(height: 2),
-                  Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
-                ]),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
-        ]),
-      );
+      return Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Expanded(child: SizedBox()),
+        Flexible(child: GestureDetector(onLongPressStart: (d) => _showCopyOption(text, d.globalPosition), child: Container(constraints: BoxConstraints(maxWidth: screenWidth * 0.75), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: userBubbleColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))), const SizedBox(height: 2), HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: userTextColor)), const SizedBox(height: 2), Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)))])))),
+        const SizedBox(width: 6),
+        ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
+      ]));
     }
   }
 
-  Widget _buildTypingBubble(Color botBubbleColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
-        const SizedBox(width: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(color: botBubbleColor, borderRadius: BorderRadius.circular(16)),
-          child: AnimatedBuilder(animation: _typingAnimCtrl, builder: (ctx, child) {
-            return Row(mainAxisSize: MainAxisSize.min, children: [_buildDot(_dot1), const SizedBox(width: 4), _buildDot(_dot2), const SizedBox(width: 4), _buildDot(_dot3)]);
-          }),
-        ),
-      ]),
-    );
-  }
+  Widget _buildTypingBubble(Color botBubbleColor) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
+    const SizedBox(width: 6),
+    Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), decoration: BoxDecoration(color: botBubbleColor, borderRadius: BorderRadius.circular(16)), child: AnimatedBuilder(animation: _typingAnimCtrl, builder: (ctx, child) => Row(mainAxisSize: MainAxisSize.min, children: [_buildDot(_dot1), const SizedBox(width: 4), _buildDot(_dot2), const SizedBox(width: 4), _buildDot(_dot3)]))),
+  ]));
 
-  Widget _buildDot(Animation<double> anim) {
-    return AnimatedBuilder(animation: anim, builder: (ctx, child) {
-      final offset = anim.value * 4;
-      return Transform.translate(offset: Offset(0, offset), child: Container(width: 7, height: 7, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)), shape: BoxShape.circle)));
-    });
-  }
+  Widget _buildDot(Animation<double> anim) => AnimatedBuilder(animation: anim, builder: (ctx, child) {
+    final offset = anim.value * 4;
+    return Transform.translate(offset: Offset(0, offset), child: Container(width: 7, height: 7, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)), shape: BoxShape.circle)));
+  });
 }
