@@ -53,7 +53,6 @@ class _SupportChatViewState extends State<SupportChatView>
   final AudioPlayer _audioPlayer = AudioPlayer();
   int? _copyVisibleIndex;
 
-  // Voice recording state
   bool _isRecording = false;
   bool _isLocked = false;
   bool _isPaused = false;
@@ -65,7 +64,6 @@ class _SupportChatViewState extends State<SupportChatView>
   late Animation<double> _dot1;
   late Animation<double> _dot2;
   late Animation<double> _dot3;
-
   late AnimationController _waveAnimCtrl;
 
   String get _userAvatar {
@@ -119,7 +117,6 @@ class _SupportChatViewState extends State<SupportChatView>
     _dot1 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.33)));
     _dot2 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.33, 0.66)));
     _dot3 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.66, 1.0)));
-
     _waveAnimCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
 
     final args = Get.arguments;
@@ -280,10 +277,8 @@ class _SupportChatViewState extends State<SupportChatView>
               _agentName = name;
               _stopTypingIndicator();
               _messages.add({
-                'role': 'system',
-                'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}',
-                'time': DateTime.now(),
-                'type': 'system_join',
+                'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}',
+                'time': DateTime.now(), 'type': 'system_join',
               });
             });
             continue;
@@ -295,8 +290,7 @@ class _SupportChatViewState extends State<SupportChatView>
               _isAgentConnected = false;
               _stopTypingIndicator();
               _messages.add({
-                'role': 'system',
-                'text': msgText,
+                'role': 'system', 'text': msgText,
                 'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
                 'type': 'system_end',
               });
@@ -313,34 +307,27 @@ class _SupportChatViewState extends State<SupportChatView>
             if (msgType == 'image') {
               _messages.add({
                 'role': 'bot', 'text': mediaUrl, 'agentName': agentName,
-                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
-                'type': 'image',
+                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(), 'type': 'image',
               });
             } else if (msgType == 'voice') {
               _messages.add({
                 'role': 'bot', 'text': mediaUrl, 'agentName': agentName,
-                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
-                'type': 'voice',
+                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(), 'type': 'voice',
               });
             } else if (msgType == 'file') {
               _messages.add({
                 'role': 'bot', 'text': msgText, 'agentName': agentName,
-                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
-                'type': 'file',
+                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(), 'type': 'file',
               });
             } else {
               _messages.add({
                 'role': 'bot', 'text': msgText, 'agentName': agentName,
-                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(),
-                'type': 'text',
+                'time': DateTime.tryParse(reply['time']?.toString() ?? '') ?? DateTime.now(), 'type': 'text',
               });
             }
           });
         }
-        if (replies.isNotEmpty) {
-          _scrollToBottom();
-          _saveChat();
-        }
+        if (replies.isNotEmpty) { _scrollToBottom(); _saveChat(); }
       }
     } catch (_) {}
   }
@@ -385,9 +372,7 @@ class _SupportChatViewState extends State<SupportChatView>
           if (token != null && token.isNotEmpty) break;
           await Future.delayed(const Duration(milliseconds: 500));
         }
-
         final uri = Uri.parse(AppConfig.chatbotChatUrl());
-
         if (imagePath != null) {
           var request = http.MultipartRequest('POST', uri);
           request.headers['Authorization'] = 'Bearer ${token ?? ''}';
@@ -406,7 +391,6 @@ class _SupportChatViewState extends State<SupportChatView>
       return;
     }
 
-    // Normal bot flow
     setState(() => _isLoading = true);
     setState(() => _isTyping = true);
     _startTypingAnimation();
@@ -424,7 +408,6 @@ class _SupportChatViewState extends State<SupportChatView>
         if (token != null && token.isNotEmpty) break;
         await Future.delayed(const Duration(milliseconds: 500));
       }
-
       final uri = Uri.parse(AppConfig.chatbotChatUrl());
       final response = await http.post(uri, headers: {
         'Content-Type': 'application/json',
@@ -480,13 +463,9 @@ class _SupportChatViewState extends State<SupportChatView>
     }
     final ok = await PermissionService.I.canUseMicrophoneOrExplain();
     if (!ok) return;
-
     setState(() {
-      _isRecording = true;
-      _isLocked = false;
-      _isPaused = false;
-      _slideOffset = 0;
-      _showRecordingSheet = true;
+      _isRecording = true; _isLocked = false; _isPaused = false;
+      _slideOffset = 0; _showRecordingSheet = true;
     });
     _startRecordingTimer();
     HapticFeedback.mediumImpact();
@@ -494,30 +473,18 @@ class _SupportChatViewState extends State<SupportChatView>
 
   void _onMicLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
     if (!_isRecording) return;
-    final offset = details.localOffset;
+    final offset = details.offsetFromOrigin;
     setState(() {
       _slideOffset = offset.dx;
-      if (offset.dy < -60 && !_isLocked) {
-        _isLocked = true;
-        HapticFeedback.heavyImpact();
-      }
-      if (_isLocked && offset.dx < -80) {
-        _cancelRecording();
-      }
+      if (offset.dy < -60 && !_isLocked) { _isLocked = true; HapticFeedback.heavyImpact(); }
+      if (_isLocked && offset.dx < -80) { _cancelRecording(); }
     });
   }
 
   void _onMicLongPressEnd(LongPressEndDetails details) {
     if (!_isRecording) return;
-    if (_isLocked) {
-      setState(() {});
-      return;
-    }
-    if (_recordingSeconds < 1) {
-      _cancelRecording();
-    } else {
-      _sendRecording();
-    }
+    if (_isLocked) { setState(() {}); return; }
+    if (_recordingSeconds < 1) { _cancelRecording(); } else { _sendRecording(); }
   }
 
   void _sendRecording() {
@@ -525,11 +492,8 @@ class _SupportChatViewState extends State<SupportChatView>
     setState(() => _isRecording = false);
     _stopRecordingTimer();
     _showRecordingSheet = false;
-    _messages.add({
-      'role': 'user', 'text': _recordingTimeText, 'time': DateTime.now(), 'type': 'voice', 'duration': duration,
-    });
-    _saveChat();
-    _scrollToBottom();
+    _messages.add({'role': 'user', 'text': _recordingTimeText, 'time': DateTime.now(), 'type': 'voice', 'duration': duration});
+    _saveChat(); _scrollToBottom();
     if (Get.context != null) {
       ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text('Voice message sent'.tr), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating));
     }
@@ -610,14 +574,10 @@ class _SupportChatViewState extends State<SupportChatView>
           child: Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
-                  if (_agentName != null)
-                    Text('${'Agent'.tr}: $_agentName', style: TextStyle(fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w600)),
-                ],
-              ),
+              title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
+                if (_agentName != null) Text('${'Agent'.tr}: $_agentName', style: TextStyle(fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w600)),
+              ]),
             ),
             body: Column(children: [
               Expanded(child: ListView.builder(controller: _scrollCtrl, padding: const EdgeInsets.all(12), itemCount: _messages.length + (_isTyping || showTypingDots ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0), itemBuilder: (ctx, i) {
@@ -660,76 +620,40 @@ class _SupportChatViewState extends State<SupportChatView>
             ]),
           ),
         ),
-        // Recording Sheet
         if (_showRecordingSheet)
-          Positioned(
-            bottom: 0, left: 0, right: 0,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(color: Color(0xFF1C1C1E), borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24))),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  // Slide to cancel / Locked controls
-                  if (!_isLocked)
-                    Row(children: [
-                      const Icon(Iconsax.arrow_left_2, color: Colors.red, size: 20),
-                      const SizedBox(width: 8),
-                      Text('< ${'Slide to cancel'.tr}', style: const TextStyle(color: Colors.red, fontSize: 14)),
-                      const Spacer(),
-                      const Icon(Iconsax.lock_2, color: Colors.white54, size: 20),
-                      const SizedBox(width: 4),
-                      Text('🔒 ${'Lock'.tr}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                    ]),
-                  if (_isLocked)
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      GestureDetector(
-                        onTap: _cancelRecording,
-                        child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Row(children: [Icon(Iconsax.trash, color: Colors.red, size: 18), SizedBox(width: 6), Text('Delete', style: TextStyle(color: Colors.red))])),
-                      ),
-                      GestureDetector(
-                        onTap: _isPaused ? _resumeRecording : _pauseRecording,
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
-                          child: Icon(_isPaused ? Iconsax.play : Iconsax.pause, color: Colors.white, size: 24),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _sendRecording,
-                        child: Container(padding: const EdgeInsets.all(14), decoration: const BoxDecoration(color: AppColors.primaryColor, shape: BoxShape.circle), child: const Icon(Iconsax.send_1_copy, color: Colors.white, size: 22)),
-                      ),
-                    ]),
-                  const SizedBox(height: 16),
-                  // Waveform
-                  AnimatedBuilder(
-                    animation: _waveAnimCtrl,
-                    builder: (ctx, child) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(15, (i) {
-                          final height = _isPaused ? 6.0 : 8.0 + (sin(_waveAnimCtrl.value * pi * 2 + i * 0.5).abs() * 20);
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                            width: 3, height: height,
-                            decoration: BoxDecoration(color: _isPaused ? Colors.grey : AppColors.primaryColor, borderRadius: BorderRadius.circular(2)),
-                          );
-                        }),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  // Timer
-                  Text(_recordingTimeText, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w300, letterSpacing: 4)),
-                  const SizedBox(height: 8),
-                  Text(_isPaused ? '⏸️ Paused'.tr : '🎙️ Recording...'.tr, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-                  if (_isLocked)
-                    Padding(padding: const EdgeInsets.only(top: 8), child: Text('🔒 ${'Locked - Slide left to cancel'.tr}', style: const TextStyle(color: Colors.white38, fontSize: 11))),
-                  const SizedBox(height: 16),
+          Positioned(bottom: 0, left: 0, right: 0, child: Material(color: Colors.transparent, child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(color: Color(0xFF1C1C1E), borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24))),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (!_isLocked)
+                Row(children: [
+                  const Icon(Iconsax.arrow_left_2, color: Colors.red, size: 20), const SizedBox(width: 8),
+                  Text('< ${'Slide to cancel'.tr}', style: const TextStyle(color: Colors.red, fontSize: 14)),
+                  const Spacer(),
+                  const Icon(Iconsax.lock, color: Colors.white54, size: 20), const SizedBox(width: 4),
+                  Text('🔒 ${'Lock'.tr}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                 ]),
-              ),
-            ),
-          ),
+              if (_isLocked)
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  GestureDetector(onTap: _cancelRecording, child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Row(children: [Icon(Iconsax.trash, color: Colors.red, size: 18), SizedBox(width: 6), Text('Delete', style: TextStyle(color: Colors.red))]))),
+                  GestureDetector(onTap: _isPaused ? _resumeRecording : _pauseRecording, child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle), child: Icon(_isPaused ? Iconsax.play : Iconsax.pause, color: Colors.white, size: 24))),
+                  GestureDetector(onTap: _sendRecording, child: Container(padding: const EdgeInsets.all(14), decoration: const BoxDecoration(color: AppColors.primaryColor, shape: BoxShape.circle), child: const Icon(Iconsax.send_1_copy, color: Colors.white, size: 22))),
+                ]),
+              const SizedBox(height: 16),
+              AnimatedBuilder(animation: _waveAnimCtrl, builder: (ctx, child) {
+                return Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(15, (i) {
+                  final height = _isPaused ? 6.0 : 8.0 + (sin(_waveAnimCtrl.value * pi * 2 + i * 0.5).abs() * 20);
+                  return Container(margin: const EdgeInsets.symmetric(horizontal: 1.5), width: 3, height: height, decoration: BoxDecoration(color: _isPaused ? Colors.grey : AppColors.primaryColor, borderRadius: BorderRadius.circular(2)));
+                }));
+              }),
+              const SizedBox(height: 12),
+              Text(_recordingTimeText, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w300, letterSpacing: 4)),
+              const SizedBox(height: 8),
+              Text(_isPaused ? '⏸️ Paused'.tr : '🎙️ Recording...'.tr, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+              if (_isLocked) Padding(padding: const EdgeInsets.only(top: 8), child: Text('🔒 ${'Locked - Slide left to cancel'.tr}', style: const TextStyle(color: Colors.white38, fontSize: 11))),
+              const SizedBox(height: 16),
+            ]),
+          ))),
       ],
     );
   }
@@ -741,27 +665,14 @@ class _SupportChatViewState extends State<SupportChatView>
     return Padding(padding: const EdgeInsets.only(bottom: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
       Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
       const SizedBox(height: 8),
-      Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: s.map((x) => ActionChip(label: Text(x.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: x.tr), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList())
+      Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: s.map((x) => ActionChip(label: Text(x.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: x.tr), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList()),
     ]));
   }
 
   Widget _buildMessageRow(bool isBot, bool isSystem, String text, DateTime time, Color userTextColor, Color botTextColor, {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth, required int msgIndex, required Color copyIconColor, String msgType = 'text', String? agentName, int? duration}) {
-    // System messages (agent joined / chat ended)
     if (isSystem) {
       final isEnd = msgType == 'system_end';
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: isEnd ? Colors.red.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: isEnd ? Colors.red.shade400 : Colors.grey.shade600, fontWeight: FontWeight.w500)),
-          ),
-        ),
-      );
+      return Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), decoration: BoxDecoration(color: isEnd ? Colors.red.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)), child: Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: isEnd ? Colors.red.shade400 : Colors.grey.shade600, fontWeight: FontWeight.w500)))));
     }
 
     final name = isBot ? (agentName ?? 'Luca') : _userFullName;
@@ -784,8 +695,7 @@ class _SupportChatViewState extends State<SupportChatView>
               decoration: BoxDecoration(color: isBot ? botBubbleColor : userBubbleColor, borderRadius: isBot ? const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)) : const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
               child: Stack(children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  if (name.isNotEmpty)
-                    Padding(padding: EdgeInsets.only(right: showCopy ? 22 : 0), child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7)))),
+                  if (name.isNotEmpty) Padding(padding: EdgeInsets.only(right: showCopy ? 22 : 0), child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7)))),
                   const SizedBox(height: 2),
                   if (msgType == 'image')
                     ClipRRect(borderRadius: BorderRadius.circular(8), child: CachedNetworkImage(imageUrl: text.startsWith('http') ? text : AppConfig.assetUrl(text), width: screenWidth * 0.6, fit: BoxFit.cover, errorWidget: (_, __, ___) => const Icon(Iconsax.gallery_remove)))
@@ -793,7 +703,7 @@ class _SupportChatViewState extends State<SupportChatView>
                     _buildVoiceBubble(text, duration ?? 0, isBot)
                   else if (msgType == 'file')
                     Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document, size: 22, color: AppColors.primaryColor), const SizedBox(width: 8), Flexible(child: Text(text.split('\n').first, style: const TextStyle(fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w500)))])),
-                  else
+                  if (msgType == 'text')
                     HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
                   const SizedBox(height: 2),
                   Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
@@ -813,7 +723,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   Widget _buildVoiceBubble(String text, int duration, bool isBot) {
     final isUrl = text.startsWith('http');
-    final durText = duration > 0 ? _formatDuration(duration) : '';
+    final durText = duration > 0 ? _formatDuration(duration) : (isUrl ? 'Tap to play'.tr : text);
     return GestureDetector(
       onTap: isUrl ? () { try { _audioPlayer.stop(); _audioPlayer.play(UrlSource(text)); } catch (_) {} } : null,
       child: Container(
@@ -822,15 +732,9 @@ class _SupportChatViewState extends State<SupportChatView>
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(isUrl ? Iconsax.play_circle : Iconsax.microphone_2, size: 22, color: AppColors.primaryColor),
           const SizedBox(width: 8),
-          // Waveform bars
-          ...List.generate(8, (i) => Container(
-            margin: const EdgeInsets.symmetric(horizontal: 1),
-            width: 2.5,
-            height: 6.0 + (Random(i).nextDouble() * 14),
-            decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(1)),
-          )),
+          ...List.generate(8, (i) => Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: 6.0 + (Random(i).nextDouble() * 14), decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(1)))),
           const SizedBox(width: 8),
-          Text(durText.isNotEmpty ? durText : 'Tap to play'.tr, style: TextStyle(fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w500)),
+          Text(durText, style: TextStyle(fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w500)),
         ]),
       ),
     );
