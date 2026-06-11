@@ -186,7 +186,7 @@ class _SettingsViewState extends State<SettingsView> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Cache : ${_formatBytes(_cacheSize)}',
+                        '${'Cache'.tr} : ${_formatBytes(_cacheSize)}',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
