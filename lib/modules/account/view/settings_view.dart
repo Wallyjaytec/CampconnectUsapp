@@ -1,181 +1,257 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:campconnectus_marketplace/shared/widgets/currency_select.dart';
+import 'package:campconnectus_marketplace/shared/widgets/language_select.dart';
+import 'package:app_settings/app_settings.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/back_icon_widget.dart';
+import '../../../shared/widgets/theme_switch.dart';
 
-class SupportView extends StatefulWidget {
-  const SupportView({super.key});
+class SettingsView extends StatefulWidget {
+  const SettingsView({super.key});
 
   @override
-  State<SupportView> createState() => _SupportViewState();
+  State<SettingsView> createState() => _SettingsViewState();
 }
 
-class _SupportViewState extends State<SupportView> {
-  final box = GetStorage();
+class _SettingsViewState extends State<SettingsView> {
+  String _appVersion = '';
+  double _cacheSize = 0;
 
   @override
   void initState() {
     super.initState();
-    // Refresh when coming back from chat
-    ever(Get.routing, (_) {
-      if (mounted) setState(() {});
+    _loadAppVersion();
+    _calculateCacheSize();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = '${info.version}+${info.buildNumber}';
     });
   }
 
-  Future<void> _refresh() async {
-    if (mounted) setState(() {});
+  void _calculateCacheSize() {
+    final box = GetStorage();
+    final keys = box.getKeys();
+    double size = 0;
+    for (final key in keys) {
+      if (key.startsWith('i18n_')) {
+        final value = box.read(key);
+        if (value is String) {
+          size += value.length;
+        }
+      }
+    }
+    setState(() {
+      _cacheSize = size;
+    });
+  }
+
+  String _formatBytes(double bytes) {
+    if (bytes < 1024) return '${bytes.toStringAsFixed(0)} B';
+    if (bytes < 1048576) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / 1048576).toStringAsFixed(1)} MB';
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final chats = box.read<List>('support_chats') ?? [];
-    final hasHistory = chats.isNotEmpty;
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leadingWidth: 44,
-        leading: const BackIconWidget(),
-        centerTitle: false,
-        titleSpacing: 0,
-        title: Text('Customer Support'.tr,
-            style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        color: AppColors.primaryColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leadingWidth: 44,
+          leading: const BackIconWidget(),
+          centerTitle: false,
+          titleSpacing: 0,
+          title: Text(
+            'Settings'.tr,
+            style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            top: 10,
+            left: 12,
+            right: 12,
+            bottom: 10,
+          ),
           child: Column(
             children: [
-              _buildWelcome(),
-              const SizedBox(height: 16),
-              if (hasHistory)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Get.toNamed(AppRoutes.supportHistoryView)?.then((_) {
-                          if (mounted) setState(() {});
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                        side: BorderSide(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: Text('Chat History'.tr,
-                          style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade700, fontSize: 14)),
-                    ),
-                  ),
+              const ThemeSwitch(),
+              const SizedBox(height: 8),
+              LanguageSelect(),
+              const SizedBox(height: 8),
+              CurrencySelect(),
+              const SizedBox(height: 8),
+              // Passcode Lock
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.toNamed(AppRoutes.supportChatView)?.then((_) {
-                        if (mounted) setState(() {});
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('New Conversation'.tr,
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                child: InkWell(
+                  onTap: () {
+                    Get.toNamed(AppRoutes.passcodeSettingsView);
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.lock, color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Passcode Lock'.tr,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
+              // Push Notifications
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    AppSettings.openAppSettings(type: AppSettingsType.notification);
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.notification, color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Push Notifications'.tr,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // App Permissions
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    AppSettings.openAppSettings();
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.shield_tick, color: AppColors.primaryColor, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'App Permissions'.tr,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3_copy, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Cache
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Iconsax.trash, color: AppColors.primaryColor, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Cache : ${_formatBytes(_cacheSize)}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final box = GetStorage();
+                        final keys = box.getKeys().toList();
+                        for (final key in keys) {
+                          if (key.startsWith('i18n_')) {
+                            await box.remove(key);
+                          }
+                        }
+                        _cacheSize = 0;
+                        setState(() {});
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Cache cleared successfully'.tr),
+                            backgroundColor: AppColors.primaryColor,
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'CLEAR'.tr,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // App Version
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Iconsax.information, color: AppColors.primaryColor, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'App Version'.tr,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Text(
+                      _appVersion,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildWelcome() {
-    final suggestions = [
-      'How do I track my order?',
-      'What is the return policy?',
-      'How to request a refund?',
-      'How to recharge my wallet?',
-      'What payment methods are available?',
-      'How to close my account?',
-      'How to report a seller?',
-      'What shipping methods do you offer?',
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(50),
-            child: Image.asset('assets/icons/customer_support.png', width: 80, height: 80),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text('CampConnectUs Virtual Assistant',
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-              ),
-              const SizedBox(width: 4),
-              Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-          Text(
-            "👋 Welcome! We're here to help you with any issue you're facing. Take a deep breath, we'll sort everything out together.".tr,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-          ),
-          const SizedBox(height: 16),
-          Text('💡 ${'Frequently Asked'.tr}',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8, runSpacing: 8,
-            children: suggestions.map((s) {
-              return ActionChip(
-                label: Text(s.tr, style: const TextStyle(fontSize: 11)),
-                onPressed: () {
-                  Get.toNamed(AppRoutes.supportChatView, arguments: [
-                    {'role': 'user', 'text': s, 'time': DateTime.now().toIso8601String()}
-                  ]);
-                },
-                backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
-                side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Tap below to start a new conversation with our virtual assistant.'.tr,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-          ),
-        ],
       ),
     );
   }
