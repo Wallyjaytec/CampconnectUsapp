@@ -136,6 +136,8 @@ class _SupportChatViewState extends State<SupportChatView>
 
   @override
   void dispose() {
+    _saveChat();
+    _syncToServer();
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel(); _typingDelayTimer?.cancel();
     _typingAnimCtrl.dispose(); _audioPlayer.dispose();
@@ -309,7 +311,6 @@ class _SupportChatViewState extends State<SupportChatView>
                 HapticFeedback.mediumImpact();
                 setState(() => _copyVisibleIndex = _messages.length);
               },
-              onLongPressEnd: (_) => setState(() => _copyVisibleIndex = null),
               child: Container(
                 constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
