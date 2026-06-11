@@ -231,8 +231,27 @@ class _SupportChatViewState extends State<SupportChatView>
     await completer.future;
     if (!mounted || !_isLoading) return;
     try {
+      // Get token
+      String? token;
+      for (int i = 0; i < 5; i++) {
+        token = LoginService().token;
+        if (token != null && token.isNotEmpty) break;
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      
       final uri = Uri.parse(AppConfig.chatbotChatUrl());
-      final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'message': text, 'history': _history.sublist(0, max(0, _history.length - 1))})).timeout(const Duration(seconds: 35));
+      final response = await http.post(
+        uri, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${token ?? ''}',
+        }, 
+        body: jsonEncode({
+          'message': text, 
+          'history': _history.sublist(0, max(0, _history.length - 1))
+        })
+      ).timeout(const Duration(seconds: 35));
+      
       if (!mounted || !_isLoading) return;
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
