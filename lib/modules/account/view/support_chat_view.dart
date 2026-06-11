@@ -184,6 +184,15 @@ class _SupportChatViewState extends State<SupportChatView>
     } catch (_) {}
   }
 
+  void _cancelRequest() {
+    setState(() {
+      _stopTypingAnimation();
+      _isTyping = false;
+      _isLoading = false;
+    });
+    _typingDelayTimer?.cancel();
+  }
+
   void _sendWelcomeMessage() {
     final name = _firstName;
     final greeting = name.isNotEmpty
@@ -219,7 +228,7 @@ class _SupportChatViewState extends State<SupportChatView>
     _typingDelayTimer = Timer(const Duration(seconds: 6), () => completer.complete());
     await completer.future;
 
-    if (!mounted) return;
+    if (!mounted || !_isLoading) return;
 
     try {
       final uri = Uri.parse(AppConfig.chatbotChatUrl());
@@ -232,7 +241,7 @@ class _SupportChatViewState extends State<SupportChatView>
               }))
           .timeout(const Duration(seconds: 35));
 
-      if (!mounted) return;
+      if (!mounted || !_isLoading) return;
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -359,11 +368,12 @@ class _SupportChatViewState extends State<SupportChatView>
   }
 
   void _showCopyOption(String text, Offset position) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     HapticFeedback.mediumImpact();
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(position.dx - 100, position.dy - 30, position.dx, position.dy),
-      color: Colors.white,
+      color: isDark ? Colors.grey.shade800 : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       constraints: const BoxConstraints(minWidth: 90, maxWidth: 90, maxHeight: 32),
       items: [
@@ -371,9 +381,9 @@ class _SupportChatViewState extends State<SupportChatView>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           height: 28,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Iconsax.copy_copy, size: 13, color: Colors.black87),
+            Icon(Iconsax.copy_copy, size: 13, color: isDark ? Colors.white : Colors.black87),
             const SizedBox(width: 5),
-            Text('Copy'.tr, style: const TextStyle(fontSize: 11, color: Colors.black87)),
+            Text('Copy'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white : Colors.black87)),
           ]),
           onTap: () {
             Clipboard.setData(ClipboardData(text: text));
@@ -393,17 +403,11 @@ class _SupportChatViewState extends State<SupportChatView>
             ListTile(
                 leading: const Icon(Iconsax.camera_copy),
                 title: Text('Take a photo'.tr),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showFileNotAvailable();
-                }),
+                onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
             ListTile(
                 leading: const Icon(Iconsax.gallery_copy),
                 title: Text('Upload a file'.tr),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showFileNotAvailable();
-                }),
+                onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
             const SizedBox(height: 12),
             Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr))),
             const SizedBox(height: 8),
@@ -460,25 +464,20 @@ class _SupportChatViewState extends State<SupportChatView>
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leadingWidth: 44,
-        leading: const BackIconWidget(),
-        centerTitle: false,
-        titleSpacing: 0,
+        automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(),
+        centerTitle: false, titleSpacing: 0,
         title: Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18)),
       ),
       body: Column(children: [
         Expanded(
           child: ListView.builder(
-            controller: _scrollCtrl,
-            padding: const EdgeInsets.all(12),
+            controller: _scrollCtrl, padding: const EdgeInsets.all(12),
             itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0),
             itemBuilder: (ctx, i) {
               if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
               final msgIndex = i - 1;
               if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
-              if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0))
-                return _buildTypingBubble(botBubbleColor);
+              if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
               if (msgIndex < _messages.length) {
                 final msg = _messages[msgIndex];
                 final isBot = msg['role'] == 'bot';
@@ -506,47 +505,29 @@ class _SupportChatViewState extends State<SupportChatView>
               child: Row(children: [
                 const SizedBox(width: 4),
                 Container(
-                  decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.grey.shade300)),
+                  decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)),
                   child: IconButton(
-                      icon: Icon(Iconsax.link_21_copy, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor),
+                      icon: Icon(Iconsax.attach_circle, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor),
                       onPressed: _isLoading ? null : _showAttachSheet),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Container(
-                    decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor,
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: Colors.grey.shade300)),
-                    child: TextField(
-                        controller: _msgCtrl,
-                        enabled: !_isLoading,
-                        decoration: InputDecoration(
-                            hintText: 'Type a message...'.tr,
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16)),
-                        onSubmitted: (_) => _sendMessage()),
+                    decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)),
+                    child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()),
                   ),
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  decoration: BoxDecoration(
-                      color: _isAgentConnected ? AppColors.primaryColor : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(25)),
-                  child: IconButton(
-                      icon: Icon(Iconsax.microphone_2, size: 20,
-                          color: _isAgentConnected ? Colors.white : Colors.grey.shade500),
-                      onPressed: _onMicPressed),
+                  decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : Colors.grey.shade300, borderRadius: BorderRadius.circular(25)),
+                  child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : Colors.grey.shade500), onPressed: _onMicPressed),
                 ),
                 const SizedBox(width: 4),
                 Container(
-                    decoration: BoxDecoration(color: AppColors.primaryColor, borderRadius: BorderRadius.circular(25)),
+                    decoration: BoxDecoration(color: _isLoading ? Colors.red : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)),
                     child: IconButton(
-                        icon: const Icon(Iconsax.send_1_copy, size: 20, color: Colors.white),
-                        onPressed: _isLoading ? null : () => _sendMessage())),
+                        icon: Icon(_isLoading ? Iconsax.close_circle : Iconsax.send_1_copy, size: 20, color: Colors.white),
+                        onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
               ]),
             ),
           ),
@@ -555,38 +536,18 @@ class _SupportChatViewState extends State<SupportChatView>
   }
 
   Widget _buildTimeHeader(DateTime time) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-      ),
-    );
+    return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))));
   }
 
   Widget _buildSuggestions() {
-    final suggestions = [
-      'How do I track my order?',
-      'What is the return policy?',
-      'How to request a refund?',
-      'How to recharge my wallet?',
-      'What payment methods are available?',
-      'How to close my account?',
-      'How to report a seller?',
-      'What shipping methods do you offer?',
-    ];
-
+    final suggestions = ['How do I track my order?', 'What is the return policy?', 'How to request a refund?', 'How to recharge my wallet?', 'What payment methods are available?', 'How to close my account?', 'How to report a seller?', 'What shipping methods do you offer?'];
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
         Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: suggestions.map((s) {
-          return ActionChip(
-              label: Text(s.tr, style: const TextStyle(fontSize: 11)),
-              onPressed: () => _sendMessage(prefill: s),
-              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
-              side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)));
+          return ActionChip(label: Text(s.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: s), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)));
         }).toList()),
       ]),
     );
@@ -608,9 +569,7 @@ class _SupportChatViewState extends State<SupportChatView>
               child: Container(
                 constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                    color: botBubbleColor,
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
+                decoration: BoxDecoration(color: botBubbleColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: botTextColor.withValues(alpha: 0.7))),
                   const SizedBox(height: 2),
@@ -634,9 +593,7 @@ class _SupportChatViewState extends State<SupportChatView>
               child: Container(
                 constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                    color: userBubbleColor,
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
+                decoration: BoxDecoration(color: userBubbleColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: userTextColor.withValues(alpha: 0.7))),
                   const SizedBox(height: 2),
@@ -648,13 +605,7 @@ class _SupportChatViewState extends State<SupportChatView>
             ),
           ),
           const SizedBox(width: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: _hasUserAvatar
-                ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28))
-                : Image.asset('assets/icons/profile.png', width: 28, height: 28),
-          ),
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
         ]),
       );
     }
@@ -669,37 +620,18 @@ class _SupportChatViewState extends State<SupportChatView>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(color: botBubbleColor, borderRadius: BorderRadius.circular(16)),
-          child: AnimatedBuilder(
-            animation: _typingAnimCtrl,
-            builder: (ctx, child) {
-              return Row(mainAxisSize: MainAxisSize.min, children: [
-                _buildDot(_dot1), const SizedBox(width: 4),
-                _buildDot(_dot2), const SizedBox(width: 4),
-                _buildDot(_dot3),
-              ]);
-            },
-          ),
+          child: AnimatedBuilder(animation: _typingAnimCtrl, builder: (ctx, child) {
+            return Row(mainAxisSize: MainAxisSize.min, children: [_buildDot(_dot1), const SizedBox(width: 4), _buildDot(_dot2), const SizedBox(width: 4), _buildDot(_dot3)]);
+          }),
         ),
       ]),
     );
   }
 
   Widget _buildDot(Animation<double> anim) {
-    return AnimatedBuilder(
-      animation: anim,
-      builder: (ctx, child) {
-        final offset = anim.value * 4;
-        return Transform.translate(
-          offset: Offset(0, offset),
-          child: Container(
-            width: 7, height: 7,
-            decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)),
-              shape: BoxShape.circle,
-            ),
-          ),
-        );
-      },
-    );
+    return AnimatedBuilder(animation: anim, builder: (ctx, child) {
+      final offset = anim.value * 4;
+      return Transform.translate(offset: Offset(0, offset), child: Container(width: 7, height: 7, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)), shape: BoxShape.circle)));
+    });
   }
 }
