@@ -42,6 +42,7 @@ class _SupportChatViewState extends State<SupportChatView>
   Timer? _timer;
   Timer? _typingDelayTimer;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  int? _copyVisibleIndex;
 
   late AnimationController _typingAnimCtrl;
   late Animation<double> _dot1;
@@ -125,6 +126,15 @@ class _SupportChatViewState extends State<SupportChatView>
   void didChangePlatformBrightness() { if (mounted) setState(() {}); }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _stopTypingAnimation();
+      _saveChat();
+      _syncToServer();
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel(); _typingDelayTimer?.cancel();
@@ -135,7 +145,13 @@ class _SupportChatViewState extends State<SupportChatView>
 
   void _startTimer() { _timer = Timer.periodic(const Duration(seconds: 30), (_) { if (mounted) setState(() {}); }); }
 
-  void _scrollToBottom() { Future.delayed(const Duration(milliseconds: 100), () { if (_scrollCtrl.hasClients) _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut); }); }
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      }
+    });
+  }
 
   void _startTypingAnimation() {
     _typingAnimCtrl.repeat();
@@ -144,11 +160,16 @@ class _SupportChatViewState extends State<SupportChatView>
 
   void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
 
-  void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
+  void _cancelRequest() {
+    setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; });
+    _typingDelayTimer?.cancel();
+  }
 
   void _sendWelcomeMessage() {
     final name = _firstName;
-    final greeting = name.isNotEmpty ? '${'Hello'.tr} $name, ${'I\'m Luca, your CampConnectUs Virtual Assistant. Just pick a topic or feel free to type your question.'.tr}' : '${'Hello'.tr}! ${'I\'m Luca, your CampConnectUs Virtual Assistant. Just pick a topic or feel free to type your question.'.tr}';
+    final greeting = name.isNotEmpty
+        ? '${'Hello'.tr} $name, ${'I\'m Luca, your CampConnectUs Virtual Assistant. Just pick a topic or feel free to type your question.'.tr}'
+        : '${'Hello'.tr}! ${'I\'m Luca, your CampConnectUs Virtual Assistant. Just pick a topic or feel free to type your question.'.tr}';
     setState(() { _messages.add({'role': 'bot', 'text': greeting, 'time': DateTime.now()}); _history.add({'role': 'assistant', 'content': greeting}); });
     _scrollToBottom(); _saveChat();
   }
@@ -210,6 +231,7 @@ class _SupportChatViewState extends State<SupportChatView>
   void _copyMessage(String text) {
     HapticFeedback.mediumImpact();
     Clipboard.setData(ClipboardData(text: text));
+    setState(() => _copyVisibleIndex = null);
   }
 
   void _showAttachSheet() {
@@ -265,33 +287,77 @@ class _SupportChatViewState extends State<SupportChatView>
   }
 
   Widget _buildTimeHeader(DateTime time) => Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(_formatHeaderTime(time), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))));
+  
   Widget _buildSuggestions() { final s = ['How do I track my order?','What is the return policy?','How to request a refund?','How to recharge my wallet?','What payment methods are available?','How to close my account?','How to report a seller?','What shipping methods do you offer?']; return Padding(padding: const EdgeInsets.only(bottom: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)), const SizedBox(height: 8), Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: s.map((x) => ActionChip(label: Text(x.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: x), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList())])); }
 
   Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor, {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
     final name = isBot ? 'Luca' : _userFullName;
     final formattedText = _formatMarkdown(text);
-    return Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (isBot) ...[
-        ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
-        const SizedBox(width: 6),
-      ],
-      Flexible(child: GestureDetector(onLongPress: () => _copyMessage(text), child: Stack(children: [
-        Container(constraints: BoxConstraints(maxWidth: screenWidth * 0.75), padding: const EdgeInsets.fromLTRB(12, 8, 28, 6), decoration: BoxDecoration(color: isBot ? botBubbleColor : userBubbleColor, borderRadius: isBot ? const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)) : const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7))),
-          const SizedBox(height: 2),
-          HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
-          const SizedBox(height: 2),
-          Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
-        ])),
-        Positioned(top: 4, right: 4, child: Icon(Iconsax.copy_copy, size: 12, color: Colors.grey.shade400)),
-      ]))),
-      if (!isBot) ...[
-        const SizedBox(width: 6),
-        ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
-      ],
-    ]));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isBot) ...[
+            ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)),
+            const SizedBox(width: 6),
+          ] else
+            const Expanded(child: SizedBox()),
+          Flexible(
+            child: GestureDetector(
+              onLongPressStart: (_) {
+                HapticFeedback.mediumImpact();
+                setState(() => _copyVisibleIndex = _messages.length);
+              },
+              onLongPressEnd: (_) => setState(() => _copyVisibleIndex = null),
+              child: Container(
+                constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isBot ? botBubbleColor : userBubbleColor,
+                  borderRadius: isBot
+                      ? const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(16), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16))
+                      : const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(4), bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
+                ),
+                child: Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(right: _copyVisibleIndex != null ? 22 : 0),
+                          child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7))),
+                        ),
+                        const SizedBox(height: 2),
+                        HtmlWidget(formattedText, textStyle: TextStyle(fontSize: 14, color: isBot ? botTextColor : userTextColor)),
+                        const SizedBox(height: 2),
+                        Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
+                      ],
+                    ),
+                    if (_copyVisibleIndex != null)
+                      Positioned(
+                        top: 0, right: 0,
+                        child: GestureDetector(
+                          onTap: () => _copyMessage(text),
+                          child: const Icon(Iconsax.copy_copy, size: 18, color: AppColors.primaryColor),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (!isBot) ...[
+            const SizedBox(width: 6),
+            ClipRRect(borderRadius: BorderRadius.circular(20), child: _hasUserAvatar ? Image.network(_userAvatar, width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Image.asset('assets/icons/profile.png', width: 28, height: 28)) : Image.asset('assets/icons/profile.png', width: 28, height: 28)),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildTypingBubble(Color botBubbleColor) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)), const SizedBox(width: 6), Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), decoration: BoxDecoration(color: botBubbleColor, borderRadius: BorderRadius.circular(16)), child: AnimatedBuilder(animation: _typingAnimCtrl, builder: (ctx, child) => Row(mainAxisSize: MainAxisSize.min, children: [_buildDot(_dot1), const SizedBox(width: 4), _buildDot(_dot2), const SizedBox(width: 4), _buildDot(_dot3)])))]));
+  
   Widget _buildDot(Animation<double> anim) => AnimatedBuilder(animation: anim, builder: (ctx, child) { final offset = anim.value * 4; return Transform.translate(offset: Offset(0, offset), child: Container(width: 7, height: 7, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3 + ((anim.value.abs()) * 0.7)), shape: BoxShape.circle))); });
 }
