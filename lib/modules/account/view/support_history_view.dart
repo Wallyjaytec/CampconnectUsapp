@@ -118,3 +118,4 @@ class SupportHistoryView extends StatelessWidget {
     );
   }
 }
+
