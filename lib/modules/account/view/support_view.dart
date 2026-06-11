@@ -13,6 +13,7 @@ class SupportView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final box = GetStorage();
     final chats = box.read<List>('support_chats') ?? [];
     final hasHistory = chats.isNotEmpty;
@@ -45,12 +46,12 @@ class SupportView extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () => Get.toNamed(AppRoutes.supportHistoryView),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        side: BorderSide(color: Colors.grey.shade400),
+                        backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                        side: BorderSide(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: Text('Chat History'.tr,
-                          style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                          style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade700, fontSize: 14)),
                     ),
                   ),
                 ),
@@ -106,9 +107,7 @@ class SupportView extends StatelessWidget {
             children: [
               Flexible(
                 child: Text('CampConnectUs Virtual Assistant',
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ),
               const SizedBox(width: 4),
@@ -118,19 +117,13 @@ class SupportView extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
-          Text(
-            "👋 Welcome! We're here to help you with any issue you're facing. Take a deep breath, we'll sort everything out together.".tr,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-          ),
+          Text("👋 Welcome! We're here to help you with any issue you're facing. Take a deep breath, we'll sort everything out together.".tr,
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
           const SizedBox(height: 16),
-          Text('💡 ${'Frequently Asked'.tr}',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+          Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8, runSpacing: 8,
-            children: suggestions.map((s) {
-              return ActionChip(
+          Wrap(spacing: 8, runSpacing: 8, children: suggestions.map((s) {
+            return ActionChip(
                 label: Text(s.tr, style: const TextStyle(fontSize: 11)),
                 onPressed: () {
                   Get.toNamed(AppRoutes.supportChatView, arguments: [
@@ -139,16 +132,11 @@ class SupportView extends StatelessWidget {
                 },
                 backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08),
                 side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              );
-            }).toList(),
-          ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)));
+          }).toList()),
           const SizedBox(height: 16),
-          Text(
-            'Tap below to start a new conversation with our virtual assistant.'.tr,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-          ),
+          Text('Tap below to start a new conversation with our virtual assistant.'.tr,
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
         ],
       ),
     );
