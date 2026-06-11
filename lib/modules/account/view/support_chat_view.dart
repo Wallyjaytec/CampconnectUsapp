@@ -127,7 +127,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       _stopTypingAnimation();
       _saveChat();
       _syncToServer();
@@ -136,6 +136,7 @@ class _SupportChatViewState extends State<SupportChatView>
 
   @override
   void dispose() {
+    _stopTypingAnimation();
     _saveChat();
     _syncToServer();
     WidgetsBinding.instance.removeObserver(this);
@@ -236,6 +237,10 @@ class _SupportChatViewState extends State<SupportChatView>
     setState(() => _copyVisibleIndex = null);
   }
 
+  void _dismissCopy() {
+    if (_copyVisibleIndex != null) setState(() => _copyVisibleIndex = null);
+  }
+
   void _showAttachSheet() {
     showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
       ListTile(leading: const Icon(Iconsax.camera_copy), title: Text('Take a photo'.tr), onTap: () { Navigator.pop(ctx); _showFileNotAvailable(); }),
@@ -261,30 +266,34 @@ class _SupportChatViewState extends State<SupportChatView>
     final botBubbleColor = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200;
     final userBubbleColor = isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
     final screenWidth = MediaQuery.of(context).size.width;
+    final copyIconColor = isDark ? Colors.white : Colors.black;
 
-    return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0, title: Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18))),
-      body: Column(children: [
-        Expanded(child: ListView.builder(controller: _scrollCtrl, padding: const EdgeInsets.all(12), itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0), itemBuilder: (ctx, i) {
-          if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
-          final msgIndex = i - 1;
-          if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
-          if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
-          if (msgIndex < _messages.length) { final msg = _messages[msgIndex]; final isBot = msg['role'] == 'bot'; final rawTime = msg['time']; final time = rawTime is DateTime ? rawTime : DateTime.parse(rawTime.toString()); return _buildMessageRow(isBot, msg['text'], time, userTextColor, botTextColor, userBubbleColor: userBubbleColor, botBubbleColor: botBubbleColor, screenWidth: screenWidth); }
-          return const SizedBox.shrink();
-        })),
-        if (_chatEnded) Padding(padding: const EdgeInsets.all(24), child: Column(children: [Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)), const SizedBox(height: 4), Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))])),
-        if (!_chatEnded) SafeArea(child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [
-          const SizedBox(width: 4),
-          Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor), onPressed: _isLoading ? null : _showAttachSheet)),
-          const SizedBox(width: 6),
-          Expanded(child: Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()))),
-          const SizedBox(width: 6),
-          Container(decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : (isDark ? Colors.grey.shade700 : Colors.grey.shade300), borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : (isDark ? Colors.grey.shade500 : Colors.grey.shade500)), onPressed: _onMicPressed)),
-          const SizedBox(width: 4),
-          Container(decoration: BoxDecoration(color: _isLoading ? Colors.orange : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)), child: IconButton(padding: const EdgeInsets.all(8), icon: Icon(_isLoading ? Icons.stop_rounded : Iconsax.send_1_copy, size: 24, color: Colors.white), onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
-        ]))),
-      ]),
+    return GestureDetector(
+      onTap: _dismissCopy,
+      child: Scaffold(
+        appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0, title: Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18))),
+        body: Column(children: [
+          Expanded(child: ListView.builder(controller: _scrollCtrl, padding: const EdgeInsets.all(12), itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0), itemBuilder: (ctx, i) {
+            if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
+            final msgIndex = i - 1;
+            if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
+            if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
+            if (msgIndex >= 0 && msgIndex < _messages.length) { final msg = _messages[msgIndex]; final isBot = msg['role'] == 'bot'; final rawTime = msg['time']; final time = rawTime is DateTime ? rawTime : DateTime.parse(rawTime.toString()); return _buildMessageRow(isBot, msg['text'], time, userTextColor, botTextColor, userBubbleColor: userBubbleColor, botBubbleColor: botBubbleColor, screenWidth: screenWidth, msgIndex: msgIndex, copyIconColor: copyIconColor); }
+            return const SizedBox.shrink();
+          })),
+          if (_chatEnded) Padding(padding: const EdgeInsets.all(24), child: Column(children: [Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)), const SizedBox(height: 4), Text('Please start a new conversation later.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))])),
+          if (!_chatEnded) SafeArea(child: Padding(padding: const EdgeInsets.all(8), child: Row(children: [
+            const SizedBox(width: 4),
+            Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(Iconsax.attach_circle, size: 20, color: _isLoading ? Colors.grey.shade400 : AppColors.primaryColor), onPressed: _isLoading ? null : _showAttachSheet)),
+            const SizedBox(width: 6),
+            Expanded(child: Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: TextField(controller: _msgCtrl, enabled: !_isLoading, decoration: InputDecoration(hintText: 'Type a message...'.tr, border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16)), onSubmitted: (_) => _sendMessage()))),
+            const SizedBox(width: 6),
+            Container(decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : (isDark ? Colors.grey.shade700 : Colors.grey.shade300), borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : (isDark ? Colors.grey.shade500 : Colors.grey.shade500)), onPressed: _onMicPressed)),
+            const SizedBox(width: 4),
+            Container(decoration: BoxDecoration(color: _isLoading ? Colors.orange : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)), child: IconButton(padding: const EdgeInsets.all(8), icon: Icon(_isLoading ? Icons.stop_rounded : Iconsax.send_1_copy, size: 24, color: Colors.white), onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
+          ]))),
+        ]),
+      ),
     );
   }
 
@@ -292,9 +301,10 @@ class _SupportChatViewState extends State<SupportChatView>
   
   Widget _buildSuggestions() { final s = ['How do I track my order?','What is the return policy?','How to request a refund?','How to recharge my wallet?','What payment methods are available?','How to close my account?','How to report a seller?','What shipping methods do you offer?']; return Padding(padding: const EdgeInsets.only(bottom: 12), child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text('💡 ${'Frequently Asked'.tr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)), const SizedBox(height: 8), Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: s.map((x) => ActionChip(label: Text(x.tr, style: const TextStyle(fontSize: 11)), onPressed: () => _sendMessage(prefill: x), backgroundColor: AppColors.primaryColor.withValues(alpha: 0.08), side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))).toList())])); }
 
-  Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor, {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth}) {
+  Widget _buildMessageRow(bool isBot, String text, DateTime time, Color userTextColor, Color botTextColor, {required Color userBubbleColor, required Color botBubbleColor, required double screenWidth, required int msgIndex, required Color copyIconColor}) {
     final name = isBot ? 'Luca' : _userFullName;
     final formattedText = _formatMarkdown(text);
+    final showCopy = _copyVisibleIndex == msgIndex;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -309,7 +319,7 @@ class _SupportChatViewState extends State<SupportChatView>
             child: GestureDetector(
               onLongPressStart: (_) {
                 HapticFeedback.mediumImpact();
-                setState(() => _copyVisibleIndex = _messages.length);
+                setState(() => _copyVisibleIndex = msgIndex);
               },
               child: Container(
                 constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
@@ -327,7 +337,7 @@ class _SupportChatViewState extends State<SupportChatView>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Padding(
-                          padding: EdgeInsets.only(right: _copyVisibleIndex != null ? 22 : 0),
+                          padding: EdgeInsets.only(right: showCopy ? 22 : 0),
                           child: Text(name, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: (isBot ? botTextColor : userTextColor).withValues(alpha: 0.7))),
                         ),
                         const SizedBox(height: 2),
@@ -336,12 +346,12 @@ class _SupportChatViewState extends State<SupportChatView>
                         Align(alignment: Alignment.bottomRight, child: Text(_formatChatTime(time), style: TextStyle(fontSize: 10, color: Colors.grey.shade500))),
                       ],
                     ),
-                    if (_copyVisibleIndex != null)
+                    if (showCopy)
                       Positioned(
                         top: 0, right: 0,
                         child: GestureDetector(
                           onTap: () => _copyMessage(text),
-                          child: const Icon(Iconsax.copy_copy, size: 18, color: AppColors.primaryColor),
+                          child: Icon(Iconsax.copy_copy, size: 18, color: copyIconColor),
                         ),
                       ),
                   ],
