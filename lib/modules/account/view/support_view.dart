@@ -9,9 +9,7 @@ import '../../../shared/widgets/back_icon_widget.dart';
 class SupportView extends StatelessWidget {
   const SupportView({super.key});
 
-  Future<void> _refresh() async {
-    // Refresh storage data
-  }
+  Future<void> _refresh() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +47,12 @@ class SupportView extends StatelessWidget {
                           child: OutlinedButton(
                             onPressed: () => Get.toNamed(AppRoutes.supportHistoryView),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: AppColors.primaryColor),
+                              side: BorderSide(color: Colors.grey.shade400),
+                              backgroundColor: Colors.grey.shade200,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             child: Text('Chat History'.tr,
-                                style: const TextStyle(color: AppColors.primaryColor, fontSize: 14)),
+                                style: const TextStyle(color: Colors.grey, fontSize: 14)),
                           ),
                         ),
                       ),
@@ -104,13 +103,20 @@ class SupportView extends StatelessWidget {
               child: Image.asset('assets/icons/customer_support.png', width: 80, height: 80),
             ),
             const SizedBox(height: 12),
-            Text('CampConnectUs Virtual Assistant',
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 2),
-            Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text('CampConnectUs Virtual Assistant',
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 4),
+                Image.asset('assets/images/verifybadge.png', width: 16, height: 16),
+              ],
+            ),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 16),
