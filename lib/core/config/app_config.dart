@@ -7,6 +7,8 @@ class AppConfig {
   //api endpoint
   static const String chatbotHistoryPath = '/api/v1/ecommerce-core/chatbot/history';
 static String chatbotHistoryUrl() => '$baseUrl$chatbotHistoryPath';
+  static const String agentPollRepliesPath = '/api/v1/ecommerce-core/agent/poll-replies';
+static String agentPollRepliesUrl() => '$baseUrl$agentPollRepliesPath';
   static const String verifyResetTokenPath =
     '/api/v1/ecommerce-core/auth/verify-customer-reset-password-token';
 static const String resetPasswordPath =
