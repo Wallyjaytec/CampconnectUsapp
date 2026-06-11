@@ -92,12 +92,18 @@ class SupportHistoryView extends StatelessWidget {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text('CampConnectUs Virtual Assistant',
-                                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                      child: Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text('CampConnectUs Virtual Assistant',
+                                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
                                     const SizedBox(width: 8),
                                     Text(time, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                                   ],
@@ -118,4 +124,3 @@ class SupportHistoryView extends StatelessWidget {
     );
   }
 }
-
