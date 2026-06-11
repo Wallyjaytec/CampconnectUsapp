@@ -117,6 +117,12 @@ class _SupportChatViewState extends State<SupportChatView>
         for (final m in msgs) {
           _history.add({'role': m['role'], 'content': m['text']});
         }
+        // Auto-send the suggestion as a question
+        if (msgs.isNotEmpty && msgs.last['role'] == 'user') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _sendMessage(prefill: msgs.last['text']);
+          });
+        }
       }
     }
 
@@ -385,7 +391,9 @@ class _SupportChatViewState extends State<SupportChatView>
             if (_showSuggestions && _messages.length == 1 && msgIndex == _messages.length) return _buildSuggestions();
             if (_isTyping && msgIndex == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(botBubbleColor);
             if (msgIndex < _messages.length) {
-              final msg = _messages[msgIndex]; final isBot = msg['role'] == 'bot'; final time = msg['time'] as DateTime;
+              final msg = _messages[msgIndex]; final isBot = msg['role'] == 'bot';
+              final rawTime = msg['time'];
+              final time = rawTime is DateTime ? rawTime : DateTime.parse(rawTime.toString());
               return _buildMessageRow(isBot, msg['text'], time, userTextColor, botTextColor, userBubbleColor: userBubbleColor, botBubbleColor: botBubbleColor, screenWidth: screenWidth);
             }
             return const SizedBox.shrink();
@@ -400,7 +408,7 @@ class _SupportChatViewState extends State<SupportChatView>
           const SizedBox(width: 6),
           Container(decoration: BoxDecoration(color: _isAgentConnected ? AppColors.primaryColor : (isDark ? Colors.grey.shade700 : Colors.grey.shade300), borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(Iconsax.microphone_2, size: 20, color: _isAgentConnected ? Colors.white : (isDark ? Colors.grey.shade500 : Colors.grey.shade500)), onPressed: _onMicPressed)),
           const SizedBox(width: 4),
-          Container(decoration: BoxDecoration(color: _isLoading ? Colors.orange : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(_isLoading ? Iconsax.stop_circle : Iconsax.send_1_copy, size: 20, color: Colors.white), onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
+          Container(decoration: BoxDecoration(color: _isLoading ? Colors.orange : AppColors.primaryColor, borderRadius: BorderRadius.circular(25)), child: IconButton(icon: Icon(_isLoading ? Icons.stop_rounded : Iconsax.send_1_copy, size: 18, color: Colors.white), onPressed: _isLoading ? _cancelRequest : () => _sendMessage())),
         ]))),
       ]),
     );
