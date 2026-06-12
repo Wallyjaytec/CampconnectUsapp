@@ -39,10 +39,10 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   final Record _recorder = Record();
 
   bool _isLoading = false, _isTyping = false, _chatEnded = false, _showSuggestions = true;
-  bool _agentConnected = false, _waitingForAgent = false;
-  String? _agentName;
+  bool _agentConnected = false, _waitingForAgent = false, _agentTyping = false;
+  String? _agentName, _agentProfilePic;
   DateTime? _chatStartTime; String? _chatId;
-  Timer? _timer, _typingDelayTimer, _agentPollTimer, _reassureTimer, _recordTimer;
+  Timer? _timer, _typingDelayTimer, _agentPollTimer, _reassureTimer, _recordTimer, _agentTypingTimer;
   int _reassureCount = 0, _recordSeconds = 0;
   int? _copyVisibleIndex;
   bool _isRecording = false, _isPaused = false;
@@ -60,6 +60,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
   bool _wasBackgrounded = false;
   bool _pendingReply = false;
+  String? _pendingImagePath;
 
   late AnimationController _typingAnimCtrl;
   late Animation<double> _dot1, _dot2, _dot3;
@@ -94,6 +95,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     return waveform;
   }
 
+  void _generateNewChatId() {
+    _chatId = DateTime.now().millisecondsSinceEpoch.toString();
+    _chatStartTime = DateTime.now();
+  }
+
   @override void initState() {
     super.initState(); WidgetsBinding.instance.addObserver(this);
     _typingAnimCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
@@ -118,13 +124,13 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     if (args is Map) {
       if (args['messages'] != null) { final msgs = (args['messages'] as List).cast<Map<String, dynamic>>(); _messages.addAll(msgs); _showSuggestions = false; for (final m in msgs) _history.add({'role': m['role'], 'content': m['text']}); }
       _chatId = args['chatId']?.toString(); _chatStartTime = args['chatStartTime'] != null ? DateTime.parse(args['chatStartTime'].toString()) : null;
-      if (args['force_new'] == true) { _chatId = null; _chatStartTime = null; _messages.clear(); _history.clear(); _chatEnded = false; _agentConnected = false; _agentName = null; _waitingForAgent = false; _showSuggestions = true; _stopAgentPolling(); }
+      if (args['force_new'] == true) { _generateNewChatId(); _messages.clear(); _history.clear(); _chatEnded = false; _agentConnected = false; _agentName = null; _agentProfilePic = null; _waitingForAgent = false; _showSuggestions = true; _stopAgentPolling(); }
     } else if (args is List && args.isNotEmpty && args.first is Map) {
       final msgs = args.cast<Map<String, dynamic>>(); _showSuggestions = false;
       for (final m in msgs) _history.add({'role': m['role'], 'content': m['text']});
       if (msgs.isNotEmpty && msgs.last['role'] == 'user') WidgetsBinding.instance.addPostFrameCallback((_) => _sendMessage(prefill: msgs.last['text']));
     }
-    if (_chatId == null) { _chatStartTime = DateTime.now(); _chatId = _chatStartTime!.millisecondsSinceEpoch.toString(); }
+    if (_chatId == null) _generateNewChatId();
     _startTimer(); WidgetsBinding.instance.addPostFrameCallback((_) { _scrollToBottom(); if (_messages.isEmpty) _sendWelcomeMessage(); }); _loadFromServer();
   }
 
@@ -139,12 +145,16 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       _wasBackgrounded = false;
       if (_agentConnected) _pollAgentReplies();
       _loadFromServer();
+      if (_pendingReply) {
+        _pendingReply = false;
+        _scrollToBottom();
+      }
     }
   }
   @override void dispose() {
     _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _playerStateSub?.cancel(); _positionSub?.cancel();
     _saveChat(); _syncToServer(); WidgetsBinding.instance.removeObserver(this);
-    _timer?.cancel(); _typingDelayTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _recorder.dispose();
+    _timer?.cancel(); _typingDelayTimer?.cancel(); _agentTypingTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _recorder.dispose();
     _msgCtrl.dispose(); _scrollCtrl.dispose(); super.dispose();
   }
 
@@ -154,8 +164,17 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
   void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
 
+  void _startAgentTyping() {
+    _agentTyping = true;
+    _startTypingAnimation();
+    _agentTypingTimer?.cancel();
+    _agentTypingTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) setState(() { _agentTyping = false; _stopTypingAnimation(); });
+    });
+  }
+
   void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
-  void _stopAgentPolling() { _agentPollTimer?.cancel(); _agentConnected = false; _waitingForAgent = false; _agentName = null; _stopReassureTimer(); }
+  void _stopAgentPolling() { _agentPollTimer?.cancel(); _agentConnected = false; _waitingForAgent = false; _agentName = null; _agentProfilePic = null; _stopReassureTimer(); }
   void _startReassureTimer() { _stopReassureTimer(); _reassureTimer = Timer.periodic(const Duration(minutes: 5), (_) { if (!mounted || !_waitingForAgent || _chatEnded) return; _reassureCount++; if (_reassureCount >= 4) { setState(() { _chatEnded = true; _waitingForAgent = false; _agentConnected = false; _messages.add({'role': 'system', 'text': 'All our agents are busy. Chat closed. Please request a new conversation.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); _saveChat(); return; } setState(() => _messages.add({'role': 'system', 'text': 'Still waiting for an agent. Please hold on.'.tr, 'time': DateTime.now()})); _scrollToBottom(); _saveChat(); }); }
   void _stopReassureTimer() { _reassureTimer?.cancel(); _reassureTimer = null; }
 
@@ -169,11 +188,42 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       bool hasNew = false;
       for (final r in (d['replies'] as List)) {
         final txt = r['message']?.toString() ?? '', aName = r['agent_name']?.toString() ?? 'Agent', type = r['type']?.toString() ?? 'text', url = r['media_url']?.toString() ?? '', t = DateTime.tryParse(r['time']?.toString() ?? '') ?? DateTime.now();
-        if (txt.startsWith('__AGENT_JOINED__')) { final name = txt.replaceAll('__AGENT_JOINED__', ''); setState(() { _agentName = name; _waitingForAgent = false; _stopReassureTimer(); _messages.add({'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined'.tr}', 'time': DateTime.now()}); }); hasNew = true; continue; }
-        if (txt.contains('Chat session ended')) { setState(() { _chatEnded = true; _messages.add({'role': 'system', 'text': txt, 'time': t}); }); _stopAgentPolling(); _saveChat(); return; }
-        if (txt.contains('__TOPIC_DELETED__')) { setState(() { _agentConnected = false; _waitingForAgent = false; _agentName = null; _messages.add({'role': 'system', 'text': 'The conversation was closed. Starting fresh.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); hasNew = true; continue; }
+        
+        // Agent profile pic
+        if (txt.startsWith('__AGENT_PIC__')) {
+          final pic = txt.replaceAll('__AGENT_PIC__', '');
+          setState(() => _agentProfilePic = pic);
+          continue;
+        }
+        
+        if (txt.startsWith('__AGENT_JOINED__')) {
+          final name = txt.replaceAll('__AGENT_JOINED__', '');
+          setState(() { _agentName = name; _waitingForAgent = false; _stopReassureTimer(); _messages.add({'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}', 'time': DateTime.now()}); });
+          hasNew = true; continue;
+        }
+        
+        if (txt.contains('Chat session ended') || txt.contains('chat session has been ended')) {
+          setState(() { _chatEnded = true; _messages.add({'role': 'system', 'text': txt, 'time': t}); });
+          _stopAgentPolling(); _saveChat(); return;
+        }
+        
+        if (txt.startsWith('__AGENT_TYPING__')) {
+          _startAgentTyping();
+          continue;
+        }
+        
+        if (txt.contains('__TOPIC_DELETED__')) {
+          setState(() { _chatEnded = true; _agentConnected = false; _agentName = null; _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation if you need assistance.'.tr, 'time': DateTime.now()}); });
+          _stopAgentPolling(); _saveChat(); return;
+        }
+        
         final mediaUrl = url.isNotEmpty ? url : txt;
-        setState(() { if (type == 'image') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'image'}); else if (type == 'voice') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'voice'}); else if (type == 'file') _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'file'}); else _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'text'}); });
+        setState(() { 
+          if (type == 'image') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'image'});
+          else if (type == 'voice') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'voice', 'durationText': r['duration'] ?? ''});
+          else if (type == 'file') _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'file'});
+          else _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'text'});
+        });
         hasNew = true;
       }
       if (hasNew) { _scrollToBottom(); _saveChat(); }
@@ -189,9 +239,19 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   Future<void> _sendMessage({String? prefill, String? imagePath, bool forceNewTopic = false}) async {
     final txt = imagePath != null ? '' : (prefill ?? _msgCtrl.text.trim());
     if ((txt.isEmpty && imagePath == null) || _isLoading || _chatEnded) return;
+    
+    // Store image path for later replacement
+    if (imagePath != null) _pendingImagePath = imagePath;
+    
     if (imagePath != null) { setState(() => _messages.add({'role': 'user', 'text': imagePath, 'time': DateTime.now(), 'type': 'image'})); }
     else { setState(() { _showSuggestions = false; _messages.add({'role': 'user', 'text': txt, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'user', 'content': txt}); }); }
     if (prefill == null && imagePath == null) _msgCtrl.clear(); _scrollToBottom();
+
+    // If starting new conversation while agent connected, end old one first
+    if (forceNewTopic && _agentConnected) {
+      _generateNewChatId();
+      _stopAgentPolling();
+    }
 
     final hasTopic = _agentConnected && !_waitingForAgent;
     setState(() { _isLoading = true; _isTyping = !hasTopic; });
@@ -212,8 +272,34 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         if (d['success'] == true) {
           setState(() { _stopTypingAnimation(); _isTyping = false;
             final reply = d['reply']?.toString() ?? '', action = d['action']?.toString(), status = d['agent_status']?.toString();
-            if (action == 'agent_connected') { if (!_agentConnected) _startAgentPolling(); if (status == 'pending') _messages.add({'role': 'system', 'text': 'Please hold on, an agent will be with you shortly.'.tr, 'time': DateTime.now()}); if (status == 'active' && d['agent_name'] != null && _agentName == null) { _agentName = d['agent_name'].toString(); _waitingForAgent = false; _stopReassureTimer(); } if (d['image_url'] != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == imagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; } if (d['media_url'] != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; } }
-            else if (reply.isNotEmpty) { _messages.add({'role': 'bot', 'text': reply, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'assistant', 'content': reply}); }
+            
+            // Handle agent connected
+            if (action == 'agent_connected') {
+              if (!_agentConnected) _startAgentPolling();
+              if (status == 'pending') _messages.add({'role': 'system', 'text': 'Please hold on, an agent will be with you shortly.'.tr, 'time': DateTime.now()});
+              if (status == 'active' && d['agent_name'] != null && _agentName == null) { _agentName = d['agent_name'].toString(); _waitingForAgent = false; _stopReassureTimer(); }
+              if (status == 'ended') {
+                _chatEnded = true;
+                _agentConnected = false;
+                _agentName = null;
+                _waitingForAgent = false;
+                _stopAgentPolling();
+                _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation if you need assistance.'.tr, 'time': DateTime.now()});
+              }
+              // Replace local image path with URL from server
+              if (d['image_url'] != null && _pendingImagePath != null) {
+                final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == _pendingImagePath);
+                if (idx >= 0) _messages[idx]['text'] = d['image_url'];
+                _pendingImagePath = null;
+              }
+              if (d['media_url'] != null && _recordedPath != null) {
+                final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath);
+                if (idx >= 0) _messages[idx]['text'] = d['media_url'];
+              }
+            } else if (reply.isNotEmpty) {
+              _messages.add({'role': 'bot', 'text': reply, 'time': DateTime.now(), 'type': 'text'});
+              _history.add({'role': 'assistant', 'content': reply});
+            }
           });
         } else { _showError(); }
       } else { _showError(); }
@@ -227,7 +313,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _showAttachSheet() { showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Iconsax.camera, color: AppColors.primaryColor), title: Text('Take a photo'.tr), onTap: () { Navigator.pop(ctx); _takePhoto(); }), ListTile(leading: const Icon(Iconsax.gallery, color: AppColors.primaryColor), title: Text('Upload from gallery'.tr), onTap: () { Navigator.pop(ctx); _pickImage(); }), const SizedBox(height: 12), Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr)))]))); }
 
   // ─── RECORDING ───
-  Future<void> _startRecording() async { final hasPerm = await _recorder.hasPermission(); if (!hasPerm) { _showSnack('Microphone permission required.'.tr); return; } final dir = await getTemporaryDirectory(); final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a'; await _recorder.start(path: path, encoder: AudioEncoder.aacLc, bitRate: 128000, samplingRate: 44100); setState(() { _isRecording = true; _isPaused = false; _recordSeconds = 0; _recordedPath = path; _amplitudes = []; }); _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) { if (!_isPaused && mounted) setState(() => _recordSeconds++); }); _ampSub = _recorder.onAmplitudeChanged(const Duration(milliseconds: 100)).listen((amp) { if (!mounted || _isPaused) return; final norm = ((amp.current + 45) / 45).clamp(0.0, 1.0); setState(() { _amplitudes.add(norm); if (_amplitudes.length > 50) _amplitudes.removeAt(0); }); }); }
+  Future<void> _startRecording() async { final hasPerm = await _recorder.hasPermission(); if (!hasPerm) { _showSnack('Microphone permission required.'.tr); return; } final dir = await getTemporaryDirectory(); final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a'; await _recorder.start(path: path, encoder: AudioEncoder.aacLc, bitRate: 128000, samplingRate: 44100); setState(() { _isRecording = true; _isPaused = false; _recordSeconds = 0; _recordedPath = path; _amplitudes = []; }); _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) { if (!_isPaused && mounted) setState(() => _recordSeconds++); }); _ampSub = _recorder.onAmplitudeChanged(const Duration(milliseconds: 50)).listen((amp) { if (!mounted || _isPaused) return; final norm = ((amp.current + 60) / 60).clamp(0.0, 1.0); setState(() { _amplitudes.add(norm); if (_amplitudes.length > 50) _amplitudes.removeAt(0); }); }); }
   Future<void> _pauseResumeRecording() async { if (_isPaused) { await _recorder.resume(); } else { await _recorder.pause(); } setState(() => _isPaused = !_isPaused); }
   Future<void> _cancelRecording() async { _stopRecordTimer(); _ampSub?.cancel(); if (await _recorder.isRecording()) await _recorder.stop(); if (_recordedPath != null) { try { File(_recordedPath!).deleteSync(); } catch (_) {} } setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); }
   Future<void> _sendRecording() async { _stopRecordTimer(); _ampSub?.cancel(); final path = _recordedPath; if (path != null && await _recorder.isRecording()) await _recorder.stop(); final durText = _recordTimeText; final sec = _recordSeconds; setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); if (path == null) return; final waveform = List<double>.from(_amplitudes); while (waveform.length < 30) waveform.add(0.1); _voiceWaveforms[path] = waveform; setState(() => _messages.add({'role': 'user', 'text': path, 'time': DateTime.now(), 'type': 'voice', 'durationText': durText, 'duration': sec})); _saveChat(); _scrollToBottom(); try { String? token; for (int i = 0; i < 5; i++) { token = LoginService().token; if (token != null && token.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); } var req = http.MultipartRequest('POST', Uri.parse(AppConfig.chatbotChatUrl())); req.headers['Authorization'] = 'Bearer ${token ?? ''}'; req.fields['media_type'] = 'voice'; req.files.add(await http.MultipartFile.fromPath('media', path)); final streamed = await req.send().timeout(const Duration(seconds: 35)); final resp = await http.Response.fromStream(streamed); if (resp.statusCode == 200) { final d = jsonDecode(resp.body); if (d['media_url'] != null) { final newUrl = d['media_url'].toString(); final oldWaveform = _voiceWaveforms[path]; final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == path); if (idx >= 0) setState(() => _messages[idx]['text'] = newUrl); if (oldWaveform != null) { _voiceWaveforms.remove(path); _voiceWaveforms[newUrl] = oldWaveform; } } } } catch (_) {} }
@@ -252,17 +338,24 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     final bBubble = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200, uBubble = isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
     final sw = MediaQuery.of(context).size.width, copyCol = isDark ? Colors.white : Colors.black;
 
-    // Status text - NEVER show "waiting for agent" here
     String statusText;
-    if (_isTyping) { statusText = 'typing...'.tr; }
-    else if (_agentName != null) { statusText = '${'Agent'.tr}: $_agentName'; }
+    if (_isTyping || _agentTyping) { statusText = 'typing...'.tr; }
+    else if (_isRecording) { statusText = 'recording...'.tr; }
     else { statusText = 'online'.tr; }
+
+    // Header icon - use agent profile pic if available, else support header
+    Widget headerIcon;
+    if (_agentProfilePic != null && _agentProfilePic!.isNotEmpty) {
+      headerIcon = ClipRRect(borderRadius: BorderRadius.circular(18), child: CachedNetworkImage(imageUrl: _agentProfilePic!, width: 36, height: 36, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/support_header.png', width: 36, height: 36)));
+    } else {
+      headerIcon = Image.asset('assets/icons/support_header.png', width: 36, height: 36);
+    }
 
     return GestureDetector(onTap: _dismissCopy, child: Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
         title: Row(children: [
-          ClipRRect(borderRadius: BorderRadius.circular(18), child: Image.asset('assets/icons/support_header.png', width: 36, height: 36)),
+          headerIcon,
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Row(mainAxisSize: MainAxisSize.min, children: [
@@ -276,11 +369,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         ]),
       ),
       body: Column(children: [
-        Expanded(child: ListView.builder(controller: _scrollCtrl, padding: const EdgeInsets.all(12), itemCount: _messages.length + (_isTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0), itemBuilder: (ctx, i) {
+        Expanded(child: ListView.builder(controller: _scrollCtrl, padding: const EdgeInsets.all(12), itemCount: _messages.length + (_isTyping || _agentTyping ? 1 : 0) + 1 + (_showSuggestions && _messages.length == 1 ? 1 : 0), itemBuilder: (ctx, i) {
           if (i == 0 && _chatStartTime != null) return _buildTimeHeader(_chatStartTime!);
           final mi = i - 1;
           if (_showSuggestions && _messages.length == 1 && mi == _messages.length) return _buildSuggestions();
-          if (_isTyping && mi == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(bBubble);
+          if ((_isTyping || _agentTyping) && mi == _messages.length + (_showSuggestions && _messages.length == 1 ? 1 : 0)) return _buildTypingBubble(bBubble);
           if (mi >= 0 && mi < _messages.length) {
             final m = _messages[mi]; final role = m['role']?.toString() ?? 'bot';
             if (role == 'system') return _buildSystemMsg(m);
@@ -325,7 +418,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   ]);
 
   Widget _buildRecordingBar(bool isDark) {
-    final displayAmps = _amplitudes.isNotEmpty ? List.from(_amplitudes) : List.filled(25, 0.1);
+    final displayAmps = _amplitudes.isNotEmpty ? List.from(_amplitudes) : List.filled(25, 0.08);
     return Row(children: [
       const SizedBox(width: 4),
       Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: const Icon(Iconsax.trash, size: 20, color: Colors.red), onPressed: _cancelRecording)),
@@ -333,7 +426,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       Expanded(child: Container(height: 52, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), padding: const EdgeInsets.symmetric(horizontal: 14), child: Row(children: [
         _isPaused ? Icon(Iconsax.microphone_slash, size: 20, color: Colors.grey.shade400) : Icon(Iconsax.microphone_2, size: 20, color: Colors.orange),
         const SizedBox(width: 10),
-        Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(10), child: SizedBox(height: 32, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return AnimatedContainer(duration: const Duration(milliseconds: 80), margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList())))),
+        Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(10), child: SizedBox(height: 32, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return AnimatedContainer(duration: const Duration(milliseconds: 50), margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList())))),
         const SizedBox(width: 10),
         Text(_recordTimeText, style: TextStyle(color: Colors.orange, fontSize: 14, fontWeight: FontWeight.w600)),
       ]))),
@@ -366,15 +459,35 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
   Widget _buildContent(String type, Map m, String fmt, bool isBot, Color bColor, Color uColor, double sw) {
     final text = m['text']?.toString() ?? '';
-    if (type == 'image') { final isLocal = !text.startsWith('http'); Widget img; if (isLocal) { final f = File(text); img = f.existsSync() ? Image.file(f, width: sw * 0.6, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildImageError(sw)) : _buildImageError(sw); } else { img = CachedNetworkImage(imageUrl: text, width: sw * 0.6, fit: BoxFit.cover, placeholder: (_, __) => Container(width: sw * 0.6, height: 150, color: Colors.grey.shade200, child: const Center(child: CircularProgressIndicator(strokeWidth: 2))), errorWidget: (_, __, ___) => _buildImageError(sw)); } return ClipRRect(borderRadius: BorderRadius.circular(8), child: img); }
-    if (type == 'voice') { final isRemote = text.startsWith('http'); final durLabel = m['durationText']?.toString() ?? ''; final durSec = m['duration'] as int? ?? 0; final isPlaying = _playingVoice && _playingVoiceSource == text; final waveform = _getWaveform(text, 30); final totalDur = _voiceDurations[text] ?? Duration(seconds: durSec); final position = _voicePositions[text] ?? Duration.zero; final progress = totalDur.inMilliseconds > 0 ? position.inMilliseconds / totalDur.inMilliseconds : 0.0; final filledCount = (waveform.length * progress.clamp(0.0, 1.0)).round();
+    if (type == 'image') {
+      final isLocal = !text.startsWith('http') && !text.startsWith('https');
+      Widget img;
+      if (isLocal) {
+        final f = File(text);
+        img = f.existsSync() ? Image.file(f, width: sw * 0.6, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildImageError(sw)) : _buildImageError(sw);
+      } else {
+        img = CachedNetworkImage(imageUrl: text, width: sw * 0.6, fit: BoxFit.cover, placeholder: (_, __) => Container(width: sw * 0.6, height: 150, color: Colors.grey.shade200, child: const Center(child: CircularProgressIndicator(strokeWidth: 2))), errorWidget: (_, __, ___) => _buildImageError(sw));
+      }
+      return ClipRRect(borderRadius: BorderRadius.circular(8), child: img);
+    }
+    if (type == 'voice') {
+      final isRemote = text.startsWith('http');
+      final durLabel = m['durationText']?.toString() ?? '';
+      final durSec = m['duration'] as int? ?? 0;
+      final isPlaying = _playingVoice && _playingVoiceSource == text;
+      final waveform = _getWaveform(text, 30);
+      final totalDur = _voiceDurations[text] ?? Duration(seconds: durSec);
+      final position = _voicePositions[text] ?? Duration.zero;
+      final progress = totalDur.inMilliseconds > 0 ? position.inMilliseconds / totalDur.inMilliseconds : 0.0;
+      final filledCount = (waveform.length * progress.clamp(0.0, 1.0)).round();
       return Row(mainAxisSize: MainAxisSize.min, children: [
         GestureDetector(onTap: () => _playPauseVoice(text, durationSec: durSec), child: Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle), child: Icon(isPlaying ? Iconsax.pause : Iconsax.play, size: 18, color: AppColors.primaryColor))),
         const SizedBox(width: 10),
         Expanded(child: SizedBox(height: 32, child: Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: waveform.asMap().entries.map((entry) { final idx = entry.key; final amp = entry.value; final isFilled = idx < filledCount; final height = 4.0 + (amp * 24); return Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: height, decoration: BoxDecoration(color: isFilled ? AppColors.primaryColor.withValues(alpha: 0.85) : AppColors.primaryColor.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(1.5))); }).toList()))),
         const SizedBox(width: 8),
-        Text(durLabel.isNotEmpty ? durLabel : _formatDuration(totalDur), style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
-      ]); }
+        Text(durLabel.isNotEmpty ? durLabel : (isRemote ? '' : _formatDuration(totalDur)), style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+      ]);
+    }
     if (type == 'file') return Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Iconsax.document, size: 22, color: AppColors.primaryColor), const SizedBox(width: 8), Flexible(child: Text(text.split('\n').first.replaceAll('📎 ', ''), style: const TextStyle(fontSize: 13, color: AppColors.primaryColor)))]));
     return HtmlWidget(fmt, textStyle: TextStyle(fontSize: 14, color: isBot ? bColor : uColor));
   }
