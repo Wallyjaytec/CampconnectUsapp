@@ -36,7 +36,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   final box = GetStorage();
   final ImagePicker _picker = ImagePicker();
   final AudioPlayer _audioPlayer = AudioPlayer();
-  final AudioRecorder _recorder = AudioRecorder();
+  final Record _recorder = Record();
 
   bool _isLoading = false, _isTyping = false, _chatEnded = false, _showSuggestions = true;
   bool _agentConnected = false, _waitingForAgent = false;
@@ -184,7 +184,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _showSnack(String m) { if (Get.context != null) ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text(m), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2))); }
   void _showAttachSheet() { showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Iconsax.camera, color: AppColors.primaryColor), title: Text('Take a photo'.tr), onTap: () { Navigator.pop(ctx); _takePhoto(); }), ListTile(leading: const Icon(Iconsax.gallery, color: AppColors.primaryColor), title: Text('Upload from gallery'.tr), onTap: () { Navigator.pop(ctx); _pickImage(); }), const SizedBox(height: 12), Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr)))]))); }
 
-  // ─── RECORDING (record ^4.4.4 compatible) ───
+  // ─── RECORDING ───
   Future<void> _startRecording() async {
     final hasPerm = await _recorder.hasPermission();
     if (!hasPerm) { _showSnack('Microphone permission required.'.tr); return; }
@@ -336,7 +336,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
           const SizedBox(width: 8),
           ...List.generate(8, (i) => Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: 6.0 + (Random(i).nextDouble() * 14), decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(1)))),
           const SizedBox(width: 8),
-          Text(durLabel.isNotEmpty ? durLabel : '▶️', style: TextStyle(fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w500)),
+          Text(durLabel.isNotEmpty ? durLabel : '', style: TextStyle(fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w500)),
         ])),
       );
     }
@@ -345,5 +345,5 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   }
 
   Widget _buildTypingBubble(Color bBubble) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28)), const SizedBox(width: 6), Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), decoration: BoxDecoration(color: bBubble, borderRadius: BorderRadius.circular(16)), child: AnimatedBuilder(animation: _typingAnimCtrl, builder: (_, __) => Row(mainAxisSize: MainAxisSize.min, children: [_buildDot(_dot1), const SizedBox(width: 4), _buildDot(_dot2), const SizedBox(width: 4), _buildDot(_dot3)])))]));
-  Widget _buildDot(Animation<double> a) => AnimatedBuilder(animation: a, builder: (_, __) { final o = a.value * 4; return Transform.translate(offset: Offset(0, o), child: Container(width: 7, height: 7, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3 + (a.value.abs() * 0.7)), shape: BoxShape.circle))); });
+  Widget _buildDot(Animation<double> a) => AnimatedBuilder(animation: a, builder: (_, __) { final o = a.value * 4; return Transform.translate(offset: Offset(0, o), child: Container(width: 7, height: 7, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3 + (a.value.abs()) * 0.7), shape: BoxShape.circle))); });
 }
