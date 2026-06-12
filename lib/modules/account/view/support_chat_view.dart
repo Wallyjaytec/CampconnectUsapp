@@ -42,7 +42,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   bool _agentConnected = false, _waitingForAgent = false, _agentTyping = false;
   String? _agentName, _agentProfilePic;
   DateTime? _chatStartTime; String? _chatId;
-  Timer? _timer, _typingDelayTimer, _agentPollTimer, _reassureTimer, _recordTimer, _agentTypingTimer;
+  Timer? _timer, _typingDelayTimer, _agentPollTimer, _reassureTimer, _recordTimer;
   int _reassureCount = 0, _recordSeconds = 0;
   int? _copyVisibleIndex;
   bool _isRecording = false, _isPaused = false;
@@ -141,7 +141,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   @override void dispose() {
     _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _playerStateSub?.cancel(); _positionSub?.cancel();
     _saveChat(); _syncToServer(); WidgetsBinding.instance.removeObserver(this);
-    _timer?.cancel(); _typingDelayTimer?.cancel(); _agentTypingTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _recorder.dispose();
+    _timer?.cancel(); _typingDelayTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _recorder.dispose();
     _msgCtrl.dispose(); _scrollCtrl.dispose(); super.dispose();
   }
 
@@ -151,16 +151,30 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
   void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
 
-  void _startAgentTyping() {
-    _agentTyping = true;
-    _startTypingAnimation();
-    _agentTypingTimer?.cancel();
-    _agentTypingTimer = Timer(const Duration(seconds: 4), () { if (mounted) setState(() { _agentTyping = false; _stopTypingAnimation(); }); });
-  }
-
   void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
   void _stopAgentPolling() { _agentPollTimer?.cancel(); _agentConnected = false; _waitingForAgent = false; _agentName = null; _agentProfilePic = null; _stopReassureTimer(); }
-  void _startReassureTimer() { _stopReassureTimer(); _reassureTimer = Timer.periodic(const Duration(minutes: 5), (_) { if (!mounted || !_waitingForAgent || _chatEnded) return; _reassureCount++; if (_reassureCount >= 4) { setState(() { _chatEnded = true; _waitingForAgent = false; _agentConnected = false; _messages.add({'role': 'system', 'text': 'All our agents are busy. Chat closed. Please request a new conversation.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); _saveChat(); return; } setState(() => _messages.add({'role': 'system', 'text': 'Still waiting for an agent. Please hold on.'.tr, 'time': DateTime.now()})); _scrollToBottom(); _saveChat(); }); }
+  
+  void _startReassureTimer() { 
+    _stopReassureTimer(); 
+    _reassureTimer = Timer.periodic(const Duration(minutes: 2), (_) { 
+      if (!mounted || !_waitingForAgent || _chatEnded) return; 
+      _reassureCount++; 
+      if (_reassureCount >= 4) { 
+        setState(() { 
+          _waitingForAgent = false; 
+          _agentConnected = false;
+          _agentName = null;
+          _agentProfilePic = null;
+          _messages.add({'role': 'system', 'text': 'No agents are available right now. You can still chat with me, or request an agent again later.'.tr, 'time': DateTime.now()}); 
+        }); 
+        _stopAgentPolling(); 
+        _saveChat(); 
+        return; 
+      } 
+      setState(() => _messages.add({'role': 'system', 'text': 'Still waiting for an agent. Please hold on.'.tr, 'time': DateTime.now()})); 
+      _scrollToBottom(); _saveChat(); 
+    }); 
+  }
   void _stopReassureTimer() { _reassureTimer?.cancel(); _reassureTimer = null; }
 
   Future<void> _pollAgentReplies() async {
@@ -172,14 +186,26 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       if (d['success'] != true || d['replies'] == null) return;
       for (final r in (d['replies'] as List)) {
         final txt = r['message']?.toString() ?? '', aName = r['agent_name']?.toString() ?? 'Agent', type = r['type']?.toString() ?? 'text', url = r['media_url']?.toString() ?? '', t = DateTime.tryParse(r['time']?.toString() ?? '') ?? DateTime.now();
+        final agentPic = r['agent_pic']?.toString();
+        
         if (txt.startsWith('__AGENT_PIC__')) { setState(() => _agentProfilePic = txt.replaceAll('__AGENT_PIC__', '')); continue; }
         if (txt.startsWith('__AGENT_JOINED__')) { final name = txt.replaceAll('__AGENT_JOINED__', ''); setState(() { _agentName = 'Agent $name'; _waitingForAgent = false; _stopReassureTimer(); _messages.add({'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}', 'time': DateTime.now()}); }); _scrollToBottom(); continue; }
         if (txt.contains('Chat session ended')) { setState(() { _chatEnded = true; _messages.add({'role': 'system', 'text': txt, 'time': t}); }); _stopAgentPolling(); _saveChat(); return; }
-        if (txt == '__AGENT_TYPING__') { _startAgentTyping(); continue; }
         if (txt.contains('__TOPIC_DELETED__')) { setState(() { _chatEnded = true; _agentConnected = false; _agentName = null; _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); _saveChat(); return; }
+        
         final mediaUrl = url.isNotEmpty ? url : txt;
-        setState(() { if (type == 'image') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'image'}); else if (type == 'voice') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'voice'}); else if (type == 'file') _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'file'}); else _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'text'}); });
-        _scrollToBottom(); _saveChat();
+        if (type == 'text') {
+          setState(() => _agentTyping = true);
+          _startTypingAnimation();
+          Timer(const Duration(milliseconds: 2500), () {
+            if (!mounted) return;
+            setState(() { _agentTyping = false; _stopTypingAnimation(); _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'agentPic': agentPic ?? _agentProfilePic, 'time': t, 'type': 'text'}); });
+            _scrollToBottom(); _saveChat();
+          });
+        } else {
+          setState(() { if (type == 'image') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'agentPic': agentPic ?? _agentProfilePic, 'time': t, 'type': 'image'}); else if (type == 'voice') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'agentPic': agentPic ?? _agentProfilePic, 'time': t, 'type': 'voice'}); else if (type == 'file') _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'agentPic': agentPic ?? _agentProfilePic, 'time': t, 'type': 'file'}); });
+          _scrollToBottom(); _saveChat();
+        }
       }
     } catch (_) {}
   }
@@ -236,7 +262,6 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _showSnack(String m) { if (Get.context != null) ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text(m), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2))); }
   void _showAttachSheet() { showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Iconsax.camera, color: AppColors.primaryColor), title: Text('Take a photo'.tr), onTap: () { Navigator.pop(ctx); _takePhoto(); }), ListTile(leading: const Icon(Iconsax.gallery, color: AppColors.primaryColor), title: Text('Upload from gallery'.tr), onTap: () { Navigator.pop(ctx); _pickImage(); }), const SizedBox(height: 12), Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr)))]))); }
 
-  // Recording
   Future<void> _startRecording() async { final hasPerm = await _recorder.hasPermission(); if (!hasPerm) { _showSnack('Microphone permission required.'.tr); return; } final dir = await getTemporaryDirectory(); final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a'; await _recorder.start(path: path, encoder: AudioEncoder.aacLc, bitRate: 128000, samplingRate: 44100); setState(() { _isRecording = true; _isPaused = false; _recordSeconds = 0; _recordedPath = path; _amplitudes = []; }); _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) { if (!_isPaused && mounted) setState(() => _recordSeconds++); }); _ampSub = _recorder.onAmplitudeChanged(const Duration(milliseconds: 50)).listen((amp) { if (!mounted || _isPaused) return; final norm = ((amp.current + 60) / 60).clamp(0.0, 1.0); setState(() { _amplitudes.add(norm); if (_amplitudes.length > 50) _amplitudes.removeAt(0); }); }); }
   Future<void> _pauseResumeRecording() async { if (_isPaused) { await _recorder.resume(); } else { await _recorder.pause(); } setState(() => _isPaused = !_isPaused); }
   Future<void> _cancelRecording() async { _stopRecordTimer(); _ampSub?.cancel(); if (await _recorder.isRecording()) await _recorder.stop(); if (_recordedPath != null) { try { File(_recordedPath!).deleteSync(); } catch (_) {} } setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); }
@@ -273,13 +298,14 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     else if (_isRecording) { statusText = 'recording...'.tr; }
     else { statusText = 'online'.tr; }
 
+    // Header icon uses support_header_icon.png
     Widget headerIcon = ClipRRect(borderRadius: BorderRadius.circular(18), child: (_agentProfilePic != null && _agentProfilePic!.isNotEmpty) ? CachedNetworkImage(imageUrl: _agentProfilePic!, width: 36, height: 36, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36)) : Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36));
 
     return GestureDetector(onTap: _dismissCopy, child: Scaffold(
       appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
         title: Row(children: [headerIcon, const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Row(mainAxisSize: MainAxisSize.min, children: [Flexible(child: Text(_agentName != null ? _agentName! : 'CampConnectU Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis)), const SizedBox(width: 4), Image.asset('assets/images/verifybadge.png', width: 14, height: 14)]),
+            Row(mainAxisSize: MainAxisSize.min, children: [Flexible(child: Text(_agentName != null ? _agentName! : 'CampConnectUs Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis)), const SizedBox(width: 4), Image.asset('assets/images/verifybadge.png', width: 14, height: 14)]),
             const SizedBox(height: 1), Text(statusText, style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
           ])),
         ]),
@@ -338,8 +364,10 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     final name = isBot ? (agentN ?? 'Luca') : _userFullName; final text = m['text']?.toString() ?? ''; final fmt = _formatMarkdown(text); final showCopy = _copyVisibleIndex == mi;
     final canCopy = type == 'text';
     final isAgent = agentN != null && agentN != 'Luca';
-    final botIcon = (isAgent && _agentProfilePic != null && _agentProfilePic!.isNotEmpty)
-        ? ClipRRect(borderRadius: BorderRadius.circular(20), child: CachedNetworkImage(imageUrl: _agentProfilePic!, width: 28, height: 28, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/customer_support.png', width: 28, height: 28)))
+    final agentPic = m['agentPic']?.toString() ?? _agentProfilePic;
+    // Bubble icon: use agent profile pic if available, otherwise customer_support.png
+    final botIcon = (isAgent && agentPic != null && agentPic.isNotEmpty)
+        ? ClipRRect(borderRadius: BorderRadius.circular(20), child: CachedNetworkImage(imageUrl: agentPic, width: 28, height: 28, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/customer_support.png', width: 28, height: 28)))
         : ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28));
     return Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (isBot) ...[botIcon, const SizedBox(width: 6)] else const Expanded(child: SizedBox()),
