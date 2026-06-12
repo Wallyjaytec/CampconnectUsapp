@@ -184,21 +184,23 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _showSnack(String m) { if (Get.context != null) ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text(m), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2))); }
   void _showAttachSheet() { showModalBottomSheet(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Iconsax.camera, color: AppColors.primaryColor), title: Text('Take a photo'.tr), onTap: () { Navigator.pop(ctx); _takePhoto(); }), ListTile(leading: const Icon(Iconsax.gallery, color: AppColors.primaryColor), title: Text('Upload from gallery'.tr), onTap: () { Navigator.pop(ctx); _pickImage(); }), const SizedBox(height: 12), Center(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel'.tr)))]))); }
 
-  // ─── RECORDING ──────────────────────────
+  // ─── RECORDING (record ^4.4.4 compatible) ───
   Future<void> _startRecording() async {
-    if (!await _recorder.hasPermission()) { _showSnack('Microphone permission required.'.tr); return; }
+    final hasPerm = await _recorder.hasPermission();
+    if (!hasPerm) { _showSnack('Microphone permission required.'.tr); return; }
     final dir = await getTemporaryDirectory();
     final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-    await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+    await _recorder.start(path: path, encoder: AudioEncoder.aacLc, bitRate: 128000, samplingRate: 44100);
     setState(() { _isRecording = true; _isPaused = false; _recordSeconds = 0; _recordedPath = path; _amplitudes = []; });
     _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) { if (!_isPaused && mounted) setState(() => _recordSeconds++); });
     _ampSub = _recorder.onAmplitudeChanged(const Duration(milliseconds: 200)).listen((amp) { if (!mounted || _isPaused) return; final norm = ((amp.current + 45) / 45).clamp(0.0, 1.0); setState(() { _amplitudes.add(norm); if (_amplitudes.length > 40) _amplitudes.removeAt(0); }); });
   }
   Future<void> _pauseResumeRecording() async { if (_isPaused) { await _recorder.resume(); } else { await _recorder.pause(); } setState(() => _isPaused = !_isPaused); }
-  Future<void> _cancelRecording() async { _stopRecordTimer(); _ampSub?.cancel(); if (await _recorder.isRecording() || await _recorder.isPaused()) await _recorder.stop(); if (_recordedPath != null) { try { File(_recordedPath!).deleteSync(); } catch (_) {} } setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); }
+  Future<void> _cancelRecording() async { _stopRecordTimer(); _ampSub?.cancel(); if (await _recorder.isRecording()) await _recorder.stop(); if (_recordedPath != null) { try { File(_recordedPath!).deleteSync(); } catch (_) {} } setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); }
   Future<void> _sendRecording() async {
-    _stopRecordTimer(); _ampSub?.cancel(); await _recorder.stop();
-    final path = _recordedPath, durText = _recordTimeText; final sec = _recordSeconds;
+    _stopRecordTimer(); _ampSub?.cancel();
+    final path = _recordedPath; if (path != null && await _recorder.isRecording()) await _recorder.stop();
+    final durText = _recordTimeText; final sec = _recordSeconds;
     setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; });
     if (path == null) return;
     setState(() => _messages.add({'role': 'user', 'text': path, 'time': DateTime.now(), 'type': 'voice', 'durationText': durText, 'duration': sec}));
@@ -218,7 +220,6 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _copyMsg(String t) { HapticFeedback.mediumImpact(); Clipboard.setData(ClipboardData(text: t)); setState(() => _copyVisibleIndex = null); }
   void _dismissCopy() { if (_copyVisibleIndex != null) setState(() => _copyVisibleIndex = null); }
 
-  // ─── BUILD ──────────────────────────────
   @override Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final uColor = isDark ? Colors.white : Colors.grey.shade900, bColor = isDark ? Colors.white : Colors.grey.shade900;
