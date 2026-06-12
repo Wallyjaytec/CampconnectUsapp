@@ -130,8 +130,16 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
   @override void didChangePlatformBrightness() { if (mounted) setState(() {}); }
   @override void didChangeAppLifecycleState(AppLifecycleState s) {
-    if (s == AppLifecycleState.paused || s == AppLifecycleState.inactive || s == AppLifecycleState.hidden) { _wasBackgrounded = true; _stopTypingAnimation(); _saveChat(); _syncToServer(); }
-    if (s == AppLifecycleState.resumed && _wasBackgrounded) { _wasBackgrounded = false; if (_agentConnected) _pollAgentReplies(); _loadFromServer(); }
+    if (s == AppLifecycleState.paused || s == AppLifecycleState.inactive || s == AppLifecycleState.hidden) {
+      _wasBackgrounded = true;
+      _saveChat();
+      _syncToServer();
+    }
+    if (s == AppLifecycleState.resumed && _wasBackgrounded) {
+      _wasBackgrounded = false;
+      if (_agentConnected) _pollAgentReplies();
+      _loadFromServer();
+    }
   }
   @override void dispose() {
     _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _playerStateSub?.cancel(); _positionSub?.cancel();
@@ -142,8 +150,8 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
   void _startTimer() { _timer = Timer.periodic(const Duration(seconds: 30), (_) { if (mounted) setState(() {}); }); }
   void _scrollToBottom() { Future.delayed(const Duration(milliseconds: 100), () { if (_scrollCtrl.hasClients) _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut); }); }
-  void _startTypingAnimation() { _typingAnimCtrl.repeat(); }
-  void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); }
+  void _startTypingAnimation() { _typingAnimCtrl.repeat(); try { _audioPlayer.stop(); _audioPlayer.play(AssetSource('sounds/typing_sound.m4a')); _audioPlayer.setReleaseMode(ReleaseMode.loop); } catch (_) {} }
+  void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
   void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
 
   void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
@@ -163,7 +171,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         final txt = r['message']?.toString() ?? '', aName = r['agent_name']?.toString() ?? 'Agent', type = r['type']?.toString() ?? 'text', url = r['media_url']?.toString() ?? '', t = DateTime.tryParse(r['time']?.toString() ?? '') ?? DateTime.now();
         if (txt.startsWith('__AGENT_JOINED__')) { final name = txt.replaceAll('__AGENT_JOINED__', ''); setState(() { _agentName = name; _waitingForAgent = false; _stopReassureTimer(); _messages.add({'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined'.tr}', 'time': DateTime.now()}); }); hasNew = true; continue; }
         if (txt.contains('Chat session ended')) { setState(() { _chatEnded = true; _messages.add({'role': 'system', 'text': txt, 'time': t}); }); _stopAgentPolling(); _saveChat(); return; }
-        if (txt.contains('__TOPIC_DELETED__')) { setState(() { _agentConnected = false; _waitingForAgent = false; _agentName = null; _messages.add({'role': 'system', 'text': 'The previous conversation was closed. Starting a new conversation.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); hasNew = true; continue; }
+        if (txt.contains('__TOPIC_DELETED__')) { setState(() { _agentConnected = false; _waitingForAgent = false; _agentName = null; _messages.add({'role': 'system', 'text': 'The conversation was closed. Starting fresh.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); hasNew = true; continue; }
         final mediaUrl = url.isNotEmpty ? url : txt;
         setState(() { if (type == 'image') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'image'}); else if (type == 'voice') _messages.add({'role': 'agent', 'text': mediaUrl, 'agentName': aName, 'time': t, 'type': 'voice'}); else if (type == 'file') _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'file'}); else _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'time': t, 'type': 'text'}); });
         hasNew = true;
@@ -185,11 +193,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     else { setState(() { _showSuggestions = false; _messages.add({'role': 'user', 'text': txt, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'user', 'content': txt}); }); }
     if (prefill == null && imagePath == null) _msgCtrl.clear(); _scrollToBottom();
 
-    final hasTopic = _agentConnected;
+    final hasTopic = _agentConnected && !_waitingForAgent;
     setState(() { _isLoading = true; _isTyping = !hasTopic; });
     if (!hasTopic) _startTypingAnimation(); _scrollToBottom();
     _pendingReply = true;
-    if (!hasTopic) { final c = Completer<void>(); _typingDelayTimer = Timer(const Duration(seconds: 2), () => c.complete()); await c.future; if (!mounted || !_isLoading) { _pendingReply = false; return; } }
+    if (!hasTopic) { final c = Completer<void>(); _typingDelayTimer = Timer(const Duration(seconds: 6), () => c.complete()); await c.future; if (!mounted || !_isLoading) { _pendingReply = false; return; } }
 
     try {
       String? token; for (int i = 0; i < 5; i++) { token = LoginService().token; if (token != null && token.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); }
@@ -204,7 +212,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         if (d['success'] == true) {
           setState(() { _stopTypingAnimation(); _isTyping = false;
             final reply = d['reply']?.toString() ?? '', action = d['action']?.toString(), status = d['agent_status']?.toString();
-            if (action == 'agent_connected') { if (!_agentConnected) _startAgentPolling(); if (status == 'pending') _messages.add({'role': 'system', 'text': 'Please hold on, an agent will be with you shortly.'.tr, 'time': DateTime.now()}); if (status == 'active' && d['agent_name'] != null && _agentName == null) { _agentName = d['agent_name'].toString(); _waitingForAgent = false; _stopReassureTimer(); } if (d['image_url'] != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == imagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; } }
+            if (action == 'agent_connected') { if (!_agentConnected) _startAgentPolling(); if (status == 'pending') _messages.add({'role': 'system', 'text': 'Please hold on, an agent will be with you shortly.'.tr, 'time': DateTime.now()}); if (status == 'active' && d['agent_name'] != null && _agentName == null) { _agentName = d['agent_name'].toString(); _waitingForAgent = false; _stopReassureTimer(); } if (d['image_url'] != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == imagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; } if (d['media_url'] != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; } }
             else if (reply.isNotEmpty) { _messages.add({'role': 'bot', 'text': reply, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'assistant', 'content': reply}); }
           });
         } else { _showError(); }
@@ -222,9 +230,9 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   Future<void> _startRecording() async { final hasPerm = await _recorder.hasPermission(); if (!hasPerm) { _showSnack('Microphone permission required.'.tr); return; } final dir = await getTemporaryDirectory(); final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a'; await _recorder.start(path: path, encoder: AudioEncoder.aacLc, bitRate: 128000, samplingRate: 44100); setState(() { _isRecording = true; _isPaused = false; _recordSeconds = 0; _recordedPath = path; _amplitudes = []; }); _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) { if (!_isPaused && mounted) setState(() => _recordSeconds++); }); _ampSub = _recorder.onAmplitudeChanged(const Duration(milliseconds: 100)).listen((amp) { if (!mounted || _isPaused) return; final norm = ((amp.current + 45) / 45).clamp(0.0, 1.0); setState(() { _amplitudes.add(norm); if (_amplitudes.length > 50) _amplitudes.removeAt(0); }); }); }
   Future<void> _pauseResumeRecording() async { if (_isPaused) { await _recorder.resume(); } else { await _recorder.pause(); } setState(() => _isPaused = !_isPaused); }
   Future<void> _cancelRecording() async { _stopRecordTimer(); _ampSub?.cancel(); if (await _recorder.isRecording()) await _recorder.stop(); if (_recordedPath != null) { try { File(_recordedPath!).deleteSync(); } catch (_) {} } setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); }
-  Future<void> _sendRecording() async { _stopRecordTimer(); _ampSub?.cancel(); final path = _recordedPath; if (path != null && await _recorder.isRecording()) await _recorder.stop(); final durText = _recordTimeText; final sec = _recordSeconds; setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); if (path == null) return; final waveform = List<double>.from(_amplitudes); if (waveform.length < 30) { while (waveform.length < 30) waveform.add(0.1); } _voiceWaveforms[path] = waveform; setState(() => _messages.add({'role': 'user', 'text': path, 'time': DateTime.now(), 'type': 'voice', 'durationText': durText, 'duration': sec})); _saveChat(); _scrollToBottom(); try { String? token; for (int i = 0; i < 5; i++) { token = LoginService().token; if (token != null && token.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); } var req = http.MultipartRequest('POST', Uri.parse(AppConfig.chatbotChatUrl())); req.headers['Authorization'] = 'Bearer ${token ?? ''}'; req.fields['media_type'] = 'voice'; req.files.add(await http.MultipartFile.fromPath('media', path)); final streamed = await req.send().timeout(const Duration(seconds: 35)); final resp = await http.Response.fromStream(streamed); if (resp.statusCode == 200) { final d = jsonDecode(resp.body); if (d['media_url'] != null) { final newUrl = d['media_url'].toString(); final oldWaveform = _voiceWaveforms[path]; setState(() { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == path); if (idx >= 0) _messages[idx]['text'] = newUrl; }); if (oldWaveform != null) { _voiceWaveforms.remove(path); _voiceWaveforms[newUrl] = oldWaveform; } } } } catch (_) {} }
+  Future<void> _sendRecording() async { _stopRecordTimer(); _ampSub?.cancel(); final path = _recordedPath; if (path != null && await _recorder.isRecording()) await _recorder.stop(); final durText = _recordTimeText; final sec = _recordSeconds; setState(() { _isRecording = false; _isPaused = false; _recordSeconds = 0; _recordedPath = null; _amplitudes = []; }); if (path == null) return; final waveform = List<double>.from(_amplitudes); while (waveform.length < 30) waveform.add(0.1); _voiceWaveforms[path] = waveform; setState(() => _messages.add({'role': 'user', 'text': path, 'time': DateTime.now(), 'type': 'voice', 'durationText': durText, 'duration': sec})); _saveChat(); _scrollToBottom(); try { String? token; for (int i = 0; i < 5; i++) { token = LoginService().token; if (token != null && token.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); } var req = http.MultipartRequest('POST', Uri.parse(AppConfig.chatbotChatUrl())); req.headers['Authorization'] = 'Bearer ${token ?? ''}'; req.fields['media_type'] = 'voice'; req.files.add(await http.MultipartFile.fromPath('media', path)); final streamed = await req.send().timeout(const Duration(seconds: 35)); final resp = await http.Response.fromStream(streamed); if (resp.statusCode == 200) { final d = jsonDecode(resp.body); if (d['media_url'] != null) { final newUrl = d['media_url'].toString(); final oldWaveform = _voiceWaveforms[path]; final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == path); if (idx >= 0) setState(() => _messages[idx]['text'] = newUrl); if (oldWaveform != null) { _voiceWaveforms.remove(path); _voiceWaveforms[newUrl] = oldWaveform; } } } } catch (_) {} }
   void _stopRecordTimer() { _recordTimer?.cancel(); _recordTimer = null; }
-  void _toggleRecording() { if (!_agentConnected) { _showSnack('Voice messaging is available when connected to an agent.'.tr); return; } if (_isRecording) { _cancelRecording(); } else { _startRecording(); } }
+  void _toggleRecording() { if (!_agentConnected || _waitingForAgent) { _showSnack('Voice messaging is available when connected to an agent.'.tr); return; } if (_isRecording) { _cancelRecording(); } else { _startRecording(); } }
 
   Future<void> _playPauseVoice(String url, {int? durationSec}) async { if (_playingVoice && _playingVoiceSource == url) { await _audioPlayer.pause(); return; } await _audioPlayer.stop(); _playingVoiceSource = url; if (url.startsWith('http')) { await _audioPlayer.play(UrlSource(url)); } else { await _audioPlayer.play(DeviceFileSource(url)); } if (durationSec != null) _voiceDurations[url] = Duration(seconds: durationSec); setState(() {}); }
 
@@ -244,21 +252,26 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     final bBubble = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200, uBubble = isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
     final sw = MediaQuery.of(context).size.width, copyCol = isDark ? Colors.white : Colors.black;
 
+    // Status text - NEVER show "waiting for agent" here
     String statusText;
     if (_isTyping) { statusText = 'typing...'.tr; }
-    else if (_agentName != null && !_waitingForAgent) { statusText = '${'Agent'.tr}: $_agentName'; }
-    else if (_waitingForAgent) { statusText = 'waiting for agent...'.tr; }
+    else if (_agentName != null) { statusText = '${'Agent'.tr}: $_agentName'; }
     else { statusText = 'online'.tr; }
 
     return GestureDetector(onTap: _dismissCopy, child: Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
+      appBar: AppBar(
+        automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
         title: Row(children: [
-          Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle), child: ClipRRect(borderRadius: BorderRadius.circular(18), child: Image.asset('assets/icons/customer_support.png', width: 24, height: 24))),
+          ClipRRect(borderRadius: BorderRadius.circular(18), child: Image.asset('assets/icons/support_header.png', width: 36, height: 36)),
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text('Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Flexible(child: Text(_agentName != null ? _agentName! : 'CampConnectU Virtual Assistant'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              const SizedBox(width: 4),
+              Image.asset('assets/images/verifybadge.png', width: 14, height: 14),
+            ]),
             const SizedBox(height: 1),
-            AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: Text(statusText, key: ValueKey(statusText), style: TextStyle(fontSize: 12, color: _isTyping ? AppColors.primaryColor : Colors.grey.shade500, fontWeight: _isTyping ? FontWeight.w500 : FontWeight.normal))),
+            Text(statusText, style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
           ])),
         ]),
       ),
@@ -278,10 +291,24 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
           }
           return const SizedBox.shrink();
         })),
-        if (_chatEnded) Padding(padding: const EdgeInsets.all(24), child: Column(children: [Text('── ${'Chat Ended'.tr} ──', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade500)), const SizedBox(height: 4), Text('Please start a new conversation.'.tr, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))])),
+        if (_chatEnded) _buildChatEnded(),
         if (!_chatEnded) SafeArea(child: Padding(padding: const EdgeInsets.all(8), child: _isRecording ? _buildRecordingBar(isDark) : _buildInputBar(isDark))),
       ]),
     ));
+  }
+
+  Widget _buildChatEnded() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.grey.shade100),
+      child: Column(children: [
+        const Icon(Iconsax.message_remove, size: 40, color: Colors.grey),
+        const SizedBox(height: 12),
+        Text('Conversation Ended'.tr, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Colors.grey.shade500)),
+        const SizedBox(height: 4),
+        Text('Please start a new conversation.'.tr, style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+      ]),
+    );
   }
 
   Widget _buildSystemMsg(Map m) { final isDark = Theme.of(context).brightness == Brightness.dark; final greyCol = isDark ? Colors.grey.shade400 : Colors.grey.shade600; return Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Center(child: Text(m['text'], textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: greyCol, fontWeight: FontWeight.w500)))); }
@@ -298,18 +325,17 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   ]);
 
   Widget _buildRecordingBar(bool isDark) {
-    List<double> displayAmps = _amplitudes.isNotEmpty ? List.from(_amplitudes) : List.filled(20, 0.1);
-    if (displayAmps.length < 20) displayAmps = [...displayAmps, ...List.filled(20 - displayAmps.length, 0.05)];
+    final displayAmps = _amplitudes.isNotEmpty ? List.from(_amplitudes) : List.filled(25, 0.1);
     return Row(children: [
       const SizedBox(width: 4),
       Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: const Icon(Iconsax.trash, size: 20, color: Colors.red), onPressed: _cancelRecording)),
       const SizedBox(width: 6),
       Expanded(child: Container(height: 52, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), padding: const EdgeInsets.symmetric(horizontal: 14), child: Row(children: [
-        _isPaused ? Icon(Iconsax.microphone_slash, size: 20, color: Colors.grey.shade400) : TweenAnimationBuilder<double>(tween: Tween(begin: 0.8, end: 1.2), duration: const Duration(milliseconds: 800), curve: Curves.easeInOut, builder: (context, scale, child) => Transform.scale(scale: scale, child: Icon(Iconsax.microphone_2, size: 20, color: Colors.red.shade400))),
+        _isPaused ? Icon(Iconsax.microphone_slash, size: 20, color: Colors.grey.shade400) : Icon(Iconsax.microphone_2, size: 20, color: Colors.orange),
         const SizedBox(width: 10),
-        Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(10), child: SizedBox(height: 32, child: Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(40).map((a) { final height = 4.0 + (a * 28); return AnimatedContainer(duration: const Duration(milliseconds: 100), margin: const EdgeInsets.symmetric(horizontal: 1.5), width: 2.5, height: height, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400.withValues(alpha: 0.4) : AppColors.primaryColor.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList())))),
+        Expanded(child: ClipRRect(borderRadius: BorderRadius.circular(10), child: SizedBox(height: 32, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return AnimatedContainer(duration: const Duration(milliseconds: 80), margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList())))),
         const SizedBox(width: 10),
-        Text(_recordTimeText, style: const TextStyle(color: AppColors.primaryColor, fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(_recordTimeText, style: TextStyle(color: Colors.orange, fontSize: 14, fontWeight: FontWeight.w600)),
       ]))),
       const SizedBox(width: 6),
       Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(_isPaused ? Iconsax.play : Iconsax.pause, size: 20, color: AppColors.primaryColor), onPressed: _pauseResumeRecording)),
