@@ -95,7 +95,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   }
 
   void _generateNewChatId() {
-    _chatId = DateTime.now().millisecondsSinceEpoch.toString();
+    _chatId = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999)}';
     _chatStartTime = DateTime.now();
   }
 
@@ -151,7 +151,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
   void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
 
-  void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
+  void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
   void _stopAgentPolling() { _agentPollTimer?.cancel(); _agentConnected = false; _waitingForAgent = false; _agentName = null; _agentProfilePic = null; _stopReassureTimer(); }
   
   void _startReassureTimer() { 
@@ -197,7 +197,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         if (type == 'text') {
           setState(() => _agentTyping = true);
           _startTypingAnimation();
-          Timer(const Duration(milliseconds: 2500), () {
+          Timer(const Duration(milliseconds: 6000), () {
             if (!mounted) return;
             setState(() { _agentTyping = false; _stopTypingAnimation(); _messages.add({'role': 'agent', 'text': txt, 'agentName': aName, 'agentPic': agentPic ?? _agentProfilePic, 'time': t, 'type': 'text'}); });
             _scrollToBottom(); _saveChat();
@@ -226,7 +226,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
     if (forceNewTopic && _agentConnected) { _generateNewChatId(); _stopAgentPolling(); }
 
-    final hasTopic = _agentConnected && !_waitingForAgent;
+    final hasTopic = _agentConnected && !_waitingForAgent && _agentName != null;
     setState(() { _isLoading = true; _isTyping = !hasTopic; });
     if (!hasTopic) _startTypingAnimation(); _scrollToBottom();
     if (!hasTopic) { final c = Completer<void>(); _typingDelayTimer = Timer(const Duration(seconds: 6), () => c.complete()); await c.future; if (!mounted || !_isLoading) return; }
@@ -244,6 +244,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
           setState(() { _stopTypingAnimation(); _isTyping = false;
             final reply = d['reply']?.toString() ?? '', action = d['action']?.toString(), status = d['agent_status']?.toString();
             if (action == 'agent_connected') {
+              if (reply.isNotEmpty) { _messages.add({'role': 'bot', 'text': reply, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'assistant', 'content': reply}); }
               if (!_agentConnected) _startAgentPolling();
               if (d['image_url'] != null && _pendingImagePath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == _pendingImagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; _pendingImagePath = null; }
               if (d['media_url'] != null && _recordedPath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; }
@@ -298,7 +299,6 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     else if (_isRecording) { statusText = 'recording...'.tr; }
     else { statusText = 'online'.tr; }
 
-    // Header icon uses support_header_icon.png
     Widget headerIcon = ClipRRect(borderRadius: BorderRadius.circular(18), child: (_agentProfilePic != null && _agentProfilePic!.isNotEmpty) ? CachedNetworkImage(imageUrl: _agentProfilePic!, width: 36, height: 36, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36)) : Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36));
 
     return GestureDetector(onTap: _dismissCopy, child: Scaffold(
@@ -349,7 +349,8 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       const SizedBox(width: 6),
       Expanded(child: Container(height: 52, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), padding: const EdgeInsets.symmetric(horizontal: 14), child: Row(children: [
         _isPaused ? Icon(Iconsax.microphone_slash, size: 20, color: Colors.grey.shade400) : Icon(Iconsax.microphone_2, size: 20, color: Colors.orange),
-        const SizedBox(width: 10), Expanded(child: SizedBox(height: 32, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return AnimatedContainer(duration: const Duration(milliseconds: 50), margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList()))),
+        const SizedBox(width: 10),
+        Expanded(child: FittedBox(fit: BoxFit.fitWidth, alignment: Alignment.centerLeft, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList()))),
         const SizedBox(width: 10), Text(_recordTimeText, style: TextStyle(color: Colors.orange, fontSize: 14, fontWeight: FontWeight.w600)),
       ]))),
       const SizedBox(width: 6), Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(_isPaused ? Iconsax.play : Iconsax.pause, size: 20, color: AppColors.primaryColor), onPressed: _pauseResumeRecording)),
@@ -365,7 +366,6 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     final canCopy = type == 'text';
     final isAgent = agentN != null && agentN != 'Luca';
     final agentPic = m['agentPic']?.toString() ?? _agentProfilePic;
-    // Bubble icon: use agent profile pic if available, otherwise customer_support.png
     final botIcon = (isAgent && agentPic != null && agentPic.isNotEmpty)
         ? ClipRRect(borderRadius: BorderRadius.circular(20), child: CachedNetworkImage(imageUrl: agentPic, width: 28, height: 28, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/customer_support.png', width: 28, height: 28)))
         : ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.asset('assets/icons/customer_support.png', width: 28, height: 28));
@@ -402,7 +402,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       final position = _voicePositions[text] ?? Duration.zero;
       final progress = totalDur.inMilliseconds > 0 ? position.inMilliseconds / totalDur.inMilliseconds : 0.0;
       final filledCount = (waveform.length * progress.clamp(0.0, 1.0)).round();
-      final displayDuration = durLabel.isNotEmpty ? durLabel : (totalDur.inSeconds > 0 ? _formatDuration(totalDur) : '');
+      final displayDuration = durLabel.isNotEmpty ? durLabel : (totalDur.inSeconds > 0 ? _formatDuration(totalDur) : (isRemote ? '0:00' : ''));
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         constraints: BoxConstraints(maxWidth: sw * 0.65),
@@ -410,7 +410,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           GestureDetector(onTap: () => _playPauseVoice(text, durationSec: durSec), child: Container(width: 34, height: 34, decoration: BoxDecoration(color: AppColors.primaryColor.withValues(alpha: 0.15), shape: BoxShape.circle), child: Icon(isPlaying ? Iconsax.pause : Iconsax.play, size: 16, color: AppColors.primaryColor))),
           const SizedBox(width: 8),
-          Expanded(child: SizedBox(height: 28, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: waveform.asMap().entries.map((e) { final h = 4.0 + (e.value * 20); final filled = e.key < filledCount; return Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: filled ? AppColors.primaryColor.withValues(alpha: 0.85) : AppColors.primaryColor.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(1.5))); }).toList()))),
+          Expanded(child: FittedBox(fit: BoxFit.fitWidth, alignment: Alignment.centerLeft, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: waveform.asMap().entries.map((e) { final h = 4.0 + (e.value * 20); final filled = e.key < filledCount; return Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: filled ? AppColors.primaryColor.withValues(alpha: 0.85) : AppColors.primaryColor.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(1.5))); }).toList()))),
           if (displayDuration.isNotEmpty) ...[const SizedBox(width: 8), Text(displayDuration, style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w500))],
         ]),
       );
