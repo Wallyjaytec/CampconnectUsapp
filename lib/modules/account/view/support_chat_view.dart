@@ -273,7 +273,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     else if (_isRecording) { statusText = 'recording...'.tr; }
     else { statusText = 'online'.tr; }
 
-    Widget headerIcon = ClipRRect(borderRadius: BorderRadius.circular(18), child: (_agentProfilePic != null && _agentProfilePic!.isNotEmpty) ? CachedNetworkImage(imageUrl: _agentProfilePic!, width: 36, height: 36, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/support_header.png', width: 36, height: 36)) : Image.asset('assets/icons/support_header.png', width: 36, height: 36));
+    Widget headerIcon = ClipRRect(borderRadius: BorderRadius.circular(18), child: (_agentProfilePic != null && _agentProfilePic!.isNotEmpty) ? CachedNetworkImage(imageUrl: _agentProfilePic!, width: 36, height: 36, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36)) : Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36));
 
     return GestureDetector(onTap: _dismissCopy, child: Scaffold(
       appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
