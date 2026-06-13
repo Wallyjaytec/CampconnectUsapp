@@ -52,8 +52,9 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   StreamSubscription? _ampSub;
   bool _playingVoice = false;
   String? _playingVoiceSource;
-  StreamSubscription? _playerStateSub;
-  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription? _audioStateSub;
+  StreamSubscription<Duration>? _audioPosSub;
+  StreamSubscription<Duration>? _audioDurSub;
 
   final Map<String, List<double>> _voiceWaveforms = {};
   final Map<String, Duration> _voicePositions = {};
@@ -106,16 +107,28 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     _dot1 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.0, 0.33)));
     _dot2 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.33, 0.66)));
     _dot3 = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _typingAnimCtrl, curve: const Interval(0.66, 1.0)));
-    _playerStateSub = _audioPlayer.onPlayerStateChanged.listen((s) {
+
+    _audioStateSub = _audioPlayer.onPlayerStateChanged.listen((state) {
       if (!mounted) return;
-      if (s == PlayerState.completed) { _playingVoice = false; _playingVoiceSource = null; _voicePositions.clear(); }
-      setState(() => _playingVoice = s == PlayerState.playing);
+      if (state == PlayerState.completed) {
+        _audioPlayer.stop();
+        setState(() {
+          _playingVoice = false;
+          _playingVoiceSource = null;
+        });
+      } else if (state == PlayerState.playing) {
+        setState(() => _playingVoice = true);
+      } else if (state == PlayerState.paused) {
+        setState(() => _playingVoice = false);
+      }
     });
-    _positionSub = _audioPlayer.onPositionChanged.listen((pos) {
+
+    _audioPosSub = _audioPlayer.onPositionChanged.listen((pos) {
       if (!mounted || _playingVoiceSource == null) return;
       setState(() => _voicePositions[_playingVoiceSource!] = pos);
     });
-    _audioPlayer.onDurationChanged.listen((dur) {
+
+    _audioDurSub = _audioPlayer.onDurationChanged.listen((dur) {
       if (!mounted || _playingVoiceSource == null) return;
       setState(() => _voiceDurations[_playingVoiceSource!] = dur);
     });
@@ -141,7 +154,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     if (s == AppLifecycleState.resumed && _wasBackgrounded) { _wasBackgrounded = false; _pollAgentReplies(); _loadFromServer(); if (_agentConnected && _agentPollTimer == null) _startAgentPolling(); _scrollToBottom(); }
   }
   @override void dispose() {
-    _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _playerStateSub?.cancel(); _positionSub?.cancel();
+    _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _audioStateSub?.cancel(); _audioPosSub?.cancel(); _audioDurSub?.cancel();
     _saveChat(); _syncToServer(); WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel(); _typingDelayTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _typingPlayer.dispose(); _recorder.dispose();
     _msgCtrl.dispose(); _scrollCtrl.dispose(); super.dispose();
@@ -219,7 +232,17 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         if (d['success'] == true) {
           setState(() { _stopTypingAnimation(); _isTyping = false;
             final reply = d['reply']?.toString() ?? '', action = d['action']?.toString(), status = d['agent_status']?.toString();
-            if (d['topic_deleted'] == true) { _chatEnded = true; _agentConnected = false; _agentTyping = false; _stopTypingAnimation(); _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()}); _stopAgentPolling(); _saveChat(); _scrollToBottom(); return; }
+            if (d['topic_deleted'] == true || d['agent_status'] == 'ended') {
+              _chatEnded = true;
+              _agentConnected = false;
+              _agentTyping = false;
+              _stopTypingAnimation();
+              _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()});
+              _stopAgentPolling();
+              _saveChat();
+              _scrollToBottom();
+              return;
+            }
             if (d['image_url'] != null && _pendingImagePath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == _pendingImagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; _pendingImagePath = null; }
             if (d['media_url'] != null && _recordedPath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; }
             if (action == 'agent_connected') {
@@ -235,6 +258,27 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     if (mounted) { setState(() => _isLoading = false); _scrollToBottom(); _saveChat(); }
   }
 
+  Future<void> _playPauseVoice(String url, {int? durationSec}) async {
+    if (_playingVoice && _playingVoiceSource == url) {
+      await _audioPlayer.pause();
+      return;
+    }
+    if (_playingVoiceSource != null && _playingVoiceSource != url) {
+      await _audioPlayer.stop();
+      _playingVoiceSource = null;
+    }
+    _playingVoiceSource = url;
+    if (!_voiceDurations.containsKey(url) && durationSec != null) {
+      _voiceDurations[url] = Duration(seconds: durationSec);
+    }
+    await _audioPlayer.setReleaseMode(ReleaseMode.stop);
+    if (url.startsWith('http')) {
+      await _audioPlayer.play(UrlSource(url));
+    } else {
+      await _audioPlayer.play(DeviceFileSource(url));
+    }
+  }
+
   Future<void> _pickImage() async { try { final img = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80); if (img != null) await _sendMessage(imagePath: img.path); } catch (_) {} }
   Future<void> _takePhoto() async { try { final img = await _picker.pickImage(source: ImageSource.camera, imageQuality: 80); if (img != null) await _sendMessage(imagePath: img.path); } catch (_) {} }
   void _showSnack(String m) { if (Get.context != null) ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(content: Text(m), backgroundColor: AppColors.primaryColor, behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2))); }
@@ -247,36 +291,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _stopRecordTimer() { _recordTimer?.cancel(); _recordTimer = null; }
   void _toggleRecording() { if (!_agentConnected || _waitingForAgent) { _showSnack('Voice messaging is available when connected to an agent.'.tr); return; } if (_isRecording) { _cancelRecording(); } else { _startRecording(); } }
 
-  Future<void> _playPauseVoice(String url, {int? durationSec}) async {
-    if (_playingVoice && _playingVoiceSource == url) {
-      await _audioPlayer.pause();
-      setState(() => _playingVoice = false);
-      return;
-    }
-    if (_playingVoice) {
-      await _audioPlayer.stop();
-      setState(() { _playingVoice = false; _playingVoiceSource = null; });
-    }
-    await _audioPlayer.setReleaseMode(ReleaseMode.release);
-    await _audioPlayer.stop();
-    _playingVoiceSource = url;
-    _voicePositions.remove(url);
-    if (durationSec != null && !_voiceDurations.containsKey(url)) {
-      _voiceDurations[url] = Duration(seconds: durationSec);
-    }
-    if (url.startsWith('http')) {
-      await _audioPlayer.play(UrlSource(url));
-    } else {
-      await _audioPlayer.play(DeviceFileSource(url));
-    }
-    setState(() => _playingVoice = true);
-  }
-
   String _formatMarkdown(String t) => t.replaceAllMapped(RegExp(r'\*\*(.*?)\*\*'), (m) => '<b>${m.group(1)}</b>').replaceAll('\n', '<br>');
   void _showError() { if (!mounted) return; setState(() { _stopTypingAnimation(); _isTyping = false; _messages.add({'role': 'bot', 'text': "We're sorry, unable to reply. Please request an agent or contact us:\n\n📧 support@campconnectus.store\n📞 +2348155763709".tr, 'time': DateTime.now(), 'type': 'text'}); _isLoading = false; }); _scrollToBottom(); _saveChat(); }
   void _saveChat() { if (_messages.length < 2) return; final chats = box.read<List>('support_chats') ?? []; chats.removeWhere((c) => c['id'] == _chatId); final last = _messages.last['text'].toString(); chats.add({'id': _chatId, 'last_message': last.length > 50 ? '${last.substring(0, 50)}...' : last, 'time': DateTime.now().toIso8601String(), 'messages': List.from(_messages), 'chat_start': _chatStartTime?.toIso8601String()}); box.write('support_chats', chats); if (chats.isNotEmpty) _syncToServer(); }
   Future<void> _syncToServer() async { try { final t = LoginService().token; if (t == null || t.isEmpty) return; final chats = box.read<List>('support_chats'); if (chats == null || chats.isEmpty) return; await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $t', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'save', 'chats': chats})); } catch (_) {} }
-  Future<void> _loadFromServer() async { try { String? t; for (int i = 0; i < 5; i++) { t = LoginService().token; if (t != null && t.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); } if (t == null || t.isEmpty) return; final resp = await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $t', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'})); final d = jsonDecode(resp.body); if (d['success'] == true && d['chats'] != null) box.write('support_chats', d['chats']); } catch (_) {} }
+  Future<void> _loadFromServer() async { try { String? t; for (int i = 0; i < 5; i++) { t = LoginService().token; if (t != null && t.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); } if (t == null || t.isEmpty) return; final resp = await http.post(Uri.parse(AppConfig.chatbotHistoryUrl()), headers: {'Authorization': 'Bearer $t', 'Content-Type': 'application/json'}, body: jsonEncode({'action': 'load'})); final d = jsonDecode(resp.body); if (d['success'] == true && d['chats'] != null) { final local = box.read<List>('support_chats') ?? []; final remote = (d['chats'] as List).cast<Map>(); final merged = List<Map>.from(local); for (final remoteChat in remote) { final idx = merged.indexWhere((l) => l['id'] == remoteChat['id']); if (idx >= 0) { final localTime = DateTime.tryParse(merged[idx]['time']?.toString() ?? '') ?? DateTime(0); final remoteTime = DateTime.tryParse(remoteChat['time']?.toString() ?? '') ?? DateTime(0); if (remoteTime.isAfter(localTime)) { merged[idx] = Map<String, dynamic>.from(remoteChat); } } else { merged.add(Map<String, dynamic>.from(remoteChat)); } } box.write('support_chats', merged); } } catch (_) {} }
   String _fmtTime(DateTime dt) { final n = DateTime.now(); if (dt.day == n.day && dt.month == n.month && dt.year == n.year) return DateFormat('h:mm a').format(dt); return DateFormat('dd/MM/yyyy').format(dt); }
   String _fmtHeader(DateTime dt) { final n = DateTime.now(); if (dt.day == n.day && dt.month == n.month && dt.year == n.year) return DateFormat('h:mm a').format(dt); if (n.difference(dt).inDays == 1) return 'Yesterday'.tr; if (n.difference(dt).inDays < 7) return '${n.difference(dt).inDays} ${'days ago'.tr}'; return DateFormat('dd/MM/yyyy').format(dt); }
   void _copyMsg(String t) { HapticFeedback.mediumImpact(); Clipboard.setData(ClipboardData(text: t)); setState(() => _copyVisibleIndex = null); }
