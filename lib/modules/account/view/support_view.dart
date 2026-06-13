@@ -53,7 +53,7 @@ class _SupportViewState extends State<SupportView> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(width: double.infinity, height: 50,
                 child: ElevatedButton(
-                  onPressed: () => Get.toNamed(AppRoutes.supportChatView)?.then((_) => setState(() {})),
+                  onPressed: () => Get.toNamed(AppRoutes.supportChatView, arguments: {'force_new': true})?.then((_) => setState(() {})),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   child: Text('New Conversation'.tr, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
