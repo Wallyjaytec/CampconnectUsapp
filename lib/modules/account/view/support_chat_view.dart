@@ -36,6 +36,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   final box = GetStorage();
   final ImagePicker _picker = ImagePicker();
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _typingPlayer = AudioPlayer();
   final Record _recorder = Record();
 
   bool _isLoading = false, _isTyping = false, _chatEnded = false, _showSuggestions = true;
@@ -125,6 +126,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       _chatId = args['chatId']?.toString(); _chatStartTime = args['chatStartTime'] != null ? DateTime.parse(args['chatStartTime'].toString()) : null;
       if (args['force_new'] == true) { _generateNewChatId(); _messages.clear(); _history.clear(); _chatEnded = false; _agentConnected = false; _agentName = null; _agentProfilePic = null; _waitingForAgent = false; _showSuggestions = true; _stopAgentPolling(); }
     } else if (args is List && args.isNotEmpty && args.first is Map) {
+      _generateNewChatId();
       final msgs = args.cast<Map<String, dynamic>>(); _showSuggestions = false;
       for (final m in msgs) _history.add({'role': m['role'], 'content': m['text']});
       if (msgs.isNotEmpty && msgs.last['role'] == 'user') WidgetsBinding.instance.addPostFrameCallback((_) => _sendMessage(prefill: msgs.last['text']));
@@ -135,20 +137,20 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
   @override void didChangePlatformBrightness() { if (mounted) setState(() {}); }
   @override void didChangeAppLifecycleState(AppLifecycleState s) {
-    if (s == AppLifecycleState.paused || s == AppLifecycleState.hidden) { _wasBackgrounded = true; _saveChat(); _syncToServer(); }
-    if (s == AppLifecycleState.resumed) { if (_agentConnected) _pollAgentReplies(); _loadFromServer(); _scrollToBottom(); }
+    if (s == AppLifecycleState.paused || s == AppLifecycleState.hidden || s == AppLifecycleState.inactive) { _wasBackgrounded = true; _saveChat(); _syncToServer(); }
+    if (s == AppLifecycleState.resumed && _wasBackgrounded) { _wasBackgrounded = false; _pollAgentReplies(); _loadFromServer(); if (_agentConnected && _agentPollTimer == null) _startAgentPolling(); _scrollToBottom(); }
   }
   @override void dispose() {
     _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _playerStateSub?.cancel(); _positionSub?.cancel();
     _saveChat(); _syncToServer(); WidgetsBinding.instance.removeObserver(this);
-    _timer?.cancel(); _typingDelayTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _recorder.dispose();
+    _timer?.cancel(); _typingDelayTimer?.cancel(); _typingAnimCtrl.dispose(); _audioPlayer.dispose(); _typingPlayer.dispose(); _recorder.dispose();
     _msgCtrl.dispose(); _scrollCtrl.dispose(); super.dispose();
   }
 
   void _startTimer() { _timer = Timer.periodic(const Duration(seconds: 30), (_) { if (mounted) setState(() {}); }); }
   void _scrollToBottom() { Future.delayed(const Duration(milliseconds: 100), () { if (_scrollCtrl.hasClients) _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut); }); }
-  void _startTypingAnimation() { _typingAnimCtrl.repeat(); try { _audioPlayer.stop(); _audioPlayer.play(AssetSource('sounds/typing_sound.m4a')); _audioPlayer.setReleaseMode(ReleaseMode.loop); } catch (_) {} }
-  void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
+  void _startTypingAnimation() { _typingAnimCtrl.repeat(); try { _typingPlayer.setReleaseMode(ReleaseMode.loop); _typingPlayer.play(AssetSource('sounds/typing_sound.m4a')); } catch (_) {} }
+  void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _typingPlayer.stop(); } catch (_) {} }
   void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
 
   void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
@@ -168,8 +170,8 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         final agentPic = r['agent_pic']?.toString();
         if (txt.startsWith('__AGENT_PIC__')) { setState(() => _agentProfilePic = txt.replaceAll('__AGENT_PIC__', '')); continue; }
         if (txt.startsWith('__AGENT_JOINED__')) { final name = txt.replaceAll('__AGENT_JOINED__', ''); setState(() { _agentName = 'Agent $name'; _waitingForAgent = false; _stopReassureTimer(); _messages.add({'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}', 'time': DateTime.now()}); }); _scrollToBottom(); continue; }
-        if (txt.contains('Chat session ended')) { setState(() { _chatEnded = true; _messages.add({'role': 'system', 'text': txt, 'time': t}); }); _stopAgentPolling(); _saveChat(); return; }
-        if (txt.contains('__TOPIC_DELETED__')) { setState(() { _chatEnded = true; _agentConnected = false; _agentName = null; _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); _saveChat(); return; }
+        if (txt.contains('Chat session ended')) { setState(() { _chatEnded = true; _agentTyping = false; _messages.add({'role': 'system', 'text': txt, 'time': t}); }); _stopTypingAnimation(); _stopAgentPolling(); _saveChat(); return; }
+        if (txt.contains('__TOPIC_DELETED__')) { setState(() { _chatEnded = true; _agentConnected = false; _agentName = null; _agentTyping = false; _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()}); }); _stopTypingAnimation(); _stopAgentPolling(); _saveChat(); return; }
         final mediaUrl = url.isNotEmpty ? url : txt;
         if (type == 'text') {
           setState(() => _agentTyping = true);
@@ -217,6 +219,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         if (d['success'] == true) {
           setState(() { _stopTypingAnimation(); _isTyping = false;
             final reply = d['reply']?.toString() ?? '', action = d['action']?.toString(), status = d['agent_status']?.toString();
+            if (d['topic_deleted'] == true) { _chatEnded = true; _agentConnected = false; _agentTyping = false; _stopTypingAnimation(); _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()}); _stopAgentPolling(); _saveChat(); _scrollToBottom(); return; }
             if (d['image_url'] != null && _pendingImagePath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == _pendingImagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; _pendingImagePath = null; }
             if (d['media_url'] != null && _recordedPath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; }
             if (action == 'agent_connected') {
@@ -254,6 +257,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       await _audioPlayer.stop();
       setState(() { _playingVoice = false; _playingVoiceSource = null; });
     }
+    await _audioPlayer.setReleaseMode(ReleaseMode.release);
     await _audioPlayer.stop();
     _playingVoiceSource = url;
     _voicePositions.remove(url);
@@ -388,7 +392,10 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       final position = _voicePositions[text] ?? Duration.zero;
       final progress = totalDur.inMilliseconds > 0 ? position.inMilliseconds / totalDur.inMilliseconds : 0.0;
       final filledCount = (waveform.length * progress.clamp(0.0, 1.0)).round();
-      final displayDuration = durLabel.isNotEmpty ? durLabel : (totalDur.inSeconds > 0 ? _formatDuration(totalDur) : (isRemote ? '0:00' : ''));
+      final remaining = totalDur - position;
+      final displayDuration = isPlaying
+          ? _formatDuration(remaining.isNegative ? Duration.zero : remaining)
+          : (durLabel.isNotEmpty ? durLabel : (totalDur.inSeconds > 0 ? _formatDuration(totalDur) : (isRemote ? '0:00' : '')));
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         constraints: BoxConstraints(maxWidth: sw * 0.65),
