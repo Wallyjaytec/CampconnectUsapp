@@ -135,8 +135,8 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
 
   @override void didChangePlatformBrightness() { if (mounted) setState(() {}); }
   @override void didChangeAppLifecycleState(AppLifecycleState s) {
-    if (s == AppLifecycleState.paused || s == AppLifecycleState.inactive || s == AppLifecycleState.hidden) { _wasBackgrounded = true; _saveChat(); _syncToServer(); }
-    if (s == AppLifecycleState.resumed && _wasBackgrounded) { _wasBackgrounded = false; if (_agentConnected) _pollAgentReplies(); _loadFromServer(); _scrollToBottom(); }
+    if (s == AppLifecycleState.paused || s == AppLifecycleState.hidden) { _wasBackgrounded = true; _saveChat(); _syncToServer(); }
+    if (s == AppLifecycleState.resumed) { if (_agentConnected) _pollAgentReplies(); _loadFromServer(); _scrollToBottom(); }
   }
   @override void dispose() {
     _stopAgentPolling(); _stopTypingAnimation(); _stopReassureTimer(); _stopRecordTimer(); _ampSub?.cancel(); _playerStateSub?.cancel(); _positionSub?.cancel();
@@ -151,30 +151,9 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _stopTypingAnimation() { _typingAnimCtrl.stop(); _typingAnimCtrl.reset(); try { _audioPlayer.stop(); } catch (_) {} }
   void _cancelRequest() { setState(() { _stopTypingAnimation(); _isTyping = false; _isLoading = false; }); _typingDelayTimer?.cancel(); }
 
-  void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
+  void _startAgentPolling() { _agentConnected = true; _waitingForAgent = true; _reassureCount = 0; _agentPollTimer?.cancel(); _agentPollTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => _pollAgentReplies()); _pollAgentReplies(); _startReassureTimer(); }
   void _stopAgentPolling() { _agentPollTimer?.cancel(); _agentConnected = false; _waitingForAgent = false; _agentName = null; _agentProfilePic = null; _stopReassureTimer(); }
-  
-  void _startReassureTimer() { 
-    _stopReassureTimer(); 
-    _reassureTimer = Timer.periodic(const Duration(minutes: 2), (_) { 
-      if (!mounted || !_waitingForAgent || _chatEnded) return; 
-      _reassureCount++; 
-      if (_reassureCount >= 4) { 
-        setState(() { 
-          _waitingForAgent = false; 
-          _agentConnected = false;
-          _agentName = null;
-          _agentProfilePic = null;
-          _messages.add({'role': 'system', 'text': 'No agents are available right now. You can still chat with me, or request an agent again later.'.tr, 'time': DateTime.now()}); 
-        }); 
-        _stopAgentPolling(); 
-        _saveChat(); 
-        return; 
-      } 
-      setState(() => _messages.add({'role': 'system', 'text': 'Still waiting for an agent. Please hold on.'.tr, 'time': DateTime.now()})); 
-      _scrollToBottom(); _saveChat(); 
-    }); 
-  }
+  void _startReassureTimer() { _stopReassureTimer(); _reassureTimer = Timer.periodic(const Duration(minutes: 2), (_) { if (!mounted || !_waitingForAgent || _chatEnded) return; _reassureCount++; if (_reassureCount >= 4) { setState(() { _waitingForAgent = false; _agentConnected = false; _agentName = null; _agentProfilePic = null; _messages.add({'role': 'system', 'text': 'No agents are available right now. You can still chat with me, or request an agent again later.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); _saveChat(); return; } setState(() => _messages.add({'role': 'system', 'text': 'Still waiting for an agent. Please hold on.'.tr, 'time': DateTime.now()})); _scrollToBottom(); _saveChat(); }); }
   void _stopReassureTimer() { _reassureTimer?.cancel(); _reassureTimer = null; }
 
   Future<void> _pollAgentReplies() async {
@@ -187,12 +166,10 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       for (final r in (d['replies'] as List)) {
         final txt = r['message']?.toString() ?? '', aName = r['agent_name']?.toString() ?? 'Agent', type = r['type']?.toString() ?? 'text', url = r['media_url']?.toString() ?? '', t = DateTime.tryParse(r['time']?.toString() ?? '') ?? DateTime.now();
         final agentPic = r['agent_pic']?.toString();
-        
         if (txt.startsWith('__AGENT_PIC__')) { setState(() => _agentProfilePic = txt.replaceAll('__AGENT_PIC__', '')); continue; }
         if (txt.startsWith('__AGENT_JOINED__')) { final name = txt.replaceAll('__AGENT_JOINED__', ''); setState(() { _agentName = 'Agent $name'; _waitingForAgent = false; _stopReassureTimer(); _messages.add({'role': 'system', 'text': '${'Agent'.tr} $name ${'has joined the conversation'.tr}', 'time': DateTime.now()}); }); _scrollToBottom(); continue; }
         if (txt.contains('Chat session ended')) { setState(() { _chatEnded = true; _messages.add({'role': 'system', 'text': txt, 'time': t}); }); _stopAgentPolling(); _saveChat(); return; }
         if (txt.contains('__TOPIC_DELETED__')) { setState(() { _chatEnded = true; _agentConnected = false; _agentName = null; _messages.add({'role': 'system', 'text': 'This conversation was closed. Please start a new conversation.'.tr, 'time': DateTime.now()}); }); _stopAgentPolling(); _saveChat(); return; }
-        
         final mediaUrl = url.isNotEmpty ? url : txt;
         if (type == 'text') {
           setState(() => _agentTyping = true);
@@ -223,14 +200,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     if (imagePath != null) { setState(() => _messages.add({'role': 'user', 'text': imagePath, 'time': DateTime.now(), 'type': 'image'})); }
     else { setState(() { _showSuggestions = false; _messages.add({'role': 'user', 'text': txt, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'user', 'content': txt}); }); }
     if (prefill == null && imagePath == null) _msgCtrl.clear(); _scrollToBottom();
-
     if (forceNewTopic && _agentConnected) { _generateNewChatId(); _stopAgentPolling(); }
-
     final hasTopic = _agentConnected && !_waitingForAgent && _agentName != null;
     setState(() { _isLoading = true; _isTyping = !hasTopic; });
     if (!hasTopic) _startTypingAnimation(); _scrollToBottom();
     if (!hasTopic) { final c = Completer<void>(); _typingDelayTimer = Timer(const Duration(seconds: 6), () => c.complete()); await c.future; if (!mounted || !_isLoading) return; }
-
     try {
       String? token; for (int i = 0; i < 5; i++) { token = LoginService().token; if (token != null && token.isNotEmpty) break; await Future.delayed(const Duration(milliseconds: 500)); }
       final uri = Uri.parse(AppConfig.chatbotChatUrl());
@@ -243,11 +217,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
         if (d['success'] == true) {
           setState(() { _stopTypingAnimation(); _isTyping = false;
             final reply = d['reply']?.toString() ?? '', action = d['action']?.toString(), status = d['agent_status']?.toString();
+            if (d['image_url'] != null && _pendingImagePath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == _pendingImagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; _pendingImagePath = null; }
+            if (d['media_url'] != null && _recordedPath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; }
             if (action == 'agent_connected') {
               if (reply.isNotEmpty) { _messages.add({'role': 'bot', 'text': reply, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'assistant', 'content': reply}); }
               if (!_agentConnected) _startAgentPolling();
-              if (d['image_url'] != null && _pendingImagePath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'image' && m['text'] == _pendingImagePath); if (idx >= 0) _messages[idx]['text'] = d['image_url']; _pendingImagePath = null; }
-              if (d['media_url'] != null && _recordedPath != null) { final idx = _messages.indexWhere((m) => m['type'] == 'voice' && m['text'] == _recordedPath); if (idx >= 0) _messages[idx]['text'] = d['media_url']; }
               if (status == 'pending') _messages.add({'role': 'system', 'text': 'Please hold on, an agent will be with you shortly.'.tr, 'time': DateTime.now()});
               if (status == 'active' && d['agent_name'] != null && _agentName == null) { _agentName = d['agent_name'].toString(); _waitingForAgent = false; _stopReassureTimer(); }
             } else if (reply.isNotEmpty) { _messages.add({'role': 'bot', 'text': reply, 'time': DateTime.now(), 'type': 'text'}); _history.add({'role': 'assistant', 'content': reply}); }
@@ -271,10 +245,26 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
   void _toggleRecording() { if (!_agentConnected || _waitingForAgent) { _showSnack('Voice messaging is available when connected to an agent.'.tr); return; } if (_isRecording) { _cancelRecording(); } else { _startRecording(); } }
 
   Future<void> _playPauseVoice(String url, {int? durationSec}) async {
-    if (_playingVoice && _playingVoiceSource == url) { await _audioPlayer.pause(); setState(() => _playingVoice = false); return; }
-    await _audioPlayer.stop(); _playingVoiceSource = url; _voicePositions.remove(url);
-    if (url.startsWith('http')) { await _audioPlayer.play(UrlSource(url)); } else { await _audioPlayer.play(DeviceFileSource(url)); }
-    if (durationSec != null) _voiceDurations[url] = Duration(seconds: durationSec);
+    if (_playingVoice && _playingVoiceSource == url) {
+      await _audioPlayer.pause();
+      setState(() => _playingVoice = false);
+      return;
+    }
+    if (_playingVoice) {
+      await _audioPlayer.stop();
+      setState(() { _playingVoice = false; _playingVoiceSource = null; });
+    }
+    await _audioPlayer.stop();
+    _playingVoiceSource = url;
+    _voicePositions.remove(url);
+    if (durationSec != null && !_voiceDurations.containsKey(url)) {
+      _voiceDurations[url] = Duration(seconds: durationSec);
+    }
+    if (url.startsWith('http')) {
+      await _audioPlayer.play(UrlSource(url));
+    } else {
+      await _audioPlayer.play(DeviceFileSource(url));
+    }
     setState(() => _playingVoice = true);
   }
 
@@ -293,14 +283,11 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
     final uColor = isDark ? Colors.white : Colors.grey.shade900, bColor = isDark ? Colors.white : Colors.grey.shade900;
     final bBubble = isDark ? Colors.deepOrange.shade300 : Colors.grey.shade200, uBubble = isDark ? AppColors.primaryColor.withValues(alpha: 0.35) : AppColors.primaryColor.withValues(alpha: 0.15);
     final sw = MediaQuery.of(context).size.width, copyCol = isDark ? Colors.white : Colors.black;
-
     String statusText;
     if (_isTyping || _agentTyping) { statusText = 'typing...'.tr; }
     else if (_isRecording) { statusText = 'recording...'.tr; }
     else { statusText = 'online'.tr; }
-
     Widget headerIcon = ClipRRect(borderRadius: BorderRadius.circular(18), child: (_agentProfilePic != null && _agentProfilePic!.isNotEmpty) ? CachedNetworkImage(imageUrl: _agentProfilePic!, width: 36, height: 36, fit: BoxFit.cover, errorWidget: (_, __, ___) => Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36)) : Image.asset('assets/icons/support_header_icon.png', width: 36, height: 36));
-
     return GestureDetector(onTap: _dismissCopy, child: Scaffold(
       appBar: AppBar(automaticallyImplyLeading: false, leadingWidth: 44, leading: const BackIconWidget(), centerTitle: false, titleSpacing: 0,
         title: Row(children: [headerIcon, const SizedBox(width: 10),
@@ -349,8 +336,7 @@ class _SupportChatViewState extends State<SupportChatView> with TickerProviderSt
       const SizedBox(width: 6),
       Expanded(child: Container(height: 52, decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), padding: const EdgeInsets.symmetric(horizontal: 14), child: Row(children: [
         _isPaused ? Icon(Iconsax.microphone_slash, size: 20, color: Colors.grey.shade400) : Icon(Iconsax.microphone_2, size: 20, color: Colors.orange),
-        const SizedBox(width: 10),
-        Expanded(child: FittedBox(fit: BoxFit.fitWidth, alignment: Alignment.centerLeft, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList()))),
+        const SizedBox(width: 10), Expanded(child: FittedBox(fit: BoxFit.fitWidth, alignment: Alignment.centerLeft, child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: displayAmps.take(35).map((a) { final h = 4.0 + (a * 28); return Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 2.5, height: h, decoration: BoxDecoration(color: _isPaused ? Colors.grey.shade400 : Colors.orange.withValues(alpha: 0.5 + a * 0.5), borderRadius: BorderRadius.circular(2))); }).toList()))),
         const SizedBox(width: 10), Text(_recordTimeText, style: TextStyle(color: Colors.orange, fontSize: 14, fontWeight: FontWeight.w600)),
       ]))),
       const SizedBox(width: 6), Container(decoration: BoxDecoration(color: isDark ? AppColors.darkCardColor : AppColors.lightCardColor, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey.shade300)), child: IconButton(icon: Icon(_isPaused ? Iconsax.play : Iconsax.pause, size: 20, color: AppColors.primaryColor), onPressed: _pauseResumeRecording)),
